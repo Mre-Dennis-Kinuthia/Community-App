@@ -109,9 +109,9 @@ export default function CommunityPage() {
         <Breadcrumbs items={[{ label: "Community" }]} />
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
           <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight">Community Directory</h1>
+            <h1 className="text-3xl font-semibold tracking-tight">Innovation Community</h1>
             <p className="text-muted-foreground text-base">
-              Connect with innovators and entrepreneurs at Impact Hub Nairobi.
+              Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions.
             </p>
           </div>
           <Button variant="outline" className="shadow-sm">My Connections</Button>

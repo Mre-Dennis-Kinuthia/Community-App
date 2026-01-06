@@ -72,9 +72,9 @@ export default function ResourcesPage() {
       <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Resources" }]} />
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">Resource Library</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Programs & Resources</h1>
           <p className="text-muted-foreground text-base">
-            Access curated guides, templates, and tools to help your business grow.
+            Access mentorship programs, workshops, guides, and tools to scale your social impact venture.
           </p>
         </div>
 

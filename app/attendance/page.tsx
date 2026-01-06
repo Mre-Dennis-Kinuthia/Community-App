@@ -63,7 +63,9 @@ export default function AttendancePage() {
         <Breadcrumbs items={[{ label: "Attendance" }]} />
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight">Check-in & Attendance</h1>
-          <p className="text-muted-foreground text-base">Log your hub visits and track your presence.</p>
+          <p className="text-muted-foreground text-base">
+            Log your hub visits and track your engagement with the innovation community.
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">

@@ -39,12 +39,14 @@ export default function HomePage() {
       <section className="container flex flex-col items-center justify-center px-4 py-20 md:py-32 text-center space-y-8">
         <div className="space-y-6 max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-semibold tracking-tight">
-            Work For{" "}
-            <span className="text-primary">Yourself</span>.
+            Build a{" "}
+            <span className="text-primary">Just & Sustainable</span>{" "}
+            Future.
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            Impact Hub Nairobi helps you book spaces, connect with innovators, 
-            and grow your business. All in one place.
+            Impact Hub Nairobi connects entrepreneurs, innovators, and changemakers 
+            to create solutions for local and global challenges. Join Kenya's leading 
+            innovation community.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             <Link href="/register">
@@ -60,7 +62,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p className="text-sm text-muted-foreground pt-4">
-            Used by over 500+ entrepreneurs and innovators in Nairobi
+            Part of the global Impact Hub network • 100+ hubs worldwide • Supporting social innovation since 2022
           </p>
         </div>
       </section>
@@ -69,33 +71,34 @@ export default function HomePage() {
       <section className="container px-4 py-20 md:py-32">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-            Impact Hub is Simple.
+            Impact Hub is{" "}
+            <span className="text-primary">Simple</span>.
           </h2>
         </div>
         <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {[
             {
               step: "1",
-              title: "Join the Community",
-              description: "Create your profile and connect with like-minded entrepreneurs and innovators.",
+              title: "Join the Innovation Community",
+              description: "Connect with social entrepreneurs, startups, and changemakers building sustainable solutions.",
               icon: Users,
             },
             {
               step: "2",
-              title: "Book Your Space",
-              description: "Reserve meeting rooms, workspaces, or event spaces in minutes.",
+              title: "Book Your Workspace",
+              description: "Reserve meeting rooms, collaboration zones, and wellness studios at our Ikigai partnership space.",
               icon: Calendar,
             },
             {
               step: "3",
-              title: "Access Resources",
-              description: "Get templates, guides, and tools to help your business grow.",
+              title: "Access Programs & Resources",
+              description: "Join programs, access mentorship, and get tools to scale your social impact venture.",
               icon: BookOpen,
             },
             {
               step: "4",
-              title: "Make Connections",
-              description: "Network with members, attend events, and build your business.",
+              title: "Create Lasting Impact",
+              description: "Connect with partners, investors, and the public sector to build a just and sustainable society.",
               icon: TrendingUp,
             },
           ].map((item, index) => {
@@ -137,19 +140,19 @@ export default function HomePage() {
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
               Impact Hub is for{" "}
-              <span className="text-primary">Innovators</span>
+              <span className="text-primary">Changemakers</span>
             </h2>
           </div>
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
-              "Entrepreneurs",
+              "Social Entrepreneurs",
               "Startup Founders",
-              "Freelancers",
-              "Designers",
-              "Developers",
-              "Consultants",
-              "Event Organizers",
+              "SME Leaders",
+              "Innovators",
               "Community Builders",
+              "Impact Investors",
+              "Program Managers",
+              "Sustainability Advocates",
             ].map((role, index) => (
               <Card
                 key={index}
@@ -172,49 +175,49 @@ export default function HomePage() {
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
             Everything you need to{" "}
-            <span className="text-primary">grow your business</span>
+            <span className="text-primary">scale your impact</span>
           </h2>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {[
             {
-              title: "Space Booking",
-              description: "Reserve meeting rooms and workspaces instantly",
+              title: "Workspace Booking",
+              description: "Reserve meeting rooms, collaboration zones, and wellness studios",
               icon: Calendar,
             },
             {
-              title: "Community Directory",
-              description: "Connect with innovators and entrepreneurs",
+              title: "Innovation Community",
+              description: "Connect with social entrepreneurs and changemakers",
               icon: Users,
             },
             {
-              title: "Resource Library",
-              description: "Access guides, templates, and business tools",
+              title: "Programs & Resources",
+              description: "Access mentorship, workshops, and impact tools",
               icon: BookOpen,
             },
             {
               title: "Attendance Tracking",
-              description: "Log your hub visits and track your presence",
+              description: "Log your hub visits and track your engagement",
               icon: Clock,
             },
             {
               title: "Member Profiles",
-              description: "Showcase your skills and connect with others",
+              description: "Showcase your impact and connect with partners",
               icon: Sparkles,
             },
             {
-              title: "Event Management",
-              description: "Discover and join community events",
+              title: "Events & Workshops",
+              description: "Discover programs and networking events",
               icon: Zap,
             },
             {
-              title: "Analytics Dashboard",
-              description: "Track your bookings and community engagement",
+              title: "Impact Analytics",
+              description: "Track your progress and community engagement",
               icon: TrendingUp,
             },
             {
-              title: "24/7 Access",
-              description: "Check in anytime and work on your schedule",
+              title: "Global Network",
+              description: "Access 100+ Impact Hubs worldwide",
               icon: CheckCircle2,
             },
           ].map((feature, index) => {
@@ -247,10 +250,13 @@ export default function HomePage() {
       <section className="bg-primary/5 py-20 md:py-32">
         <div className="container px-4 text-center space-y-8">
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-            Life is too short to work alone.
+            Together, we build a{" "}
+            <span className="text-primary">just and sustainable</span>{" "}
+            society.
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join a community of innovators, entrepreneurs, and creators building the future in Nairobi.
+            Join Impact Hub Nairobi and connect with entrepreneurs, partners, investors, 
+            and the public sector to create lasting social impact.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
@@ -277,11 +283,16 @@ export default function HomePage() {
               <span className="font-semibold">Impact Hub Nairobi</span>
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
-              <Link href="#" className="hover:text-foreground transition-colors">
-                About
+              <Link 
+                href="https://nairobi.impacthub.net/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors"
+              >
+                About Impact Hub
               </Link>
               <Link href="#" className="hover:text-foreground transition-colors">
-                Pricing
+                Programs
               </Link>
               <Link href="#" className="hover:text-foreground transition-colors">
                 Contact
@@ -291,8 +302,20 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="mt-8 text-center text-sm text-muted-foreground">
+          <div className="mt-8 text-center space-y-2 text-sm text-muted-foreground">
             <p>© 2026 Impact Hub Nairobi. All rights reserved.</p>
+            <p className="text-xs">
+              Part of the global{" "}
+              <Link 
+                href="https://impacthub.net" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Impact Hub network
+              </Link>
+              {" "}• 100+ hubs worldwide
+            </p>
           </div>
         </div>
       </footer>

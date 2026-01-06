@@ -1,4 +1,20 @@
-# Impact Hub Nairobi app
+# Impact Hub Nairobi - Community Platform
+
+A product by [Impact Hub Nairobi](https://nairobi.impacthub.net/) - Part of the global Impact Hub network
+
+This platform helps members of Impact Hub Nairobi:
+- Book workspaces and meeting rooms
+- Connect with the innovation community
+- Access programs, resources, and mentorship
+- Track attendance and engagement
+- Scale their social impact ventures
+
+**About Impact Hub Nairobi:**
+- Part of the global Impact Hub network (100+ hubs worldwide)
+- Established in 2022
+- Focus on social innovation and entrepreneurship
+- Partnership with Ikigai for coworking spaces
+- Mission: Build a just and sustainable society
 
 *Automatically synced with your [v0.app](https://v0.app) deployments*
 

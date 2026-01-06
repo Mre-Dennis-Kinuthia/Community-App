@@ -116,8 +116,10 @@ export default function BookingPage() {
       <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Book Space" }]} />
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">Book a Space</h1>
-          <p className="text-muted-foreground text-base">Reserve meeting rooms or workspaces for your next session.</p>
+          <h1 className="text-3xl font-semibold tracking-tight">Book Your Workspace</h1>
+          <p className="text-muted-foreground text-base">
+            Reserve meeting rooms, collaboration zones, and wellness studios at our Ikigai partnership space.
+          </p>
         </div>
 
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

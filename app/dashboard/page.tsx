@@ -29,7 +29,9 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight">{greeting}, {userName}</h1>
-          <p className="text-muted-foreground text-base">Welcome back to the Impact Hub Nairobi community.</p>
+          <p className="text-muted-foreground text-base">
+            Welcome back to Impact Hub Nairobi. Continue building your impact.
+          </p>
         </div>
         <Button asChild className="shadow-sm">
           <Link href="/booking">
