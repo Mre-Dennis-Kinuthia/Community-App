@@ -13,6 +13,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { WelcomeModal } from "@/components/welcome-modal"
+import { Celebration } from "@/components/celebration"
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -32,6 +34,8 @@ export default function DashboardPage() {
 
   return (
     <TooltipProvider>
+      <WelcomeModal />
+      <Celebration />
       <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Dashboard" }]} />
         <div className="flex items-center justify-between">
@@ -109,7 +113,19 @@ export default function DashboardPage() {
         )}
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50" onClick={() => window.location.href = "/booking"}>
+          <Card 
+            className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            onClick={() => window.location.href = "/booking"}
+            role="button"
+            tabIndex={0}
+            aria-label="View booking credits and book workspace"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                window.location.href = "/booking"
+              }
+            }}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 <CardTitle className="text-sm font-medium">Credits Remaining</CardTitle>
@@ -129,7 +145,19 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground">Meeting room allowance</p>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50" onClick={() => window.location.href = "/profile"}>
+          <Card 
+            className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            onClick={() => window.location.href = "/profile"}
+            role="button"
+            tabIndex={0}
+            aria-label="View community status and profile"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                window.location.href = "/profile"
+              }
+            }}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="flex items-center gap-2">
                 <CardTitle className="text-sm font-medium">Community Status</CardTitle>
@@ -149,7 +177,19 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground">Fixed Desk Plan</p>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50" onClick={() => window.location.href = "/attendance"}>
+          <Card 
+            className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            onClick={() => window.location.href = "/attendance"}
+            role="button"
+            tabIndex={0}
+            aria-label="View check-in history and attendance"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                window.location.href = "/attendance"
+              }
+            }}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Check-ins This Week</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
@@ -159,7 +199,19 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground">Consistent attendance!</p>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50" onClick={() => window.location.href = "/community"}>
+          <Card 
+            className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            onClick={() => window.location.href = "/community"}
+            role="button"
+            tabIndex={0}
+            aria-label="View new messages from community"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                window.location.href = "/community"
+              }
+            }}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">New Messages</CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -153,10 +154,24 @@ const categoryColors: Record<string, string> = {
 }
 
 export default function PartnersPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [typeFilter, setTypeFilter] = useState<string>("all")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
+  const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
+  const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
   const [selectedPartner, setSelectedPartner] = useState<typeof partners[0] | null>(null)
+
+  // Update URL params when filters change
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (searchQuery) params.set("search", searchQuery)
+    if (typeFilter !== "all") params.set("type", typeFilter)
+    if (categoryFilter !== "all") params.set("category", categoryFilter)
+    
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+    router.replace(newUrl, { scroll: false })
+  }, [searchQuery, typeFilter, categoryFilter, router])
 
   const filteredPartners = useMemo(() => {
     return partners.filter((partner) => {
@@ -178,7 +193,14 @@ export default function PartnersPage() {
     setTypeFilter("all")
     setCategoryFilter("all")
     setSearchQuery("")
+    router.replace(window.location.pathname, { scroll: false })
   }
+
+  const activeFilterCount = [
+    typeFilter !== "all",
+    categoryFilter !== "all",
+    searchQuery.length > 0,
+  ].filter(Boolean).length
 
   const uniqueTypes = Array.from(new Set(partners.map((p) => p.type)))
   const uniqueCategories = Array.from(new Set(partners.map((p) => p.category)))
@@ -245,6 +267,11 @@ export default function PartnersPage() {
               className="pl-9 shadow-sm"
             />
           </div>
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="hidden md:flex">
+              {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
+            </Badge>
+          )}
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-full md:w-[180px] shadow-sm">
               <SelectValue placeholder="All Types" />

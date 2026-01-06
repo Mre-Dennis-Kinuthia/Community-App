@@ -12,9 +12,9 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
   
-  /* Soft pastel yellow for primary actions - friendly and approachable */
-  --primary: oklch(0.85 0.12 95);
-  --primary-foreground: oklch(0.25 0 0);
+  /* Soft pastel yellow for primary actions - darker for WCAG AA contrast */
+  --primary: oklch(0.70 0.15 95);
+  --primary-foreground: oklch(0.20 0 0);
   
   /* Soft pastel light blue for secondary elements */
   --secondary: oklch(0.92 0.04 240);
@@ -22,7 +22,7 @@
   
   /* Very light neutrals for muted backgrounds */
   --muted: oklch(0.97 0.002 285);
-  --muted-foreground: oklch(0.45 0.01 285);
+  --muted-foreground: oklch(0.50 0.01 285);
   
   /* Soft pastel green for accents */
   --accent: oklch(0.93 0.05 150);
@@ -67,14 +67,14 @@
   --popover-foreground: oklch(0.95 0 0);
   
   /* Softer pastels for dark mode */
-  --primary: oklch(0.75 0.10 95);
-  --primary-foreground: oklch(0.12 0 0);
+  --primary: oklch(0.75 0.12 95);
+  --primary-foreground: oklch(0.10 0 0);
   
   --secondary: oklch(0.70 0.06 240);
   --secondary-foreground: oklch(0.95 0 0);
   
   --muted: oklch(0.20 0.002 285);
-  --muted-foreground: oklch(0.65 0.01 285);
+  --muted-foreground: oklch(0.70 0.01 285);
   
   --accent: oklch(0.22 0.002 285);
   --accent-foreground: oklch(0.95 0 0);
@@ -201,5 +201,30 @@
     overflow: visible;
     clip: auto;
     white-space: normal;
+  }
+  
+  /* Enhanced focus indicators for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) - 2px);
+  }
+  
+  /* Minimum touch target sizes (44x44px) */
+  button, a, [role="button"], [tabindex="0"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Icon buttons specifically */
+  button[class*="icon"], button[size="icon"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Navigation items */
+  nav a, nav button {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
   }
 }

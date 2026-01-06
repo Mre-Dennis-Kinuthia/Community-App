@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -18,7 +19,8 @@ import {
   Sparkles,
   TrendingUp,
   BookOpen,
-  Users2
+  Users2,
+  Loader2
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
@@ -132,13 +134,37 @@ const categoryColors: Record<string, string> = {
 }
 
 export default function EventsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [typeFilter, setTypeFilter] = useState<string>("all")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
+  const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
+  const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
+  const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("status") || "all")
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    searchParams.get("date") ? new Date(searchParams.get("date")!) : undefined
+  )
+  const [registering, setRegistering] = useState<Record<number, boolean>>({})
+
+  // Update URL params when filters change
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (searchQuery) params.set("search", searchQuery)
+    if (typeFilter !== "all") params.set("type", typeFilter)
+    if (categoryFilter !== "all") params.set("category", categoryFilter)
+    if (statusFilter !== "all") params.set("status", statusFilter)
+    if (selectedDate) params.set("date", selectedDate.toISOString().split("T")[0])
+    
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+    router.replace(newUrl, { scroll: false })
+  }, [searchQuery, typeFilter, categoryFilter, statusFilter, selectedDate, router])
 
   const filteredEvents = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const nextWeek = new Date(today)
+    nextWeek.setDate(today.getDate() + 7)
+    
     return events.filter((event) => {
       const matchesSearch = 
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -154,20 +180,69 @@ export default function EventsPage() {
          event.date.getMonth() === selectedDate.getMonth() &&
          event.date.getFullYear() === selectedDate.getFullYear())
 
-      return matchesSearch && matchesType && matchesCategory && matchesStatus && matchesDate
+      // "This Week" preset filter (if no specific date selected and status is "all")
+      const isThisWeek = !selectedDate && statusFilter === "all" && 
+        event.date >= today && event.date <= nextWeek
+
+      return matchesSearch && matchesType && matchesCategory && matchesStatus && (matchesDate || isThisWeek)
     })
   }, [searchQuery, typeFilter, categoryFilter, statusFilter, selectedDate])
 
-  const handleRegister = (eventId: number) => {
+  const handleRegister = async (eventId: number) => {
     const event = events.find((e) => e.id === eventId)
     if (event?.status === "Full") {
       toast.error("This event is full. Please check for waitlist options.")
       return
     }
+    
+    setRegistering({ ...registering, [eventId]: true })
+    
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    
     toast.success(`Registered for "${event?.title}"! You'll receive a confirmation email shortly.`)
+    setRegistering({ ...registering, [eventId]: false })
   }
 
   const hasActiveFilters = typeFilter !== "all" || categoryFilter !== "all" || statusFilter !== "all" || selectedDate
+
+  const filterPresets = [
+    {
+      label: "Upcoming Events",
+      action: () => {
+        const today = new Date()
+        setSelectedDate(undefined)
+        setTypeFilter("all")
+        setCategoryFilter("all")
+        setStatusFilter("Open")
+        setSearchQuery("")
+      },
+    },
+    {
+      label: "This Week",
+      action: () => {
+        const today = new Date()
+        const nextWeek = new Date(today)
+        nextWeek.setDate(today.getDate() + 7)
+        setSelectedDate(undefined)
+        setTypeFilter("all")
+        setCategoryFilter("all")
+        setStatusFilter("all")
+        setSearchQuery("")
+        // Filter will be applied in filteredEvents
+      },
+    },
+    {
+      label: "Programs Only",
+      action: () => {
+        setTypeFilter("Program")
+        setCategoryFilter("all")
+        setStatusFilter("all")
+        setSelectedDate(undefined)
+        setSearchQuery("")
+      },
+    },
+  ]
 
   const clearFilters = () => {
     setTypeFilter("all")
@@ -175,7 +250,16 @@ export default function EventsPage() {
     setStatusFilter("all")
     setSelectedDate(undefined)
     setSearchQuery("")
+    router.replace(window.location.pathname, { scroll: false })
   }
+
+  const activeFilterCount = [
+    typeFilter !== "all",
+    categoryFilter !== "all",
+    statusFilter !== "all",
+    !!selectedDate,
+    searchQuery.length > 0,
+  ].filter(Boolean).length
 
   return (
     <DashboardLayout>
@@ -186,6 +270,21 @@ export default function EventsPage() {
           <p className="text-muted-foreground text-base">
             Discover workshops, networking events, and programs to accelerate your social impact journey.
           </p>
+        </div>
+
+        {/* Filter Presets */}
+        <div className="flex flex-wrap gap-2">
+          {filterPresets.map((preset) => (
+            <Button
+              key={preset.label}
+              variant="outline"
+              size="sm"
+              onClick={preset.action}
+              className="shadow-sm"
+            >
+              {preset.label}
+            </Button>
+          ))}
         </div>
 
         {/* Filters */}
@@ -199,6 +298,11 @@ export default function EventsPage() {
               className="pl-9 shadow-sm"
             />
           </div>
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="hidden md:flex">
+              {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
+            </Badge>
+          )}
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-full md:w-[180px] shadow-sm">
               <SelectValue placeholder="All Types" />
@@ -354,10 +458,19 @@ export default function EventsPage() {
                       <div className="flex items-center justify-between pt-2">
                         <Button
                           onClick={() => handleRegister(event.id)}
-                          disabled={isFull}
+                          disabled={isFull || registering[event.id]}
                           className="shadow-sm"
                         >
-                          {isFull ? "Waitlist" : "Register Now"}
+                          {registering[event.id] ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Registering...
+                            </>
+                          ) : isFull ? (
+                            "Waitlist"
+                          ) : (
+                            "Register Now"
+                          )}
                         </Button>
                         {!isFull && (
                           <span className="text-sm text-muted-foreground">

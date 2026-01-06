@@ -64,6 +64,13 @@ export default function BookingPage() {
   const [selectedSpaces, setSelectedSpaces] = useState<Record<number, { time: string; space: typeof spaces[0] }>>({})
   const [capacityFilter, setCapacityFilter] = useState<string>("all")
   const [showBooked, setShowBooked] = useState(false)
+  const [isBooking, setIsBooking] = useState<Record<number, boolean>>({})
+  const [isFirstBooking, setIsFirstBooking] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !localStorage.getItem("hasBookedBefore")
+    }
+    return false
+  })
 
   const handleTimeSelect = (spaceId: number, time: string) => {
     const space = spaces.find((s) => s.id === spaceId)
@@ -82,22 +89,43 @@ export default function BookingPage() {
     }
   }
 
-  const handleBook = (spaceId: number) => {
+  const handleBook = async (spaceId: number) => {
     const selection = selectedSpaces[spaceId]
     if (selection) {
       if (!selectedDate) {
         toast.warning("Please select a date", "Choose a date from the calendar first")
         return
       }
-      // In real app, this would make an API call
+      
+      setIsBooking({ ...isBooking, [spaceId]: true })
+      
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      
+      // Mark as first booking for celebration
+      const isFirst = isFirstBooking
+      if (isFirst && typeof window !== "undefined") {
+        localStorage.setItem("hasBookedBefore", "true")
+        setIsFirstBooking(false)
+      }
+      
       toast.success(
         "Booking confirmed!",
         `${selection.space.name} on ${format(selectedDate, "PPP")} at ${selection.time}`
       )
+      
+      // Trigger celebration for first booking
+      if (isFirst) {
+        // Confetti effect (we'll add a simple visual celebration)
+        const confettiEvent = new CustomEvent("celebrate", { detail: { type: "firstBooking" } })
+        window.dispatchEvent(confettiEvent)
+      }
+      
       // Clear selection after booking
       const newSelected = { ...selectedSpaces }
       delete newSelected[spaceId]
       setSelectedSpaces(newSelected)
+      setIsBooking({ ...isBooking, [spaceId]: false })
     }
   }
 
@@ -240,8 +268,16 @@ export default function BookingPage() {
                               size="sm"
                               className="mt-2"
                               onClick={() => handleBook(space.id)}
+                              disabled={isBooking[space.id]}
                             >
-                              Confirm Booking
+                              {isBooking[space.id] ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Booking...
+                                </>
+                              ) : (
+                                "Confirm Booking"
+                              )}
                             </Button>
                           )}
                         </div>

@@ -76,11 +76,25 @@ const industries = ["All", "Design", "FinTech", "AgriTech", "E-commerce"]
 const roles = ["All", "UX Designer", "Software Engineer", "Founder", "Marketing lead"]
 
 export default function CommunityPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedIndustry, setSelectedIndustry] = useState("All")
-  const [selectedRole, setSelectedRole] = useState("All")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
+  const [selectedIndustry, setSelectedIndustry] = useState(searchParams.get("industry") || "All")
+  const [selectedRole, setSelectedRole] = useState(searchParams.get("role") || "All")
   const [selectedMember, setSelectedMember] = useState<typeof members[0] | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+
+  // Update URL params when filters change
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (searchQuery) params.set("search", searchQuery)
+    if (selectedIndustry !== "All") params.set("industry", selectedIndustry)
+    if (selectedRole !== "All") params.set("role", selectedRole)
+    
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+    router.replace(newUrl, { scroll: false })
+  }, [searchQuery, selectedIndustry, selectedRole, router])
 
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
@@ -122,16 +136,21 @@ export default function CommunityPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col gap-4 md:flex-row">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              className="pl-10"
+              className="pl-10 shadow-sm"
               placeholder="Search by name, skill, or industry..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="hidden md:flex">
+              {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
+            </Badge>
+          )}
           <div className="flex gap-2">
             <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
               <SelectTrigger className="w-[140px]">

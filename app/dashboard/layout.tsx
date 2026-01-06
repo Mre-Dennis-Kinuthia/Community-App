@@ -20,6 +20,7 @@ import { handleLogout } from "@/app/actions/auth-actions"
 import { MobileNav } from "@/components/mobile-nav"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { NotificationCenter } from "@/components/notification-center"
+import { GlobalSearch } from "@/components/global-search"
 
 export function DashboardLayout({
   children,
@@ -44,12 +45,15 @@ export function DashboardLayout({
             </Link>
           </div>
           <div className="flex items-center gap-2">
+            <div className="hidden md:block">
+              <GlobalSearch />
+            </div>
             <NotificationCenter />
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="h-9 w-9"
+              className="min-h-[44px] min-w-[44px]"
               aria-label="Toggle theme"
             >
               {mounted && theme === "dark" ? (
@@ -60,7 +64,7 @@ export function DashboardLayout({
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Button variant="ghost" className="relative min-h-[44px] min-w-[44px] rounded-full">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="/placeholder-user.jpg" alt="User" />
                     <AvatarFallback>JD</AvatarFallback>
@@ -106,7 +110,9 @@ export function DashboardLayout({
         <aside className="hidden w-[220px] flex-col border-r border-border/50 bg-sidebar/30 md:flex">
           <DashboardNav />
         </aside>
-        <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8">{children}</main>
+        <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8">
+          {children}
+        </main>
       </div>
       <MobileBottomNav />
     </div>

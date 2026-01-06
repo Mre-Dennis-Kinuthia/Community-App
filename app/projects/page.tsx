@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -157,10 +158,24 @@ const stageColors: Record<string, string> = {
 }
 
 export default function ProjectsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState<string>("all")
-  const [stageFilter, setStageFilter] = useState<string>("all")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
+  const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
+  const [stageFilter, setStageFilter] = useState<string>(searchParams.get("stage") || "all")
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null)
+
+  // Update URL params when filters change
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (searchQuery) params.set("search", searchQuery)
+    if (categoryFilter !== "all") params.set("category", categoryFilter)
+    if (stageFilter !== "all") params.set("stage", stageFilter)
+    
+    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
+    router.replace(newUrl, { scroll: false })
+  }, [searchQuery, categoryFilter, stageFilter, router])
 
   const filteredProjects = useMemo(() => {
     return projects.filter((project) => {
@@ -183,7 +198,14 @@ export default function ProjectsPage() {
     setCategoryFilter("all")
     setStageFilter("all")
     setSearchQuery("")
+    router.replace(window.location.pathname, { scroll: false })
   }
+
+  const activeFilterCount = [
+    categoryFilter !== "all",
+    stageFilter !== "all",
+    searchQuery.length > 0,
+  ].filter(Boolean).length
 
   const uniqueCategories = Array.from(new Set(projects.map((p) => p.category)))
   const uniqueStages = Array.from(new Set(projects.map((p) => p.stage)))
@@ -250,6 +272,11 @@ export default function ProjectsPage() {
               className="pl-9 shadow-sm"
             />
           </div>
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="hidden md:flex">
+              {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
+            </Badge>
+          )}
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-full md:w-[180px] shadow-sm">
               <SelectValue placeholder="All Categories" />
