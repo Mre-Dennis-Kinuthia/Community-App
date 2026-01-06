@@ -21,6 +21,13 @@ import {
   Bell
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { format, formatDistanceToNow } from "date-fns"
 
 const newsItems = [
