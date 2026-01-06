@@ -35,7 +35,20 @@ import {
 } from "lucide-react"
 
 // Accordion component for FAQ
-function AccordionItem({ question, answer, isOpen, onToggle }: { question: string; answer: string; isOpen: boolean; onToggle: () => void }) {
+interface AccordionItemProps {
+  question: string
+  answer: string
+  isOpen: boolean
+  onToggle: () => void
+  key?: number | string // React's special key prop
+}
+
+function AccordionItem({ 
+  question, 
+  answer, 
+  isOpen, 
+  onToggle 
+}: AccordionItemProps) {
   return (
     <div className="border-b border-border/50">
       <button
@@ -134,9 +147,12 @@ export default function HomePage() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Building2 className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-lg">Impact Hub Nairobi</span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-lg leading-tight">Community Platform</span>
+              <span className="text-xs text-muted-foreground leading-tight">Powered by Impact Hub Nairobi</span>
+            </div>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <a href="#how-it-works" className="hover:text-primary transition-colors">How it Works</a>
@@ -211,9 +227,15 @@ export default function HomePage() {
                   </span>
                 </h1>
                 <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-                  Join Kenya's leading innovation community. Connect with changemakers, 
-                  access resources, and build sustainable solutions for local and global challenges.
+                  Impact Hub Nairobi's digital platform connecting Kenya's innovation community. 
+                  Access programs, resources, and opportunities distributed through our network.
                 </p>
+                <div className="flex items-center justify-center gap-2 pt-2">
+                  <Badge className="bg-white/10 text-white border-white/20 px-3 py-1">
+                    <Zap className="h-3 w-3 mr-1.5" />
+                    Powered by Impact Hub Nairobi
+                  </Badge>
+                </div>
               </div>
 
               {/* Trust Badges */}
@@ -263,7 +285,8 @@ export default function HomePage() {
               </div>
 
               <p className="text-sm text-white/60 pt-4">
-                Part of the global Impact Hub network • 100+ hubs worldwide • Supporting social innovation since 2022
+                Official distribution channel for Impact Hub Nairobi programs and resources • 
+                Part of the global Impact Hub network • 100+ hubs worldwide
               </p>
             </div>
           </div>
@@ -284,7 +307,7 @@ export default function HomePage() {
                   <CardTitle className="text-xl">Grow Your Network</CardTitle>
                 </div>
                 <CardDescription>
-                  Connect with 500+ social entrepreneurs, investors, and changemakers
+                  Connect with Impact Hub Nairobi's community of 500+ social entrepreneurs, investors, and changemakers
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -312,7 +335,7 @@ export default function HomePage() {
                   <CardTitle className="text-xl">Access Programs</CardTitle>
                 </div>
                 <CardDescription>
-                  Join acceleration programs, workshops, and mentorship sessions
+                  Access Impact Hub Nairobi's acceleration programs, workshops, and mentorship sessions distributed through this platform
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -342,7 +365,7 @@ export default function HomePage() {
                   <CardTitle className="text-xl">Track Your Impact</CardTitle>
                 </div>
                 <CardDescription>
-                  Monitor your progress and community engagement metrics
+                  Monitor your progress and engagement with Impact Hub Nairobi's programs and community
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -365,10 +388,13 @@ export default function HomePage() {
       {/* Partner Logos Section */}
       <section className="container px-4 py-16 md:py-24 bg-muted/20">
         <div className="text-center space-y-4 mb-12">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Trusted By</p>
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Platform Partners</p>
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            Partners & <span className="text-primary">Supporters</span>
+            Powered by <span className="text-primary">Impact Hub Nairobi</span>
           </h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            This platform is Impact Hub Nairobi's official distribution channel for programs, resources, and community connections.
+          </p>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-60 hover:opacity-100 transition-opacity">
           {/* Partner Logos - Using text/placeholders for now, replace with actual logos */}
@@ -436,9 +462,12 @@ export default function HomePage() {
         <div className="container px-4">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-              Impact Hub is{" "}
-              <span className="text-primary">Simple</span>
+              Access Impact Hub Nairobi{" "}
+              <span className="text-primary">Resources</span>
             </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Our platform distributes Impact Hub Nairobi's programs, connections, and opportunities directly to you.
+            </p>
           </div>
           <div className="relative max-w-6xl mx-auto">
             {/* Connecting Line (hidden on mobile) */}
@@ -548,7 +577,7 @@ export default function HomePage() {
               Get Weekly Impact Insights
             </CardTitle>
             <CardDescription className="text-base">
-              Join our newsletter for updates on events, programs, and success stories from the community
+              Get updates on Impact Hub Nairobi's events, programs, and success stories distributed through our platform
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -578,14 +607,19 @@ export default function HomePage() {
       <section className="bg-primary/5 py-20 md:py-32">
         <div className="container px-4 text-center space-y-8">
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-            Ready to build a{" "}
-            <span className="text-primary">just and sustainable</span>{" "}
-            future?
+            Access Impact Hub Nairobi's{" "}
+            <span className="text-primary">Innovation Ecosystem</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join Impact Hub Nairobi and connect with entrepreneurs, partners, investors, 
-            and the public sector to create lasting social impact.
+            Join our platform to access Impact Hub Nairobi's programs, connect with the community, 
+            and leverage resources distributed through our network.
           </p>
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <Badge variant="outline" className="px-4 py-1.5">
+              <Building2 className="h-3 w-3 mr-1.5" />
+              Official Impact Hub Nairobi Platform
+            </Badge>
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
               <Button size="lg" className="text-base px-8 py-6 shadow-sm bg-primary hover:bg-primary/90 hover:scale-105 transition-transform">
@@ -732,7 +766,10 @@ export default function HomePage() {
 
           <div className="border-t border-border/50 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-              <p>© 2026 Impact Hub Nairobi. All rights reserved.</p>
+              <div className="flex flex-col items-center md:items-start">
+                <p>© 2026 Impact Hub Nairobi. All rights reserved.</p>
+                <p className="text-xs mt-1">This platform is powered by and distributed by Impact Hub Nairobi.</p>
+              </div>
               <div className="flex gap-6">
                 <Link href="#" className="hover:text-foreground transition-colors">Privacy Policy</Link>
                 <Link href="#" className="hover:text-foreground transition-colors">Terms of Service</Link>

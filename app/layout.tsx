@@ -11,9 +11,9 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
-  title: "Impact Hub Nairobi - Innovation Community Platform",
+  title: "Impact Hub Nairobi Community Platform - Powered by Impact Hub Nairobi",
   description:
-    "Join Impact Hub Nairobi's innovation community. Connect with social entrepreneurs, book workspaces, access programs, and scale your impact. Part of the global Impact Hub network.",
+    "Impact Hub Nairobi's official digital platform. Access programs, resources, and community connections distributed through our network. Join Kenya's leading innovation community.",
   generator: "v0.app",
   icons: {
     icon: [
