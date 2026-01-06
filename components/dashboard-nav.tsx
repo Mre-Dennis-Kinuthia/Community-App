@@ -3,13 +3,18 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Users, BookOpen, Clock, ShieldCheck } from "lucide-react"
+import { LayoutDashboard, Calendar, Users, BookOpen, Clock, ShieldCheck, CalendarDays, Handshake, Lightbulb, Newspaper } from "lucide-react"
 
 const items = [
   {
     title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Events & Programs",
+    href: "/events",
+    icon: CalendarDays,
   },
   {
     title: "Book Space",
@@ -22,9 +27,24 @@ const items = [
     icon: Users,
   },
   {
+    title: "Projects & Initiatives",
+    href: "/projects",
+    icon: Lightbulb,
+  },
+  {
+    title: "Partners & Network",
+    href: "/partners",
+    icon: Handshake,
+  },
+  {
     title: "Resources",
     href: "/resources",
     icon: BookOpen,
+  },
+  {
+    title: "News & Updates",
+    href: "/news",
+    icon: Newspaper,
   },
   {
     title: "Attendance",
