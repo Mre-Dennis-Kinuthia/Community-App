@@ -12,28 +12,28 @@ const members = [
     role: "UX Designer",
     industry: "Design",
     skills: ["Figma", "Research"],
-    avatar: "/avatars/sarah.jpg",
+    avatar: "/placeholder-user.jpg",
   },
   {
     name: "David Ochieng",
     role: "Software Engineer",
     industry: "FinTech",
     skills: ["React", "Node.js"],
-    avatar: "/avatars/david.jpg",
+    avatar: "/placeholder-user.jpg",
   },
   {
     name: "Faith Njeri",
     role: "Founder",
     industry: "AgriTech",
     skills: ["Business Strategy", "Fundraising"],
-    avatar: "/avatars/faith.jpg",
+    avatar: "/placeholder-user.jpg",
   },
   {
     name: "Michael Mwangi",
     role: "Marketing lead",
     industry: "E-commerce",
     skills: ["Growth", "SEO"],
-    avatar: "/avatars/michael.jpg",
+    avatar: "/placeholder-user.jpg",
   },
 ]
 

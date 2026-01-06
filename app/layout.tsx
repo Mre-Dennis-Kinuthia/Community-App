@@ -12,6 +12,13 @@ export const metadata: Metadata = {
   description:
     "Impact Hub Nairobi community and hub management platform. Book spaces, connect with members, and access resources.",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-light-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
+  },
 }
 
 export default function RootLayout({
