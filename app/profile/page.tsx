@@ -90,9 +90,9 @@ export default function ProfilePage() {
               </label>
             )}
           </div>
-          <div>
-            <h1 className="text-3xl font-bold">John Doe</h1>
-            <p className="text-muted-foreground">Tech Entrepreneur • Member since Jan 2024</p>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-semibold tracking-tight">John Doe</h1>
+            <p className="text-muted-foreground text-base">Tech Entrepreneur • Member since Jan 2024</p>
           </div>
         </div>
         <div className="flex gap-2">

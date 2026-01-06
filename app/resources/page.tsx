@@ -69,11 +69,11 @@ export default function ResourcesPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Resources" }]} />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Resource Library</h1>
-          <p className="text-muted-foreground">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">Resource Library</h1>
+          <p className="text-muted-foreground text-base">
             Access curated guides, templates, and tools to help your business grow.
           </p>
         </div>
@@ -143,7 +143,7 @@ export default function ResourcesPage() {
                     {category.resources.map((res) => (
                       <div
                         key={res.id}
-                        className="flex items-center justify-between rounded-lg border p-3 text-sm transition-all hover:shadow-sm"
+                        className="flex items-center justify-between rounded-lg border border-border/50 p-3 text-sm transition-all hover:shadow-soft"
                       >
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <FileText className="h-4 w-4 text-muted-foreground shrink-0" />

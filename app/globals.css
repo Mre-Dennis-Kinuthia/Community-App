@@ -4,80 +4,104 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.18 0 0);
+  /* Clean white backgrounds with lots of breathing room */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.15 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0 0);
+  --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0 0);
-  /* Primary color: warm coral/orange for community and innovation feel */
-  --primary: oklch(0.62 0.18 35);
-  --primary-foreground: oklch(0.99 0 0);
-  /* Secondary color: professional blue for trust and stability */
-  --secondary: oklch(0.55 0.15 245);
-  --secondary-foreground: oklch(0.99 0 0);
-  --muted: oklch(0.96 0.002 285);
-  --muted-foreground: oklch(0.52 0.015 285);
-  --accent: oklch(0.96 0.002 285);
-  --accent-foreground: oklch(0.18 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.002 285);
-  --input: oklch(0.92 0.002 285);
-  --ring: oklch(0.62 0.18 35);
-  --chart-1: oklch(0.62 0.18 35);
-  --chart-2: oklch(0.55 0.15 245);
-  --chart-3: oklch(0.65 0.15 160);
-  --chart-4: oklch(0.75 0.12 75);
-  --chart-5: oklch(0.45 0.18 285);
-  --radius: 0.5rem;
-  /* Sidebar colors matching primary theme */
-  --sidebar: oklch(0.99 0 0);
-  --sidebar-foreground: oklch(0.18 0 0);
-  --sidebar-primary: oklch(0.62 0.18 35);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0.002 285);
-  --sidebar-accent-foreground: oklch(0.18 0 0);
-  --sidebar-border: oklch(0.92 0.002 285);
-  --sidebar-ring: oklch(0.62 0.18 35);
+  --popover-foreground: oklch(0.15 0 0);
+  
+  /* Soft pastel yellow for primary actions - friendly and approachable */
+  --primary: oklch(0.85 0.12 95);
+  --primary-foreground: oklch(0.25 0 0);
+  
+  /* Soft pastel light blue for secondary elements */
+  --secondary: oklch(0.92 0.04 240);
+  --secondary-foreground: oklch(0.25 0 0);
+  
+  /* Very light neutrals for muted backgrounds */
+  --muted: oklch(0.97 0.002 285);
+  --muted-foreground: oklch(0.45 0.01 285);
+  
+  /* Soft pastel green for accents */
+  --accent: oklch(0.93 0.05 150);
+  --accent-foreground: oklch(0.25 0 0);
+  
+  /* Soft red for destructive actions */
+  --destructive: oklch(0.65 0.15 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  
+  /* Very subtle borders */
+  --border: oklch(0.94 0.002 285);
+  --input: oklch(0.97 0.002 285);
+  --ring: oklch(0.85 0.12 95);
+  
+  /* Soft pastel chart colors */
+  --chart-1: oklch(0.85 0.12 95); /* Soft yellow */
+  --chart-2: oklch(0.80 0.08 150); /* Soft green */
+  --chart-3: oklch(0.82 0.06 240); /* Soft blue */
+  --chart-4: oklch(0.88 0.10 60); /* Soft orange */
+  --chart-5: oklch(0.90 0.05 300); /* Soft purple */
+  
+  --radius: 0.75rem;
+  
+  /* Minimal sidebar with soft pastel background */
+  --sidebar: oklch(0.98 0.01 285);
+  --sidebar-foreground: oklch(0.20 0 0);
+  --sidebar-primary: oklch(0.85 0.12 95);
+  --sidebar-primary-foreground: oklch(0.25 0 0);
+  --sidebar-accent: oklch(0.95 0.02 285);
+  --sidebar-accent-foreground: oklch(0.20 0 0);
+  --sidebar-border: oklch(0.94 0.002 285);
+  --sidebar-ring: oklch(0.85 0.12 95);
 }
 
 .dark {
-  --background: oklch(0.14 0 0);
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.18 0 0);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.18 0 0);
-  --popover-foreground: oklch(0.98 0 0);
-  /* Adjusted primary for dark mode visibility */
-  --primary: oklch(0.68 0.18 35);
-  --primary-foreground: oklch(0.14 0 0);
-  /* Adjusted secondary for dark mode */
-  --secondary: oklch(0.60 0.15 245);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.24 0.002 285);
-  --muted-foreground: oklch(0.68 0.015 285);
-  --accent: oklch(0.24 0.002 285);
-  --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.55 0.245 27.325);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.24 0.002 285);
-  --input: oklch(0.24 0.002 285);
-  --ring: oklch(0.68 0.18 35);
-  --chart-1: oklch(0.68 0.18 35);
-  --chart-2: oklch(0.60 0.15 245);
-  --chart-3: oklch(0.70 0.15 160);
-  --chart-4: oklch(0.80 0.12 75);
-  --chart-5: oklch(0.55 0.18 285);
+  /* Dark mode with soft pastels */
+  --background: oklch(0.12 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.16 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.16 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  
+  /* Softer pastels for dark mode */
+  --primary: oklch(0.75 0.10 95);
+  --primary-foreground: oklch(0.12 0 0);
+  
+  --secondary: oklch(0.70 0.06 240);
+  --secondary-foreground: oklch(0.95 0 0);
+  
+  --muted: oklch(0.20 0.002 285);
+  --muted-foreground: oklch(0.65 0.01 285);
+  
+  --accent: oklch(0.22 0.002 285);
+  --accent-foreground: oklch(0.95 0 0);
+  
+  --destructive: oklch(0.60 0.15 25);
+  --destructive-foreground: oklch(0.95 0 0);
+  
+  --border: oklch(0.22 0.002 285);
+  --input: oklch(0.20 0.002 285);
+  --ring: oklch(0.75 0.10 95);
+  
+  /* Soft pastel chart colors for dark mode */
+  --chart-1: oklch(0.75 0.10 95);
+  --chart-2: oklch(0.70 0.08 150);
+  --chart-3: oklch(0.72 0.06 240);
+  --chart-4: oklch(0.78 0.10 60);
+  --chart-5: oklch(0.80 0.05 300);
+  
   /* Dark mode sidebar */
-  --sidebar: oklch(0.18 0 0);
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.68 0.18 35);
-  --sidebar-primary-foreground: oklch(0.14 0 0);
-  --sidebar-accent: oklch(0.24 0.002 285);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.24 0.002 285);
-  --sidebar-ring: oklch(0.68 0.18 35);
+  --sidebar: oklch(0.14 0.002 285);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.75 0.10 95);
+  --sidebar-primary-foreground: oklch(0.12 0 0);
+  --sidebar-accent: oklch(0.20 0.002 285);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.22 0.002 285);
+  --sidebar-ring: oklch(0.75 0.10 95);
 }
 
 @theme inline {
@@ -127,6 +151,34 @@
   }
   body {
     @apply bg-background text-foreground;
+    letter-spacing: -0.01em;
+  }
+  
+  /* Clean typography hierarchy */
+  h1 {
+    @apply font-semibold tracking-tight;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    @apply font-semibold tracking-tight;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    @apply font-medium tracking-tight;
+  }
+  
+  /* Increased spacing for breathing room */
+  .space-y-8 > * + * {
+    margin-top: 2.5rem;
+  }
+  
+  /* Soft shadows for cards */
+  .shadow-soft {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  }
+  
+  .shadow-card {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06);
   }
   /* Skip link styles */
   .sr-only {

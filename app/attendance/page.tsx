@@ -59,11 +59,11 @@ export default function AttendancePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Attendance" }]} />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Check-in & Attendance</h1>
-          <p className="text-muted-foreground">Log your hub visits and track your presence.</p>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">Check-in & Attendance</h1>
+          <p className="text-muted-foreground text-base">Log your hub visits and track your presence.</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
@@ -150,7 +150,7 @@ export default function AttendancePage() {
                     {attendanceHistory.map((log, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between rounded-lg border p-4 transition-all hover:shadow-sm"
+                        className="flex items-center justify-between rounded-lg border border-border/50 p-4 transition-all hover:shadow-soft"
                       >
                         <div className="flex items-center gap-4">
                           <div className="rounded-md bg-muted p-2">

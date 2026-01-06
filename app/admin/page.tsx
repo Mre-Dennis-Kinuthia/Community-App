@@ -11,10 +11,10 @@ export default function AdminDashboardPage() {
     <DashboardLayout>
       <div className="space-y-8">
         <Breadcrumbs items={[{ label: "Admin" }]} />
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Hub Management</h1>
-            <p className="text-muted-foreground">Oversee members, spaces, and platform operations.</p>
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight">Hub Management</h1>
+            <p className="text-muted-foreground text-base">Oversee members, spaces, and platform operations.</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" className="bg-transparent">

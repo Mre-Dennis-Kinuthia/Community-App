@@ -34,8 +34,8 @@ export function DashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background">
-        <div className="container flex h-16 items-center justify-between py-4">
+      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-4">
             <MobileNav />
             <Link href="/dashboard" className="font-bold text-primary hover:opacity-80 transition-opacity">
@@ -101,11 +101,11 @@ export function DashboardLayout({
           </div>
         </div>
       </header>
-      <div className="container grid flex-1 gap-12 md:grid-cols-[200px_1fr]">
-        <aside className="hidden w-[200px] flex-col md:flex">
+      <div className="container grid flex-1 gap-8 md:grid-cols-[220px_1fr]">
+        <aside className="hidden w-[220px] flex-col border-r border-border/50 bg-sidebar/30 md:flex">
           <DashboardNav />
         </aside>
-        <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-6">{children}</main>
+        <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8">{children}</main>
       </div>
     </div>
   )

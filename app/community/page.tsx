@@ -105,16 +105,16 @@ export default function CommunityPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Community" }]} />
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Community Directory</h1>
-            <p className="text-muted-foreground">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight">Community Directory</h1>
+            <p className="text-muted-foreground text-base">
               Connect with innovators and entrepreneurs at Impact Hub Nairobi.
             </p>
           </div>
-          <Button>My Connections</Button>
+          <Button variant="outline" className="shadow-sm">My Connections</Button>
         </div>
 
         <div className="flex flex-col gap-4 md:flex-row">
@@ -179,11 +179,11 @@ export default function CommunityPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mt-8">
             {filteredMembers.map((member) => (
               <Card
                 key={member.id}
-                className="flex flex-col cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]"
+                className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50"
                 onClick={() => handleMemberClick(member)}
               >
                 <CardHeader className="text-center">

@@ -113,11 +113,11 @@ export default function BookingPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Book Space" }]} />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Book a Space</h1>
-          <p className="text-muted-foreground">Reserve meeting rooms or workspaces for your next session.</p>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">Book a Space</h1>
+          <p className="text-muted-foreground text-base">Reserve meeting rooms or workspaces for your next session.</p>
         </div>
 
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -152,7 +152,7 @@ export default function BookingPage() {
           )}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3 mt-8">
           <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle>Select Date</CardTitle>
@@ -183,7 +183,7 @@ export default function BookingPage() {
                     <div
                       key={space.id}
                       className={`flex flex-col gap-4 rounded-lg border p-4 transition-all ${
-                        isSelected ? "border-primary bg-primary/5 shadow-md" : "hover:shadow-sm"
+                        isSelected ? "border-primary/30 bg-primary/5 shadow-card" : "hover:shadow-soft"
                       } sm:flex-row`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}

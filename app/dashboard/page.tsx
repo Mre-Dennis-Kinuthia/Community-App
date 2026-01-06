@@ -24,14 +24,14 @@ export default function DashboardPage() {
   }, [])
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <Breadcrumbs items={[{ label: "Dashboard" }]} />
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{greeting}, {userName}</h1>
-          <p className="text-muted-foreground">Welcome back to the Impact Hub Nairobi community.</p>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">{greeting}, {userName}</h1>
+          <p className="text-muted-foreground text-base">Welcome back to the Impact Hub Nairobi community.</p>
         </div>
-        <Button asChild>
+        <Button asChild className="shadow-sm">
           <Link href="/booking">
             <Plus className="mr-2 h-4 w-4" />
             Book Space
@@ -39,8 +39,8 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" onClick={() => window.location.href = "/booking"}>
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50" onClick={() => window.location.href = "/booking"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Credits Remaining</CardTitle>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -50,7 +50,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Meeting room allowance</p>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" onClick={() => window.location.href = "/profile"}>
+        <Card className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50" onClick={() => window.location.href = "/profile"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Community Status</CardTitle>
             <Users2 className="h-4 w-4 text-muted-foreground" />
@@ -60,7 +60,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Fixed Desk Plan</p>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" onClick={() => window.location.href = "/attendance"}>
+        <Card className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50" onClick={() => window.location.href = "/attendance"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Check-ins This Week</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
@@ -70,7 +70,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Consistent attendance!</p>
           </CardContent>
         </Card>
-        <Card className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" onClick={() => window.location.href = "/community"}>
+        <Card className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50" onClick={() => window.location.href = "/community"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New Messages</CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -82,7 +82,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
             <CardTitle>Upcoming Bookings</CardTitle>

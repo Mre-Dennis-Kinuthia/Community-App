@@ -42,19 +42,25 @@ export function DashboardNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="grid items-start gap-2 py-4">
+    <nav className="grid items-start gap-1 py-6 px-2">
       {items.map((item, index) => {
         const Icon = item.icon
+        const isActive = pathname === item.href
         return (
           <Link
             key={index}
             href={item.href}
             className={cn(
-              "group flex items-center rounded-md px-3 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
-              pathname === item.href ? "bg-accent text-accent-foreground" : "transparent",
+              "group flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+              isActive
+                ? "bg-primary/10 text-primary font-medium"
+                : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
             )}
           >
-            <Icon className="mr-2 h-4 w-4" />
+            <Icon className={cn(
+              "mr-3 h-4 w-4 transition-colors",
+              isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+            )} />
             <span>{item.title}</span>
           </Link>
         )
