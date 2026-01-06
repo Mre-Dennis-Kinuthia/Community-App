@@ -110,7 +110,9 @@ export default function CommunityPage() {
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Community Directory</h1>
-            <p className="text-muted-foreground">Connect with innovators and entrepreneurs at Impact Hub Nairobi.</p>
+            <p className="text-muted-foreground">
+              Connect with innovators and entrepreneurs at Impact Hub Nairobi.
+            </p>
           </div>
           <Button>My Connections</Button>
         </div>
