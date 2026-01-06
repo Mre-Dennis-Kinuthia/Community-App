@@ -9,7 +9,7 @@ html {
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Clean white backgrounds with lots of breathing room */
+  /* Apple-like pure white backgrounds */
   --background: oklch(1 0 0);
   --foreground: oklch(0.15 0 0);
   --card: oklch(1 0 0);
@@ -17,37 +17,37 @@ html {
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
   
-  /* Soft pastel yellow for primary actions - darker for WCAG AA contrast */
-  --primary: oklch(0.70 0.15 95);
-  --primary-foreground: oklch(0.20 0 0);
+  /* Apple blue for primary actions - clean and recognizable */
+  --primary: oklch(0.55 0.20 250);
+  --primary-foreground: oklch(1 0 0);
   
-  /* Soft pastel light blue for secondary elements */
-  --secondary: oklch(0.92 0.04 240);
-  --secondary-foreground: oklch(0.25 0 0);
+  /* Subtle gray for secondary elements */
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
   
-  /* Very light neutrals for muted backgrounds */
-  --muted: oklch(0.97 0.002 285);
-  --muted-foreground: oklch(0.50 0.01 285);
+  /* Very light gray for muted backgrounds */
+  --muted: oklch(0.98 0 0);
+  --muted-foreground: oklch(0.45 0 0);
   
-  /* Soft pastel green for accents */
-  --accent: oklch(0.93 0.05 150);
-  --accent-foreground: oklch(0.25 0 0);
+  /* Subtle accent - light blue */
+  --accent: oklch(0.97 0.01 250);
+  --accent-foreground: oklch(0.15 0 0);
   
-  /* Soft red for destructive actions */
-  --destructive: oklch(0.65 0.15 25);
-  --destructive-foreground: oklch(0.99 0 0);
+  /* Apple red for destructive actions */
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(1 0 0);
   
-  /* Very subtle borders */
-  --border: oklch(0.94 0.002 285);
-  --input: oklch(0.97 0.002 285);
-  --ring: oklch(0.85 0.12 95);
+  /* Very subtle borders - almost invisible */
+  --border: oklch(0.94 0 0);
+  --input: oklch(0.98 0 0);
+  --ring: oklch(0.55 0.20 250);
   
-  /* Soft pastel chart colors */
-  --chart-1: oklch(0.85 0.12 95); /* Soft yellow */
-  --chart-2: oklch(0.80 0.08 150); /* Soft green */
-  --chart-3: oklch(0.82 0.06 240); /* Soft blue */
-  --chart-4: oklch(0.88 0.10 60); /* Soft orange */
-  --chart-5: oklch(0.90 0.05 300); /* Soft purple */
+  /* Apple-inspired chart colors - subtle and refined */
+  --chart-1: oklch(0.55 0.20 250); /* Apple blue */
+  --chart-2: oklch(0.60 0.18 150); /* Apple green */
+  --chart-3: oklch(0.55 0.22 25); /* Apple red */
+  --chart-4: oklch(0.70 0.15 75); /* Apple orange */
+  --chart-5: oklch(0.65 0.15 300); /* Apple purple */
   
   --radius: 0.75rem;
   
@@ -156,20 +156,30 @@ html {
   }
   body {
     @apply bg-background text-foreground;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.011em;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
-  /* Clean typography hierarchy */
+  /* Apple-inspired typography hierarchy - clear and readable */
   h1 {
     @apply font-semibold tracking-tight;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.022em;
+    font-weight: 600;
+    line-height: 1.1;
   }
   h2 {
     @apply font-semibold tracking-tight;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.019em;
+    font-weight: 600;
+    line-height: 1.2;
   }
   h3 {
     @apply font-medium tracking-tight;
+    letter-spacing: -0.014em;
+    font-weight: 500;
+    line-height: 1.3;
   }
   
   /* Increased spacing for breathing room */
@@ -177,13 +187,24 @@ html {
     margin-top: 2.5rem;
   }
   
-  /* Soft shadows for cards */
+  /* Apple-inspired subtle shadows - barely visible, creates depth */
   .shadow-soft {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
   
   .shadow-card {
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.12), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+  
+  .shadow-elevated {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+  
+  /* Apple-style divider */
+  .divider {
+    height: 0.5px;
+    background: oklch(0.90 0 0);
+    border: none;
   }
   /* Skip link styles */
   .sr-only {
@@ -231,5 +252,31 @@ html {
   nav a, nav button {
     min-height: 44px;
     padding: 0.75rem 1rem;
+  }
+  
+  /* Apple-style blur effect - subtle and refined */
+  .glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 0.5px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Apple-style smooth transitions */
+  * {
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+  
+  /* Apple-style button press effect */
+  .button-press:active {
+    transform: scale(0.97);
+    transition: transform 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 }
