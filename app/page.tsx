@@ -31,7 +31,9 @@ import {
   Award,
   Globe
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { Input } from "@/components/ui/input"
+import { toast } from "@/lib/toast"
 
 // Accordion component for FAQ
 function AccordionItem({ question, answer, isOpen, onToggle }: { question: string; answer: string; isOpen: boolean; onToggle: () => void }) {
@@ -54,11 +56,24 @@ function AccordionItem({ question, answer, isOpen, onToggle }: { question: strin
 }
 
 export default function HomePage() {
+  const router = useRouter()
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
+  const [weeklyJoiners, setWeeklyJoiners] = useState(12)
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
   }
+
+  // Animated counter effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWeeklyJoiners(prev => {
+        const newValue = prev + Math.floor(Math.random() * 3)
+        return newValue > 20 ? 12 : newValue
+      })
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [])
 
   const testimonials = [
     {
@@ -150,8 +165,8 @@ export default function HomePage() {
         <div className="container relative px-4 py-20 md:py-32">
           <div className="max-w-5xl mx-auto">
             {/* Floating Member Cards */}
-            <div className="absolute top-10 right-10 hidden lg:block">
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4 w-48">
+            <div className="absolute top-10 right-10 hidden lg:block animate-in slide-in-from-right duration-1000 delay-300">
+              <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4 w-48 hover:bg-white/15 transition-all hover:scale-105">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12 border-2 border-primary/50">
                     <AvatarImage src="/placeholder-user.jpg" />
@@ -165,8 +180,8 @@ export default function HomePage() {
               </Card>
             </div>
 
-            <div className="absolute top-40 left-10 hidden lg:block">
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4 w-48">
+            <div className="absolute top-40 left-10 hidden lg:block animate-in slide-in-from-left duration-1000 delay-500">
+              <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4 w-48 hover:bg-white/15 transition-all hover:scale-105">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12 border-2 border-primary/50">
                     <AvatarImage src="/placeholder-user.jpg" />
@@ -181,9 +196,9 @@ export default function HomePage() {
             </div>
 
             {/* Main Hero Content */}
-            <div className="text-center space-y-8 pt-20">
+            <div className="text-center space-y-8 pt-20 animate-in fade-in slide-in-from-bottom duration-1000">
               <div className="space-y-6">
-                <h1 className="text-6xl md:text-8xl font-bold tracking-tight leading-tight">
+                <h1 className="text-6xl md:text-8xl font-bold tracking-tight leading-tight animate-in fade-in duration-1000 delay-200">
                   <span className="text-primary">#</span>Social Entrepreneurs.
                   <br />
                   <span className="relative inline-block">
@@ -220,6 +235,18 @@ export default function HomePage() {
                   <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span>Secure Signup</span>
                 </div>
+              </div>
+
+              {/* Urgency Elements */}
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+                <Badge className="bg-primary/20 text-primary border-primary/30 px-4 py-1.5">
+                  <Sparkles className="h-3 w-3 mr-1.5" />
+                  Limited spots in upcoming programs
+                </Badge>
+                <Badge className="bg-white/10 text-white border-white/20 px-4 py-1.5">
+                  <Users className="h-3 w-3 mr-1.5" />
+                  Join {weeklyJoiners} others this week
+                </Badge>
               </div>
 
               {/* CTA Buttons */}
@@ -277,7 +304,7 @@ export default function HomePage() {
             </Card>
 
             {/* Card 2: Programs & Resources */}
-            <Card className="border-2 border-primary/20 hover:border-primary/40 transition-all hover:shadow-lg">
+            <Card className="border-2 border-primary/20 hover:border-primary/40 transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer group">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="bg-primary/10 rounded-lg p-2">
@@ -307,7 +334,7 @@ export default function HomePage() {
             </Card>
 
             {/* Card 3: Impact Metrics */}
-            <Card className="border-2 border-primary/20 hover:border-primary/40 transition-all hover:shadow-lg">
+            <Card className="border-2 border-primary/20 hover:border-primary/40 transition-all hover:shadow-lg hover:scale-[1.02] cursor-pointer group">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <div className="bg-primary/10 rounded-lg p-2">
@@ -336,8 +363,37 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Partner Logos Section */}
+      <section className="container px-4 py-16 md:py-24 bg-muted/20">
+        <div className="text-center space-y-4 mb-12">
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Trusted By</p>
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            Partners & <span className="text-primary">Supporters</span>
+          </h2>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-60 hover:opacity-100 transition-opacity">
+          {/* Partner Logos - Using text/placeholders for now, replace with actual logos */}
+          <div className="flex items-center gap-2">
+            <Building2 className="h-8 w-8 text-muted-foreground" />
+            <span className="text-lg font-semibold text-muted-foreground">Ikigai</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-8 w-8 text-muted-foreground" />
+            <span className="text-lg font-semibold text-muted-foreground">Acumen Fund</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Globe className="h-8 w-8 text-muted-foreground" />
+            <span className="text-lg font-semibold text-muted-foreground">Impact Hub Global</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Award className="h-8 w-8 text-muted-foreground" />
+            <span className="text-lg font-semibold text-muted-foreground">Partners</span>
+          </div>
+        </div>
+      </section>
+
       {/* Social Proof - Testimonials */}
-      <section className="container px-4 py-20 md:py-32">
+      <section id="testimonials" className="container px-4 py-20 md:py-32">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
             Loved by{" "}
@@ -385,54 +441,70 @@ export default function HomePage() {
               <span className="text-primary">Simple</span>
             </h2>
           </div>
-          <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {[
-              {
-                step: "1",
-                title: "Join the Community",
-                description: "Create your profile and connect with 500+ social entrepreneurs, startups, and changemakers.",
-                icon: Users,
-              },
-              {
-                step: "2",
-                title: "Book Workspace",
-                description: "Reserve meeting rooms, collaboration zones, and wellness studios at our Ikigai partnership space.",
-                icon: Calendar,
-              },
-              {
-                step: "3",
-                title: "Access Programs",
-                description: "Join acceleration programs, access mentorship, and get tools to scale your social impact venture.",
-                icon: BookOpen,
-              },
-              {
-                step: "4",
-                title: "Create Impact",
-                description: "Connect with partners, investors, and the public sector to build a just and sustainable society.",
-                icon: TrendingUp,
-              },
-            ].map((item, index) => {
-              const Icon = item.icon
-              return (
-                <div key={index} className="text-center space-y-4">
-                  <div className="flex items-center justify-center">
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl" />
-                      <div className="relative bg-primary/10 rounded-full p-4">
-                        <Icon className="h-8 w-8 text-primary" />
+          <div className="relative max-w-6xl mx-auto">
+            {/* Connecting Line (hidden on mobile) */}
+            <div className="hidden md:block absolute top-20 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+            
+            <div className="grid md:grid-cols-4 gap-8 relative">
+              {[
+                {
+                  step: "1",
+                  title: "Join the Community",
+                  description: "Create your profile and connect with 500+ social entrepreneurs, startups, and changemakers.",
+                  icon: Users,
+                },
+                {
+                  step: "2",
+                  title: "Book Workspace",
+                  description: "Reserve meeting rooms, collaboration zones, and wellness studios at our Ikigai partnership space.",
+                  icon: Calendar,
+                },
+                {
+                  step: "3",
+                  title: "Access Programs",
+                  description: "Join acceleration programs, access mentorship, and get tools to scale your social impact venture.",
+                  icon: BookOpen,
+                },
+                {
+                  step: "4",
+                  title: "Create Impact",
+                  description: "Connect with partners, investors, and the public sector to build a just and sustainable society.",
+                  icon: TrendingUp,
+                },
+              ].map((item, index) => {
+                const Icon = item.icon
+                return (
+                  <div key={index} className="text-center space-y-4 relative group">
+                    {/* Step Number Badge */}
+                    <div className="flex items-center justify-center">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl group-hover:blur-2xl transition-all" />
+                        <div className="relative bg-primary/10 rounded-full p-4 group-hover:bg-primary/20 transition-all border-2 border-primary/20 group-hover:border-primary/40">
+                          <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                            {item.step}
+                          </div>
+                          <Icon className="h-8 w-8 text-primary" />
+                        </div>
                       </div>
                     </div>
+                    
+                    {/* Arrow (hidden on mobile, shown between steps) */}
+                    {index < 3 && (
+                      <div className="hidden md:block absolute top-10 -right-4 z-10">
+                        <ArrowRight className="h-6 w-6 text-primary/40" />
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground/80 transition-colors">
+                        {item.description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium text-primary">Step {item.step}</div>
-                    <h3 className="text-xl font-semibold">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {item.description}
-                    </p>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
           <div className="text-center mt-12">
             <Link href="/register">
@@ -469,6 +541,40 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Newsletter Signup Section */}
+      <section className="container px-4 py-16 md:py-24">
+        <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 max-w-2xl mx-auto">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl md:text-3xl font-semibold">
+              Get Weekly Impact Insights
+            </CardTitle>
+            <CardDescription className="text-base">
+              Join our newsletter for updates on events, programs, and success stories from the community
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="flex flex-col sm:flex-row gap-3" onSubmit={(e) => {
+              e.preventDefault()
+              toast.success("Subscribed!", "You'll receive our weekly impact insights")
+            }}>
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1"
+                required
+              />
+              <Button type="submit" className="shadow-sm">
+                Subscribe
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </form>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              No spam. Unsubscribe anytime. We respect your privacy.
+            </p>
+          </CardContent>
+        </Card>
+      </section>
+
       {/* Final CTA */}
       <section className="bg-primary/5 py-20 md:py-32">
         <div className="container px-4 text-center space-y-8">
@@ -483,13 +589,13 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
-              <Button size="lg" className="text-base px-8 py-6 shadow-sm">
+              <Button size="lg" className="text-base px-8 py-6 shadow-sm bg-primary hover:bg-primary/90 hover:scale-105 transition-transform">
                 Join the Community
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Link href="/login">
-              <Button size="lg" variant="outline" className="text-base px-8 py-6">
+              <Button size="lg" variant="outline" className="text-base px-8 py-6 hover:scale-105 transition-transform">
                 Login
               </Button>
             </Link>
