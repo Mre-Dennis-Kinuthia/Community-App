@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Input } from "@/components/ui/input"
+import { toast } from "@/lib/toast"
 import { 
   Calendar, 
   Users, 
@@ -31,9 +33,6 @@ import {
   Award,
   Globe
 } from "lucide-react"
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { toast } from "@/lib/toast"
 
 // Accordion component for FAQ
 function AccordionItem({ question, answer, isOpen, onToggle }: { question: string; answer: string; isOpen: boolean; onToggle: () => void }) {
@@ -67,7 +66,7 @@ export default function HomePage() {
   // Animated counter effect
   useEffect(() => {
     const interval = setInterval(() => {
-      setWeeklyJoiners(prev => {
+      setWeeklyJoiners((prev: number) => {
         const newValue = prev + Math.floor(Math.random() * 3)
         return newValue > 20 ? 12 : newValue
       })
