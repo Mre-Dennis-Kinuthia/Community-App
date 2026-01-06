@@ -125,10 +125,10 @@ export default function HomePage() {
             <span className="font-semibold text-lg">Impact Hub Nairobi</span>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/community" className="hover:text-primary transition-colors">Members</Link>
-            <Link href="/events" className="hover:text-primary transition-colors">Programs</Link>
-            <Link href="/partners" className="hover:text-primary transition-colors">Partners</Link>
-            <Link href="#faq" className="hover:text-primary transition-colors">FAQs</Link>
+            <a href="#how-it-works" className="hover:text-primary transition-colors">How it Works</a>
+            <a href="#testimonials" className="hover:text-primary transition-colors">Testimonials</a>
+            <a href="#features" className="hover:text-primary transition-colors">Features</a>
+            <a href="#faq" className="hover:text-primary transition-colors">FAQs</a>
             <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">About Us</Link>
           </nav>
           <div className="flex items-center gap-4">
@@ -377,7 +377,7 @@ export default function HomePage() {
       </section>
 
       {/* How it Works */}
-      <section className="bg-muted/30 py-20 md:py-32">
+      <section id="how-it-works" className="bg-muted/30 py-20 md:py-32">
         <div className="container px-4">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
