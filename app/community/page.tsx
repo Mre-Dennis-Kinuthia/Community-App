@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -116,7 +117,18 @@ export default function CommunityPage() {
     setIsSheetOpen(true)
   }
 
-  const activeFiltersCount = [selectedIndustry, selectedRole].filter((f) => f !== "All").length
+  const clearFilters = () => {
+    setSelectedIndustry("All")
+    setSelectedRole("All")
+    setSearchQuery("")
+    router.replace(window.location.pathname, { scroll: false })
+  }
+
+  const activeFilterCount = [
+    selectedIndustry !== "All",
+    selectedRole !== "All",
+    searchQuery.length > 0,
+  ].filter(Boolean).length
 
   return (
     <DashboardLayout>
