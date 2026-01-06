@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Users, CreditCard, Building2, TrendingUp, AlertCircle, Check, X } from "lucide-react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 
 export default function AdminDashboardPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        <Breadcrumbs items={[{ label: "Admin" }]} />
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Hub Management</h1>

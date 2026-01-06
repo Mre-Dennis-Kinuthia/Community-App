@@ -1,17 +1,144 @@
+"use client"
+
+import { useState } from "react"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { MapPin, Users } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { MapPin, Users, CheckCircle2, X } from "lucide-react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
+import { format } from "date-fns"
+
+const spaces = [
+  {
+    id: 1,
+    name: "The Boardroom",
+    capacity: "12 people",
+    capacityNum: 12,
+    price: "2,500 KES/hr",
+    priceNum: 2500,
+    image: "/modern-boardroom.png",
+    level: "Level 2",
+    amenities: ["Projector", "Whiteboard", "Video Conferencing"],
+  },
+  {
+    id: 2,
+    name: "Innovation Lab",
+    capacity: "20 people",
+    capacityNum: 20,
+    price: "4,000 KES/hr",
+    priceNum: 4000,
+    image: "/collaborative-lab.jpg",
+    level: "Level 1",
+    amenities: ["Projector", "Whiteboard", "Video Conferencing", "Sound System"],
+  },
+  {
+    id: 3,
+    name: "Focus Pod 1",
+    capacity: "2 people",
+    capacityNum: 2,
+    price: "500 KES/hr",
+    priceNum: 500,
+    image: "/small-focus-room.jpg",
+    level: "Level 3",
+    amenities: ["Whiteboard"],
+  },
+]
+
+const timeSlots = [
+  "09:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "01:00 PM",
+  "02:00 PM",
+  "03:00 PM",
+  "04:00 PM",
+  "05:00 PM",
+]
 
 export default function BookingPage() {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
+  const [selectedSpaces, setSelectedSpaces] = useState<Record<number, { time: string; space: typeof spaces[0] }>>({})
+  const [capacityFilter, setCapacityFilter] = useState<string>("all")
+  const [showBooked, setShowBooked] = useState(false)
+
+  const handleTimeSelect = (spaceId: number, time: string) => {
+    const space = spaces.find((s) => s.id === spaceId)
+    if (!space) return
+
+    if (selectedSpaces[spaceId]?.time === time) {
+      // Deselect if same time clicked
+      const newSelected = { ...selectedSpaces }
+      delete newSelected[spaceId]
+      setSelectedSpaces(newSelected)
+    } else {
+      setSelectedSpaces({
+        ...selectedSpaces,
+        [spaceId]: { time, space },
+      })
+    }
+  }
+
+  const handleBook = (spaceId: number) => {
+    const selection = selectedSpaces[spaceId]
+    if (selection) {
+      alert(`Booking confirmed!\n\nSpace: ${selection.space.name}\nTime: ${selection.time}\nDate: ${selectedDate ? format(selectedDate, "PPP") : "Not selected"}`)
+      // In real app, this would make an API call
+    }
+  }
+
+  const filteredSpaces = spaces.filter((space) => {
+    if (capacityFilter === "all") return true
+    if (capacityFilter === "small") return space.capacityNum <= 4
+    if (capacityFilter === "medium") return space.capacityNum > 4 && space.capacityNum <= 10
+    if (capacityFilter === "large") return space.capacityNum > 10
+    return true
+  })
+
+  const totalSelected = Object.keys(selectedSpaces).length
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        <Breadcrumbs items={[{ label: "Book Space" }]} />
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Book a Space</h1>
           <p className="text-muted-foreground">Reserve meeting rooms or workspaces for your next session.</p>
+        </div>
+
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex gap-2">
+            <Select value={capacityFilter} onValueChange={setCapacityFilter}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Capacity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sizes</SelectItem>
+                <SelectItem value="small">Small (1-4)</SelectItem>
+                <SelectItem value="medium">Medium (5-10)</SelectItem>
+                <SelectItem value="large">Large (10+)</SelectItem>
+              </SelectContent>
+            </Select>
+            {capacityFilter !== "all" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCapacityFilter("all")}
+                className="gap-2"
+              >
+                <X className="h-4 w-4" />
+                Clear
+              </Button>
+            )}
+          </div>
+          {totalSelected > 0 && (
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              {totalSelected} {totalSelected === 1 ? "space" : "spaces"} selected
+            </Badge>
+          )}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -20,74 +147,93 @@ export default function BookingPage() {
               <CardTitle>Select Date</CardTitle>
             </CardHeader>
             <CardContent>
-              <Calendar mode="single" className="rounded-md border" />
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border"
+                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+              />
             </CardContent>
           </Card>
 
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Available Spaces</CardTitle>
-              <CardDescription>Showing available slots for selected date.</CardDescription>
+              <CardDescription>
+                {selectedDate ? `Showing available slots for ${format(selectedDate, "PPP")}` : "Select a date to see available spaces"}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {[
-                  {
-                    name: "The Boardroom",
-                    capacity: "12 people",
-                    price: "2,500 KES/hr",
-                    image: "/modern-boardroom.png",
-                  },
-                  {
-                    name: "Innovation Lab",
-                    capacity: "20 people",
-                    price: "4,000 KES/hr",
-                    image: "/collaborative-lab.jpg",
-                  },
-                  {
-                    name: "Focus Pod 1",
-                    capacity: "2 people",
-                    price: "500 KES/hr",
-                    image: "/small-focus-room.jpg",
-                  },
-                ].map((space, i) => (
-                  <div key={i} className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row">
-                    <img
-                      src={space.image || "/placeholder.svg"}
-                      alt={space.name}
-                      className="h-24 w-full rounded-md object-cover sm:w-32"
-                    />
-                    <div className="flex flex-1 flex-col justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold">{space.name}</h3>
-                          <span className="text-sm font-bold text-primary">{space.price}</span>
+                {filteredSpaces.map((space) => {
+                  const isSelected = selectedSpaces[space.id]
+                  return (
+                    <div
+                      key={space.id}
+                      className={`flex flex-col gap-4 rounded-lg border p-4 transition-all ${
+                        isSelected ? "border-primary bg-primary/5 shadow-md" : "hover:shadow-sm"
+                      } sm:flex-row`}
+                    >
+                      <img
+                        src={space.image || "/placeholder.svg"}
+                        alt={space.name}
+                        className="h-24 w-full rounded-md object-cover sm:w-32"
+                      />
+                      <div className="flex flex-1 flex-col justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold">{space.name}</h3>
+                            <span className="text-sm font-bold text-primary">{space.price}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Users className="h-3 w-3" /> {space.capacity}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" /> {space.level}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {space.amenities.map((amenity) => (
+                              <Badge key={amenity} variant="outline" className="text-[10px]">
+                                {amenity}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                        <div className="flex gap-4 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3 w-3" /> {space.capacity}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" /> Level 2
-                          </span>
+                        <div className="mt-4 flex flex-col gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {timeSlots.map((time) => {
+                              const isTimeSelected = isSelected?.time === time
+                              return (
+                                <Button
+                                  key={time}
+                                  size="sm"
+                                  variant={isTimeSelected ? "default" : "outline"}
+                                  className="h-8 text-xs"
+                                  onClick={() => handleTimeSelect(space.id, time)}
+                                >
+                                  {isTimeSelected && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                                  {time}
+                                </Button>
+                              )
+                            })}
+                          </div>
+                          {isSelected && (
+                            <Button
+                              size="sm"
+                              className="mt-2"
+                              onClick={() => handleBook(space.id)}
+                            >
+                              Confirm Booking
+                            </Button>
+                          )}
                         </div>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2">
-                        <Select>
-                          <SelectTrigger className="h-8 w-[140px]">
-                            <SelectValue placeholder="Select Time" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="09:00">09:00 AM</SelectItem>
-                            <SelectItem value="10:00">10:00 AM</SelectItem>
-                            <SelectItem value="11:00">11:00 AM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button size="sm">Book Now</Button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </CardContent>
           </Card>

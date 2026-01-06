@@ -1,18 +1,46 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Users2, MessageSquare, CheckCircle2, ArrowUpRight } from "lucide-react"
+import { CalendarDays, Users2, MessageSquare, CheckCircle2, ArrowUpRight, Plus, ExternalLink } from "lucide-react"
+import Link from "next/link"
+import { Breadcrumbs } from "@/components/breadcrumbs"
+import { useState, useEffect } from "react"
+
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return "Good morning"
+  if (hour < 17) return "Good afternoon"
+  return "Good evening"
+}
 
 export default function DashboardPage() {
+  const [greeting, setGreeting] = useState("Good morning")
+  const userName = "John" // In real app, get from session
+
+  useEffect(() => {
+    setGreeting(getGreeting())
+  }, [])
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Good morning, John</h1>
-        <p className="text-muted-foreground">Welcome back to the Impact Hub Nairobi community.</p>
+      <Breadcrumbs items={[{ label: "Dashboard" }]} />
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{greeting}, {userName}</h1>
+          <p className="text-muted-foreground">Welcome back to the Impact Hub Nairobi community.</p>
+        </div>
+        <Button asChild>
+          <Link href="/booking">
+            <Plus className="mr-2 h-4 w-4" />
+            Book Space
+          </Link>
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" onClick={() => window.location.href = "/booking"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Credits Remaining</CardTitle>
             <CalendarDays className="h-4 w-4 text-muted-foreground" />
@@ -22,7 +50,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Meeting room allowance</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" onClick={() => window.location.href = "/profile"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Community Status</CardTitle>
             <Users2 className="h-4 w-4 text-muted-foreground" />
@@ -32,7 +60,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Fixed Desk Plan</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" onClick={() => window.location.href = "/attendance"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Check-ins This Week</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
@@ -42,7 +70,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">Consistent attendance!</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" onClick={() => window.location.href = "/community"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New Messages</CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
@@ -75,8 +103,11 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="mt-4 w-full bg-transparent">
-              View All Bookings
+            <Button variant="outline" className="mt-4 w-full bg-transparent" asChild>
+              <Link href="/booking">
+                View All Bookings
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </CardContent>
         </Card>
