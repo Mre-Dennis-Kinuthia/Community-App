@@ -188,7 +188,11 @@ export default function CommunityPage() {
               >
                 <CardHeader className="text-center">
                   <Avatar className="mx-auto h-20 w-20">
-                    <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
+                    <AvatarImage 
+                      src={member.avatar || "/placeholder.svg"} 
+                      alt={member.name}
+                      loading="lazy"
+                    />
                     <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="space-y-1">

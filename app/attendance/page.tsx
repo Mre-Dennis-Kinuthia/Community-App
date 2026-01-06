@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Clock, CalendarIcon, LogOut, Download } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
+import { toast } from "@/lib/toast"
 
 const attendanceHistory = [
   { date: "Jan 1, 2026", timeIn: "08:45 AM", timeOut: "05:30 PM", duration: "8h 45m" },
@@ -25,11 +26,14 @@ export default function AttendancePage() {
       const now = new Date()
       setCheckInTime(now)
       setIsCheckedIn(true)
+      toast.success("Checked in!", `Welcome to Impact Hub Nairobi at ${format(now, "h:mm a")}`)
     } else {
       // Check out
+      const duration = currentDuration
       setIsCheckedIn(false)
       setCheckInTime(null)
       setCurrentDuration("0h 0m")
+      toast.info("Checked out", `You were here for ${duration}. See you next time!`)
     }
   }
 

@@ -85,8 +85,19 @@ export default function BookingPage() {
   const handleBook = (spaceId: number) => {
     const selection = selectedSpaces[spaceId]
     if (selection) {
-      alert(`Booking confirmed!\n\nSpace: ${selection.space.name}\nTime: ${selection.time}\nDate: ${selectedDate ? format(selectedDate, "PPP") : "Not selected"}`)
+      if (!selectedDate) {
+        toast.warning("Please select a date", "Choose a date from the calendar first")
+        return
+      }
       // In real app, this would make an API call
+      toast.success(
+        "Booking confirmed!",
+        `${selection.space.name} on ${format(selectedDate, "PPP")} at ${selection.time}`
+      )
+      // Clear selection after booking
+      const newSelected = { ...selectedSpaces }
+      delete newSelected[spaceId]
+      setSelectedSpaces(newSelected)
     }
   }
 
@@ -175,10 +186,12 @@ export default function BookingPage() {
                         isSelected ? "border-primary bg-primary/5 shadow-md" : "hover:shadow-sm"
                       } sm:flex-row`}
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={space.image || "/placeholder.svg"}
                         alt={space.name}
                         className="h-24 w-full rounded-md object-cover sm:w-32"
+                        loading="lazy"
                       />
                       <div className="flex flex-1 flex-col justify-between">
                         <div className="space-y-1">

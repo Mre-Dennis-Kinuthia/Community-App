@@ -1,0 +1,92 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { LayoutDashboard, Calendar, Users, BookOpen, Clock, ShieldCheck, Menu, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+
+const items = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    title: "Book Space",
+    href: "/booking",
+    icon: Calendar,
+  },
+  {
+    title: "Community",
+    href: "/community",
+    icon: Users,
+  },
+  {
+    title: "Resources",
+    href: "/resources",
+    icon: BookOpen,
+  },
+  {
+    title: "Attendance",
+    href: "/attendance",
+    icon: Clock,
+  },
+  {
+    title: "Admin",
+    href: "/admin",
+    icon: ShieldCheck,
+  },
+]
+
+export function MobileNav() {
+  const pathname = usePathname()
+  const [open, setOpen] = useState(false)
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="md:hidden">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-[200px] p-0">
+        <SheetHeader className="p-4 border-b">
+          <SheetTitle>Menu</SheetTitle>
+        </SheetHeader>
+        <nav className="grid items-start gap-2 p-4">
+          {items.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{item.title}</span>
+              </Link>
+            )
+          })}
+        </nav>
+      </SheetContent>
+    </Sheet>
+  )
+}
+

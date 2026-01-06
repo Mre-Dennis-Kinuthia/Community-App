@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Edit, Save, X, Plus, Upload } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { toast } from "@/lib/toast"
 
 const initialSkills = ["Product Design", "FinTech", "Social Impact"]
 
@@ -25,7 +26,7 @@ export default function ProfilePage() {
   const handleSave = () => {
     setIsEditing(false)
     // In real app, this would save to backend
-    alert("Profile saved! (This is a frontend-only demo)")
+    toast.success("Profile updated!", "Your changes have been saved successfully")
   }
 
   const handleCancel = () => {
@@ -50,9 +51,18 @@ export default function ProfilePage() {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File too large", "Please select an image smaller than 5MB")
+        return
+      }
+      if (!file.type.startsWith("image/")) {
+        toast.error("Invalid file type", "Please select an image file")
+        return
+      }
       const reader = new FileReader()
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string)
+        toast.success("Avatar updated", "Your profile picture has been updated")
       }
       reader.readAsDataURL(file)
     }

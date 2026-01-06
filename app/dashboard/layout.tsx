@@ -13,10 +13,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { User, Settings, LogOut, Moon, Sun, Menu } from "lucide-react"
+import { User, Settings, LogOut, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import { handleLogout } from "@/app/actions/auth-actions"
+import { MobileNav } from "@/components/mobile-nav"
+import { NotificationCenter } from "@/components/notification-center"
 
 export function DashboardLayout({
   children,
@@ -34,12 +36,14 @@ export function DashboardLayout({
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b bg-background">
         <div className="container flex h-16 items-center justify-between py-4">
-          <div className="flex gap-6 md:gap-10">
+          <div className="flex items-center gap-4">
+            <MobileNav />
             <Link href="/dashboard" className="font-bold text-primary hover:opacity-80 transition-opacity">
               Impact Hub Nairobi
             </Link>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <NotificationCenter />
             <Button
               variant="ghost"
               size="icon"
@@ -101,7 +105,7 @@ export function DashboardLayout({
         <aside className="hidden w-[200px] flex-col md:flex">
           <DashboardNav />
         </aside>
-        <main className="flex w-full flex-1 flex-col overflow-hidden py-6">{children}</main>
+        <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-6">{children}</main>
       </div>
     </div>
   )
