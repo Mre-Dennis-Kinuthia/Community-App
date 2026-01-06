@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,8 @@ import { Loader2 } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect") || "/dashboard"
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -92,7 +94,7 @@ export default function RegisterPage() {
       submitFormData.append("email", formData.email)
       await handleRegister(submitFormData)
       toast.success("Account created!", "Welcome to Impact Hub Nairobi")
-      router.push("/dashboard")
+      router.push(redirect)
     } catch (error) {
       toast.error(
         "Oops! Registration didn't work", 
