@@ -280,10 +280,11 @@ export default function EventsPage() {
               <Card className="border-border/50 shadow-card">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    No events found matching your filters.
+                  <p className="text-lg font-medium text-muted-foreground mb-2">No events found</p>
+                  <p className="text-sm text-muted-foreground text-center mb-4 max-w-sm">
+                    No events match your current filters. Try adjusting your search or clearing filters to see all available events.
                   </p>
-                  <Button variant="outline" onClick={clearFilters} className="mt-4">
+                  <Button variant="outline" onClick={clearFilters}>
                     Clear Filters
                   </Button>
                 </CardContent>

@@ -24,29 +24,48 @@ export default function RegisterPage() {
   }>({})
   const [isLoading, setIsLoading] = useState(false)
 
-  const validate = () => {
+  const validateField = (field: "firstName" | "lastName" | "email", value: string) => {
     const newErrors: {
       firstName?: string
       lastName?: string
       email?: string
-    } = {}
+    } = { ...errors }
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required"
+    if (field === "firstName") {
+      if (!value.trim()) {
+        newErrors.firstName = "First name is required"
+      } else {
+        delete newErrors.firstName
+      }
     }
 
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required"
+    if (field === "lastName") {
+      if (!value.trim()) {
+        newErrors.lastName = "Last name is required"
+      } else {
+        delete newErrors.lastName
+      }
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+    if (field === "email") {
+      if (!value) {
+        newErrors.email = "Email is required"
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        newErrors.email = "Please enter a valid email address"
+      } else {
+        delete newErrors.email
+      }
     }
 
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return !newErrors[field]
+  }
+
+  const validate = () => {
+    const firstNameValid = validateField("firstName", formData.firstName)
+    const lastNameValid = validateField("lastName", formData.lastName)
+    const emailValid = validateField("email", formData.email)
+    return firstNameValid && lastNameValid && emailValid
   }
 
   const handleChange = (field: string, value: string) => {
@@ -74,7 +93,10 @@ export default function RegisterPage() {
       toast.success("Account created!", "Welcome to Impact Hub Nairobi")
       router.push("/dashboard")
     } catch (error) {
-      toast.error("Registration failed", error instanceof Error ? error.message : "Something went wrong")
+      toast.error(
+        "Oops! Registration didn't work", 
+        error instanceof Error ? error.message : "Please check your information and try again. If the problem persists, contact support."
+      )
     } finally {
       setIsLoading(false)
     }
@@ -98,6 +120,7 @@ export default function RegisterPage() {
                   placeholder="John"
                   value={formData.firstName}
                   onChange={(e) => handleChange("firstName", e.target.value)}
+                  onBlur={(e) => validateField("firstName", e.target.value)}
                   required
                   aria-invalid={errors.firstName ? "true" : "false"}
                   aria-describedby={errors.firstName ? "first-name-error" : undefined}
@@ -116,6 +139,7 @@ export default function RegisterPage() {
                   placeholder="Doe"
                   value={formData.lastName}
                   onChange={(e) => handleChange("lastName", e.target.value)}
+                  onBlur={(e) => validateField("lastName", e.target.value)}
                   required
                   aria-invalid={errors.lastName ? "true" : "false"}
                   aria-describedby={errors.lastName ? "last-name-error" : undefined}
@@ -136,6 +160,7 @@ export default function RegisterPage() {
                 placeholder="john@example.com"
                 value={formData.email}
                 onChange={(e) => handleChange("email", e.target.value)}
+                onBlur={(e) => validateField("email", e.target.value)}
                 required
                 aria-invalid={errors.email ? "true" : "false"}
                 aria-describedby={errors.email ? "email-error" : undefined}

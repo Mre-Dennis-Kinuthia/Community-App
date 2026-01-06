@@ -141,10 +141,13 @@ export default function AttendancePage() {
               {attendanceHistory.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium text-muted-foreground">No attendance records</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Your check-in history will appear here
+                  <p className="text-lg font-medium text-muted-foreground">No attendance records yet</p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-4 max-w-sm">
+                    Start checking in when you visit the hub. Your check-in history will appear here.
                   </p>
+                  <Button variant="outline" onClick={handleToggleCheckIn}>
+                    Check In Now
+                  </Button>
                 </div>
               ) : (
                 <>

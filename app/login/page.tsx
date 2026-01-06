@@ -17,23 +17,37 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
 
-  const validate = () => {
-    const newErrors: { email?: string; password?: string } = {}
+  const validateField = (field: "email" | "password", value: string) => {
+    const newErrors: { email?: string; password?: string } = { ...errors }
 
-    if (!email) {
-      newErrors.email = "Email is required"
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email address"
+    if (field === "email") {
+      if (!value) {
+        newErrors.email = "Email is required"
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        newErrors.email = "Please enter a valid email address"
+      } else {
+        delete newErrors.email
+      }
     }
 
-    if (!password) {
-      newErrors.password = "Password is required"
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
+    if (field === "password") {
+      if (!value) {
+        newErrors.password = "Password is required"
+      } else if (value.length < 6) {
+        newErrors.password = "Password must be at least 6 characters"
+      } else {
+        delete newErrors.password
+      }
     }
 
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return !newErrors[field]
+  }
+
+  const validate = () => {
+    const emailValid = validateField("email", email)
+    const passwordValid = validateField("password", password)
+    return emailValid && passwordValid
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +67,10 @@ export default function LoginPage() {
       toast.success("Welcome back!", "You've been successfully logged in")
       router.push("/dashboard")
     } catch (error) {
-      toast.error("Login failed", error instanceof Error ? error.message : "Invalid credentials")
+      toast.error(
+        "Oops! That didn't work", 
+        error instanceof Error ? error.message : "Please check your email and password, then try again."
+      )
     } finally {
       setIsLoading(false)
     }
@@ -80,6 +97,7 @@ export default function LoginPage() {
                   setEmail(e.target.value)
                   if (errors.email) setErrors({ ...errors, email: undefined })
                 }}
+                onBlur={(e) => validateField("email", e.target.value)}
                 required
                 aria-invalid={errors.email ? "true" : "false"}
                 aria-describedby={errors.email ? "email-error" : undefined}
@@ -107,10 +125,14 @@ export default function LoginPage() {
                   setPassword(e.target.value)
                   if (errors.password) setErrors({ ...errors, password: undefined })
                 }}
+                onBlur={(e) => validateField("password", e.target.value)}
                 required
                 aria-invalid={errors.password ? "true" : "false"}
                 aria-describedby={errors.password ? "password-error" : undefined}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Password must be at least 6 characters
+              </p>
               {errors.password && (
                 <p id="password-error" className="text-sm text-destructive" role="alert">
                   {errors.password}

@@ -18,6 +18,7 @@ import { useTheme } from "next-themes"
 import { useState, useEffect } from "react"
 import { handleLogout } from "@/app/actions/auth-actions"
 import { MobileNav } from "@/components/mobile-nav"
+import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { NotificationCenter } from "@/components/notification-center"
 
 export function DashboardLayout({
@@ -105,8 +106,9 @@ export function DashboardLayout({
         <aside className="hidden w-[220px] flex-col border-r border-border/50 bg-sidebar/30 md:flex">
           <DashboardNav />
         </aside>
-        <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8">{children}</main>
+        <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8">{children}</main>
       </div>
+      <MobileBottomNav />
     </div>
   )
 }

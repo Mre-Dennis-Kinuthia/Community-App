@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -114,7 +115,11 @@ export default function CommunityPage() {
               Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions.
             </p>
           </div>
-          <Button variant="outline" className="shadow-sm">My Connections</Button>
+          <Button variant="outline" className="shadow-sm" asChild>
+            <Link href="/community?filter=connections">
+              My Connections
+            </Link>
+          </Button>
         </div>
 
         <div className="flex flex-col gap-4 md:flex-row">
@@ -173,9 +178,12 @@ export default function CommunityPage() {
           <Card className="py-12">
             <CardContent className="flex flex-col items-center justify-center text-center">
               <p className="text-lg font-medium text-muted-foreground">No members found</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Try adjusting your search or filters
+              <p className="text-sm text-muted-foreground mt-2 mb-4">
+                Try adjusting your search or filters to find community members
               </p>
+              <Button variant="outline" onClick={clearFilters}>
+                Clear Filters
+              </Button>
             </CardContent>
           </Card>
         ) : (

@@ -291,10 +291,15 @@ export default function HomePage() {
               >
                 About Impact Hub
               </Link>
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link href="/events" className="hover:text-foreground transition-colors">
                 Programs
               </Link>
-              <Link href="#" className="hover:text-foreground transition-colors">
+              <Link 
+                href="https://nairobi.impacthub.net/contact" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors"
+              >
                 Contact
               </Link>
               <Link href="/login" className="hover:text-foreground transition-colors">

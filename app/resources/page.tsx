@@ -118,12 +118,18 @@ export default function ResourcesPage() {
 
         {filteredCategories.length === 0 ? (
           <Card className="py-12">
-            <CardContent className="flex flex-col items-center justify-center text-center">
+            <CardContent className="flex flex-col items-center justify-center text-center py-12">
               <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium text-muted-foreground">No resources found</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Try adjusting your search or filters
+              <p className="text-lg font-medium text-muted-foreground mb-2">No resources found</p>
+              <p className="text-sm text-muted-foreground mb-4 max-w-sm">
+                No resources match your current search or filters. Try adjusting your search terms or clearing filters.
               </p>
+              <Button variant="outline" onClick={() => {
+                setSearchQuery("")
+                setTypeFilter("all")
+              }}>
+                Clear Search & Filters
+              </Button>
             </CardContent>
           </Card>
         ) : (
