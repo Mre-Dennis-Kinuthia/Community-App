@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuHeader,
+  DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -85,8 +85,8 @@ export function NotificationCenter() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuHeader className="flex items-center justify-between">
-          <span>Notifications</span>
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <DropdownMenuLabel>Notifications</DropdownMenuLabel>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
@@ -97,7 +97,7 @@ export function NotificationCenter() {
               Mark all read
             </Button>
           )}
-        </DropdownMenuHeader>
+        </div>
         <DropdownMenuSeparator />
         <div className="max-h-[400px] overflow-y-auto">
           {notifications.length === 0 ? (
