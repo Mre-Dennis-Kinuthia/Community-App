@@ -1,0 +1,92 @@
+"use client"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Users, Building2, Monitor } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
+
+export type ResourceType = "hot-desk" | "meeting-room" | "private-office"
+
+interface Resource {
+  type: ResourceType
+  label: string
+  description: string
+  icon: React.ReactNode
+  capacity: string
+  startingPrice: number
+}
+
+interface ResourceSelectorProps {
+  selectedResource: ResourceType | null
+  onResourceSelect: (resource: ResourceType) => void
+}
+
+const resources: Resource[] = [
+  {
+    type: "hot-desk",
+    label: "Hot Desk",
+    description: "Flexible workspace for individuals",
+    icon: <Monitor className="h-5 w-5" />,
+    capacity: "1 person",
+    startingPrice: 500,
+  },
+  {
+    type: "meeting-room",
+    label: "Meeting Room",
+    description: "Private space for teams",
+    icon: <Building2 className="h-5 w-5" />,
+    capacity: "2-20 people",
+    startingPrice: 1500,
+  },
+  {
+    type: "private-office",
+    label: "Private Office",
+    description: "Dedicated office space",
+    icon: <Users className="h-5 w-5" />,
+    capacity: "1-10 people",
+    startingPrice: 5000,
+  },
+]
+
+export function ResourceSelector({ selectedResource, onResourceSelect }: ResourceSelectorProps) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-3">
+      {resources.map((resource) => {
+        const isSelected = selectedResource === resource.type
+        return (
+          <Card
+            key={resource.type}
+            className={`cursor-pointer transition-all border-2 ${
+              isSelected
+                ? "border-primary bg-primary/5 shadow-card"
+                : "border-border/50 hover:border-border hover:shadow-card"
+            }`}
+            onClick={() => onResourceSelect(resource.type)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2 rounded-lg ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                  {resource.icon}
+                </div>
+                {isSelected && (
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
+                )}
+              </div>
+              <h3 className="font-semibold mb-1">{resource.label}</h3>
+              <p className="text-xs text-muted-foreground mb-2">
+                {resource.description}
+              </p>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+                <span className="text-xs text-muted-foreground">{resource.capacity}</span>
+                <span className="text-sm font-semibold text-primary">
+                  From {resource.startingPrice.toLocaleString()} KES
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
