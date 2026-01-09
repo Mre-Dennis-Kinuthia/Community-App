@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Users, BookOpen, Clock, ShieldCheck, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2 } from "lucide-react"
+import { LayoutDashboard, Calendar, Users, BookOpen, ShieldCheck, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 interface NavItem {
@@ -59,11 +59,6 @@ const navGroups: NavGroup[] = [
         title: "Book Workspace",
         href: "/booking",
         icon: Calendar,
-      },
-      {
-        title: "Check-in",
-        href: "/attendance",
-        icon: Clock,
       },
     ],
   },

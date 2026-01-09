@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Users2, MessageSquare, CheckCircle2, ArrowUpRight, Plus, ExternalLink, HelpCircle, Sparkles, X } from "lucide-react"
+import { CalendarDays, Users2, CheckCircle2, ArrowUpRight, Plus, ExternalLink, HelpCircle, Sparkles, X } from "lucide-react"
 import Link from "next/link"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { useState, useEffect } from "react"
@@ -112,39 +112,7 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          <Card 
-            className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
-            onClick={() => window.location.href = "/booking"}
-            role="button"
-            tabIndex={0}
-            aria-label="View booking credits and book workspace"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault()
-                window.location.href = "/booking"
-              }
-            }}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-sm font-medium">Credits Remaining</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">Credits are your monthly workspace booking allowance. Each booking uses credits based on duration and space type.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12 hrs</div>
-              <p className="text-xs text-muted-foreground">Meeting room allowance</p>
-            </CardContent>
-          </Card>
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <Card 
             className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/profile"}
@@ -179,24 +147,24 @@ export default function DashboardPage() {
           </Card>
           <Card 
             className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
-            onClick={() => window.location.href = "/attendance"}
+            onClick={() => window.location.href = "/events"}
             role="button"
             tabIndex={0}
-            aria-label="View check-in history and attendance"
+            aria-label="View upcoming events"
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault()
-                window.location.href = "/attendance"
+                window.location.href = "/events"
               }
             }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Check-ins This Week</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4 days</div>
-              <p className="text-xs text-muted-foreground">Consistent attendance!</p>
+              <div className="text-2xl font-bold">3</div>
+              <p className="text-xs text-muted-foreground">This week</p>
             </CardContent>
           </Card>
           <Card 
@@ -204,7 +172,7 @@ export default function DashboardPage() {
             onClick={() => window.location.href = "/community"}
             role="button"
             tabIndex={0}
-            aria-label="View new messages from community"
+            aria-label="View community directory"
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault()
@@ -213,12 +181,12 @@ export default function DashboardPage() {
             }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Messages</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Community Members</CardTitle>
+              <Users2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+5</div>
-              <p className="text-xs text-muted-foreground">From community board</p>
+              <div className="text-2xl font-bold">127</div>
+              <p className="text-xs text-muted-foreground">Active members</p>
             </CardContent>
           </Card>
         </div>
@@ -279,7 +247,12 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            <Button className="mt-4 w-full">Join Community Chat</Button>
+            <Button className="mt-4 w-full" asChild>
+              <Link href="/events">
+                View All Events
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

@@ -1,0 +1,39 @@
+"use client"
+
+import { format } from "date-fns"
+
+interface TimelineDateProps {
+  date: Date
+  isFirst?: boolean
+  isLast?: boolean
+}
+
+export function TimelineDate({ date, isFirst, isLast }: TimelineDateProps) {
+  const dayOfWeek = format(date, "EEEE")
+  const dateString = format(date, "MMM d, yyyy")
+
+  return (
+    <div className="relative flex items-start gap-6">
+      {/* Timeline line */}
+      <div className="relative flex flex-col items-center">
+        {!isLast && (
+          <div
+            className={`absolute top-6 w-px border-l border-dotted border-[#222836] ${
+              isFirst ? "top-6" : "top-0"
+            } h-full`}
+          />
+        )}
+        <div className="relative z-10 flex h-3 w-3 items-center justify-center rounded-full border-2 border-[#222836] bg-[#0B0F14]">
+          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+        </div>
+      </div>
+
+      {/* Date content */}
+      <div className="flex-1 pb-8 pt-1">
+        <div className="text-sm font-medium text-foreground">{dateString}</div>
+        <div className="text-xs text-muted-foreground">{dayOfWeek}</div>
+      </div>
+    </div>
+  )
+}
+
