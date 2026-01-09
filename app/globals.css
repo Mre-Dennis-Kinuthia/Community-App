@@ -304,4 +304,48 @@ html {
     transform: scale(0.97);
     transition: transform 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
+  
+  /* Motion gradient animations */
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  @keyframes gradient-float {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(30px, -30px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+  }
+  
+  @keyframes gradient-pulse {
+    0%, 100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+  
+  .motion-gradient {
+    animation: gradient-shift 15s ease infinite;
+    background-size: 200% 200%;
+  }
+  
+  .motion-gradient-float {
+    animation: gradient-float 20s ease-in-out infinite;
+  }
+  
+  .motion-gradient-pulse {
+    animation: gradient-pulse 8s ease-in-out infinite;
+  }
 }

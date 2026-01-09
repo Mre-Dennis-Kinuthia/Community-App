@@ -176,10 +176,25 @@ export default function HomePage() {
       {/* Hero Section - Apple Style Clean & Minimal */}
       <section className="relative overflow-hidden bg-background">
         {/* Background Image with Overlay - Innovation & Community Theme */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-accent/8">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-accent/8 motion-gradient">
+          {/* Animated base gradient */}
+          <div 
+            className="absolute inset-0 motion-gradient"
+            style={{
+              background: `linear-gradient(
+                135deg,
+                oklch(0.55 0.20 250 / 0.12) 0%,
+                oklch(0.60 0.18 150 / 0.08) 25%,
+                oklch(1 0 0) 50%,
+                oklch(0.65 0.15 300 / 0.08) 75%,
+                oklch(0.55 0.20 250 / 0.12) 100%
+              )`,
+              backgroundSize: '200% 200%',
+            }}
+          />
           {/* Abstract geometric shapes representing innovation and connectivity */}
           <div 
-            className="absolute inset-0 opacity-40"
+            className="absolute inset-0 opacity-40 motion-gradient-float"
             style={{
               backgroundImage: `
                 radial-gradient(ellipse 800px 600px at 10% 30%, oklch(0.55 0.20 250 / 0.15) 0%, transparent 60%),
@@ -201,9 +216,9 @@ export default function HomePage() {
               backgroundSize: '60px 60px',
             }}
           />
-          {/* Additional depth with subtle circles */}
+          {/* Additional depth with subtle circles - animated */}
           <div 
-            className="absolute inset-0 opacity-20"
+            className="absolute inset-0 opacity-20 motion-gradient-pulse"
             style={{
               backgroundImage: `
                 radial-gradient(circle 300px at 15% 25%, oklch(0.55 0.20 250 / 0.06) 0%, transparent 100%),
