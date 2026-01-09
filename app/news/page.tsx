@@ -22,14 +22,8 @@ import {
   Bell
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 import { format, formatDistanceToNow } from "date-fns"
+import Link from "next/link"
 
 const newsItems = [
   {
@@ -178,7 +172,6 @@ export default function NewsPage() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
   const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
-  const [selectedNews, setSelectedNews] = useState<typeof newsItems[0] | null>(null)
 
   // Update URL params when filters change
   useEffect(() => {

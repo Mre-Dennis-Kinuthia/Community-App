@@ -22,14 +22,8 @@ import {
   ExternalLink
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 import { format } from "date-fns"
+import Link from "next/link"
 
 const projects = [
   {
@@ -164,7 +158,6 @@ export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
   const [stageFilter, setStageFilter] = useState<string>(searchParams.get("stage") || "all")
-  const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null)
 
   // Update URL params when filters change
   useEffect(() => {
@@ -323,13 +316,13 @@ export default function ProjectsPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
             {filteredProjects.map((project) => (
-              <Card
-                key={project.id}
-                className={`border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer ${
-                  project.featured ? "ring-2 ring-primary/20" : ""
-                }`}
-                onClick={() => setSelectedProject(project)}
-              >
+              <Link href={`/projects/${project.id}`}>
+                <Card
+                  key={project.id}
+                  className={`border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer ${
+                    project.featured ? "ring-2 ring-primary/20" : ""
+                  }`}
+                >
                 <CardHeader>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
@@ -385,90 +378,11 @@ export default function ProjectsPage() {
                   </Button>
                 </CardContent>
               </Card>
+              </Link>
             ))}
           </div>
         )}
       </div>
-
-      {/* Project Detail Sheet */}
-      <Sheet open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-          {selectedProject && (
-            <>
-              <SheetHeader>
-                <div className="flex items-center gap-2 flex-wrap mb-2">
-                  {selectedProject.featured && (
-                    <Badge className="bg-primary/10 text-primary border-primary/20">
-                      Featured
-                    </Badge>
-                  )}
-                  <Badge className={categoryColors[selectedProject.category]}>
-                    {selectedProject.category}
-                  </Badge>
-                  <Badge className={stageColors[selectedProject.stage]}>
-                    {selectedProject.stage}
-                  </Badge>
-                </div>
-                <SheetTitle className="text-2xl">{selectedProject.title}</SheetTitle>
-                <div className="flex items-center gap-2 mt-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={selectedProject.founderAvatar} alt={selectedProject.founder} />
-                    <AvatarFallback>{selectedProject.founder[0]}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm text-muted-foreground">by {selectedProject.founder}</span>
-                </div>
-                <SheetDescription className="text-base mt-4">
-                  {selectedProject.description}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <Target className="h-4 w-4 text-primary" />
-                    Impact
-                  </h3>
-                  <p className="text-muted-foreground">{selectedProject.impact}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-3">Key Metrics</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(selectedProject.metrics).map(([key, value]) => (
-                      <div key={key} className="p-3 rounded-lg bg-muted/50">
-                        <p className="text-xs text-muted-foreground capitalize mb-1">{key.replace(/([A-Z])/g, " $1").trim()}</p>
-                        <p className="text-lg font-semibold">{value}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.tags.map((tag, idx) => (
-                      <Badge key={idx} variant="outline">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  Launched {format(selectedProject.launchDate, "MMM d, yyyy")}
-                </div>
-                <div className="flex gap-2">
-                  <Button className="flex-1 shadow-sm">
-                    <Users className="mr-2 h-4 w-4" />
-                    Connect with Founder
-                  </Button>
-                  <Button variant="outline" className="flex-1 shadow-sm">
-                    <Heart className="mr-2 h-4 w-4" />
-                    Support Project
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
     </DashboardLayout>
   )
 }
