@@ -116,9 +116,9 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
             <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background/95 backdrop-blur-sm py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50">
               {monthGroup.month}
             </div>
-            {monthGroup.groups.map((group) => (
-              <div key={group.date.toISOString()} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {group.events.map((event) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {monthGroup.groups.flatMap((group) =>
+                group.events.map((event) => (
                   <EventCard
                     key={event.id}
                     event={event}
@@ -127,16 +127,16 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
                     isRegistering={registering[event.id]}
                     activeTab={activeTab}
                   />
-                ))}
-              </div>
-            ))}
+                ))
+              )}
+            </div>
           </div>
         ))
       ) : (
         // Upcoming events
-        eventsByDate.map((group) => (
-          <div key={group.date.toISOString()} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {group.events.map((event) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {eventsByDate.flatMap((group) =>
+            group.events.map((event) => (
               <EventCard
                 key={event.id}
                 event={event}
@@ -145,9 +145,9 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
                 isRegistering={registering[event.id]}
                 activeTab={activeTab}
               />
-            ))}
-          </div>
-        ))
+            ))
+          )}
+        </div>
       )}
     </div>
   )
