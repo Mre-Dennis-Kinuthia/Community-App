@@ -117,7 +117,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
               {monthGroup.month}
             </div>
             {monthGroup.groups.map((group) => (
-              <div key={group.date.toISOString()} className="space-y-3">
+              <div key={group.date.toISOString()} className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {group.events.map((event) => (
                   <EventCard
                     key={event.id}
@@ -135,7 +135,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
       ) : (
         // Upcoming events
         eventsByDate.map((group) => (
-          <div key={group.date.toISOString()} className="space-y-3">
+          <div key={group.date.toISOString()} className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {group.events.map((event) => (
               <EventCard
                 key={event.id}
