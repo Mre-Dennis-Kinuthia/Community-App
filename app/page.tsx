@@ -385,7 +385,7 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <p className="text-sm text-white/60 pt-4">
+              <p className="text-sm text-foreground pt-4">
                 Official distribution channel for Impact Hub Nairobi programs and resources • 
                 Part of the global Impact Hub network • 100+ hubs worldwide
               </p>

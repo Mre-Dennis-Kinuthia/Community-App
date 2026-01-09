@@ -76,6 +76,23 @@ export async function proxy(request: NextRequest) {
     }
   }
   
+  // If user is logged in and visits landing page, logout automatically
+  if (pathname === "/") {
+    if (sessionCookie) {
+      try {
+        const session = await decrypt(sessionCookie)
+        if (session) {
+          // Clear session cookie
+          const response = NextResponse.next()
+          response.cookies.set("session", "", { expires: new Date(0), httpOnly: true })
+          return response
+        }
+      } catch (error) {
+        // Invalid session, continue
+      }
+    }
+  }
+  
   return NextResponse.next()
 }
 

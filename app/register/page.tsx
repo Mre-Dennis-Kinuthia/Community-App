@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { handleRegister } from "@/app/actions/auth-actions"
 import { toast } from "@/lib/toast"
-import { Loader2 } from "lucide-react"
+import { Loader2, Linkedin } from "lucide-react"
 
 function RegisterForm() {
   const router = useRouter()
