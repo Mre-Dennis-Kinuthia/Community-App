@@ -88,12 +88,9 @@ function DashboardLayoutContent({
           </div>
         </div>
       </header>
-      <div className={cn(
-        "container grid flex-1 gap-8 transition-all duration-300",
-        isCollapsed ? "md:grid-cols-[64px_1fr]" : "md:grid-cols-[220px_1fr]"
-      )}>
+      <div className="flex flex-1 relative">
         <aside className={cn(
-          "hidden flex-col border-r border-border/50 bg-sidebar/30 md:flex transition-all duration-300 relative",
+          "hidden fixed left-0 top-16 bottom-0 flex-col border-r border-border/50 bg-sidebar/30 md:flex transition-all duration-300 z-30 overflow-y-auto",
           isCollapsed ? "w-[64px]" : "w-[220px]"
         )}>
           <Button
@@ -110,7 +107,13 @@ function DashboardLayoutContent({
           </Button>
           <DashboardNav />
         </aside>
-        <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8">
+        <main 
+          id="main-content" 
+          className={cn(
+            "flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8 transition-all duration-300 container",
+            isCollapsed ? "md:ml-[64px]" : "md:ml-[220px]"
+          )}
+        >
           {children}
         </main>
       </div>

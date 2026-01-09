@@ -394,7 +394,7 @@ export default function EventsPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-[512px] space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6">
         <Breadcrumbs items={[{ label: "Events & Programs" }]} />
         <div className="mb-6">
           <EventsHeader activeTab={activeTab} onTabChange={setActiveTab} />
