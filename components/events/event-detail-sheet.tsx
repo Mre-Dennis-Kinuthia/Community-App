@@ -3,7 +3,6 @@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { Calendar, Clock, MapPin, Users, Video, Loader2, ExternalLink, Mail } from "lucide-react"
 import { format, isToday, isTomorrow } from "date-fns"
 
@@ -71,132 +70,142 @@ export function EventDetailSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-        <SheetHeader>
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <Badge className={typeColors[event.type] || "bg-gray-100 text-gray-700"}>
-                  {event.type}
-                </Badge>
-                <Badge variant="secondary">{event.category}</Badge>
-                <Badge
-                  variant="secondary"
-                  className={
-                    event.status === "Open"
-                      ? "bg-primary/10 text-primary"
-                      : event.status === "Registered"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-700"
-                  }
-                >
-                  {event.status}
-                </Badge>
-                {isFull && <Badge variant="destructive">Full</Badge>}
-              </div>
-              <SheetTitle className="text-2xl">{event.title}</SheetTitle>
-              <SheetDescription className="text-base mt-2">{event.organizer}</SheetDescription>
-            </div>
-            {event.thumbnail && (
-              <div className="relative h-48 w-48 flex-shrink-0 overflow-hidden rounded-xl border border-border/50">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={event.thumbnail}
-                  alt={event.title}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-            )}
+        {/* Image Header */}
+        {event.thumbnail && (
+          <div className="relative -mx-6 -mt-6 h-48 overflow-hidden border-b">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={event.thumbnail}
+              alt={event.title}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
           </div>
+        )}
+
+        <SheetHeader className={event.thumbnail ? "pt-4" : ""}>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <Badge className={typeColors[event.type] || "bg-gray-100 text-gray-700"}>
+              {event.type}
+            </Badge>
+            <Badge variant="secondary" className="text-xs">{event.category}</Badge>
+            <Badge
+              variant="secondary"
+              className={
+                event.status === "Open"
+                  ? "bg-primary/10 text-primary text-xs"
+                  : event.status === "Registered"
+                    ? "bg-green-100 text-green-700 text-xs"
+                    : "bg-gray-100 text-gray-700 text-xs"
+              }
+            >
+              {event.status}
+            </Badge>
+            {isFull && <Badge variant="destructive" className="text-xs">Full</Badge>}
+          </div>
+          <SheetTitle className="text-xl leading-tight">{event.title}</SheetTitle>
+          <SheetDescription className="text-sm mt-1">{event.organizer}</SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
-          {/* Event Details */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>{dateLabel}</span>
+        <div className="mt-4 space-y-4">
+          {/* Quick Info Grid */}
+          <div className="grid grid-cols-2 gap-3 rounded-lg border border-border/50 bg-muted/30 p-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Date</p>
+                <p className="text-sm font-medium truncate">{dateLabel}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>
-                {timeString}
-                {endTimeString && ` - ${endTimeString}`}
-              </span>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Time</p>
+                <p className="text-sm font-medium">
+                  {timeString}
+                  {endTimeString && ` - ${endTimeString}`}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
               {event.platform === "Google Meet" || event.platform.includes("Meet") || event.platform.includes("Zoom") ? (
-                <Video className="h-4 w-4" />
+                <Video className="h-4 w-4 text-muted-foreground shrink-0" />
               ) : (
-                <MapPin className="h-4 w-4" />
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
               )}
-              <span>{event.platform}</span>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Platform</p>
+                <p className="text-sm font-medium truncate">{event.platform}</p>
+              </div>
             </div>
             {event.capacity && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
-                <span>
-                  {event.registered || 0} of {event.capacity} registered
-                  {!isFull && ` (${event.capacity - (event.registered || 0)} spots available)`}
-                </span>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Capacity</p>
+                  <p className="text-sm font-medium">
+                    {event.registered || 0}/{event.capacity}
+                    {!isFull && ` (${event.capacity - (event.registered || 0)} left)`}
+                  </p>
+                </div>
               </div>
             )}
           </div>
-
-          <Separator />
 
           {/* Description */}
           <div>
-            <h3 className="font-semibold mb-2">About this event</h3>
+            <h3 className="font-semibold text-sm mb-2">About</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">{event.description}</p>
           </div>
 
-          {/* Speakers */}
-          {event.speakers && event.speakers.length > 0 && (
-            <div>
-              <h3 className="font-semibold mb-2">Speakers</h3>
-              <div className="flex flex-wrap gap-2">
-                {event.speakers.map((speaker, index) => (
-                  <Badge key={index} variant="outline">
-                    {speaker}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Tags */}
-          {event.tags && event.tags.length > 0 && (
-            <div>
-              <h3 className="font-semibold mb-2">Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {event.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
+          {/* Speakers & Tags Row */}
+          {(event.speakers?.length > 0 || event.tags?.length > 0) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {event.speakers && event.speakers.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-sm mb-2">Speakers</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {event.speakers.map((speaker, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {speaker}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {event.tags && event.tags.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-sm mb-2">Tags</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {event.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* Registration Deadline */}
           {event.registrationDeadline && (
-            <div className="rounded-lg border border-border/50 bg-muted/30 p-3">
-              <p className="text-sm text-muted-foreground">
-                Registration deadline: {format(event.registrationDeadline, "MMM d, yyyy 'at' h:mm a")}
+            <div className="rounded-lg border border-border/50 bg-amber-50 dark:bg-amber-950/20 p-3">
+              <p className="text-xs font-medium text-amber-900 dark:text-amber-200 mb-0.5">Registration Deadline</p>
+              <p className="text-sm text-amber-700 dark:text-amber-300">
+                {format(event.registrationDeadline, "MMM d, yyyy 'at' h:mm a")}
               </p>
             </div>
           )}
 
-          <Separator />
-
           {/* Actions */}
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-2 pt-2">
             {canRegister && onRegister && (
               <Button
                 onClick={() => onRegister(event.id)}
                 disabled={isRegistering}
-                className="flex-1 button-press"
+                className="w-full button-press"
+                size="lg"
               >
                 {isRegistering ? (
                   <>
@@ -212,29 +221,31 @@ export function EventDetailSheet({
               </Button>
             )}
             {event.status === "Registered" && (
-              <Button variant="outline" className="flex-1" disabled>
+              <Button variant="outline" className="w-full" disabled size="lg">
                 ✓ Registered
               </Button>
             )}
             {isFull && event.status !== "Registered" && (
-              <Button variant="outline" className="flex-1" disabled>
+              <Button variant="outline" className="w-full" disabled size="lg">
                 Waitlist
               </Button>
             )}
-            <Button variant="outline" className="flex-1" asChild>
-              <a href={`mailto:${event.organizer}?subject=${encodeURIComponent(event.title)}`}>
-                <Mail className="mr-2 h-4 w-4" />
-                Contact Organizer
-              </a>
-            </Button>
-            {(event.platform === "Google Meet" || event.platform.includes("Meet")) && (
-              <Button variant="outline" className="flex-1" asChild>
-                <a href="#" target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Join Meeting
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" className="w-full" asChild size="sm">
+                <a href={`mailto:${event.organizer}?subject=${encodeURIComponent(event.title)}`}>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Contact
                 </a>
               </Button>
-            )}
+              {(event.platform === "Google Meet" || event.platform.includes("Meet")) && (
+                <Button variant="outline" className="w-full" asChild size="sm">
+                  <a href="#" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Join
+                  </a>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </SheetContent>
