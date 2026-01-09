@@ -176,31 +176,31 @@ export default function HomePage() {
       {/* Hero Section - Apple Style Clean & Minimal */}
       <section className="relative overflow-hidden bg-background">
         {/* Background Image with Overlay - Innovation & Community Theme */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-accent/8 motion-gradient">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-background to-accent/12 motion-gradient">
           {/* Animated base gradient */}
           <div 
             className="absolute inset-0 motion-gradient"
             style={{
               background: `linear-gradient(
                 135deg,
-                oklch(0.55 0.20 250 / 0.12) 0%,
-                oklch(0.60 0.18 150 / 0.08) 25%,
+                oklch(0.55 0.20 250 / 0.18) 0%,
+                oklch(0.60 0.18 150 / 0.14) 25%,
                 oklch(1 0 0) 50%,
-                oklch(0.65 0.15 300 / 0.08) 75%,
-                oklch(0.55 0.20 250 / 0.12) 100%
+                oklch(0.65 0.15 300 / 0.14) 75%,
+                oklch(0.55 0.20 250 / 0.18) 100%
               )`,
               backgroundSize: '200% 200%',
             }}
           />
           {/* Abstract geometric shapes representing innovation and connectivity */}
           <div 
-            className="absolute inset-0 opacity-40 motion-gradient-float"
+            className="absolute inset-0 opacity-55 motion-gradient-float"
             style={{
               backgroundImage: `
-                radial-gradient(ellipse 800px 600px at 10% 30%, oklch(0.55 0.20 250 / 0.15) 0%, transparent 60%),
-                radial-gradient(ellipse 600px 800px at 90% 70%, oklch(0.60 0.18 150 / 0.12) 0%, transparent 60%),
-                radial-gradient(ellipse 500px 500px at 50% 10%, oklch(0.65 0.15 300 / 0.10) 0%, transparent 50%),
-                radial-gradient(ellipse 400px 600px at 30% 80%, oklch(0.55 0.20 250 / 0.08) 0%, transparent 50%)
+                radial-gradient(ellipse 800px 600px at 10% 30%, oklch(0.55 0.20 250 / 0.22) 0%, transparent 60%),
+                radial-gradient(ellipse 600px 800px at 90% 70%, oklch(0.60 0.18 150 / 0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 500px 500px at 50% 10%, oklch(0.65 0.15 300 / 0.16) 0%, transparent 50%),
+                radial-gradient(ellipse 400px 600px at 30% 80%, oklch(0.55 0.20 250 / 0.14) 0%, transparent 50%)
               `,
               backgroundSize: '100% 100%',
             }}
@@ -218,12 +218,12 @@ export default function HomePage() {
           />
           {/* Additional depth with subtle circles - animated */}
           <div 
-            className="absolute inset-0 opacity-20 motion-gradient-pulse"
+            className="absolute inset-0 opacity-28 motion-gradient-pulse"
             style={{
               backgroundImage: `
-                radial-gradient(circle 300px at 15% 25%, oklch(0.55 0.20 250 / 0.06) 0%, transparent 100%),
-                radial-gradient(circle 250px at 85% 75%, oklch(0.60 0.18 150 / 0.06) 0%, transparent 100%),
-                radial-gradient(circle 200px at 50% 50%, oklch(0.65 0.15 300 / 0.04) 0%, transparent 100%)
+                radial-gradient(circle 300px at 15% 25%, oklch(0.55 0.20 250 / 0.10) 0%, transparent 100%),
+                radial-gradient(circle 250px at 85% 75%, oklch(0.60 0.18 150 / 0.10) 0%, transparent 100%),
+                radial-gradient(circle 200px at 50% 50%, oklch(0.65 0.15 300 / 0.08) 0%, transparent 100%)
               `,
             }}
           />
