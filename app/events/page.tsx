@@ -394,9 +394,9 @@ export default function EventsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="mx-auto max-w-5xl space-y-6">
         <Breadcrumbs items={[{ label: "Events & Programs" }]} />
-        <div className="mb-8">
+        <div className="mb-6">
           <EventsHeader activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
 
@@ -408,7 +408,6 @@ export default function EventsPage() {
               variant="outline"
               size="sm"
               onClick={preset.action}
-              className="shadow-sm"
             >
               {preset.label}
             </Button>
@@ -417,8 +416,8 @@ export default function EventsPage() {
 
         {/* Search and Filters */}
         <Card className="border-border/50">
-          <CardContent className="pt-6">
-            <div className="space-y-4">
+          <CardContent className="pt-4">
+            <div className="space-y-3">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -431,7 +430,7 @@ export default function EventsPage() {
               </div>
 
               {/* Filters */}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger>
                     <SelectValue placeholder="All Types" />

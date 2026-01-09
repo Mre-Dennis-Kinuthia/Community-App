@@ -9,10 +9,10 @@ interface EventsHeaderProps {
 
 export function EventsHeader({ activeTab, onTabChange }: EventsHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Events & Programs</h1>
-        <p className="text-muted-foreground text-base">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Events & Programs</h1>
+        <p className="text-muted-foreground text-sm">
           Discover workshops, networking events, and programs to accelerate your social impact journey.
         </p>
       </div>

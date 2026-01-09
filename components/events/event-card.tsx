@@ -69,31 +69,31 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
   return (
     <Card
       onClick={onClick}
-      className="group relative flex cursor-pointer flex-col gap-4 border-border/50 p-4 transition-all hover:shadow-card hover:scale-[1.01] sm:flex-row"
+      className="group relative flex cursor-pointer flex-col gap-3 border-border/50 p-3 transition-all hover:shadow-card hover:scale-[1.01] sm:flex-row"
     >
       {/* Event content */}
-      <div className="flex-1 space-y-3">
+      <div className="flex-1 space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              <Badge className={typeColors[event.type] || "bg-gray-100 text-gray-700"}>
+            <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+              <Badge className={`${typeColors[event.type] || "bg-gray-100 text-gray-700"} text-xs`}>
                 {event.type}
               </Badge>
               <Badge
                 variant="secondary"
-                className={statusColors[event.status] || "bg-primary/10 text-primary border-primary/20"}
+                className={`${statusColors[event.status] || "bg-primary/10 text-primary border-primary/20"} text-xs`}
               >
                 {event.status}
               </Badge>
-              {isFull && <Badge variant="destructive">Full</Badge>}
+              {isFull && <Badge variant="destructive" className="text-xs">Full</Badge>}
             </div>
-            <h3 className="text-base font-semibold leading-tight text-foreground group-hover:text-primary transition-colors">
+            <h3 className="text-sm font-semibold leading-tight text-foreground group-hover:text-primary transition-colors">
               {event.title}
             </h3>
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Calendar className="h-3.5 w-3.5" />
             <span>{dateLabel}</span>
@@ -105,7 +105,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
             </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
               <span>By {event.organizer}</span>
@@ -168,7 +168,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
 
       {/* Thumbnail */}
       {event.thumbnail && (
-        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-border/50 sm:h-24 sm:w-24">
+        <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-border/50 sm:h-20 sm:w-20">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={event.thumbnail}

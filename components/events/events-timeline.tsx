@@ -109,9 +109,9 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
   }
 
   return (
-    <div className="flex flex-col gap-8 md:flex-row">
+    <div className="flex flex-col gap-6 md:flex-row">
       {/* Timeline column */}
-      <div className="flex-shrink-0 md:w-56">
+      <div className="flex-shrink-0 md:w-44">
         <div className="space-y-0">
           {activeTab === "past" && groupedByMonth ? (
             // Past events grouped by month
@@ -151,13 +151,13 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
       </div>
 
       {/* Events column */}
-      <div className="flex-1 space-y-6 min-w-0">
+      <div className="flex-1 space-y-4 min-w-0">
         {activeTab === "past" && groupedByMonth ? (
           // Past events grouped by month
           groupedByMonth.map((monthGroup) => (
-            <div key={monthGroup.month} className="space-y-6">
+            <div key={monthGroup.month} className="space-y-4">
               {monthGroup.groups.map((group) => (
-                <div key={group.date.toISOString()} className="space-y-4">
+                <div key={group.date.toISOString()} className="space-y-3">
                   {group.events.map((event) => (
                     <EventCard
                       key={event.id}
@@ -175,7 +175,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
         ) : (
           // Upcoming events
           eventsByDate.map((group) => (
-            <div key={group.date.toISOString()} className="space-y-4">
+            <div key={group.date.toISOString()} className="space-y-3">
               {group.events.map((event) => (
                 <EventCard
                   key={event.id}
