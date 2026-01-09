@@ -68,8 +68,10 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
       if (isWithinInterval(date, { start: weekStart, end: weekEnd })) {
         return "This Week"
       }
+      // For other upcoming dates, group by month
+      return format(date, "MMMM yyyy")
     }
-    return format(date, "MMM yyyy") // Month label for past events
+    return format(date, "MMMM yyyy") // Month label for past events
   }
 
   // Group by month for past events
@@ -90,6 +92,45 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
     }
     return null
   }, [eventsByDate, activeTab])
+
+  // Group upcoming events by date with proper labels
+  const groupedUpcomingByDate = useMemo(() => {
+    if (activeTab === "upcoming") {
+      const dateGroups: Record<string, Event[]> = {}
+      
+      eventsByDate.forEach((group) => {
+        const dateKey = group.label
+        if (!dateGroups[dateKey]) {
+          dateGroups[dateKey] = []
+        }
+        dateGroups[dateKey].push(...group.events)
+      })
+      
+      const groups = Object.entries(dateGroups).map(([label, events]) => ({
+        label,
+        events,
+        date: events[0].date, // Use first event's date for sorting
+        sortOrder: getSortOrder(label),
+      }))
+      
+      // Sort: Today -> Tomorrow -> This Week -> Months (chronologically)
+      return groups.sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) {
+          return a.sortOrder - b.sortOrder
+        }
+        // If same sort order (both months), sort by date
+        return a.date.getTime() - b.date.getTime()
+      })
+    }
+    return null
+  }, [eventsByDate, activeTab])
+
+  function getSortOrder(label: string): number {
+    if (label === "Today") return 1
+    if (label === "Tomorrow") return 2
+    if (label === "This Week") return 3
+    return 4 // Months
+  }
 
   if (events.length === 0) {
     return (
@@ -132,21 +173,40 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
             </div>
           </div>
         ))
+      ) : activeTab === "upcoming" && groupedUpcomingByDate ? (
+        // Upcoming events grouped by date
+        groupedUpcomingByDate.map((dateGroup) => (
+          <div key={dateGroup.label} className="space-y-4">
+            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background/95 backdrop-blur-sm py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50">
+              {dateGroup.label}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {dateGroup.events.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onClick={() => onEventClick?.(event)}
+                  onRegister={onRegister}
+                  isRegistering={registering[event.id]}
+                  activeTab={activeTab}
+                />
+              ))}
+            </div>
+          </div>
+        ))
       ) : (
-        // Upcoming events
+        // Fallback: flat grid (shouldn't normally reach here)
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {eventsByDate.flatMap((group) =>
-            group.events.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                onClick={() => onEventClick?.(event)}
-                onRegister={onRegister}
-                isRegistering={registering[event.id]}
-                activeTab={activeTab}
-              />
-            ))
-          )}
+          {events.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              onClick={() => onEventClick?.(event)}
+              onRegister={onRegister}
+              isRegistering={registering[event.id]}
+              activeTab={activeTab}
+            />
+          ))}
         </div>
       )}
     </div>
