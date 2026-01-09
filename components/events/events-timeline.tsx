@@ -49,7 +49,9 @@ export function EventsTimeline({ events, onEventClick }: EventsTimelineProps) {
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <p className="text-lg font-medium text-muted-foreground">No events found</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          {events.length === 0 ? "You don't have any events yet." : "Try adjusting your filters."}
+          {events.length === 0 
+            ? "You don't have any events yet. Check back soon for upcoming events and programs." 
+            : "Try adjusting your filters to see more events."}
         </p>
       </div>
     )

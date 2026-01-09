@@ -10,18 +10,23 @@ interface EventsHeaderProps {
 export function EventsHeader({ activeTab, onTabChange }: EventsHeaderProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Events</h1>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Events & Programs</h1>
+        <p className="text-muted-foreground text-base">
+          Discover workshops, networking events, and programs to accelerate your social impact journey.
+        </p>
+      </div>
       <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as "upcoming" | "past")}>
-        <TabsList className="h-9 bg-[#151A21] border border-[#222836] p-1">
+        <TabsList className="h-9 bg-muted p-1">
           <TabsTrigger
             value="upcoming"
-            className="data-[state=active]:bg-[#222836] data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md px-3 py-1.5 text-sm text-muted-foreground data-[state=active]:text-foreground"
+            className="rounded-md px-3 py-1.5 text-sm"
           >
             Upcoming
           </TabsTrigger>
           <TabsTrigger
             value="past"
-            className="data-[state=active]:bg-[#222836] data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-md px-3 py-1.5 text-sm text-muted-foreground data-[state=active]:text-foreground"
+            className="rounded-md px-3 py-1.5 text-sm"
           >
             Past
           </TabsTrigger>

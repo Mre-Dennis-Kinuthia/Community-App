@@ -18,12 +18,12 @@ export function TimelineDate({ date, isFirst, isLast }: TimelineDateProps) {
       <div className="relative flex flex-col items-center">
         {!isLast && (
           <div
-            className={`absolute top-6 w-px border-l border-dotted border-[#222836] ${
+            className={`absolute top-6 w-px border-l border-dotted border-border ${
               isFirst ? "top-6" : "top-0"
             } h-full`}
           />
         )}
-        <div className="relative z-10 flex h-3 w-3 items-center justify-center rounded-full border-2 border-[#222836] bg-[#0B0F14]">
+        <div className="relative z-10 flex h-3 w-3 items-center justify-center rounded-full border-2 border-border bg-background">
           <div className="h-1.5 w-1.5 rounded-full bg-primary" />
         </div>
       </div>

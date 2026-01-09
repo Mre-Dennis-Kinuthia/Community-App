@@ -1,6 +1,7 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
 import { Users, Video, MapPin } from "lucide-react"
 import { format } from "date-fns"
 
@@ -22,9 +23,9 @@ export function EventCard({ event, onClick }: EventCardProps) {
   const timeString = format(new Date().setHours(parseInt(event.time.split(":")[0]), parseInt(event.time.split(":")[1])), "h:mm a")
 
   return (
-    <div
+    <Card
       onClick={onClick}
-      className="group relative flex cursor-pointer items-start gap-4 rounded-2xl border border-[#222836] bg-[#151A21] p-4 transition-all hover:border-[#3B82F6]/30 hover:shadow-lg"
+      className="group relative flex cursor-pointer items-start gap-4 border-border/50 p-4 transition-all hover:shadow-card hover:scale-[1.01]"
     >
       {/* Event content */}
       <div className="flex-1 space-y-3">
@@ -49,7 +50,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
         <div className="flex items-center gap-2">
           <Badge
             variant="secondary"
-            className="bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/20 hover:bg-[#3B82F6]/20"
+            className="bg-primary/10 text-primary border-primary/20"
           >
             {event.status}
           </Badge>
@@ -58,7 +59,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
 
       {/* Thumbnail */}
       {event.thumbnail && (
-        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-[#222836]">
+        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border border-border/50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={event.thumbnail}
@@ -68,7 +69,7 @@ export function EventCard({ event, onClick }: EventCardProps) {
           />
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { TopNav } from "@/components/events/top-nav"
+import { DashboardLayout } from "@/app/dashboard/layout"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { EventsHeader } from "@/components/events/events-header"
 import { EventsTimeline } from "@/components/events/events-timeline"
 
@@ -85,14 +86,14 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0B0F14] to-[#0E131A]">
-      <TopNav />
-      <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-12">
-        <div className="mb-8 sm:mb-12">
+    <DashboardLayout>
+      <div className="space-y-8">
+        <Breadcrumbs items={[{ label: "Events & Programs" }]} />
+        <div className="mb-8">
           <EventsHeader activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
         <EventsTimeline events={events} onEventClick={handleEventClick} />
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }
