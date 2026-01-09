@@ -1,16 +1,20 @@
 "use client"
 
 import { format } from "date-fns"
+import { Badge } from "@/components/ui/badge"
 
 interface TimelineDateProps {
   date: Date
+  label?: string
+  eventCount?: number
   isFirst?: boolean
   isLast?: boolean
 }
 
-export function TimelineDate({ date, isFirst, isLast }: TimelineDateProps) {
+export function TimelineDate({ date, label, eventCount, isFirst, isLast }: TimelineDateProps) {
   const dayOfWeek = format(date, "EEEE")
   const dateString = format(date, "MMM d, yyyy")
+  const displayLabel = label || dateString
 
   return (
     <div className="relative flex items-start gap-6">
@@ -30,8 +34,15 @@ export function TimelineDate({ date, isFirst, isLast }: TimelineDateProps) {
 
       {/* Date content */}
       <div className="flex-1 pb-8 pt-1">
-        <div className="text-sm font-medium text-foreground">{dateString}</div>
-        <div className="text-xs text-muted-foreground">{dayOfWeek}</div>
+        <div className="flex items-center gap-2">
+          <div className="text-sm font-medium text-foreground">{displayLabel}</div>
+          {eventCount !== undefined && eventCount > 0 && (
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+              {eventCount}
+            </Badge>
+          )}
+        </div>
+        {!label && <div className="text-xs text-muted-foreground">{dayOfWeek}</div>}
       </div>
     </div>
   )
