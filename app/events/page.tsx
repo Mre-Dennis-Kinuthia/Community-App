@@ -507,11 +507,9 @@ export default function EventsPage() {
                       {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
                     </Badge>
                   )}
-                  {filteredEvents.length > 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} found
-                    </span>
-                  )}
+                  <span className="text-sm text-muted-foreground">
+                    {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} found
+                  </span>
                 </div>
                 {hasActiveFilters && (
                   <Button variant="outline" size="sm" onClick={clearFilters}>
