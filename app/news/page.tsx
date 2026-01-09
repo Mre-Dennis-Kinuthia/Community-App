@@ -285,11 +285,10 @@ export default function NewsPage() {
               {featuredNews.map((item) => {
                 const TypeIcon = typeIcons[item.type] || Newspaper
                 return (
-                  <Card
-                    key={item.id}
-                    className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer ring-2 ring-primary/20"
-                    onClick={() => setSelectedNews(item)}
-                  >
+                  <Link key={item.id} href={`/news/${item.id}`}>
+                    <Card
+                      className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer ring-2 ring-primary/20"
+                    >
                     <CardHeader>
                       <div className="flex items-center gap-2 flex-wrap mb-2">
                         <Badge className={typeColors[item.type]}>
@@ -324,6 +323,7 @@ export default function NewsPage() {
                       </div>
                     </CardContent>
                   </Card>
+                  </Link>
                 )
               })}
             </div>
@@ -350,11 +350,10 @@ export default function NewsPage() {
               {regularNews.map((item) => {
                 const TypeIcon = typeIcons[item.type] || Newspaper
                 return (
-                  <Card
-                    key={item.id}
-                    className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer"
-                    onClick={() => setSelectedNews(item)}
-                  >
+                  <Link key={item.id} href={`/news/${item.id}`}>
+                    <Card
+                      className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer"
+                    >
                     <CardHeader>
                       <div className="flex items-center gap-2 flex-wrap mb-2">
                         <Badge className={typeColors[item.type]}>
@@ -383,66 +382,13 @@ export default function NewsPage() {
                       </div>
                     </CardContent>
                   </Card>
+                  </Link>
                 )
               })}
             </div>
           )}
         </div>
       </div>
-
-      {/* News Detail Sheet */}
-      <Sheet open={!!selectedNews} onOpenChange={(open) => !open && setSelectedNews(null)}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-          {selectedNews && (
-            <>
-              <SheetHeader>
-                <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <Badge className={typeColors[selectedNews.type]}>
-                    {selectedNews.type}
-                  </Badge>
-                  <Badge className={categoryColors[selectedNews.category]}>
-                    {selectedNews.category}
-                  </Badge>
-                  {selectedNews.featured && (
-                    <Badge className="bg-primary/10 text-primary border-primary/20">
-                      Featured
-                    </Badge>
-                  )}
-                </div>
-                <SheetTitle className="text-2xl">{selectedNews.title}</SheetTitle>
-                <div className="flex items-center gap-3 mt-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarImage src={selectedNews.authorAvatar} alt={selectedNews.author} />
-                      <AvatarFallback>{selectedNews.author[0]}</AvatarFallback>
-                    </Avatar>
-                    <span>{selectedNews.author}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {format(selectedNews.date, "MMMM d, yyyy")}
-                  </div>
-                </div>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="prose prose-sm max-w-none">
-                  <p className="text-muted-foreground leading-relaxed">{selectedNews.content}</p>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedNews.tags.map((tag, idx) => (
-                      <Badge key={idx} variant="outline">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
     </DashboardLayout>
   )
 }
