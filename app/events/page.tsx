@@ -201,6 +201,96 @@ const upcomingEvents = [
     capacity: 40,
     registered: 8,
   },
+  {
+    id: 11,
+    title: "Impact Measurement Workshop",
+    type: "Workshop",
+    category: "Education",
+    time: "10:00",
+    endTime: "13:00",
+    organizer: "Impact Hub Nairobi",
+    platform: "Impact Hub Nairobi",
+    status: "Open",
+    date: new Date(2025, 2, 5),
+    thumbnail: "/placeholder.svg",
+    description: "Learn how to measure and communicate your social impact effectively. Essential for social entrepreneurs seeking funding and partnerships.",
+    speakers: ["Impact Measurement Experts"],
+    tags: ["Impact", "Measurement", "Workshop"],
+    capacity: 35,
+    registered: 22,
+  },
+  {
+    id: 12,
+    title: "Women in Tech Networking Breakfast",
+    type: "Networking",
+    category: "Networking",
+    time: "08:00",
+    endTime: "10:00",
+    organizer: "Impact Hub Nairobi",
+    platform: "Ikigai Partnership Space",
+    status: "Open",
+    date: new Date(2025, 2, 8),
+    thumbnail: "/placeholder.svg",
+    description: "Join us for a networking breakfast celebrating women in technology. Connect with fellow entrepreneurs, share experiences, and build meaningful relationships.",
+    speakers: ["Women Tech Leaders"],
+    tags: ["Networking", "Women in Tech", "Breakfast"],
+    capacity: 30,
+    registered: 18,
+  },
+  {
+    id: 13,
+    title: "Sustainable Agriculture Webinar",
+    type: "Webinar",
+    category: "Agriculture",
+    time: "14:00",
+    endTime: "15:30",
+    organizer: "Impact Hub Nairobi",
+    platform: "Google Meet",
+    status: "Open",
+    date: new Date(2025, 2, 12),
+    thumbnail: "/placeholder.svg",
+    description: "Explore innovative sustainable agriculture practices and technologies that are transforming farming in Kenya and across Africa.",
+    speakers: ["Agricultural Experts", "Farmers"],
+    tags: ["Agriculture", "Sustainability", "Webinar"],
+    capacity: 80,
+    registered: 52,
+  },
+  {
+    id: 14,
+    title: "Pitch Practice Session",
+    type: "Workshop",
+    category: "Business",
+    time: "15:00",
+    endTime: "17:00",
+    organizer: "Impact Hub Nairobi",
+    platform: "Impact Hub Nairobi",
+    status: "Open",
+    date: new Date(2025, 2, 15),
+    thumbnail: "/placeholder.svg",
+    description: "Practice your pitch in a supportive environment. Get feedback from experienced entrepreneurs and investors to refine your presentation skills.",
+    speakers: ["Pitch Coaches", "Investors"],
+    tags: ["Pitching", "Business", "Workshop"],
+    capacity: 20,
+    registered: 12,
+  },
+  {
+    id: 15,
+    title: "Climate Innovation Challenge Launch",
+    type: "Program",
+    category: "Innovation",
+    time: "11:00",
+    endTime: "13:00",
+    organizer: "Impact Hub Nairobi",
+    platform: "Impact Hub Nairobi",
+    status: "Open",
+    date: new Date(2025, 2, 20),
+    thumbnail: "/placeholder.svg",
+    description: "Launch event for our annual Climate Innovation Challenge. Learn about the competition, prizes, and how to participate in building climate solutions.",
+    speakers: ["Challenge Organizers", "Previous Winners"],
+    tags: ["Climate", "Innovation", "Challenge"],
+    capacity: 60,
+    registered: 38,
+  },
 ]
 
 const allEvents = [...pastEvents, ...upcomingEvents]
@@ -394,136 +484,138 @@ export default function EventsPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-5xl space-y-6">
-        <Breadcrumbs items={[{ label: "Events & Programs" }]} />
-        <div className="mb-6">
-          <EventsHeader activeTab={activeTab} onTabChange={setActiveTab} />
-        </div>
+      <div className="space-y-6">
+        <div className="mx-auto max-w-5xl">
+          <Breadcrumbs items={[{ label: "Events & Programs" }]} />
+          <div className="mb-6">
+            <EventsHeader activeTab={activeTab} onTabChange={setActiveTab} />
+          </div>
 
-        {/* Filter Presets */}
-        <div className="flex flex-wrap gap-2">
-          {filterPresets.map((preset) => (
-            <Button
-              key={preset.label}
-              variant="outline"
-              size="sm"
-              onClick={preset.action}
-            >
-              {preset.label}
-            </Button>
-          ))}
-        </div>
+          {/* Filter Presets */}
+          <div className="flex flex-wrap gap-2">
+            {filterPresets.map((preset) => (
+              <Button
+                key={preset.label}
+                variant="outline"
+                size="sm"
+                onClick={preset.action}
+              >
+                {preset.label}
+              </Button>
+            ))}
+          </div>
 
-        {/* Search and Filters */}
-        <Card className="border-border/50">
-          <CardContent className="pt-4">
-            <div className="space-y-3">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search events by title, organizer, or tags..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-
-              {/* Filters */}
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    {uniqueTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    {uniqueStatuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={organizerFilter} onValueChange={setOrganizerFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Organizers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Organizers</SelectItem>
-                    {uniqueOrganizers.map((organizer) => (
-                      <SelectItem key={organizer} value={organizer}>
-                        {organizer}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={platformFilter} onValueChange={setPlatformFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Platforms" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Platforms</SelectItem>
-                    {uniquePlatforms.map((platform) => (
-                      <SelectItem key={platform} value={platform}>
-                        {platform}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">Date</SelectItem>
-                    <SelectItem value="title">Title</SelectItem>
-                    <SelectItem value="organizer">Organizer</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filter Summary */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {activeFilterCount > 0 && (
-                    <Badge variant="secondary">
-                      {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-                    </Badge>
-                  )}
-                  <span className="text-sm text-muted-foreground">
-                    {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} found
-                  </span>
+          {/* Search and Filters */}
+          <Card className="border-border/50">
+            <CardContent className="pt-4">
+              <div className="space-y-3">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search events by title, organizer, or tags..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
                 </div>
-                {hasActiveFilters && (
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    <X className="mr-2 h-4 w-4" />
-                    Clear Filters
-                  </Button>
-                )}
+
+                {/* Filters */}
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      {uniqueTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      {uniqueStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={organizerFilter} onValueChange={setOrganizerFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Organizers" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Organizers</SelectItem>
+                      {uniqueOrganizers.map((organizer) => (
+                        <SelectItem key={organizer} value={organizer}>
+                          {organizer}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={platformFilter} onValueChange={setPlatformFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Platforms" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Platforms</SelectItem>
+                      {uniquePlatforms.map((platform) => (
+                        <SelectItem key={platform} value={platform}>
+                          {platform}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date">Date</SelectItem>
+                      <SelectItem value="title">Title</SelectItem>
+                      <SelectItem value="organizer">Organizer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Filter Summary */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {activeFilterCount > 0 && (
+                      <Badge variant="secondary">
+                        {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
+                      </Badge>
+                    )}
+                    <span className="text-sm text-muted-foreground">
+                      {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} found
+                    </span>
+                  </div>
+                  {hasActiveFilters && (
+                    <Button variant="outline" size="sm" onClick={clearFilters}>
+                      <X className="mr-2 h-4 w-4" />
+                      Clear Filters
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Events Timeline */}
-        <div className={activeTab === "upcoming" ? "w-full -ml-4 md:-ml-8 pr-4 md:pr-8" : ""}>
+        <div className="mx-auto max-w-5xl">
           <EventsTimeline
             events={filteredEvents}
             onEventClick={handleEventClick}

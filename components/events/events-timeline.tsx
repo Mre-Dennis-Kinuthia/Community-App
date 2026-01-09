@@ -175,27 +175,25 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
         ))
       ) : activeTab === "upcoming" && groupedUpcomingByDate ? (
         // Upcoming events grouped by date
-        <div className="w-full">
-          {groupedUpcomingByDate.map((dateGroup) => (
-            <div key={dateGroup.label} className="space-y-4 w-full">
-              <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background/95 backdrop-blur-sm py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50">
-                {dateGroup.label}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-                {dateGroup.events.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onClick={() => onEventClick?.(event)}
-                    onRegister={onRegister}
-                    isRegistering={registering[event.id]}
-                    activeTab={activeTab}
-                  />
-                ))}
-              </div>
+        groupedUpcomingByDate.map((dateGroup) => (
+          <div key={dateGroup.label} className="space-y-4">
+            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background/95 backdrop-blur-sm py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50">
+              {dateGroup.label}
             </div>
-          ))}
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {dateGroup.events.map((event) => (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  onClick={() => onEventClick?.(event)}
+                  onRegister={onRegister}
+                  isRegistering={registering[event.id]}
+                  activeTab={activeTab}
+                />
+              ))}
+            </div>
+          </div>
+        ))
       ) : (
         // Fallback: flat grid (shouldn't normally reach here)
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
