@@ -111,13 +111,14 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
   return (
     <div className="flex flex-col gap-6 md:flex-row">
       {/* Timeline column */}
-      <div className="flex-shrink-0 md:w-44">
-        <div className="space-y-0">
+      <div className="sticky top-6 flex-shrink-0 self-start md:w-44">
+        <div className="rounded-lg border border-border/50 bg-card/50 p-4 backdrop-blur-sm">
+          <div className="space-y-0">
           {activeTab === "past" && groupedByMonth ? (
             // Past events grouped by month
             groupedByMonth.map((monthGroup, monthIndex) => (
-              <div key={monthGroup.month} className={monthIndex > 0 ? "mt-8" : ""}>
-                <div className="mb-4 px-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              <div key={monthGroup.month} className={monthIndex > 0 ? "mt-6" : ""}>
+                <div className="mb-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   {monthGroup.month}
                 </div>
                 {monthGroup.groups.map((group, index) => (
@@ -147,6 +148,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
               />
             ))
           )}
+          </div>
         </div>
       </div>
 
