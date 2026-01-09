@@ -69,7 +69,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
   return (
     <Card
       onClick={onClick}
-      className="group relative flex cursor-pointer flex-col gap-3 border-border/50 p-3 transition-all hover:shadow-card hover:scale-[1.01] sm:flex-row"
+      className="group relative flex cursor-pointer flex-col gap-3 border-border/50 p-[1.15rem] transition-all hover:shadow-card hover:scale-[1.01] sm:flex-row rounded-md"
     >
       {/* Event content */}
       <div className="flex-1 space-y-2">

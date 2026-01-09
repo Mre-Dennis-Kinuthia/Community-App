@@ -111,9 +111,9 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
     <div className="space-y-4">
       {activeTab === "past" && groupedByMonth ? (
         // Past events grouped by month
-        groupedByMonth.map((monthGroup) => (
+        groupedByMonth.map((monthGroup, monthIndex) => (
           <div key={monthGroup.month} className="space-y-4">
-            <div className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background/95 backdrop-blur-sm py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50">
               {monthGroup.month}
             </div>
             {monthGroup.groups.map((group) => (
