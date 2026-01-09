@@ -45,6 +45,14 @@ const statusColors: Record<string, string> = {
   Full: "bg-red-100 text-red-700 border-red-200",
 }
 
+const statusBorderHoverColors: Record<string, string> = {
+  Open: "hover:border-primary",
+  Registered: "hover:border-green-500",
+  Invited: "hover:border-blue-500",
+  Attended: "hover:border-gray-500",
+  Full: "hover:border-red-500",
+}
+
 export function EventCard({ event, onClick, onRegister, isRegistering = false, activeTab }: EventCardProps) {
   const timeString = format(
     new Date().setHours(parseInt(event.time.split(":")[0]), parseInt(event.time.split(":")[1])),
@@ -65,11 +73,12 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
 
   const canRegister = activeTab === "upcoming" && event.status === "Open" && event.capacity && (event.registered || 0) < event.capacity
   const isFull = event.capacity && event.registered && event.registered >= event.capacity
+  const hoverBorderColor = statusBorderHoverColors[event.status] || "hover:border-primary"
 
   return (
     <Card
       onClick={onClick}
-      className="group relative flex cursor-pointer flex-col gap-3 border-border/50 p-[1.15rem] transition-all hover:shadow-card hover:scale-[1.01] rounded-md"
+      className={`relative flex cursor-pointer flex-row gap-4 border-border/50 p-[1.15rem] transition-colors rounded-md ${hoverBorderColor}`}
     >
       {/* Event content */}
       <div className="flex-1 space-y-2">
@@ -87,7 +96,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
               </Badge>
               {isFull && <Badge variant="destructive" className="text-xs">Full</Badge>}
             </div>
-            <h3 className="text-sm font-semibold leading-tight text-foreground group-hover:text-primary transition-colors">
+            <h3 className="text-sm font-semibold leading-tight text-foreground">
               {event.title}
             </h3>
           </div>
@@ -168,7 +177,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
 
       {/* Thumbnail */}
       {event.thumbnail && (
-        <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-border/50 sm:h-20 sm:w-20">
+        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg border border-border/50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={event.thumbnail}
