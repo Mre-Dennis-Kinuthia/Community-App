@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { Suspense, useState, useMemo, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
@@ -9,15 +9,24 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Search, Filter, Mail, Linkedin, X } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+  Search, 
+  Mail, 
+  Linkedin, 
+  X, 
+  Users, 
+  MapPin, 
+  Star,
+  UserPlus,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
+  Heart,
+  Briefcase,
+  GraduationCap
+} from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 import {
   Select,
   SelectContent,
@@ -32,94 +41,293 @@ const members = [
     name: "Sarah Kimani",
     role: "UX Designer",
     industry: "Design",
-    skills: ["Figma", "Research"],
+    skills: ["Figma", "Research", "User Testing", "Prototyping"],
     avatar: "/placeholder-user.jpg",
     email: "sarah@example.com",
     linkedin: "linkedin.com/in/sarah",
-    bio: "Passionate UX designer with 5+ years of experience creating user-centered designs.",
+    twitter: "twitter.com/sarahkimani",
+    website: "https://sarahkimani.design",
+    bio: "Passionate UX designer with 5+ years of experience creating user-centered designs. Specializing in fintech and healthcare applications.",
+    fullBio: "Sarah Kimani is a UX designer with over 5 years of experience creating intuitive and user-centered digital experiences. She has worked with leading fintech and healthcare companies in Kenya, helping them design products that make a real impact. Sarah is passionate about accessibility and inclusive design, and regularly mentors junior designers in the community.",
+    location: "Nairobi, Kenya",
+    experienceLevel: "Mid-Level",
+    availability: ["Open to Collaboration", "Offering Mentorship"],
+    interests: ["User Research", "Accessibility", "Design Systems"],
+    projectsInvolved: [2, 5],
+    connections: 45,
+    followers: 89,
+    featured: true,
+    joinedDate: new Date(2023, 5, 15),
+    achievements: ["Design Excellence Award 2024", "Top Contributor 2024"],
   },
   {
     id: 2,
     name: "David Ochieng",
     role: "Software Engineer",
     industry: "FinTech",
-    skills: ["React", "Node.js"],
+    skills: ["React", "Node.js", "TypeScript", "AWS", "Docker"],
     avatar: "/placeholder-user.jpg",
     email: "david@example.com",
     linkedin: "linkedin.com/in/david",
+    twitter: "twitter.com/davidochieng",
+    website: "https://davidochieng.dev",
     bio: "Full-stack developer specializing in fintech solutions and scalable applications.",
+    fullBio: "David Ochieng is a full-stack software engineer with expertise in building scalable fintech applications. He has worked on several successful projects including payment platforms and financial management tools. David is known for writing clean, maintainable code and is always eager to share knowledge with the community.",
+    location: "Nairobi, Kenya",
+    experienceLevel: "Senior",
+    availability: ["Open to Collaboration", "Seeking Mentorship"],
+    interests: ["FinTech", "Open Source", "System Architecture"],
+    projectsInvolved: [1, 5],
+    connections: 78,
+    followers: 156,
+    featured: false,
+    joinedDate: new Date(2023, 2, 10),
+    achievements: ["Open Source Contributor of the Year 2024"],
   },
   {
     id: 3,
     name: "Faith Njeri",
     role: "Founder",
     industry: "AgriTech",
-    skills: ["Business Strategy", "Fundraising"],
+    skills: ["Business Strategy", "Fundraising", "Product Management", "Market Research"],
     avatar: "/placeholder-user.jpg",
     email: "faith@example.com",
     linkedin: "linkedin.com/in/faith",
+    twitter: "twitter.com/faithnjeri",
     bio: "Entrepreneur building sustainable agricultural technology solutions for smallholder farmers.",
+    fullBio: "Faith Njeri is the founder of an innovative AgriTech platform that connects smallholder farmers with markets and financing. With a background in agriculture and business, she has successfully raised funding and built a team of 15+ people. Faith is passionate about food security and rural development in Kenya.",
+    location: "Nairobi, Kenya",
+    experienceLevel: "Expert",
+    availability: ["Open to Collaboration", "Offering Mentorship", "Open to Partnerships"],
+    interests: ["Agriculture", "Sustainability", "Social Impact"],
+    projectsInvolved: [2],
+    connections: 92,
+    followers: 234,
+    featured: true,
+    joinedDate: new Date(2022, 11, 5),
+    achievements: ["Social Entrepreneur of the Year 2023", "Innovation Award 2024"],
   },
   {
     id: 4,
     name: "Michael Mwangi",
-    role: "Marketing lead",
+    role: "Marketing Lead",
     industry: "E-commerce",
-    skills: ["Growth", "SEO"],
+    skills: ["Growth Marketing", "SEO", "Content Strategy", "Analytics", "Paid Advertising"],
     avatar: "/placeholder-user.jpg",
     email: "michael@example.com",
     linkedin: "linkedin.com/in/michael",
+    website: "https://michaelmwangi.marketing",
     bio: "Growth marketing expert helping e-commerce businesses scale through data-driven strategies.",
+    fullBio: "Michael Mwangi is a growth marketing expert with a proven track record of scaling e-commerce businesses. He specializes in SEO, content marketing, and paid advertising, helping companies achieve sustainable growth. Michael regularly shares insights on growth strategies through workshops and community events.",
+    location: "Nairobi, Kenya",
+    experienceLevel: "Mid-Level",
+    availability: ["Open to Collaboration"],
+    interests: ["Growth Marketing", "E-commerce", "Analytics"],
+    projectsInvolved: [],
+    connections: 56,
+    followers: 112,
+    featured: false,
+    joinedDate: new Date(2024, 0, 20),
+    achievements: [],
+  },
+  {
+    id: 5,
+    name: "James Mwangi",
+    role: "Founder & CEO",
+    industry: "Climate & Environment",
+    skills: ["Renewable Energy", "Project Management", "Fundraising", "Team Leadership"],
+    avatar: "/placeholder-user.jpg",
+    email: "james@example.com",
+    linkedin: "linkedin.com/in/jamesmwangi",
+    bio: "Founder of Green Energy Solutions, bringing clean energy to rural Kenya.",
+    fullBio: "James Mwangi is the founder and CEO of Green Energy Solutions, a social enterprise focused on bringing affordable solar energy to rural communities. Under his leadership, the company has provided clean energy to over 5,000 households. James is passionate about climate action and sustainable development.",
+    location: "Nairobi, Kenya",
+    experienceLevel: "Expert",
+    availability: ["Open to Collaboration", "Open to Partnerships"],
+    interests: ["Renewable Energy", "Climate Action", "Rural Development"],
+    projectsInvolved: [1],
+    connections: 134,
+    followers: 245,
+    featured: true,
+    joinedDate: new Date(2022, 8, 15),
+    achievements: ["Climate Innovation Award 2024", "Community Impact Award 2023"],
+  },
+  {
+    id: 6,
+    name: "Grace Wanjiru",
+    role: "Founder",
+    industry: "Agriculture",
+    skills: ["AgriTech", "Business Development", "Partnerships", "Team Building"],
+    avatar: "/placeholder-user.jpg",
+    email: "grace@example.com",
+    linkedin: "linkedin.com/in/grace",
+    bio: "Founder of AgriTech Platform connecting farmers to markets and financing.",
+    fullBio: "Grace Wanjiru is the founder of an innovative AgriTech platform that connects smallholder farmers with buyers, markets, and financing. Her platform has facilitated transactions worth over KES 50M and connected over 10,000 farmers. Grace is committed to transforming agriculture in Kenya through technology.",
+    location: "Nairobi, Kenya",
+    experienceLevel: "Senior",
+    availability: ["Open to Collaboration", "Offering Mentorship"],
+    interests: ["Agriculture", "Technology", "Financial Inclusion"],
+    projectsInvolved: [2],
+    connections: 87,
+    followers: 189,
+    featured: false,
+    joinedDate: new Date(2023, 2, 10),
+    achievements: ["Women in Tech Award 2024"],
+  },
+  {
+    id: 7,
+    name: "Dr. Sarah Kamau",
+    role: "Founder & Medical Director",
+    industry: "Healthcare",
+    skills: ["Telemedicine", "Healthcare Innovation", "Clinical Practice", "Digital Health"],
+    avatar: "/placeholder-user.jpg",
+    email: "sarah@example.com",
+    linkedin: "linkedin.com/in/sarahkamau",
+    bio: "Founder of digital health platform improving maternal care outcomes.",
+    fullBio: "Dr. Sarah Kamau is a medical doctor and founder of a digital health platform focused on improving maternal healthcare outcomes. Her platform has served over 3,000 women with a 95% success rate. She combines clinical expertise with technology innovation to address healthcare access challenges.",
+    location: "Nairobi, Kenya",
+    experienceLevel: "Expert",
+    availability: ["Open to Partnerships"],
+    interests: ["Healthcare", "Telemedicine", "Women's Health"],
+    projectsInvolved: [4],
+    connections: 156,
+    followers: 312,
+    featured: true,
+    joinedDate: new Date(2023, 10, 5),
+    achievements: ["Healthcare Innovation Award 2024", "Impact Award 2024"],
+  },
+  {
+    id: 8,
+    name: "Peter Ochieng",
+    role: "Founder & Director",
+    industry: "Circular Economy",
+    skills: ["Waste Management", "Community Organizing", "Social Impact", "Operations"],
+    avatar: "/placeholder-user.jpg",
+    email: "peter@example.com",
+    linkedin: "linkedin.com/in/peter",
+    bio: "Founder of waste-to-wealth recycling initiative creating income opportunities.",
+    fullBio: "Peter Ochieng is the founder and director of a community-based recycling initiative that transforms plastic waste into economic opportunities. The program has created income for 200+ collectors while diverting 100+ tons of waste monthly. Peter is passionate about circular economy and community empowerment.",
+    location: "Nairobi, Kenya",
+    experienceLevel: "Mid-Level",
+    availability: ["Open to Collaboration", "Looking for Volunteers"],
+    interests: ["Circular Economy", "Waste Management", "Community Development"],
+    projectsInvolved: [3],
+    connections: 43,
+    followers: 156,
+    featured: false,
+    joinedDate: new Date(2024, 7, 1),
+    achievements: [],
   },
 ]
 
-const industries = ["All", "Design", "FinTech", "AgriTech", "E-commerce"]
-const roles = ["All", "UX Designer", "Software Engineer", "Founder", "Marketing lead"]
+const industries = ["All", "Design", "FinTech", "AgriTech", "E-commerce", "Climate & Environment", "Healthcare", "Circular Economy"]
+const roles = ["All", "UX Designer", "Software Engineer", "Founder", "Marketing Lead", "Founder & CEO", "Founder & Medical Director", "Founder & Director"]
+const experienceLevels = ["All", "Early Career", "Mid-Level", "Senior", "Expert"]
+const availabilityOptions = ["All", "Open to Collaboration", "Seeking Mentorship", "Offering Mentorship", "Open to Partnerships", "Looking for Volunteers"]
+const locations = ["All", "Nairobi, Kenya"]
 
-export default function CommunityPage() {
+function CommunityPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "all")
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
   const [selectedIndustry, setSelectedIndustry] = useState(searchParams.get("industry") || "All")
   const [selectedRole, setSelectedRole] = useState(searchParams.get("role") || "All")
-  const [selectedMember, setSelectedMember] = useState<typeof members[0] | null>(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [selectedExperience, setSelectedExperience] = useState(searchParams.get("experience") || "All")
+  const [selectedAvailability, setSelectedAvailability] = useState(searchParams.get("availability") || "All")
+  const [selectedLocation, setSelectedLocation] = useState(searchParams.get("location") || "All")
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(searchParams.get("skills")?.split(",") || [])
+  const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest")
+  const [showFeatured, setShowFeatured] = useState(searchParams.get("featured") === "true")
+
+  // Mock connections (current user's connections)
+  const myConnections = [2, 5, 6] // Connected member IDs
 
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams()
+    if (activeTab !== "all") params.set("tab", activeTab)
     if (searchQuery) params.set("search", searchQuery)
     if (selectedIndustry !== "All") params.set("industry", selectedIndustry)
     if (selectedRole !== "All") params.set("role", selectedRole)
+    if (selectedExperience !== "All") params.set("experience", selectedExperience)
+    if (selectedAvailability !== "All") params.set("availability", selectedAvailability)
+    if (selectedLocation !== "All") params.set("location", selectedLocation)
+    if (selectedSkills.length > 0) params.set("skills", selectedSkills.join(","))
+    if (sortBy !== "newest") params.set("sort", sortBy)
+    if (showFeatured) params.set("featured", "true")
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
-  }, [searchQuery, selectedIndustry, selectedRole, router])
+  }, [activeTab, searchQuery, selectedIndustry, selectedRole, selectedExperience, selectedAvailability, selectedLocation, selectedSkills, sortBy, showFeatured, router])
 
-  const filteredMembers = useMemo(() => {
-    return members.filter((member) => {
+  const allUniqueSkills = Array.from(new Set(members.flatMap(m => m.skills)))
+
+  const filteredAndSortedMembers = useMemo(() => {
+    let filtered = members.filter((member) => {
+      // Filter by tab
+      if (activeTab === "connections") {
+        if (!myConnections.includes(member.id)) return false
+      }
+
       const matchesSearch =
         member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
         member.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.skills.some((skill) => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+        member.skills.some((skill) => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        member.interests.some((interest) => interest.toLowerCase().includes(searchQuery.toLowerCase()))
 
       const matchesIndustry = selectedIndustry === "All" || member.industry === selectedIndustry
       const matchesRole = selectedRole === "All" || member.role === selectedRole
+      const matchesExperience = selectedExperience === "All" || member.experienceLevel === selectedExperience
+      const matchesAvailability = selectedAvailability === "All" || member.availability.includes(selectedAvailability)
+      const matchesLocation = selectedLocation === "All" || member.location === selectedLocation
+      const matchesSkills = selectedSkills.length === 0 || selectedSkills.some(skill => member.skills.includes(skill))
+      const matchesFeatured = !showFeatured || member.featured
 
-      return matchesSearch && matchesIndustry && matchesRole
+      return matchesSearch && matchesIndustry && matchesRole && matchesExperience && matchesAvailability && matchesLocation && matchesSkills && matchesFeatured
     })
-  }, [searchQuery, selectedIndustry, selectedRole])
 
-  const handleMemberClick = (member: typeof members[0]) => {
-    setSelectedMember(member)
-    setIsSheetOpen(true)
-  }
+    // Sort members
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return b.joinedDate.getTime() - a.joinedDate.getTime()
+        case "oldest":
+          return a.joinedDate.getTime() - b.joinedDate.getTime()
+        case "most_connected":
+          return b.connections - a.connections
+        case "most_active":
+          // Sort by followers + connections + projects involved
+          const aActivity = a.followers + a.connections + a.projectsInvolved.length
+          const bActivity = b.followers + b.connections + b.projectsInvolved.length
+          return bActivity - aActivity
+        case "alphabetical":
+          return a.name.localeCompare(b.name)
+        default:
+          return 0
+      }
+    })
+
+    return filtered
+  }, [activeTab, searchQuery, selectedIndustry, selectedRole, selectedExperience, selectedAvailability, selectedLocation, selectedSkills, sortBy, showFeatured, myConnections])
+
+  const featuredMembers = useMemo(() => {
+    return members.filter(m => m.featured)
+  }, [])
+
+  const hasActiveFilters = selectedIndustry !== "All" || selectedRole !== "All" || selectedExperience !== "All" || selectedAvailability !== "All" || selectedLocation !== "All" || selectedSkills.length > 0 || sortBy !== "newest" || showFeatured
 
   const clearFilters = () => {
     setSelectedIndustry("All")
     setSelectedRole("All")
+    setSelectedExperience("All")
+    setSelectedAvailability("All")
+    setSelectedLocation("All")
+    setSelectedSkills([])
+    setSortBy("newest")
+    setShowFeatured(false)
     setSearchQuery("")
     router.replace(window.location.pathname, { scroll: false })
   }
@@ -127,8 +335,29 @@ export default function CommunityPage() {
   const activeFilterCount = [
     selectedIndustry !== "All",
     selectedRole !== "All",
+    selectedExperience !== "All",
+    selectedAvailability !== "All",
+    selectedLocation !== "All",
+    selectedSkills.length > 0,
+    sortBy !== "newest",
+    showFeatured,
     searchQuery.length > 0,
   ].filter(Boolean).length
+
+  const experienceColors: Record<string, string> = {
+    "Early Career": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+    "Mid-Level": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+    "Senior": "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
+    "Expert": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+  }
+
+  const availabilityColors: Record<string, string> = {
+    "Open to Collaboration": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+    "Seeking Mentorship": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
+    "Offering Mentorship": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+    "Open to Partnerships": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+    "Looking for Volunteers": "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
+  }
 
   return (
     <DashboardLayout>
@@ -141,196 +370,437 @@ export default function CommunityPage() {
               Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions.
             </p>
           </div>
-          <Button variant="outline" className="shadow-sm" asChild>
-            <Link href="/community?filter=connections">
-              My Connections
-            </Link>
-          </Button>
         </div>
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              className="pl-10 shadow-sm"
-              placeholder="Search by name, skill, or industry..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          {activeFilterCount > 0 && (
-            <Badge variant="secondary" className="hidden md:flex">
-              {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-            </Badge>
-          )}
-          <div className="flex gap-2">
-            <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Industry" />
-              </SelectTrigger>
-              <SelectContent>
-                {industries.map((industry) => (
-                  <SelectItem key={industry} value={industry}>
-                    {industry}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Role" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {role}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {(selectedIndustry !== "All" || selectedRole !== "All" || searchQuery) && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSelectedIndustry("All")
-                  setSelectedRole("All")
-                  setSearchQuery("")
-                }}
-                className="gap-2"
-              >
-                <X className="h-4 w-4" />
-                Clear
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {filteredMembers.length === 0 ? (
-          <Card className="py-12">
-            <CardContent className="flex flex-col items-center justify-center text-center">
-              <p className="text-lg font-medium text-muted-foreground">No members found</p>
-              <p className="text-sm text-muted-foreground mt-2 mb-4">
-                Try adjusting your search or filters to find community members
-              </p>
-              <Button variant="outline" onClick={clearFilters}>
-                Clear Filters
-              </Button>
+        {/* Stats */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Members</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">{members.length}</div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mt-8">
-            {filteredMembers.map((member) => (
-              <Card
-                key={member.id}
-                className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50"
-                onClick={() => handleMemberClick(member)}
-              >
-                <CardHeader className="text-center">
-                  <Avatar className="mx-auto h-20 w-20">
-                    <AvatarImage 
-                      src={member.avatar || "/placeholder.svg"} 
-                      alt={member.name}
-                      loading="lazy"
-                    />
-                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{member.name}</CardTitle>
-                    <p className="text-sm font-medium text-primary">{member.role}</p>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1 text-center">
-                  <p className="mb-4 text-xs text-muted-foreground">{member.industry}</p>
-                  <div className="flex flex-wrap justify-center gap-1">
-                    {member.skills.map((skill) => (
-                      <Badge key={skill} variant="secondary" className="text-[10px]">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-                <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      window.location.href = `mailto:${member.email}`
-                    }}
-                  >
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      window.open(`https://${member.linkedin}`, "_blank")
-                    }}
-                  >
-                    <Linkedin className="h-4 w-4" />
-                    Profile
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Featured</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">{featuredMembers.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">My Connections</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">{myConnections.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Connections</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">
+                {members.reduce((sum, m) => sum + m.connections, 0)}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{selectedMember?.name}</SheetTitle>
-              <SheetDescription>{selectedMember?.role} • {selectedMember?.industry}</SheetDescription>
-            </SheetHeader>
-            {selectedMember && (
-              <div className="mt-6 space-y-6">
-                <div className="flex justify-center">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={selectedMember.avatar || "/placeholder.svg"} alt={selectedMember.name} />
-                    <AvatarFallback>{selectedMember.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="all">All Members</TabsTrigger>
+            <TabsTrigger value="connections">My Connections ({myConnections.length})</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all" className="space-y-6 mt-6">
+            {/* Featured Members Section */}
+            {!hasActiveFilters && featuredMembers.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-primary" />
+                  <h2 className="text-2xl font-semibold">Featured Members</h2>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-2">About</h3>
-                  <p className="text-sm text-muted-foreground">{selectedMember.bio}</p>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                  {featuredMembers.map((member) => (
+                    <Link key={member.id} href={`/community/${member.id}`}>
+                      <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 ring-2 ring-primary/20 h-full">
+                        <CardHeader className="text-center">
+                          <div className="flex justify-center mb-2">
+                            <Badge className="bg-primary/10 text-primary border-primary/20">
+                              <Star className="mr-1 h-3 w-3" />
+                              Featured
+                            </Badge>
+                          </div>
+                          <Avatar className="mx-auto h-20 w-20">
+                            <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
+                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1 mt-3">
+                            <CardTitle className="text-lg">{member.name}</CardTitle>
+                            <p className="text-sm font-medium text-primary">{member.role}</p>
+                            <p className="text-xs text-muted-foreground">{member.industry}</p>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="flex-1 text-center space-y-3">
+                          <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Users className="h-3 w-3" />
+                              <span>{member.connections}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Heart className="h-3 w-3" />
+                              <span>{member.followers}</span>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap justify-center gap-1">
+                            {member.skills.slice(0, 3).map((skill) => (
+                              <Badge key={skill} variant="secondary" className="text-[10px]">
+                                {skill}
+                              </Badge>
+                            ))}
+                            {member.skills.length > 3 && (
+                              <Badge variant="secondary" className="text-[10px]">
+                                +{member.skills.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                          {member.availability.length > 0 && (
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {member.availability.slice(0, 1).map((avail, idx) => (
+                                <Badge key={idx} className={`${availabilityColors[avail]} text-[9px]`} variant="outline">
+                                  {avail}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-2">Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedMember.skills.map((skill) => (
-                      <Badge key={skill} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => window.location.href = `mailto:${selectedMember.email}`}
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => window.open(`https://${selectedMember.linkedin}`, "_blank")}
-                  >
-                    <Linkedin className="mr-2 h-4 w-4" />
-                    LinkedIn
+                <div className="pt-4 border-t">
+                  <Button variant="outline" onClick={() => setShowFeatured(false)} className="w-full md:w-auto">
+                    View All Members
                   </Button>
                 </div>
               </div>
             )}
-          </SheetContent>
-        </Sheet>
+
+            {/* Filters */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    className="pl-10 shadow-sm"
+                    placeholder="Search by name, skill, role, or interest..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary" className="hidden md:flex">
+                    {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
+                  </Badge>
+                )}
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                    <SelectItem value="oldest">Oldest First</SelectItem>
+                    <SelectItem value="most_connected">Most Connected</SelectItem>
+                    <SelectItem value="most_active">Most Active</SelectItem>
+                    <SelectItem value="alphabetical">Alphabetical</SelectItem>
+                  </SelectContent>
+                </Select>
+                {hasActiveFilters && (
+                  <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm">
+                    <X className="mr-2 h-4 w-4" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:flex-wrap">
+                <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+                  <SelectTrigger className="w-full md:w-[150px] shadow-sm">
+                    <SelectValue placeholder="Industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {industries.map((industry) => (
+                      <SelectItem key={industry} value={industry}>{industry}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger className="w-full md:w-[150px] shadow-sm">
+                    <SelectValue placeholder="Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role} value={role}>{role}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedExperience} onValueChange={setSelectedExperience}>
+                  <SelectTrigger className="w-full md:w-[150px] shadow-sm">
+                    <SelectValue placeholder="Experience" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {experienceLevels.map((level) => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
+                  <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+                    <SelectValue placeholder="Availability" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availabilityOptions.map((avail) => (
+                      <SelectItem key={avail} value={avail}>{avail}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger className="w-full md:w-[150px] shadow-sm">
+                    <SelectValue placeholder="Location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {locations.map((location) => (
+                      <SelectItem key={location} value={location}>{location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Members Grid */}
+            {filteredAndSortedMembers.length === 0 ? (
+              <Card className="py-12">
+                <CardContent className="flex flex-col items-center justify-center text-center">
+                  <Users className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium text-muted-foreground">No members found</p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-4">
+                    Try adjusting your search or filters to find community members
+                  </p>
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear Filters
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {!hasActiveFilters && featuredMembers.length > 0 && (
+                  <div className="pt-4 border-t">
+                    <h2 className="text-2xl font-semibold mb-4">All Members</h2>
+                  </div>
+                )}
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                  {filteredAndSortedMembers.map((member) => {
+                    const isConnected = myConnections.includes(member.id)
+                    return (
+                      <Link key={member.id} href={`/community/${member.id}`}>
+                        <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 h-full">
+                          <CardHeader className="text-center">
+                            {member.featured && (
+                              <div className="flex justify-center mb-2">
+                                <Badge className="bg-primary/10 text-primary border-primary/20">
+                                  <Star className="mr-1 h-3 w-3" />
+                                  Featured
+                                </Badge>
+                              </div>
+                            )}
+                            <Avatar className="mx-auto h-20 w-20">
+                              <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
+                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-1 mt-3">
+                              <CardTitle className="text-lg">{member.name}</CardTitle>
+                              <p className="text-sm font-medium text-primary">{member.role}</p>
+                              <p className="text-xs text-muted-foreground">{member.industry}</p>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="flex-1 text-center space-y-3">
+                            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                <span>{member.connections}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Heart className="h-3 w-3" />
+                                <span>{member.followers}</span>
+                              </div>
+                              {member.projectsInvolved.length > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <Briefcase className="h-3 w-3" />
+                                  <span>{member.projectsInvolved.length}</span>
+                                </div>
+                              )}
+                            </div>
+                            <Badge className={`${experienceColors[member.experienceLevel]} text-xs`} variant="outline">
+                              {member.experienceLevel}
+                            </Badge>
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {member.skills.slice(0, 3).map((skill) => (
+                                <Badge key={skill} variant="secondary" className="text-[10px]">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {member.skills.length > 3 && (
+                                <Badge variant="secondary" className="text-[10px]">
+                                  +{member.skills.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                            {member.availability.length > 0 && (
+                              <div className="flex flex-wrap justify-center gap-1">
+                                {member.availability.slice(0, 1).map((avail, idx) => (
+                                  <Badge key={idx} className={availabilityColors[avail]} variant="outline" className="text-[9px]">
+                                    {avail}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            {isConnected && (
+                              <Badge variant="default" className="text-xs">
+                                <CheckCircle2 className="mr-1 h-3 w-3" />
+                                Connected
+                              </Badge>
+                            )}
+                          </CardContent>
+                          <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full gap-2"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                window.location.href = `mailto:${member.email}`
+                              }}
+                            >
+                              <Mail className="h-4 w-4" />
+                              Email
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full gap-2"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                window.open(`https://${member.linkedin}`, "_blank")
+                              }}
+                            >
+                              <Linkedin className="h-4 w-4" />
+                              Profile
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="connections" className="space-y-6 mt-6">
+            {filteredAndSortedMembers.length === 0 ? (
+              <Card className="py-12">
+                <CardContent className="flex flex-col items-center justify-center text-center">
+                  <Users className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium text-muted-foreground">No connections found</p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-4">
+                    Start connecting with community members to build your network
+                  </p>
+                  <Button variant="outline" onClick={() => setActiveTab("all")}>
+                    Browse All Members
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {filteredAndSortedMembers.map((member) => (
+                  <Link key={member.id} href={`/community/${member.id}`}>
+                    <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 h-full">
+                      <CardHeader className="text-center">
+                        <Avatar className="mx-auto h-20 w-20">
+                          <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
+                          <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-1 mt-3">
+                          <CardTitle className="text-lg">{member.name}</CardTitle>
+                          <p className="text-sm font-medium text-primary">{member.role}</p>
+                          <p className="text-xs text-muted-foreground">{member.industry}</p>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="flex-1 text-center space-y-3">
+                        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            <span>{member.connections}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Heart className="h-3 w-3" />
+                            <span>{member.followers}</span>
+                          </div>
+                        </div>
+                        <Badge variant="default" className="text-xs">
+                          <CheckCircle2 className="mr-1 h-3 w-3" />
+                          Connected
+                        </Badge>
+                      </CardContent>
+                      <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full gap-2"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            window.location.href = `mailto:${member.email}`
+                          }}
+                        >
+                          <Mail className="h-4 w-4" />
+                          Email
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full gap-2"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            window.open(`https://${member.linkedin}`, "_blank")
+                          }}
+                        >
+                          <Linkedin className="h-4 w-4" />
+                          Profile
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
+  )
+}
+
+export default function CommunityPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CommunityPageContent />
+    </Suspense>
   )
 }

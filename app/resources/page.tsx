@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, Suspense } from "react"
+import { useState, useMemo, useEffect, useRef, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -264,6 +264,59 @@ function ResourcesPageContent() {
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("status") || "all")
   const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
 
+  // Store scroll positions for each tab
+  const scrollPositionsRef = useRef<{ programs: number; resources: number }>({
+    programs: 0,
+    resources: 0,
+  })
+
+  // Save scroll position before tab change and prevent scroll reset
+  const handleTabChange = (newTab: "programs" | "resources") => {
+    // Save current scroll position (window scroll) before changing anything
+    scrollPositionsRef.current[activeTab] = window.scrollY || window.pageYOffset || 0
+    
+    // Clear filters when switching tabs
+    setSearchQuery("")
+    setCategoryFilter("all")
+    setStatusFilter("all")
+    setTypeFilter("all")
+    
+    // Update tab
+    setActiveTab(newTab)
+  }
+
+  // Restore scroll position after tab content is rendered
+  useEffect(() => {
+    const savedPosition = scrollPositionsRef.current[activeTab]
+    
+    // Use requestAnimationFrame to ensure DOM and layout are fully updated after display change
+    const restoreScroll = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // One more frame to ensure layout is completely stable
+          requestAnimationFrame(() => {
+            if (savedPosition !== undefined && savedPosition > 0) {
+              // Wait for layout to complete, then restore scroll position
+              const maxScroll = Math.max(
+                document.documentElement.scrollHeight - window.innerHeight,
+                0
+              )
+              // Restore position, but cap it at max scrollable position to prevent errors
+              const targetPosition = Math.min(savedPosition, Math.max(maxScroll, 0))
+              if (targetPosition > 0) {
+                window.scrollTo({ top: targetPosition, behavior: 'instant' })
+              }
+            }
+          })
+        })
+      })
+    }
+    
+    // Small delay to ensure content is rendered and layout is calculated
+    const timer = setTimeout(restoreScroll, 50)
+    return () => clearTimeout(timer)
+  }, [activeTab])
+
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams()
@@ -349,14 +402,7 @@ function ResourcesPageContent() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => {
-          setActiveTab(v as "programs" | "resources")
-          // Clear filters when switching tabs
-          setSearchQuery("")
-          setCategoryFilter("all")
-          setStatusFilter("all")
-          setTypeFilter("all")
-        }}>
+        <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as "programs" | "resources")}>
           <TabsList className="h-9 bg-muted p-1">
             <TabsTrigger value="programs" className="rounded-md px-3 py-1.5 text-sm">
               Programs
@@ -476,8 +522,11 @@ function ResourcesPageContent() {
         </Card>
 
         {/* Programs Tab */}
-        {activeTab === "programs" && (
-          <div className="space-y-6">
+        <div 
+          className="space-y-6" 
+          style={{ display: activeTab === "programs" ? "block" : "none" }}
+          aria-hidden={activeTab !== "programs"}
+        >
             {filteredPrograms.length === 0 ? (
               <Card className="border-border/50 shadow-card">
                 <CardContent className="flex flex-col items-center justify-center py-12">
@@ -581,12 +630,14 @@ function ResourcesPageContent() {
                 ))}
               </div>
             )}
-          </div>
-        )}
+        </div>
 
         {/* Resources Tab */}
-        {activeTab === "resources" && (
-          <div className="space-y-6">
+        <div 
+          className="space-y-6" 
+          style={{ display: activeTab === "resources" ? "block" : "none" }}
+          aria-hidden={activeTab !== "resources"}
+        >
             {filteredResources.length === 0 ? (
               <Card className="border-border/50 shadow-card">
                 <CardContent className="flex flex-col items-center justify-center py-12">
@@ -692,8 +743,7 @@ function ResourcesPageContent() {
                 </Button>
               </CardContent>
             </Card>
-          </div>
-        )}
+        </div>
       </div>
     </DashboardLayout>
   )
