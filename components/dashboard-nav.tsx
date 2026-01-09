@@ -6,6 +6,13 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, Calendar, Users, BookOpen, ShieldCheck, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { useSidebar } from "@/components/sidebar-context"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface NavItem {
   title: string
@@ -105,6 +112,7 @@ const adminItems: NavItem[] = [
 
 export function DashboardNav() {
   const pathname = usePathname()
+  const { isCollapsed } = useSidebar()
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     Main: true,
     Community: true,
@@ -114,14 +122,99 @@ export function DashboardNav() {
   })
 
   const toggleGroup = (groupTitle: string) => {
-    setOpenGroups((prev) => ({
-      ...prev,
-      [groupTitle]: !prev[groupTitle],
-    }))
+    if (!isCollapsed) {
+      setOpenGroups((prev) => ({
+        ...prev,
+        [groupTitle]: !prev[groupTitle],
+      }))
+    }
   }
 
   const isItemActive = (href: string) => pathname === href
 
+  // Collapsed view - show only icons
+  if (isCollapsed) {
+    return (
+      <TooltipProvider>
+        <nav className="grid items-start gap-2 py-6 px-2">
+          {navGroups.map((group) => {
+            const hasActiveItem = group.items.some((item) => isItemActive(item.href))
+            return (
+              <div key={group.title} className="space-y-1">
+                {group.items.map((item) => {
+                  const Icon = item.icon
+                  const isActive = isItemActive(item.href)
+                  return (
+                    <Tooltip key={item.href} delayDuration={0}>
+                      <TooltipTrigger asChild>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            "relative flex items-center justify-center rounded-lg p-3 text-sm font-medium transition-all duration-200 cursor-pointer",
+                            isActive
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                          )}
+                        >
+                          <Icon className={cn(
+                            "h-5 w-5 transition-colors",
+                            isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                          )} />
+                          {item.badge && (
+                            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
+                              {item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="ml-2">
+                        <p>{item.title}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                })}
+              </div>
+            )
+          })}
+          
+          {/* Admin section - separate */}
+          <div className="mt-4 border-t border-border/50 pt-4">
+            <div className="space-y-1">
+              {adminItems.map((item) => {
+                const Icon = item.icon
+                const isActive = isItemActive(item.href)
+                return (
+                  <Tooltip key={item.href} delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center justify-center rounded-lg p-3 text-sm font-medium transition-all duration-200 cursor-pointer",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                        )}
+                      >
+                        <Icon className={cn(
+                          "h-5 w-5 transition-colors",
+                          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                        )} />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="ml-2">
+                      <p>{item.title}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })}
+            </div>
+          </div>
+        </nav>
+      </TooltipProvider>
+    )
+  }
+
+  // Expanded view - show full navigation
   return (
     <nav className="grid items-start gap-2 py-6 px-2">
       {navGroups.map((group) => {

@@ -1,6 +1,5 @@
 "use client"
 
-import { TimelineDate } from "./timeline-date"
 import { EventCard } from "./event-card"
 import { useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
@@ -109,89 +108,47 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
   }
 
   return (
-    <div className="flex flex-col gap-6 md:flex-row">
-      {/* Timeline column */}
-      <div className="sticky top-6 flex-shrink-0 self-start md:w-44">
-        <div className="rounded-lg border border-border/50 bg-card/50 p-4 backdrop-blur-sm">
-          <div className="space-y-0">
-          {activeTab === "past" && groupedByMonth ? (
-            // Past events grouped by month
-            groupedByMonth.map((monthGroup, monthIndex) => (
-              <div key={monthGroup.month} className={monthIndex > 0 ? "mt-6" : ""}>
-                <div className="mb-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {monthGroup.month}
-                </div>
-                {monthGroup.groups.map((group, index) => (
-                  <TimelineDate
-                    key={group.date.toISOString()}
-                    date={group.date}
-                    label={group.label}
-                    eventCount={group.events.length}
-                    isFirst={monthIndex === 0 && index === 0}
-                    isLast={
-                      monthIndex === groupedByMonth.length - 1 && index === monthGroup.groups.length - 1
-                    }
+    <div className="space-y-4">
+      {activeTab === "past" && groupedByMonth ? (
+        // Past events grouped by month
+        groupedByMonth.map((monthGroup) => (
+          <div key={monthGroup.month} className="space-y-4">
+            <div className="mb-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+              {monthGroup.month}
+            </div>
+            {monthGroup.groups.map((group) => (
+              <div key={group.date.toISOString()} className="space-y-3">
+                {group.events.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onClick={() => onEventClick?.(event)}
+                    onRegister={onRegister}
+                    isRegistering={registering[event.id]}
+                    activeTab={activeTab}
                   />
                 ))}
               </div>
-            ))
-          ) : (
-            // Upcoming events with smart labels
-            eventsByDate.map((group, index) => (
-              <TimelineDate
-                key={group.date.toISOString()}
-                date={group.date}
-                label={group.label}
-                eventCount={group.events.length}
-                isFirst={index === 0}
-                isLast={index === eventsByDate.length - 1}
-              />
-            ))
-          )}
+            ))}
           </div>
-        </div>
-      </div>
-
-      {/* Events column */}
-      <div className="flex-1 space-y-4 min-w-0">
-        {activeTab === "past" && groupedByMonth ? (
-          // Past events grouped by month
-          groupedByMonth.map((monthGroup) => (
-            <div key={monthGroup.month} className="space-y-4">
-              {monthGroup.groups.map((group) => (
-                <div key={group.date.toISOString()} className="space-y-3">
-                  {group.events.map((event) => (
-                    <EventCard
-                      key={event.id}
-                      event={event}
-                      onClick={() => onEventClick?.(event)}
-                      onRegister={onRegister}
-                      isRegistering={registering[event.id]}
-                      activeTab={activeTab}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
-          ))
-        ) : (
-          // Upcoming events
-          eventsByDate.map((group) => (
-            <div key={group.date.toISOString()} className="space-y-3">
-              {group.events.map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onClick={() => onEventClick?.(event)}
-                  onRegister={onRegister}
-                  isRegistering={registering[event.id]}
-                  activeTab={activeTab}
-                />
-              ))}
-            </div>
-          ))
-        )}
-      </div>
+        ))
+      ) : (
+        // Upcoming events
+        eventsByDate.map((group) => (
+          <div key={group.date.toISOString()} className="space-y-3">
+            {group.events.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                onClick={() => onEventClick?.(event)}
+                onRegister={onRegister}
+                isRegistering={registering[event.id]}
+                activeTab={activeTab}
+              />
+            ))}
+          </div>
+        ))
+      )}
     </div>
   )
 }

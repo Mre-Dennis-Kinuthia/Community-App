@@ -13,18 +13,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { User, Settings, LogOut } from "lucide-react"
+import { User, Settings, LogOut, ChevronLeft, ChevronRight } from "lucide-react"
 import { handleLogout } from "@/app/actions/auth-actions"
 import { MobileNav } from "@/components/mobile-nav"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { NotificationCenter } from "@/components/notification-center"
 import { GlobalSearch } from "@/components/global-search"
+import { SidebarProvider, useSidebar } from "@/components/sidebar-context"
+import { cn } from "@/lib/utils"
 
-export function DashboardLayout({
+function DashboardLayoutContent({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { isCollapsed, toggleSidebar } = useSidebar()
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -84,8 +88,26 @@ export function DashboardLayout({
           </div>
         </div>
       </header>
-      <div className="container grid flex-1 gap-8 md:grid-cols-[220px_1fr]">
-        <aside className="hidden w-[220px] flex-col border-r border-border/50 bg-sidebar/30 md:flex">
+      <div className={cn(
+        "container grid flex-1 gap-8 transition-all duration-300",
+        isCollapsed ? "md:grid-cols-[64px_1fr]" : "md:grid-cols-[220px_1fr]"
+      )}>
+        <aside className={cn(
+          "hidden flex-col border-r border-border/50 bg-sidebar/30 md:flex transition-all duration-300 relative",
+          isCollapsed ? "w-[64px]" : "w-[220px]"
+        )}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className={cn(
+              "absolute -right-3 top-4 z-10 h-6 w-6 rounded-full border border-border bg-background shadow-sm hover:bg-accent transition-all duration-300",
+              isCollapsed && "rotate-180"
+            )}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
           <DashboardNav />
         </aside>
         <main id="main-content" className="flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8">
@@ -94,6 +116,20 @@ export function DashboardLayout({
       </div>
       <MobileBottomNav />
     </div>
+  )
+}
+
+export function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <SidebarProvider>
+      <DashboardLayoutContent>
+        {children}
+      </DashboardLayoutContent>
+    </SidebarProvider>
   )
 }
 
