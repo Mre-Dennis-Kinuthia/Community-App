@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -252,7 +252,7 @@ const statusColors: Record<string, string> = {
   "Ongoing": "bg-blue-100 text-blue-700",
 }
 
-export default function ResourcesPage() {
+function ResourcesPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
@@ -696,5 +696,25 @@ export default function ResourcesPage() {
         )}
       </div>
     </DashboardLayout>
+  )
+}
+
+export default function ResourcesPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="mx-auto max-w-5xl space-y-6">
+          <Breadcrumbs items={[{ label: "Programs & Resources" }]} />
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight">Programs & Resources</h1>
+            <p className="text-muted-foreground text-base">
+              Explore ongoing program opportunities and access tools, templates, and guides to support your social impact journey.
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    }>
+      <ResourcesPageContent />
+    </Suspense>
   )
 }
