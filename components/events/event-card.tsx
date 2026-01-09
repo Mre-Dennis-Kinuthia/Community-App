@@ -177,7 +177,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
 
       {/* Thumbnail */}
       {event.thumbnail && (
-        <div className="relative w-24 h-24 flex-shrink-0 overflow-hidden rounded-lg border border-border/50">
+        <div className="relative w-32 h-32 flex-shrink-0 overflow-hidden rounded-lg border border-border/50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={event.thumbnail}
