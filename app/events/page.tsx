@@ -218,6 +218,7 @@ export default function EventsPage() {
   const [organizerFilter, setOrganizerFilter] = useState<string>(searchParams.get("organizer") || "all")
   const [platformFilter, setPlatformFilter] = useState<string>(searchParams.get("platform") || "all")
   const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "date")
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>(searchParams.get("dateRange") || "all")
   const [selectedEvent, setSelectedEvent] = useState<typeof allEvents[0] | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [registering, setRegistering] = useState<Record<number, boolean>>({})
@@ -246,9 +247,6 @@ export default function EventsPage() {
       ? allEvents.filter((e) => e.date < today)
       : allEvents.filter((e) => e.date >= today)
   }, [activeTab])
-
-  // Date range filter state
-  const [dateRangeFilter, setDateRangeFilter] = useState<string>(searchParams.get("dateRange") || "all")
 
   // Filter events
   const filteredEvents = useMemo(() => {
