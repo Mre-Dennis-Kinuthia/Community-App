@@ -90,7 +90,8 @@ function DashboardLayoutContent({
       </header>
       <div className="flex flex-1 relative">
         <aside className={cn(
-          "hidden fixed left-0 top-16 bottom-0 flex-col border-r border-border/50 bg-sidebar/30 md:flex transition-all duration-300 z-30 overflow-y-auto",
+          "hidden fixed left-0 top-16 bottom-0 flex-col border-r border-border/50 bg-sidebar/30 md:flex z-30 overflow-y-auto scrollbar-thin",
+          "transition-[width] duration-300 ease-in-out",
           isCollapsed ? "w-[64px]" : "w-[220px]"
         )}>
           <Button
@@ -98,7 +99,8 @@ function DashboardLayoutContent({
             size="icon"
             onClick={toggleSidebar}
             className={cn(
-              "absolute -right-3 top-4 z-10 h-6 w-6 rounded-full border border-border bg-background shadow-sm hover:bg-accent transition-all duration-300",
+              "absolute -right-3 top-4 z-10 h-6 w-6 rounded-full border border-border bg-background shadow-sm hover:bg-accent",
+              "transition-all duration-300 ease-in-out",
               isCollapsed && "rotate-180"
             )}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -110,7 +112,8 @@ function DashboardLayoutContent({
         <main 
           id="main-content" 
           className={cn(
-            "flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8 transition-all duration-300 container",
+            "flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8 container",
+            "transition-[margin-left] duration-300 ease-in-out will-change-[margin-left]",
             isCollapsed ? "md:ml-[64px]" : "md:ml-[220px]"
           )}
         >
