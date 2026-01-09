@@ -336,7 +336,7 @@ function ProjectsPageContent() {
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Projects</CardTitle>
             </CardHeader>
@@ -344,7 +344,7 @@ function ProjectsPageContent() {
               <div className="text-2xl font-semibold">{projects.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Featured</CardTitle>
             </CardHeader>
@@ -354,7 +354,7 @@ function ProjectsPageContent() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Seeking Support</CardTitle>
             </CardHeader>
@@ -364,7 +364,7 @@ function ProjectsPageContent() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Followers</CardTitle>
             </CardHeader>

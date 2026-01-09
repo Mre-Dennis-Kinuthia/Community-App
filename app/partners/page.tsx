@@ -374,7 +374,7 @@ function PartnersPageContent() {
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Partners</CardTitle>
             </CardHeader>
@@ -382,7 +382,7 @@ function PartnersPageContent() {
               <div className="text-2xl font-semibold">{partners.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Investors</CardTitle>
             </CardHeader>
@@ -392,7 +392,7 @@ function PartnersPageContent() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Opportunities</CardTitle>
             </CardHeader>
@@ -400,7 +400,7 @@ function PartnersPageContent() {
               <div className="text-2xl font-semibold">{partnershipOpportunities.filter(o => o.status === "Open").length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Member Connections</CardTitle>
             </CardHeader>

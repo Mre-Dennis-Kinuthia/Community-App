@@ -114,7 +114,7 @@ export default function DashboardPage() {
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <Card 
-            className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            className="cursor-pointer transition-all hover:shadow-card  border-border/50 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/profile"}
             role="button"
             tabIndex={0}
@@ -146,7 +146,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <Card 
-            className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            className="cursor-pointer transition-all hover:shadow-card  border-border/50 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/events"}
             role="button"
             tabIndex={0}
@@ -168,7 +168,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <Card 
-            className="cursor-pointer transition-all hover:shadow-card hover:scale-[1.01] border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            className="cursor-pointer transition-all hover:shadow-card  border-border/50 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/community"}
             role="button"
             tabIndex={0}

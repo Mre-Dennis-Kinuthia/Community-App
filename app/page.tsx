@@ -54,7 +54,7 @@ function AccordionItem({
     <div className="border-b border-border/50">
       <button
         onClick={onToggle}
-        className="w-full py-4 flex items-center justify-between text-left hover:text-primary transition-colors group"
+        className="w-full py-4 flex items-center justify-between text-left  group"
       >
         <span className="font-medium text-base">{question}</span>
         <ChevronDown className={`h-4 w-4 transition-transform text-muted-foreground ${isOpen ? 'rotate-180' : ''}`} />
@@ -156,18 +156,18 @@ export default function HomePage() {
             </div>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm">
-            <a href="#how-it-works" className="text-foreground/70 hover:text-foreground transition-colors">How it Works</a>
-            <a href="#testimonials" className="text-foreground/70 hover:text-foreground transition-colors">Testimonials</a>
-            <a href="#features" className="text-foreground/70 hover:text-foreground transition-colors">Features</a>
-            <a href="#faq" className="text-foreground/70 hover:text-foreground transition-colors">FAQs</a>
-            <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="text-foreground/70 hover:text-foreground transition-colors">About Us</Link>
+            <a href="#how-it-works" className="text-foreground/70 ">How it Works</a>
+            <a href="#testimonials" className="text-foreground/70 ">Testimonials</a>
+            <a href="#features" className="text-foreground/70 ">Features</a>
+            <a href="#faq" className="text-foreground/70 ">FAQs</a>
+            <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="text-foreground/70 ">About Us</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link href="/login">
               <Button variant="ghost" className="hidden sm:flex text-foreground/70 hover:text-foreground">Login</Button>
             </Link>
             <Link href="/register">
-              <Button className="bg-primary text-primary-foreground hover:opacity-90">Join Now</Button>
+              <Button className="bg-primary text-primary-foreground ">Join Now</Button>
             </Link>
           </div>
         </div>
@@ -317,7 +317,7 @@ export default function HomePage() {
               {/* CTA Buttons - Apple Style */}
               <div className="flex flex-col gap-4 justify-center items-center pt-8">
                 <Link href="/register">
-                  <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground hover:opacity-90 button-press">
+                  <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground  button-press">
                     JOIN NOW <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -690,7 +690,7 @@ export default function HomePage() {
                 className="flex-1"
                 required
               />
-              <Button type="submit" className="bg-primary text-primary-foreground hover:opacity-90 button-press">
+              <Button type="submit" className="bg-primary text-primary-foreground  button-press">
                 Subscribe
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -721,7 +721,7 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
-              <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground hover:opacity-90 button-press">
+              <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground  button-press">
                 Join the Community
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -763,13 +763,13 @@ export default function HomePage() {
                 Kenya's leading innovation community for social entrepreneurs and changemakers.
               </p>
               <div className="flex gap-4">
-                <Link href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
                   <Twitter className="h-5 w-5" />
                 </Link>
-                <Link href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
                   <Linkedin className="h-5 w-5" />
                 </Link>
-                <Link href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
                   <Instagram className="h-5 w-5" />
                 </Link>
               </div>
@@ -780,27 +780,27 @@ export default function HomePage() {
               <h3 className="font-semibold mb-4">Quick Links</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/community" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/community" className="text-muted-foreground ">
                     Community
                   </Link>
                 </li>
                 <li>
-                  <Link href="/events" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/events" className="text-muted-foreground ">
                     Events & Programs
                   </Link>
                 </li>
                 <li>
-                  <Link href="/partners" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/partners" className="text-muted-foreground ">
                     Partners & Network
                   </Link>
                 </li>
                 <li>
-                  <Link href="/projects" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/projects" className="text-muted-foreground ">
                     Projects & Initiatives
                   </Link>
                 </li>
                 <li>
-                  <Link href="/news" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/news" className="text-muted-foreground ">
                     News & Updates
                   </Link>
                 </li>
@@ -812,27 +812,27 @@ export default function HomePage() {
               <h3 className="font-semibold mb-4">Resources</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
                     About Impact Hub
                   </Link>
                 </li>
                 <li>
-                  <Link href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="#faq" className="text-muted-foreground ">
                     FAQs
                   </Link>
                 </li>
                 <li>
-                  <Link href="/resources" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/resources" className="text-muted-foreground ">
                     Resource Library
                   </Link>
                 </li>
                 <li>
-                  <Link href="https://nairobi.impacthub.net/contact" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="https://nairobi.impacthub.net/contact" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
                     Contact Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href="/login" className="text-muted-foreground ">
                     Login
                   </Link>
                 </li>
@@ -849,13 +849,13 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <a href="mailto:info@nairobi.impacthub.net" className="hover:text-foreground transition-colors">
+                  <a href="mailto:info@nairobi.impacthub.net" className="">
                     info@nairobi.impacthub.net
                   </a>
                 </li>
                 <li className="flex items-start gap-2">
                   <Globe className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+                  <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="">
                     nairobi.impacthub.net
                   </Link>
                 </li>
@@ -870,8 +870,8 @@ export default function HomePage() {
                 <p className="text-xs mt-1">This platform is powered by and distributed by Impact Hub Nairobi.</p>
               </div>
               <div className="flex gap-6">
-                <Link href="#" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-                <Link href="#" className="hover:text-foreground transition-colors">Terms of Service</Link>
+                <Link href="#" className="">Privacy Policy</Link>
+                <Link href="#" className="">Terms of Service</Link>
               </div>
             </div>
             <div className="text-center mt-4 text-xs text-muted-foreground">

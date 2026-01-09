@@ -287,7 +287,7 @@ export default function NewsPage() {
                 return (
                   <Link key={item.id} href={`/news/${item.id}`}>
                     <Card
-                      className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer ring-2 ring-primary/20"
+                      className="border-border/50 shadow-card transition-all hover:shadow-card  cursor-pointer ring-2 ring-primary/20"
                     >
                     <CardHeader>
                       <div className="flex items-center gap-2 flex-wrap mb-2">
@@ -352,7 +352,7 @@ export default function NewsPage() {
                 return (
                   <Link key={item.id} href={`/news/${item.id}`}>
                     <Card
-                      className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer"
+                      className="border-border/50 shadow-card transition-all hover:shadow-card  cursor-pointer"
                     >
                     <CardHeader>
                       <div className="flex items-center gap-2 flex-wrap mb-2">

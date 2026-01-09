@@ -391,7 +391,7 @@ function ResourcesPageContent() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-5xl space-y-6 w-full overflow-x-hidden">
+      <div className="mx-auto max-w-5xl space-y-6">
         <Breadcrumbs items={[{ label: "Programs & Resources" }]} />
         
         <div className="space-y-2">
@@ -414,11 +414,11 @@ function ResourcesPageContent() {
         </Tabs>
 
         {/* Search and Filters */}
-        <Card className="border-border/50 w-full overflow-x-hidden">
-          <CardContent className="pt-4 w-full">
-            <div className="space-y-3 w-full">
+        <Card className="border-border/50">
+          <CardContent className="pt-4">
+            <div className="space-y-3">
               {/* Search */}
-              <div className="relative w-full">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder={activeTab === "programs" 
@@ -426,103 +426,79 @@ function ResourcesPageContent() {
                     : "Search resources, templates, guides..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 shadow-sm w-full"
+                  className="pl-9 shadow-sm"
                 />
               </div>
 
               {/* Filters */}
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 w-full min-w-0">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {activeTab === "programs" ? (
                   <>
-                    <div className="min-w-0">
-                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Categories" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {uniqueProgramCategories.map((category) => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="min-w-0">
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          {uniqueStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>{status}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="min-w-0">
-                      <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          {uniqueProgramTypes.map((type) => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {hasActiveFilters && (
-                      <div className="min-w-0">
-                        <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm w-full">
-                          <X className="mr-2 h-4 w-4" />
-                          Clear
-                        </Button>
-                      </div>
-                    )}
-                    {!hasActiveFilters && <div className="hidden lg:block min-w-0" />}
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="shadow-sm">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {uniqueProgramCategories.map((category) => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="shadow-sm">
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        {uniqueStatuses.map((status) => (
+                          <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="shadow-sm">
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {uniqueProgramTypes.map((type) => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </>
                 ) : (
                   <>
-                    <div className="min-w-0">
-                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Categories" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {resourceCategoryNames.map((category) => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="min-w-0">
-                      <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          <SelectItem value="pdf">PDF</SelectItem>
-                          <SelectItem value="docx">DOCX</SelectItem>
-                          <SelectItem value="link">Links</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {hasActiveFilters && (
-                      <div className="min-w-0">
-                        <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm w-full">
-                          <X className="mr-2 h-4 w-4" />
-                          Clear
-                        </Button>
-                      </div>
-                    )}
-                    {!hasActiveFilters && <div className="hidden lg:block min-w-0" />}
-                    {/* Empty placeholder to maintain grid layout - always keep 4 columns */}
-                    <div className="hidden lg:block min-w-0" />
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="shadow-sm">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {resourceCategoryNames.map((category) => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger className="shadow-sm">
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="pdf">PDF</SelectItem>
+                        <SelectItem value="docx">DOCX</SelectItem>
+                        <SelectItem value="link">Links</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </>
+                )}
+                {hasActiveFilters && (
+                  <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm">
+                    <X className="mr-2 h-4 w-4" />
+                    Clear
+                  </Button>
                 )}
               </div>
 
@@ -547,7 +523,7 @@ function ResourcesPageContent() {
 
         {/* Programs Tab */}
         <div 
-          className="space-y-6 w-full overflow-x-hidden" 
+          className="space-y-6" 
           style={{ display: activeTab === "programs" ? "block" : "none" }}
           aria-hidden={activeTab !== "programs"}
         >
@@ -564,10 +540,10 @@ function ResourcesPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 w-full">
+              <div className="grid gap-6 md:grid-cols-2">
                 {filteredPrograms.map((program) => (
                   <Link key={program.id} href={program.applicationLink}>
-                    <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer">
+                    <Card className="border-border/50 shadow-card transition-all hover:shadow-card  cursor-pointer">
                       <CardHeader>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 space-y-3">
@@ -658,7 +634,7 @@ function ResourcesPageContent() {
 
         {/* Resources Tab */}
         <div 
-          className="space-y-6 w-full overflow-x-hidden" 
+          className="space-y-6" 
           style={{ display: activeTab === "resources" ? "block" : "none" }}
           aria-hidden={activeTab !== "resources"}
         >
@@ -675,7 +651,7 @@ function ResourcesPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-6 md:grid-cols-3 w-full">
+              <div className="grid gap-6 md:grid-cols-3">
                 {filteredResources.map((category) => {
                   const Icon = category.icon
                   return (

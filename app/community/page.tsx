@@ -374,7 +374,7 @@ function CommunityPageContent() {
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Members</CardTitle>
             </CardHeader>
@@ -382,7 +382,7 @@ function CommunityPageContent() {
               <div className="text-2xl font-semibold">{members.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Featured</CardTitle>
             </CardHeader>
@@ -390,7 +390,7 @@ function CommunityPageContent() {
               <div className="text-2xl font-semibold">{featuredMembers.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">My Connections</CardTitle>
             </CardHeader>
@@ -398,7 +398,7 @@ function CommunityPageContent() {
               <div className="text-2xl font-semibold">{myConnections.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Connections</CardTitle>
             </CardHeader>
