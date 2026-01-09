@@ -7,7 +7,6 @@ import { toast } from "@/lib/toast"
 import { useWorkspace } from "@/lib/hooks/use-workspace"
 import { useAvailability } from "@/lib/hooks/use-availability"
 import { usePricing } from "@/lib/hooks/use-pricing"
-import { useReviews } from "@/lib/hooks/use-reviews"
 import { BookingHeader } from "@/components/booking/booking-header"
 import { AvailabilityCalendar } from "@/components/booking/availability-calendar"
 import { TimeSelector, type BookingDuration } from "@/components/booking/time-selector"
@@ -16,7 +15,6 @@ import { PricingBreakdown } from "@/components/booking/pricing-breakdown"
 import { AmenitiesGrid } from "@/components/booking/amenities-grid"
 import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
-import { ReviewsSection } from "@/components/booking/reviews-section"
 import { LocationSection } from "@/components/booking/location-section"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
 import { Button } from "@/components/ui/button"
@@ -40,7 +38,6 @@ export default function BookingPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("hourly")
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
-  const [reviewFilter, setReviewFilter] = useState("all")
   const [isBooking, setIsBooking] = useState(false)
   const [activeTab, setActiveTab] = useState("book")
 
@@ -50,7 +47,6 @@ export default function BookingPage() {
     selectedDate || undefined,
     selectedDuration === "hourly" ? 1 : selectedDuration === "half-day" ? 4 : 8
   )
-  const { reviews } = useReviews(workspaceId, reviewFilter)
 
   // Calculate pricing
   const totalPrice = useMemo(() => {
@@ -243,12 +239,6 @@ export default function BookingPage() {
               />
               <LocationSection workspace={workspace} />
             </div>
-
-            <ReviewsSection
-              reviews={reviews}
-              filter={reviewFilter}
-              onFilterChange={setReviewFilter}
-            />
           </TabsContent>
         </Tabs>
 
