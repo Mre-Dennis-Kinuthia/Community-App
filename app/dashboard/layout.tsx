@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { User, Settings, LogOut, ChevronLeft, ChevronRight } from "lucide-react"
+import { User, Settings, LogOut, Menu, X } from "lucide-react"
 import { handleLogout } from "@/app/actions/auth-actions"
 import { MobileNav } from "@/components/mobile-nav"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
@@ -100,12 +100,15 @@ function DashboardLayoutContent({
             onClick={toggleSidebar}
             className={cn(
               "absolute -right-3 top-4 z-10 h-6 w-6 rounded-full border border-border bg-background shadow-sm hover:bg-accent",
-              "transition-all duration-300 ease-in-out",
-              isCollapsed && "rotate-180"
+              "transition-all duration-300 ease-in-out"
             )}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <ChevronLeft className="h-4 w-4" />
+            {isCollapsed ? (
+              <Menu className="h-4 w-4" />
+            ) : (
+              <X className="h-4 w-4" />
+            )}
           </Button>
           <DashboardNav />
         </aside>

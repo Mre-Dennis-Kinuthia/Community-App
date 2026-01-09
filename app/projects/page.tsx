@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { Suspense, useState, useMemo, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,7 +19,12 @@ import {
   Globe,
   Target,
   Calendar,
-  ExternalLink
+  ExternalLink,
+  DollarSign,
+  Handshake,
+  UserPlus,
+  MapPin,
+  Star
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
@@ -43,6 +48,16 @@ const projects = [
     tags: ["Renewable Energy", "Rural Development", "Climate Action"],
     featured: true,
     launchDate: new Date(2024, 5, 15),
+    location: "Nairobi, Kenya",
+    needs: ["Seeking Funding", "Open to Partnerships"],
+    followers: 245,
+    volunteers: 12,
+    collaborationRequests: 8,
+    website: "https://greenenergy.co.ke",
+    socialLinks: {
+      linkedin: "https://linkedin.com/company/greenenergy",
+      twitter: "https://twitter.com/greenenergy",
+    },
   },
   {
     id: 2,
@@ -61,6 +76,16 @@ const projects = [
     tags: ["Agriculture", "FinTech", "Rural Development"],
     featured: true,
     launchDate: new Date(2024, 2, 10),
+    location: "Nairobi, Kenya",
+    needs: ["Seeking Collaborators", "Looking for Volunteers"],
+    followers: 189,
+    volunteers: 25,
+    collaborationRequests: 15,
+    website: "https://agritech.co.ke",
+    socialLinks: {
+      linkedin: "https://linkedin.com/company/agritech",
+      twitter: "https://twitter.com/agritech",
+    },
   },
   {
     id: 3,
@@ -79,6 +104,13 @@ const projects = [
     tags: ["Waste Management", "Circular Economy", "Livelihoods"],
     featured: false,
     launchDate: new Date(2024, 8, 1),
+    location: "Nairobi, Kenya",
+    needs: ["Seeking Funding", "Looking for Volunteers", "Seeking Collaborators"],
+    followers: 156,
+    volunteers: 35,
+    collaborationRequests: 12,
+    website: null,
+    socialLinks: {},
   },
   {
     id: 4,
@@ -97,6 +129,15 @@ const projects = [
     tags: ["Healthcare", "Telemedicine", "Women's Health"],
     featured: false,
     launchDate: new Date(2023, 11, 5),
+    location: "Nairobi, Kenya",
+    needs: ["Open to Partnerships"],
+    followers: 312,
+    volunteers: 8,
+    collaborationRequests: 22,
+    website: "https://maternalcare.co.ke",
+    socialLinks: {
+      linkedin: "https://linkedin.com/company/maternalcare",
+    },
   },
   {
     id: 5,
@@ -115,6 +156,16 @@ const projects = [
     tags: ["FinTech", "Youth", "Financial Inclusion"],
     featured: false,
     launchDate: new Date(2024, 0, 20),
+    location: "Nairobi, Kenya",
+    needs: ["Seeking Funding", "Seeking Collaborators"],
+    followers: 178,
+    volunteers: 5,
+    collaborationRequests: 18,
+    website: "https://youthfinance.co.ke",
+    socialLinks: {
+      linkedin: "https://linkedin.com/company/youthfinance",
+      twitter: "https://twitter.com/youthfinance",
+    },
   },
   {
     id: 6,
@@ -133,6 +184,15 @@ const projects = [
     tags: ["Water", "Sanitation", "Public Health"],
     featured: true,
     launchDate: new Date(2023, 8, 15),
+    location: "Nairobi, Kenya",
+    needs: ["Seeking Funding", "Looking for Volunteers"],
+    followers: 267,
+    volunteers: 42,
+    collaborationRequests: 10,
+    website: "https://cleanwater.co.ke",
+    socialLinks: {
+      linkedin: "https://linkedin.com/company/cleanwater",
+    },
   },
 ]
 
@@ -151,13 +211,31 @@ const stageColors: Record<string, string> = {
   "Scaling": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
 }
 
-export default function ProjectsPage() {
+const needsColors: Record<string, string> = {
+  "Seeking Funding": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  "Seeking Collaborators": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  "Looking for Volunteers": "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
+  "Open to Partnerships": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+}
+
+const needsIcons: Record<string, any> = {
+  "Seeking Funding": DollarSign,
+  "Seeking Collaborators": UserPlus,
+  "Looking for Volunteers": Users,
+  "Open to Partnerships": Handshake,
+}
+
+function ProjectsPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
   const [stageFilter, setStageFilter] = useState<string>(searchParams.get("stage") || "all")
+  const [needsFilter, setNeedsFilter] = useState<string>(searchParams.get("needs") || "all")
+  const [locationFilter, setLocationFilter] = useState<string>(searchParams.get("location") || "all")
+  const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "newest")
+  const [showFeatured, setShowFeatured] = useState<boolean>(searchParams.get("featured") === "true")
 
   // Update URL params when filters change
   useEffect(() => {
@@ -165,13 +243,17 @@ export default function ProjectsPage() {
     if (searchQuery) params.set("search", searchQuery)
     if (categoryFilter !== "all") params.set("category", categoryFilter)
     if (stageFilter !== "all") params.set("stage", stageFilter)
+    if (needsFilter !== "all") params.set("needs", needsFilter)
+    if (locationFilter !== "all") params.set("location", locationFilter)
+    if (sortBy !== "newest") params.set("sort", sortBy)
+    if (showFeatured) params.set("featured", "true")
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
-  }, [searchQuery, categoryFilter, stageFilter, router])
+  }, [searchQuery, categoryFilter, stageFilter, needsFilter, locationFilter, sortBy, showFeatured, router])
 
-  const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
+  const filteredAndSortedProjects = useMemo(() => {
+    let filtered = projects.filter((project) => {
       const matchesSearch = 
         project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -180,16 +262,48 @@ export default function ProjectsPage() {
       
       const matchesCategory = categoryFilter === "all" || project.category === categoryFilter
       const matchesStage = stageFilter === "all" || project.stage === stageFilter
+      const matchesNeeds = needsFilter === "all" || project.needs.includes(needsFilter)
+      const matchesLocation = locationFilter === "all" || project.location === locationFilter
+      const matchesFeatured = !showFeatured || project.featured
 
-      return matchesSearch && matchesCategory && matchesStage
+      return matchesSearch && matchesCategory && matchesStage && matchesNeeds && matchesLocation && matchesFeatured
     })
-  }, [searchQuery, categoryFilter, stageFilter])
 
-  const hasActiveFilters = categoryFilter !== "all" || stageFilter !== "all"
+    // Sort projects
+    filtered = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return b.launchDate.getTime() - a.launchDate.getTime()
+        case "oldest":
+          return a.launchDate.getTime() - b.launchDate.getTime()
+        case "popular":
+          return b.followers - a.followers
+        case "impactful":
+          // Sort by total engagement (followers + volunteers + collaboration requests)
+          const aEngagement = a.followers + a.volunteers + a.collaborationRequests
+          const bEngagement = b.followers + b.volunteers + b.collaborationRequests
+          return bEngagement - aEngagement
+        default:
+          return 0
+      }
+    })
+
+    return filtered
+  }, [searchQuery, categoryFilter, stageFilter, needsFilter, locationFilter, sortBy, showFeatured])
+
+  const featuredProjects = useMemo(() => {
+    return projects.filter(p => p.featured)
+  }, [])
+
+  const hasActiveFilters = categoryFilter !== "all" || stageFilter !== "all" || needsFilter !== "all" || locationFilter !== "all" || sortBy !== "newest" || showFeatured
 
   const clearFilters = () => {
     setCategoryFilter("all")
     setStageFilter("all")
+    setNeedsFilter("all")
+    setLocationFilter("all")
+    setSortBy("newest")
+    setShowFeatured(false)
     setSearchQuery("")
     router.replace(window.location.pathname, { scroll: false })
   }
@@ -197,11 +311,17 @@ export default function ProjectsPage() {
   const activeFilterCount = [
     categoryFilter !== "all",
     stageFilter !== "all",
+    needsFilter !== "all",
+    locationFilter !== "all",
+    sortBy !== "newest",
+    showFeatured,
     searchQuery.length > 0,
   ].filter(Boolean).length
 
   const uniqueCategories = Array.from(new Set(projects.map((p) => p.category)))
   const uniqueStages = Array.from(new Set(projects.map((p) => p.stage)))
+  const uniqueNeeds = Array.from(new Set(projects.flatMap((p) => p.needs)))
+  const uniqueLocations = Array.from(new Set(projects.map((p) => p.location)))
 
   return (
     <DashboardLayout>
@@ -236,72 +356,204 @@ export default function ProjectsPage() {
           </Card>
           <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Scaling</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Seeking Support</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold">
-                {projects.filter((p) => p.stage === "Scaling").length}
+                {projects.filter((p) => p.needs.length > 0).length}
               </div>
             </CardContent>
           </Card>
           <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01]">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Categories</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Followers</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold">{uniqueCategories.length}</div>
+              <div className="text-2xl font-semibold">
+                {projects.reduce((sum, p) => sum + p.followers, 0)}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search projects, founders, impact areas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 shadow-sm"
-            />
+        {/* Featured Projects Section */}
+        {!hasActiveFilters && featuredProjects.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-primary" />
+              <h2 className="text-2xl font-semibold">Featured Projects</h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {featuredProjects.map((project) => (
+                <Link key={project.id} href={`/projects/${project.id}`}>
+                  <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full ring-2 ring-primary/20`}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge className="bg-primary/10 text-primary border-primary/20">
+                              <Star className="mr-1 h-3 w-3" />
+                              Featured
+                            </Badge>
+                            <Badge className={categoryColors[project.category]}>
+                              {project.category}
+                            </Badge>
+                            <Badge className={stageColors[project.stage]}>
+                              {project.stage}
+                            </Badge>
+                          </div>
+                          <CardTitle className="text-xl">{project.title}</CardTitle>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={project.founderAvatar} alt={project.founder} />
+                              <AvatarFallback>{project.founder[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm text-muted-foreground">by {project.founder}</span>
+                          </div>
+                          <CardDescription className="text-base line-clamp-2">
+                            {project.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">Impact</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{project.impact}</p>
+                      </div>
+                      {project.needs.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {project.needs.slice(0, 2).map((need, idx) => {
+                            const NeedIcon = needsIcons[need] || Users
+                            return (
+                              <Badge key={idx} className={needsColors[need]} variant="outline">
+                                <NeedIcon className="mr-1 h-3 w-3" />
+                                {need}
+                              </Badge>
+                            )
+                          })}
+                          {project.needs.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{project.needs.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+                        <div className="flex items-center gap-1">
+                          <Heart className="h-3 w-3" />
+                          <span>{project.followers}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          <span>{project.volunteers}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          <span>{project.location}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+            <div className="pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowFeatured(false)} className="w-full md:w-auto">
+                View All Projects
+              </Button>
+            </div>
           </div>
-          {activeFilterCount > 0 && (
-            <Badge variant="secondary" className="hidden md:flex">
-              {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-            </Badge>
-          )}
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {uniqueCategories.map((category) => (
-                <SelectItem key={category} value={category}>{category}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={stageFilter} onValueChange={setStageFilter}>
-            <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-              <SelectValue placeholder="All Stages" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Stages</SelectItem>
-              {uniqueStages.map((stage) => (
-                <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {hasActiveFilters && (
-            <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm">
-              <X className="mr-2 h-4 w-4" />
-              Clear
-            </Button>
-          )}
+        )}
+
+        {/* Filters */}
+        <div className="space-y-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search projects, founders, impact areas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 shadow-sm"
+              />
+            </div>
+            {activeFilterCount > 0 && (
+              <Badge variant="secondary" className="hidden md:flex">
+                {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
+              </Badge>
+            )}
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="popular">Most Popular</SelectItem>
+                <SelectItem value="impactful">Most Impactful</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm">
+                <X className="mr-2 h-4 w-4" />
+                Clear
+              </Button>
+            )}
+          </div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:flex-wrap">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {uniqueCategories.map((category) => (
+                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={stageFilter} onValueChange={setStageFilter}>
+              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+                <SelectValue placeholder="All Stages" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stages</SelectItem>
+                {uniqueStages.map((stage) => (
+                  <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={needsFilter} onValueChange={setNeedsFilter}>
+              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+                <SelectValue placeholder="All Needs" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Needs</SelectItem>
+                {uniqueNeeds.map((need) => (
+                  <SelectItem key={need} value={need}>{need}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
+                <SelectValue placeholder="All Locations" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {uniqueLocations.map((location) => (
+                  <SelectItem key={location} value={location}>{location}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Projects Grid */}
-        {filteredProjects.length === 0 ? (
+        {filteredAndSortedProjects.length === 0 ? (
           <Card className="border-border/50 shadow-card">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
@@ -314,76 +566,116 @@ export default function ProjectsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {filteredProjects.map((project) => (
-              <Link href={`/projects/${project.id}`}>
-                <Card
-                  key={project.id}
-                  className={`border-border/50 shadow-card transition-all hover:shadow-card hover:scale-[1.01] cursor-pointer ${
+          <>
+            {!hasActiveFilters && featuredProjects.length > 0 && (
+              <div className="pt-4 border-t">
+                <h2 className="text-2xl font-semibold mb-4">All Projects</h2>
+              </div>
+            )}
+            <div className="grid gap-6 md:grid-cols-2">
+              {filteredAndSortedProjects.map((project) => (
+                <Link key={project.id} href={`/projects/${project.id}`}>
+                  <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full ${
                     project.featured ? "ring-2 ring-primary/20" : ""
-                  }`}
-                >
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {project.featured && (
-                          <Badge className="bg-primary/10 text-primary border-primary/20">
-                            Featured
+                  }`}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {project.featured && (
+                              <Badge className="bg-primary/10 text-primary border-primary/20">
+                                <Star className="mr-1 h-3 w-3" />
+                                Featured
+                              </Badge>
+                            )}
+                            <Badge className={categoryColors[project.category]}>
+                              {project.category}
+                            </Badge>
+                            <Badge className={stageColors[project.stage]}>
+                              {project.stage}
+                            </Badge>
+                          </div>
+                          <CardTitle className="text-xl">{project.title}</CardTitle>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={project.founderAvatar} alt={project.founder} />
+                              <AvatarFallback>{project.founder[0]}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm text-muted-foreground">by {project.founder}</span>
+                          </div>
+                          <CardDescription className="text-base line-clamp-2">
+                            {project.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">Impact</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{project.impact}</p>
+                      </div>
+                      {project.needs.length > 0 && (
+                        <div>
+                          <p className="text-sm font-medium mb-2">Looking For:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {project.needs.slice(0, 2).map((need, idx) => {
+                              const NeedIcon = needsIcons[need] || Users
+                              return (
+                                <Badge key={idx} className={needsColors[need]} variant="outline">
+                                  <NeedIcon className="mr-1 h-3 w-3" />
+                                  {need}
+                                </Badge>
+                              )
+                            })}
+                            {project.needs.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{project.needs.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+                        <div className="flex items-center gap-1">
+                          <Heart className="h-3 w-3" />
+                          <span>{project.followers} followers</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Users className="h-3 w-3" />
+                          <span>{project.volunteers} volunteers</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {project.tags.slice(0, 3).map((tag, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {project.tags.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{project.tags.length - 3}
                           </Badge>
                         )}
-                        <Badge className={categoryColors[project.category]}>
-                          {project.category}
-                        </Badge>
-                        <Badge className={stageColors[project.stage]}>
-                          {project.stage}
-                        </Badge>
                       </div>
-                      <CardTitle className="text-xl">{project.title}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage src={project.founderAvatar} alt={project.founder} />
-                          <AvatarFallback>{project.founder[0]}</AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm text-muted-foreground">by {project.founder}</span>
-                      </div>
-                      <CardDescription className="text-base line-clamp-2">
-                        {project.description}
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-medium">Impact</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{project.impact}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {project.tags.slice(0, 3).map((tag, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {project.tags.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{project.tags.length - 3}
-                      </Badge>
-                    )}
-                  </div>
-                  <Button variant="outline" className="w-full shadow-sm">
-                    View Details
-                  </Button>
-                </CardContent>
-              </Card>
-              </Link>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </DashboardLayout>
   )
 }
 
+export default function ProjectsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProjectsPageContent />
+    </Suspense>
+  )
+}
