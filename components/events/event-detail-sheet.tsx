@@ -97,7 +97,7 @@ export function EventDetailSheet({
               <SheetDescription className="text-base mt-2">{event.organizer}</SheetDescription>
             </div>
             {event.thumbnail && (
-              <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-border/50">
+              <div className="relative h-48 w-48 flex-shrink-0 overflow-hidden rounded-xl border border-border/50">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={event.thumbnail}
