@@ -523,13 +523,15 @@ export default function EventsPage() {
         </Card>
 
         {/* Events Timeline */}
-        <EventsTimeline
-          events={filteredEvents}
-          onEventClick={handleEventClick}
-          activeTab={activeTab}
-          onRegister={handleRegister}
-          registering={registering}
-        />
+        <div className={activeTab === "upcoming" ? "w-full -ml-4 md:-ml-8 pr-4 md:pr-8" : ""}>
+          <EventsTimeline
+            events={filteredEvents}
+            onEventClick={handleEventClick}
+            activeTab={activeTab}
+            onRegister={handleRegister}
+            registering={registering}
+          />
+        </div>
 
         {/* Event Detail Sheet */}
         {selectedEvent && (
