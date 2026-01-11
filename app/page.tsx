@@ -230,7 +230,7 @@ export default function HomePage() {
         </div>
         
         <div className="container relative px-4 py-24 md:py-40 z-10">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-5xl mx-auto bg-transparent">
             {/* Floating Startup Cards - Apple Style Subtle */}
             <div className="absolute top-10 right-10 hidden lg:block animate-in fade-in duration-700 delay-300">
               <Card className="shadow-card border border-border/50 p-4 w-52 bg-card">
