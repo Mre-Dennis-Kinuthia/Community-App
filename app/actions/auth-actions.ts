@@ -8,7 +8,7 @@ export async function handleLogin(formData: FormData) {
     await login(formData)
     redirect("/dashboard")
   } catch (error) {
-    console.log("[v0] Login error:", error)
+    console.log("Login error:", error)
     throw error
   }
 }

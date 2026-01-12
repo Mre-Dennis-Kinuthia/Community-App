@@ -14,7 +14,6 @@ export const metadata: Metadata = {
   title: "Impact Hub Nairobi Community Platform - Powered by Impact Hub Nairobi",
   description:
     "Impact Hub Nairobi's official digital platform. Access programs, resources, and community connections distributed through our network. Join Kenya's leading innovation community.",
-  generator: "v0.app",
   icons: {
     icon: [
       { url: "/icon.svg", type: "image/svg+xml" },
