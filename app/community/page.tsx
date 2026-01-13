@@ -345,18 +345,18 @@ function CommunityPageContent() {
   ].filter(Boolean).length
 
   const experienceColors: Record<string, string> = {
-    "Early Career": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-    "Mid-Level": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
-    "Senior": "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
-    "Expert": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+    "Early Career": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+    "Mid-Level": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
+    "Senior": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
+    "Expert": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
   }
 
   const availabilityColors: Record<string, string> = {
-    "Open to Collaboration": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+    "Open to Collaboration": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
     "Seeking Mentorship": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-    "Offering Mentorship": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
-    "Open to Partnerships": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
-    "Looking for Volunteers": "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
+    "Offering Mentorship": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+    "Open to Partnerships": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
+    "Looking for Volunteers": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
   }
 
   return (

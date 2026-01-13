@@ -33,11 +33,11 @@ interface EventDetailSheetProps {
 }
 
 const typeColors: Record<string, string> = {
-  Webinar: "bg-blue-100 text-blue-700",
-  Workshop: "bg-green-100 text-green-700",
-  Program: "bg-purple-100 text-purple-700",
-  Networking: "bg-orange-100 text-orange-700",
-  Hackathon: "bg-pink-100 text-pink-700",
+  Webinar: "bg-chart-2/20 text-chart-2",
+  Workshop: "bg-chart-3/20 text-chart-3",
+  Program: "bg-primary/10 text-primary",
+  Networking: "bg-chart-4/20 text-chart-4",
+  Hackathon: "bg-chart-5/20 text-chart-5",
 }
 
 export function EventDetailSheet({

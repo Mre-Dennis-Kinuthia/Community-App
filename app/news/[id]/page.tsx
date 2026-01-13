@@ -144,20 +144,20 @@ const typeIcons: Record<string, any> = {
 }
 
 const typeColors: Record<string, string> = {
-  "Announcement": "bg-blue-100 text-blue-700",
+  "Announcement": "bg-primary/10 text-primary",
   "Spotlight": "bg-yellow-100 text-yellow-700",
-  "Event": "bg-green-100 text-green-700",
-  "Recap": "bg-purple-100 text-purple-700",
-  "Impact Story": "bg-pink-100 text-pink-700",
+  "Event": "bg-chart-3/20 text-chart-3",
+  "Recap": "bg-chart-5/20 text-chart-5",
+  "Impact Story": "bg-primary/15 text-primary",
 }
 
 const categoryColors: Record<string, string> = {
-  "Programs": "bg-indigo-100 text-indigo-700",
-  "Member Success": "bg-emerald-100 text-emerald-700",
-  "Events": "bg-cyan-100 text-cyan-700",
-  "Partnerships": "bg-violet-100 text-violet-700",
-  "Workshops": "bg-orange-100 text-orange-700",
-  "Impact": "bg-rose-100 text-rose-700",
+  "Programs": "bg-primary/10 text-primary",
+  "Member Success": "bg-chart-3/20 text-chart-3",
+  "Events": "bg-chart-2/20 text-chart-2",
+  "Partnerships": "bg-chart-5/20 text-chart-5",
+  "Workshops": "bg-chart-4/20 text-chart-4",
+  "Impact": "bg-primary/15 text-primary",
 }
 
 export default function NewsDetailPage({ params }: { params: Promise<{ id: string }> }) {

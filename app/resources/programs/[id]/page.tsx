@@ -228,16 +228,16 @@ const programOpportunities = [
 ]
 
 const programTypeColors: Record<string, string> = {
-  Mentorship: "bg-blue-100 text-blue-700",
-  Incubation: "bg-green-100 text-green-700",
-  Acceleration: "bg-purple-100 text-purple-700",
-  Fellowship: "bg-pink-100 text-pink-700",
+  Mentorship: "bg-chart-2/20 text-chart-2",
+  Incubation: "bg-chart-3/20 text-chart-3",
+  Acceleration: "bg-primary/10 text-primary",
+  Fellowship: "bg-chart-5/20 text-chart-5",
 }
 
 const statusColors: Record<string, string> = {
-  "Open for Applications": "bg-green-100 text-green-700",
-  "Applications Closed": "bg-gray-100 text-gray-700",
-  "Ongoing": "bg-blue-100 text-blue-700",
+  "Open for Applications": "bg-chart-3/20 text-chart-3",
+  "Applications Closed": "bg-muted text-muted-foreground",
+  "Ongoing": "bg-primary/10 text-primary",
 }
 
 export default function ProgramDetailPage({ params }: { params: Promise<{ id: string }> }) {

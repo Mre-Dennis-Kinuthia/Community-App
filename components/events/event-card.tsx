@@ -30,19 +30,19 @@ interface EventCardProps {
 }
 
 const typeColors: Record<string, string> = {
-  Webinar: "bg-blue-100 text-blue-700",
-  Workshop: "bg-green-100 text-green-700",
-  Program: "bg-purple-100 text-purple-700",
-  Networking: "bg-orange-100 text-orange-700",
-  Hackathon: "bg-pink-100 text-pink-700",
+  Webinar: "bg-chart-2/20 text-chart-2",
+  Workshop: "bg-chart-3/20 text-chart-3",
+  Program: "bg-primary/10 text-primary",
+  Networking: "bg-chart-4/20 text-chart-4",
+  Hackathon: "bg-chart-5/20 text-chart-5",
 }
 
 const statusColors: Record<string, string> = {
   Open: "bg-primary/10 text-primary border-primary/20",
-  Registered: "bg-green-100 text-green-700 border-green-200",
-  Invited: "bg-blue-100 text-blue-700 border-blue-200",
-  Attended: "bg-gray-100 text-gray-700 border-gray-200",
-  Full: "bg-red-100 text-red-700 border-red-200",
+  Registered: "bg-chart-3/20 text-chart-3 border-chart-3/30",
+  Invited: "bg-chart-2/20 text-chart-2 border-chart-2/30",
+  Attended: "bg-muted text-muted-foreground border-border",
+  Full: "bg-destructive/10 text-destructive border-destructive/20",
 }
 
 const statusBorderHoverColors: Record<string, string> = {

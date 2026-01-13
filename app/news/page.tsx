@@ -149,20 +149,20 @@ const typeIcons: Record<string, any> = {
 }
 
 const typeColors: Record<string, string> = {
-  "Announcement": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  "Announcement": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
   "Spotlight": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-  "Event": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
-  "Recap": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
-  "Impact Story": "bg-pink-100 text-pink-700 dark:bg-pink-900/20 dark:text-pink-400",
+  "Event": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Recap": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
+  "Impact Story": "bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary/90",
 }
 
 const categoryColors: Record<string, string> = {
-  "Programs": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400",
-  "Member Success": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
-  "Events": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400",
-  "Partnerships": "bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400",
-  "Workshops": "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
-  "Impact": "bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400",
+  "Programs": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
+  "Member Success": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Events": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "Partnerships": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
+  "Workshops": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
+  "Impact": "bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary/90",
 }
 
 export default function NewsPage() {

@@ -183,11 +183,11 @@ export default function HomePage() {
             style={{
               background: `linear-gradient(
                 135deg,
-                oklch(0.55 0.20 250 / 0.18) 0%,
-                oklch(0.60 0.18 150 / 0.14) 25%,
+                oklch(0.38 0.18 10 / 0.18) 0%,
+                oklch(0.50 0.15 200 / 0.14) 25%,
                 oklch(1 0 0) 50%,
-                oklch(0.65 0.15 300 / 0.14) 75%,
-                oklch(0.55 0.20 250 / 0.18) 100%
+                oklch(0.55 0.15 150 / 0.14) 75%,
+                oklch(0.38 0.18 10 / 0.18) 100%
               )`,
               backgroundSize: '200% 200%',
             }}
@@ -197,10 +197,10 @@ export default function HomePage() {
             className="absolute inset-0 opacity-55 motion-gradient-float"
             style={{
               backgroundImage: `
-                radial-gradient(ellipse 800px 600px at 10% 30%, oklch(0.55 0.20 250 / 0.22) 0%, transparent 60%),
-                radial-gradient(ellipse 600px 800px at 90% 70%, oklch(0.60 0.18 150 / 0.18) 0%, transparent 60%),
-                radial-gradient(ellipse 500px 500px at 50% 10%, oklch(0.65 0.15 300 / 0.16) 0%, transparent 50%),
-                radial-gradient(ellipse 400px 600px at 30% 80%, oklch(0.55 0.20 250 / 0.14) 0%, transparent 50%)
+                radial-gradient(ellipse 800px 600px at 10% 30%, oklch(0.38 0.18 10 / 0.22) 0%, transparent 60%),
+                radial-gradient(ellipse 600px 800px at 90% 70%, oklch(0.50 0.15 200 / 0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 500px 500px at 50% 10%, oklch(0.55 0.15 150 / 0.16) 0%, transparent 50%),
+                radial-gradient(ellipse 400px 600px at 30% 80%, oklch(0.38 0.18 10 / 0.14) 0%, transparent 50%)
               `,
               backgroundSize: '100% 100%',
             }}

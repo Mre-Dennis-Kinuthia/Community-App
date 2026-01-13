@@ -263,25 +263,25 @@ const typeIcons: Record<string, any> = {
 }
 
 const typeColors: Record<string, string> = {
-  "Workspace Partner": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
-  "Investor": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
-  "Partner": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  "Workspace Partner": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
+  "Investor": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Partner": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
   "Funder": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-  "Government": "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400",
-  "Network": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400",
+  "Government": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "Network": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
 }
 
 const categoryColors: Record<string, string> = {
   "Infrastructure": "bg-slate-100 text-slate-700 dark:bg-slate-900/20 dark:text-slate-400",
-  "Funding": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
-  "Ecosystem": "bg-teal-100 text-teal-700 dark:bg-teal-900/20 dark:text-teal-400",
-  "Public Sector": "bg-violet-100 text-violet-700 dark:bg-violet-900/20 dark:text-violet-400",
+  "Funding": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Ecosystem": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "Public Sector": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
 }
 
 const opportunityCategoryColors: Record<string, string> = {
-  "Funding": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
-  "Program": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-  "Resource": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
+  "Funding": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Program": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
+  "Resource": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
 }
 
 function PartnersPageContent() {

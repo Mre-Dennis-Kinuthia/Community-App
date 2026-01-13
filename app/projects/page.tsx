@@ -201,21 +201,21 @@ const categoryColors: Record<string, string> = {
   "Agriculture": "bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   "Circular Economy": "bg-teal-100 text-teal-700 dark:bg-teal-900/20 dark:text-teal-400",
   "Healthcare": "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400",
-  "FinTech": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-  "Water & Sanitation": "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-400",
+  "FinTech": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "Water & Sanitation": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
 }
 
 const stageColors: Record<string, string> = {
   "Early Stage": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-  "Growth": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-  "Scaling": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+  "Growth": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
+  "Scaling": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
 }
 
 const needsColors: Record<string, string> = {
-  "Seeking Funding": "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
-  "Seeking Collaborators": "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-  "Looking for Volunteers": "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400",
-  "Open to Partnerships": "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400",
+  "Seeking Funding": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
+  "Seeking Collaborators": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "Looking for Volunteers": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
+  "Open to Partnerships": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
 }
 
 const needsIcons: Record<string, any> = {
