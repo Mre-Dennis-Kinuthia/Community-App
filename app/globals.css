@@ -334,25 +334,31 @@ html {
     transition: transform 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
   
-  /* Motion gradient animations */
+  /* Motion gradient animations - smooth and seamless */
   @keyframes gradient-shift {
-    0%, 100% {
+    0% {
       background-position: 0% 50%;
     }
     50% {
       background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
     }
   }
   
   @keyframes gradient-float {
     0%, 100% {
       transform: translate(0, 0) scale(1);
+      opacity: 0.6;
     }
     33% {
-      transform: translate(30px, -30px) scale(1.1);
+      transform: translate(20px, -20px) scale(1.05);
+      opacity: 0.65;
     }
     66% {
-      transform: translate(-20px, 20px) scale(0.9);
+      transform: translate(-15px, 15px) scale(0.98);
+      opacity: 0.55;
     }
   }
   
@@ -366,15 +372,17 @@ html {
   }
   
   .motion-gradient {
-    animation: gradient-shift 15s ease infinite;
-    background-size: 200% 200%;
+    animation: gradient-shift 25s ease-in-out infinite;
+    background-size: 300% 300%;
+    will-change: background-position;
   }
   
   .motion-gradient-float {
-    animation: gradient-float 20s ease-in-out infinite;
+    animation: gradient-float 30s ease-in-out infinite;
+    will-change: transform, opacity;
   }
   
   .motion-gradient-pulse {
-    animation: gradient-pulse 8s ease-in-out infinite;
+    animation: gradient-pulse 12s ease-in-out infinite;
   }
 }

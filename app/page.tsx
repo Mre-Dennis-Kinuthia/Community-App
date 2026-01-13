@@ -176,33 +176,44 @@ export default function HomePage() {
       {/* Hero Section - Apple Style Clean & Minimal */}
       <section className="relative overflow-hidden bg-background">
         {/* Background Image with Overlay - Innovation & Community Theme */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-background to-accent/12 motion-gradient">
-          {/* Animated base gradient */}
+        <div className="absolute inset-0 bg-background">
+          {/* Animated base gradient - seamless and uniform */}
           <div 
             className="absolute inset-0 motion-gradient"
             style={{
-              background: `linear-gradient(
-                135deg,
-                oklch(0.38 0.18 10 / 0.18) 0%,
-                oklch(0.50 0.15 200 / 0.14) 25%,
+              background: `radial-gradient(
+                ellipse 120% 120% at 50% 50%,
+                oklch(0.38 0.18 10 / 0.08) 0%,
+                oklch(0.50 0.15 200 / 0.06) 30%,
                 oklch(1 0 0) 50%,
-                oklch(0.55 0.15 150 / 0.14) 75%,
-                oklch(0.38 0.18 10 / 0.18) 100%
+                oklch(0.55 0.15 150 / 0.06) 70%,
+                oklch(0.38 0.18 10 / 0.08) 100%
               )`,
-              backgroundSize: '200% 200%',
+              backgroundSize: '300% 300%',
             }}
           />
-          {/* Abstract geometric shapes representing innovation and connectivity */}
+          {/* Secondary gradient layer for depth - very subtle */}
           <div 
-            className="absolute inset-0 opacity-55 motion-gradient-float"
+            className="absolute inset-0 motion-gradient-float"
             style={{
-              backgroundImage: `
-                radial-gradient(ellipse 800px 600px at 10% 30%, oklch(0.38 0.18 10 / 0.22) 0%, transparent 60%),
-                radial-gradient(ellipse 600px 800px at 90% 70%, oklch(0.50 0.15 200 / 0.18) 0%, transparent 60%),
-                radial-gradient(ellipse 500px 500px at 50% 10%, oklch(0.55 0.15 150 / 0.16) 0%, transparent 50%),
-                radial-gradient(ellipse 400px 600px at 30% 80%, oklch(0.38 0.18 10 / 0.14) 0%, transparent 50%)
-              `,
-              backgroundSize: '100% 100%',
+              background: `radial-gradient(
+                ellipse 100% 100% at 20% 30%,
+                oklch(0.38 0.18 10 / 0.06) 0%,
+                transparent 50%
+              ),
+              radial-gradient(
+                ellipse 100% 100% at 80% 70%,
+                oklch(0.50 0.15 200 / 0.05) 0%,
+                transparent 50%
+              ),
+              radial-gradient(
+                ellipse 80% 80% at 50% 50%,
+                oklch(0.55 0.15 150 / 0.04) 0%,
+                transparent 60%
+              )`,
+              backgroundSize: '200% 200%',
+              mixBlendMode: 'multiply',
+              opacity: 0.6,
             }}
           />
           {/* Subtle network/connection pattern */}
