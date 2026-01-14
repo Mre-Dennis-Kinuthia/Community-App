@@ -507,24 +507,45 @@ export default function HomePage() {
             This platform is Impact Hub Nairobi's official distribution channel for programs, resources, and community connections.
           </p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 opacity-60 hover:opacity-100 transition-opacity">
-          {/* Partner Logos - Using text/placeholders for now, replace with actual logos */}
-          <div className="flex items-center gap-2">
-            <Building2 className="h-8 w-8 text-muted-foreground" />
-            <span className="text-lg font-semibold text-muted-foreground">Ikigai</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-8 w-8 text-muted-foreground" />
-            <span className="text-lg font-semibold text-muted-foreground">Acumen Fund</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Globe className="h-8 w-8 text-muted-foreground" />
-            <span className="text-lg font-semibold text-muted-foreground">Impact Hub Global</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Award className="h-8 w-8 text-muted-foreground" />
-            <span className="text-lg font-semibold text-muted-foreground">Partners</span>
-          </div>
+        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 opacity-80 hover:opacity-100 transition-opacity">
+          {/* Partner Logos - each logo is a separate link */}
+          <Link
+            href="https://ikigai.co.ke"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/40 shadow-sm hover:border-primary/60 hover:bg-background/80 transition-colors"
+          >
+            <Building2 className="h-7 w-7 text-muted-foreground" />
+            <span className="text-sm md:text-base font-semibold text-muted-foreground">Ikigai</span>
+          </Link>
+
+          <Link
+            href="https://acumen.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/40 shadow-sm hover:border-primary/60 hover:bg-background/80 transition-colors"
+          >
+            <TrendingUp className="h-7 w-7 text-muted-foreground" />
+            <span className="text-sm md:text-base font-semibold text-muted-foreground">Acumen Fund</span>
+          </Link>
+
+          <Link
+            href="https://impacthub.net"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/40 shadow-sm hover:border-primary/60 hover:bg-background/80 transition-colors"
+          >
+            <Globe className="h-7 w-7 text-muted-foreground" />
+            <span className="text-sm md:text-base font-semibold text-muted-foreground">Impact Hub Global</span>
+          </Link>
+
+          <Link
+            href="/partners"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/40 shadow-sm hover:border-primary/60 hover:bg-background/80 transition-colors"
+          >
+            <Award className="h-7 w-7 text-muted-foreground" />
+            <span className="text-sm md:text-base font-semibold text-muted-foreground">View All Partners</span>
+          </Link>
         </div>
       </section>
 
