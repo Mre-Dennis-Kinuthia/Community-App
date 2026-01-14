@@ -126,6 +126,10 @@ export default function HomePage() {
       answer: "Impact Hub Nairobi is specifically focused on social impact and innovation. We're a community of changemakers. We offer programs, mentorship, access to investors, and a global network of 100+ Impact Hubs. Our mission is to support ventures that create positive social and environmental change.",
     },
     {
+      question: "How do I book workspace?",
+      answer: "Once you're a member, you can book workspace through our platform. Simply log in, go to the 'Book Workspace' section, select your preferred space and time slot, and confirm your booking. You'll receive a confirmation email with all the details.",
+    },
+    {
       question: "What programs and resources are available?",
       answer: "We offer a wide range of programs including acceleration programs, incubation support, mentorship sessions, workshops on fundraising and scaling, networking events, and access to our resource library. Check our Events & Programs page for upcoming opportunities.",
     },
@@ -601,7 +605,7 @@ export default function HomePage() {
             {/* Premium Connecting Line (hidden on mobile) */}
             <div className="hidden md:block absolute top-20 left-0 right-0 h-px bg-border/50" />
             
-            <div className="grid md:grid-cols-3 gap-8 relative">
+            <div className="grid md:grid-cols-4 gap-8 relative">
               {[
                 {
                   step: "1",
@@ -611,12 +615,18 @@ export default function HomePage() {
                 },
                 {
                   step: "2",
+                  title: "Book Workspace",
+                  description: "Reserve meeting rooms, collaboration zones, and wellness studios at our Ikigai partnership space.",
+                  icon: Calendar,
+                },
+                {
+                  step: "3",
                   title: "Access Programs",
                   description: "Join acceleration programs, access mentorship, and get tools to scale your social impact venture.",
                   icon: BookOpen,
                 },
                 {
-                  step: "3",
+                  step: "4",
                   title: "Create Impact",
                   description: "Connect with partners, investors, and the public sector to build a just and sustainable society.",
                   icon: TrendingUp,
@@ -638,7 +648,7 @@ export default function HomePage() {
                     </div>
                     
                     {/* Arrow (hidden on mobile, shown between steps) */}
-                    {index < 2 && (
+                    {index < 3 && (
                       <div className="hidden md:block absolute top-10 -right-4 z-10">
                         <ArrowRight className="h-5 w-5 text-muted-foreground/40" />
                       </div>

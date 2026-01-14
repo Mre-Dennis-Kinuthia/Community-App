@@ -12,6 +12,11 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
+    title: "Book",
+    href: "/booking",
+    icon: Calendar,
+  },
+  {
     title: "Community",
     href: "/community",
     icon: Users,
@@ -38,7 +43,7 @@ export function MobileBottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
-      <div className="grid grid-cols-4 h-16">
+      <div className="grid grid-cols-5 h-16">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/")

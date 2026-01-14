@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Users2, CheckCircle2, ArrowUpRight, ExternalLink, HelpCircle, Sparkles, X } from "lucide-react"
+import { CalendarDays, Users2, CheckCircle2, ArrowUpRight, ExternalLink, HelpCircle, Sparkles, X, Plus } from "lucide-react"
 import Link from "next/link"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { useState, useEffect } from "react"
@@ -45,6 +45,12 @@ export default function DashboardPage() {
               Welcome back to Impact Hub Nairobi. Continue building your impact.
             </p>
           </div>
+          <Button asChild className="shadow-sm">
+            <Link href="/booking">
+              <Plus className="mr-2 h-4 w-4" />
+              Book Workspace
+            </Link>
+          </Button>
         </div>
 
         {/* Getting Started Card for New Users */}
@@ -73,7 +79,16 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-3">
+                <Link href="/booking" className="group">
+                  <div className="rounded-lg border p-4 transition-all hover:border-primary/50 hover:bg-accent/50">
+                    <div className="mb-2 flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-primary" />
+                      <span className="font-medium">Book Your First Workspace</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Reserve a meeting room or collaboration space</p>
+                  </div>
+                </Link>
                 <Link href="/community" className="group">
                   <div className="rounded-lg border p-4 transition-all hover:border-primary/50 hover:bg-accent/50">
                     <div className="mb-2 flex items-center gap-2">
@@ -176,8 +191,37 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-      <div className="grid gap-6">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle>Upcoming Bookings</CardTitle>
+            <CardDescription>Your scheduled space reservations for this week.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[
+                { room: "Conference Room A", time: "Today, 2:00 PM - 3:30 PM", status: "Confirmed" },
+                { room: "Phone Booth 2", time: "Tomorrow, 10:00 AM - 11:00 AM", status: "Pending" },
+              ].map((booking, i) => (
+                <div key={i} className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium leading-none">{booking.room}</p>
+                    <p className="text-xs text-muted-foreground">{booking.time}</p>
+                  </div>
+                  <Badge variant={booking.status === "Confirmed" ? "default" : "secondary"}>{booking.status}</Badge>
+                </div>
+              ))}
+            </div>
+            <Button variant="outline" className="mt-4 w-full bg-transparent" asChild>
+              <Link href="/booking">
+                View All Bookings
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-3">
           <CardHeader>
             <CardTitle>Community Highlights</CardTitle>
             <CardDescription>Stay updated with what's happening.</CardDescription>
