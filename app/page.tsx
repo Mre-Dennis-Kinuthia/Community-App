@@ -126,7 +126,6 @@ export default function HomePage() {
       answer: "Impact Hub Nairobi is specifically focused on social impact and innovation. We're a community of changemakers. We offer programs, mentorship, access to investors, and a global network of 100+ Impact Hubs. Our mission is to support ventures that create positive social and environmental change.",
     },
     {
-    {
       question: "What programs and resources are available?",
       answer: "We offer a wide range of programs including acceleration programs, incubation support, mentorship sessions, workshops on fundraising and scaling, networking events, and access to our resource library. Check our Events & Programs page for upcoming opportunities.",
     },
