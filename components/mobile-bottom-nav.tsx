@@ -12,14 +12,14 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Book",
-    href: "/booking",
-    icon: Calendar,
-  },
-  {
     title: "Community",
     href: "/community",
     icon: Users,
+  },
+  {
+    title: "Events",
+    href: "/events",
+    icon: Calendar,
   },
   {
     title: "News",

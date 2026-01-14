@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Users, BookOpen, ShieldCheck, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2 } from "lucide-react"
+import { LayoutDashboard, Users, BookOpen, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useSidebar } from "@/components/sidebar-context"
 import {
@@ -60,16 +60,6 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Workspace",
-    items: [
-      {
-        title: "Book Workspace",
-        href: "/booking",
-        icon: Calendar,
-      },
-    ],
-  },
-  {
     title: "Programs",
     items: [
       {
@@ -101,22 +91,12 @@ const navGroups: NavGroup[] = [
   },
 ]
 
-// Admin section (separate, only for admins)
-const adminItems: NavItem[] = [
-  {
-    title: "Admin",
-    href: "/admin",
-    icon: ShieldCheck,
-  },
-]
-
 export function DashboardNav() {
   const pathname = usePathname()
   const { isCollapsed } = useSidebar()
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     Main: true,
     Community: true,
-    Workspace: true,
     Programs: true,
     Account: true,
   })
@@ -176,39 +156,6 @@ export function DashboardNav() {
               </div>
             )
           })}
-          
-          {/* Admin section - separate */}
-          <div className="mt-4 border-t border-border/50 pt-4">
-            <div className="space-y-1">
-              {adminItems.map((item) => {
-                const Icon = item.icon
-                const isActive = isItemActive(item.href)
-                return (
-                  <Tooltip key={item.href} delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "flex items-center justify-center rounded-lg p-3 text-sm font-medium transition-all duration-200 cursor-pointer",
-                          isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                        )}
-                      >
-                        <Icon className={cn(
-                          "h-5 w-5 transition-colors",
-                          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                        )} />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="ml-2">
-                      <p>{item.title}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              })}
-            </div>
-          </div>
         </nav>
       </TooltipProvider>
     )
@@ -273,37 +220,6 @@ export function DashboardNav() {
           </div>
         )
       })}
-      
-      {/* Admin section - separate */}
-      <div className="mt-4 border-t border-border/50 pt-4">
-        <div className="space-y-1">
-          <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            System
-          </div>
-          {adminItems.map((item) => {
-            const Icon = item.icon
-            const isActive = isItemActive(item.href)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
-                  isActive
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                )}
-              >
-                <Icon className={cn(
-                  "mr-3 h-4 w-4 transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                )} />
-                <span>{item.title}</span>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
     </nav>
   )
 }

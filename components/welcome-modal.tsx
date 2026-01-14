@@ -34,7 +34,7 @@ export function WelcomeModal() {
   }
 
   const handleNext = () => {
-    if (currentStep < 2) {
+    if (currentStep < 1) {
       setCurrentStep(currentStep + 1)
     } else {
       handleClose()
@@ -46,13 +46,6 @@ export function WelcomeModal() {
   }
 
   const steps = [
-    {
-      icon: Calendar,
-      title: "Book Your Workspace",
-      description: "Reserve meeting rooms, collaboration zones, and wellness studios. Your credits are your monthly workspace allowance.",
-      action: "Book Now",
-      href: "/booking",
-    },
     {
       icon: Users,
       title: "Connect with the Community",
@@ -125,7 +118,7 @@ export function WelcomeModal() {
           <Button variant="outline" onClick={handleSkip} className="flex-1">
             Skip Tour
           </Button>
-          {currentStep < 2 ? (
+          {currentStep < 1 ? (
             <Button onClick={handleNext} className="flex-1">
               Next
             </Button>
