@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -248,8 +249,10 @@ export default function ProfilePage() {
                 <span className="text-sm font-medium">Next Billing</span>
                 <span className="text-sm">Feb 1, 2026</span>
               </div>
-              <Button variant="outline" className="w-full bg-transparent">
-                Manage Billing
+              <Button variant="outline" className="w-full bg-transparent" asChild>
+                <Link href="/billing">
+                  Manage Billing
+                </Link>
               </Button>
             </CardContent>
           </Card>
