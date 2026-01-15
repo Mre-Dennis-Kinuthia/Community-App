@@ -1,12 +1,16 @@
 "use client"
 
+import { useState } from "react"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { CreditCard, Download, ExternalLink, ShieldCheck } from "lucide-react"
+import { toast } from "@/lib/toast"
+import { CreditCard, Download, ExternalLink, Phone, ShieldCheck } from "lucide-react"
 
 export default function BillingPage() {
   // In a real app, billing data would come from your backend / Stripe
@@ -16,6 +20,9 @@ export default function BillingPage() {
     status: "Active",
     renewsOn: "Feb 1, 2026",
   }
+
+  const [mpesaPhone, setMpesaPhone] = useState("")
+  const [mpesaAmount, setMpesaAmount] = useState("25000")
 
   const paymentMethod = {
     brand: "Visa",
@@ -100,6 +107,52 @@ export default function BillingPage() {
               </div>
               <Button variant="outline" className="w-full bg-transparent">
                 Update Payment Method
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* M-Pesa STK Push */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pay with M-Pesa</CardTitle>
+              <CardDescription>Initiate an STK Push to complete your payment.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mpesa-phone">M-Pesa Phone Number</Label>
+                <Input
+                  id="mpesa-phone"
+                  placeholder="07XX XXX XXX"
+                  value={mpesaPhone}
+                  onChange={(e) => setMpesaPhone(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mpesa-amount">Amount (KES)</Label>
+                <Input
+                  id="mpesa-amount"
+                  type="number"
+                  min="1"
+                  value={mpesaAmount}
+                  onChange={(e) => setMpesaAmount(e.target.value)}
+                />
+              </div>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  if (!mpesaPhone.trim()) {
+                    toast.error("Enter a phone number", "Please provide an M-Pesa phone number.")
+                    return
+                  }
+                  if (!mpesaAmount || Number(mpesaAmount) <= 0) {
+                    toast.error("Enter a valid amount", "Amount must be greater than 0.")
+                    return
+                  }
+                  toast.success("STK push sent", "Check your phone to complete the payment.")
+                }}
+              >
+                <Phone className="mr-2 h-4 w-4" />
+                Pay with M-Pesa (STK Push)
               </Button>
             </CardContent>
           </Card>
