@@ -127,11 +127,17 @@ export function DashboardNav() {
   if (isCollapsed) {
     return (
       <TooltipProvider>
-        <nav className="grid items-start gap-2 py-6 px-2">
-          {navGroups.map((group) => {
+        <nav className="grid items-start gap-3 py-6 px-2">
+          {navGroups.map((group, groupIndex) => {
             const hasActiveItem = group.items.some((item) => isItemActive(item.href))
             return (
-              <div key={group.title} className="space-y-1">
+              <div
+                key={group.title}
+                className={cn(
+                  "space-y-1 pb-3",
+                  groupIndex === navGroups.length - 1 ? "border-0 pb-0" : "border-b border-border/60"
+                )}
+              >
                 {group.items.map((item) => {
                   const Icon = item.icon
                   const isActive = isItemActive(item.href)
@@ -141,16 +147,21 @@ export function DashboardNav() {
                         <Link
                           href={item.href}
                           className={cn(
-                            "relative flex items-center justify-center rounded-lg p-3 text-sm font-medium transition-all duration-200 cursor-pointer",
+                            "relative flex h-11 items-center justify-center rounded-lg p-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
                             isActive
                               ? "bg-primary/10 text-primary"
-                              : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                              : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
                           )}
                         >
-                          <Icon className={cn(
-                            "h-5 w-5 transition-colors",
-                            isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                          )} />
+                          {isActive && (
+                            <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-primary" />
+                          )}
+                          <Icon
+                            className={cn(
+                              "h-5 w-5 transition-colors",
+                              isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                            )}
+                          />
                           {item.badge && (
                             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
                               {item.badge}
@@ -174,17 +185,23 @@ export function DashboardNav() {
 
   // Expanded view - show full navigation
   return (
-    <nav className="grid items-start gap-2 py-6 px-2">
-      {navGroups.map((group) => {
+    <nav className="grid items-start gap-3 py-6 px-2">
+      {navGroups.map((group, groupIndex) => {
         const isOpen = openGroups[group.title]
         const hasActiveItem = group.items.some((item) => isItemActive(item.href))
 
         return (
-          <div key={group.title} className="space-y-1">
+          <div
+            key={group.title}
+            className={cn(
+              "space-y-1 pb-3",
+              groupIndex === navGroups.length - 1 ? "border-0 pb-0" : "border-b border-border/60"
+            )}
+          >
             <button
               onClick={() => toggleGroup(group.title)}
               className={cn(
-                "flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground",
+                "flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 hasActiveItem && "text-foreground"
               )}
             >
@@ -205,17 +222,22 @@ export function DashboardNav() {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer",
+                        "group relative flex h-11 items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
                         isActive
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
                       )}
                     >
+                      {isActive && (
+                        <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-primary" />
+                      )}
                       <div className="flex items-center">
-                        <Icon className={cn(
-                          "mr-3 h-4 w-4 transition-colors",
-                          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                        )} />
+                        <Icon
+                          className={cn(
+                            "mr-3 h-5 w-5 transition-colors",
+                            isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                          )}
+                        />
                         <span>{item.title}</span>
                       </div>
                       {item.badge && (
