@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Bell, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,35 +23,32 @@ interface Notification {
   type: "info" | "success" | "warning" | "error"
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    title: "New Booking Confirmed",
-    message: "Your booking for Conference Room A has been confirmed",
-    time: "2 minutes ago",
-    read: false,
-    type: "success",
-  },
-  {
-    id: "2",
-    title: "Community Event",
-    message: "Monthly Townhall is happening this Thursday at 4 PM",
-    time: "1 hour ago",
-    read: false,
-    type: "info",
-  },
-  {
-    id: "3",
-    title: "New Member Joined",
-    message: "Sarah Kimani has joined the community",
-    time: "3 hours ago",
-    read: true,
-    type: "info",
-  },
-]
-
 export function NotificationCenter() {
-  const [notifications, setNotifications] = useState(mockNotifications)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // TODO: Fetch notifications from API when endpoint is available
+  // useEffect(() => {
+  //   async function fetchNotifications() {
+  //     try {
+  //       const response = await fetch("/api/notifications")
+  //       if (response.ok) {
+  //         const data = await response.json()
+  //         setNotifications(data.notifications || [])
+  //       }
+  //     } catch (error) {
+  //       console.error("Error fetching notifications:", error)
+  //     } finally {
+  //       setIsLoading(false)
+  //     }
+  //   }
+  //   fetchNotifications()
+  // }, [])
+  
+  useEffect(() => {
+    // For now, just set loading to false
+    setIsLoading(false)
+  }, [])
   const unreadCount = notifications.filter((n) => !n.read).length
 
   const markAsRead = (id: string) => {

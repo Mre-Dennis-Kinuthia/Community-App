@@ -22,30 +22,8 @@ interface SearchResult {
   description?: string
 }
 
-// Mock search results - in real app, this would come from API
-const mockSearchResults: SearchResult[] = [
-  {
-    id: "1",
-    title: "Social Innovation Bootcamp",
-    type: "event",
-    href: "/events",
-    description: "Intensive 6-week program for scaling social impact ventures",
-  },
-  {
-    id: "2",
-    title: "Sarah Kimani",
-    type: "member",
-    href: "/community",
-    description: "UX Designer",
-  },
-  {
-    id: "3",
-    title: "Green Energy Solutions",
-    type: "project",
-    href: "/projects",
-    description: "Providing clean energy to 5,000+ rural households",
-  },
-]
+// Search results will be fetched from API
+// TODO: Implement API endpoint for search functionality
 
 const typeLabels: Record<string, string> = {
   event: "Event",
@@ -60,6 +38,8 @@ export function GlobalSearch() {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const [recentSearches, setRecentSearches] = useState<string[]>([])
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
   const router = useRouter()
 
   // Load recent searches from localStorage
@@ -105,12 +85,26 @@ export function GlobalSearch() {
     }
   }, [open])
 
-  const filteredResults = query.length > 0
-    ? mockSearchResults.filter((result) =>
-        result.title.toLowerCase().includes(query.toLowerCase()) ||
-        result.description?.toLowerCase().includes(query.toLowerCase())
-      )
-    : []
+  // TODO: Implement API search when endpoint is available
+  // useEffect(() => {
+  //   if (query.length > 0) {
+  //     setIsSearching(true)
+  //     fetch(`/api/search?q=${encodeURIComponent(query)}`)
+  //       .then(res => res.json())
+  //       .then(data => {
+  //         setSearchResults(data.results || [])
+  //       })
+  //       .catch(err => {
+  //         console.error("Search error:", err)
+  //         setSearchResults([])
+  //       })
+  //       .finally(() => setIsSearching(false))
+  //   } else {
+  //     setSearchResults([])
+  //   }
+  // }, [query])
+
+  const filteredResults = searchResults
 
   const handleSelect = (href: string, searchTerm?: string) => {
     if (searchTerm) {
@@ -170,7 +164,11 @@ export function GlobalSearch() {
               />
             </div>
             <div className="max-h-[400px] overflow-y-auto">
-              {query.length > 0 && filteredResults.length === 0 ? (
+              {isSearching ? (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  Searching...
+                </div>
+              ) : query.length > 0 && filteredResults.length === 0 ? (
                 <div className="py-8 text-center text-sm text-muted-foreground">
                   No results found for "{query}"
                 </div>

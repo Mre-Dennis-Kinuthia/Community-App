@@ -24,9 +24,22 @@ function getGreeting() {
   return "Good evening"
 }
 
+interface Booking {
+  id: string
+  resourceType: string
+  date: string
+  startTime: string
+  endTime: string
+  duration: string
+  status: string
+  totalPrice: number
+}
+
 export default function DashboardPage() {
   const { user } = useSession()
   const [greeting, setGreeting] = useState("Good morning")
+  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([])
+  const [isLoadingBookings, setIsLoadingBookings] = useState(true)
   
   // Get first name from user's name or email
   const getUserFirstName = () => {
@@ -46,6 +59,56 @@ export default function DashboardPage() {
   useEffect(() => {
     setGreeting(getGreeting())
   }, [])
+
+  // Fetch upcoming bookings
+  useEffect(() => {
+    async function fetchBookings() {
+      try {
+        setIsLoadingBookings(true)
+        const response = await fetch("/api/bookings/upcoming?limit=5&days=7")
+        if (response.ok) {
+          const data = await response.json()
+          setUpcomingBookings(data.bookings || [])
+        }
+      } catch (error) {
+        console.error("[Dashboard] Error fetching bookings:", error)
+      } finally {
+        setIsLoadingBookings(false)
+      }
+    }
+
+    if (user) {
+      fetchBookings()
+    }
+  }, [user])
+
+  // Format booking display
+  const formatBookingDisplay = (booking: Booking) => {
+    const date = new Date(booking.date)
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+
+    let dateLabel = ""
+    if (date.toDateString() === today.toDateString()) {
+      dateLabel = "Today"
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      dateLabel = "Tomorrow"
+    } else {
+      dateLabel = date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
+    }
+
+    const resourceName = booking.resourceType
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+
+    return {
+      room: resourceName,
+      time: `${dateLabel}, ${booking.startTime} - ${booking.endTime}`,
+      status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
+    }
+  }
 
   return (
     <TooltipProvider>
@@ -156,6 +219,7 @@ export default function DashboardPage() {
               <Users2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
+              {/* TODO: Fetch from user profile/membership API */}
               <div className="text-2xl font-bold">Active</div>
               <p className="text-xs text-muted-foreground">Fixed Desk Plan</p>
             </CardContent>
@@ -178,6 +242,7 @@ export default function DashboardPage() {
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
+              {/* TODO: Fetch from events API - count upcoming events this week */}
               <div className="text-2xl font-bold">3</div>
               <p className="text-xs text-muted-foreground">This week</p>
             </CardContent>
@@ -200,6 +265,7 @@ export default function DashboardPage() {
               <Users2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
+              {/* TODO: Fetch from users API - count active members */}
               <div className="text-2xl font-bold">127</div>
               <p className="text-xs text-muted-foreground">Active members</p>
             </CardContent>
@@ -213,26 +279,47 @@ export default function DashboardPage() {
             <CardDescription>Your scheduled space reservations for this week.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { room: "Conference Room A", time: "Today, 2:00 PM - 3:30 PM", status: "Confirmed" },
-                { room: "Phone Booth 2", time: "Tomorrow, 10:00 AM - 11:00 AM", status: "Pending" },
-              ].map((booking, i) => (
-                <div key={i} className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">{booking.room}</p>
-                    <p className="text-xs text-muted-foreground">{booking.time}</p>
+            {isLoadingBookings ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-sm text-muted-foreground">Loading bookings...</p>
+              </div>
+            ) : upcomingBookings.length === 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-center py-8 text-center">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">No upcoming bookings</p>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href="/booking">Book a workspace</Link>
+                    </Button>
                   </div>
-                  <Badge variant={booking.status === "Confirmed" ? "default" : "secondary"}>{booking.status}</Badge>
                 </div>
-              ))}
-            </div>
-            <Button variant="outline" className="mt-4 w-full bg-transparent" asChild>
-              <Link href="/booking">
-                View All Bookings
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-4">
+                  {upcomingBookings.map((booking) => {
+                    const display = formatBookingDisplay(booking)
+                    return (
+                      <div key={booking.id} className="flex items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium leading-none">{display.room}</p>
+                          <p className="text-xs text-muted-foreground">{display.time}</p>
+                        </div>
+                        <Badge variant={display.status === "Confirmed" ? "default" : "secondary"}>
+                          {display.status}
+                        </Badge>
+                      </div>
+                    )
+                  })}
+                </div>
+                <Button variant="outline" className="mt-4 w-full bg-transparent" asChild>
+                  <Link href="/booking">
+                    View All Bookings
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -242,6 +329,7 @@ export default function DashboardPage() {
             <CardDescription>Stay updated with what's happening.</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* TODO: Fetch from events/news API - show recent community highlights */}
             <div className="space-y-4">
               <div className="flex gap-4">
                 <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
