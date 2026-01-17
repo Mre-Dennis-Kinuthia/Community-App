@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { User, Settings, LogOut, ChevronLeft, ChevronRight } from "lucide-react"
 import { signOut } from "next-auth/react"
+import { useState } from "react"
 import { MobileNav } from "@/components/mobile-nav"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { NotificationCenter } from "@/components/notification-center"
@@ -22,6 +23,7 @@ import { GlobalSearch } from "@/components/global-search"
 import { SidebarProvider, useSidebar } from "@/components/sidebar-context"
 import { cn } from "@/lib/utils"
 import { useSession } from "@/lib/use-session"
+import { toast } from "@/lib/toast"
 
 function DashboardLayoutContent({
   children,
@@ -30,6 +32,31 @@ function DashboardLayoutContent({
 }) {
   const { isCollapsed, toggleSidebar } = useSidebar()
   const { user } = useSession()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  const handleLogout = async () => {
+    console.log("[LOGOUT] Logout initiated")
+    setIsLoggingOut(true)
+    
+    try {
+      const result = await signOut({ 
+        redirect: false,
+        callbackUrl: "/login" 
+      })
+      
+      console.log("[LOGOUT] Sign out result:", result)
+      
+      // Show success message
+      toast.success("Logged out successfully", "You have been signed out.")
+      
+      // Use window.location for a full page reload to clear all state
+      window.location.href = "/login"
+    } catch (error) {
+      console.error("[LOGOUT] Logout error:", error)
+      toast.error("Logout failed", "There was an error signing you out. Please try again.")
+      setIsLoggingOut(false)
+    }
+  }
 
   // Get user initials for avatar fallback
   const getInitials = (name?: string | null, email?: string | null) => {
@@ -99,10 +126,11 @@ function DashboardLayoutContent({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="cursor-pointer text-destructive focus:text-destructive"
-                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Log out
+                  {isLoggingOut ? "Logging out..." : "Log out"}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
