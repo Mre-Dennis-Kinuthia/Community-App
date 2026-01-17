@@ -1,0 +1,10 @@
+{
+  "name": "community-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone backend service for the Impact Hub Nairobi community platform.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node src/index.js"
+  }
+}

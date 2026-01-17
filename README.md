@@ -24,6 +24,7 @@ This is the official community platform for Impact Hub Nairobi, built with Next.
 
 1. Install dependencies:
    ```bash
+   cd frontend
    npm install
    # or
    bun install
@@ -31,6 +32,7 @@ This is the official community platform for Impact Hub Nairobi, built with Next.
 
 2. Run the development server:
    ```bash
+   cd frontend
    npm run dev
    # or
    bun run dev
@@ -43,10 +45,15 @@ This is the official community platform for Impact Hub Nairobi, built with Next.
 To build the application for production:
 
 ```bash
+cd frontend
 npm run build
 # or
 bun run build
 ```
+
+## Repository Layout
+- `frontend/`: Frontend (Next.js app)
+- `backend/`: Standalone backend service (placeholder)
 
 ## Tech Stack
 
