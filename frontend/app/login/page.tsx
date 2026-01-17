@@ -103,8 +103,8 @@ function LoginForm() {
         if (result.error === "Configuration") {
           console.error("[LOGIN FORM] Auth.js configuration error - likely missing AUTH_SECRET or DATABASE_URL")
           throw new Error(
-            "Server configuration error. Please contact support. " +
-            "If you're the administrator, check that AUTH_SECRET and DATABASE_URL are set in Vercel."
+            "Server configuration error. Missing AUTH_SECRET or DATABASE_URL. " +
+            "Check /setup-check for details or visit Vercel Dashboard → Settings → Environment Variables."
           )
         }
         

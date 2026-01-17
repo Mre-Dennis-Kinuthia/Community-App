@@ -5,7 +5,7 @@ import { authConfig } from "@/auth.config"
 // Create auth function for middleware (Edge runtime) - no Prisma
 const { auth } = NextAuth(authConfig)
 
-const publicRoutes = ["/", "/login", "/register", "/api"]
+const publicRoutes = ["/", "/login", "/register", "/api", "/setup-check"]
 const protectedRoutes = [
   "/dashboard",
   "/community",
