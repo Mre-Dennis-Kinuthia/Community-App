@@ -713,6 +713,9 @@
   .min-h-\[100px\] {
     min-height: 100px;
   }
+  .min-h-\[400px\] {
+    min-height: 400px;
+  }
   .min-h-screen {
     min-height: 100vh;
   }
@@ -956,6 +959,9 @@
   }
   .list-decimal {
     list-style-type: decimal;
+  }
+  .list-disc {
+    list-style-type: disc;
   }
   .auto-rows-min {
     grid-auto-rows: min-content;
@@ -1376,10 +1382,22 @@
   .bg-green-100 {
     background-color: var(--color-green-100);
   }
+  .bg-green-500\/5 {
+    background-color: color-mix(in srgb, oklch(72.3% 0.219 149.579) 5%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-green-500) 5%, transparent);
+    }
+  }
   .bg-green-500\/10 {
     background-color: color-mix(in srgb, oklch(72.3% 0.219 149.579) 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-green-500) 10%, transparent);
+    }
+  }
+  .bg-green-500\/20 {
+    background-color: color-mix(in srgb, oklch(72.3% 0.219 149.579) 20%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-green-500) 20%, transparent);
     }
   }
   .bg-green-600 {

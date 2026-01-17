@@ -27,6 +27,7 @@ model User {
   profile   MemberProfile?
   sessions  Session[]
   accounts  Account[]
+  bookings  WorkspaceBooking[]
 
   @@map("users")
 }
@@ -193,4 +194,46 @@ model Partner {
   deletedAt DateTime?
 
   @@map("partners")
+}
+
+// ============================================
+// WORKSPACE BOOKINGS
+// ============================================
+
+model WorkspaceBooking {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Booking details
+  resourceType  String   // hot-desk, meeting-room, private-office
+  date          DateTime
+  startTime     String   // e.g., "09:00"
+  duration      String   // hourly, half-day, full-day
+  endTime       String?  // calculated end time
+  
+  // Pricing
+  basePrice     Float
+  addOnsPrice   Float    @default(0)
+  totalPrice    Float
+  
+  // Add-ons (stored as JSON array of add-on IDs)
+  addOns        String[] @default([])
+  
+  // Status
+  status        String   @default("pending") // pending, confirmed, cancelled, completed
+  paymentStatus String   @default("pending") // pending, paid, refunded
+  
+  // Additional info
+  notes         String?  @db.Text
+  workspaceId   String   @default("impact-hub-nairobi")
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  cancelledAt   DateTime?
+
+  @@map("workspace_bookings")
+  @@index([userId])
+  @@index([date])
+  @@index([status])
 }

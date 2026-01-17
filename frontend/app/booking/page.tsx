@@ -73,28 +73,66 @@ export default function BookingPage() {
 
   // Handle booking
   const handleConfirmBooking = async () => {
-    if (!isValidBooking) {
+    if (!isValidBooking || !selectedDate || !selectedTime || !selectedResource) {
       toast.warning("Complete your selection", "Please select date, time, and resource")
       return
     }
 
     setIsBooking(true)
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    toast.success(
-      "Booking confirmed!",
-      `${workspace.name} on ${selectedDate?.toLocaleDateString()} at ${selectedTime}`
-    )
-    
-    // Reset form
-    setSelectedDate(null)
-    setSelectedTime(null)
-    setSelectedResource("hot-desk")
-    setSelectedDuration("hourly")
-    setSelectedAddOns([])
-    setIsBooking(false)
+    try {
+      console.log("[BOOKING PAGE] Submitting booking:", {
+        resourceType: selectedResource,
+        date: selectedDate.toISOString(),
+        startTime: selectedTime,
+        duration: selectedDuration,
+        basePrice: pricing.options.find(opt => opt.type === selectedDuration)?.price || 0,
+        addOnsPrice: selectedAddOns.reduce((sum, id) => {
+          const addOn = pricing.addOns.find(a => a.id === id)
+          return sum + (addOn?.price || 0)
+        }, 0),
+        totalPrice,
+        addOns: selectedAddOns,
+      })
+
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          resourceType: selectedResource,
+          date: selectedDate.toISOString(),
+          startTime: selectedTime,
+          duration: selectedDuration,
+          basePrice: pricing.options.find(opt => opt.type === selectedDuration)?.price || 0,
+          addOnsPrice: selectedAddOns.reduce((sum, id) => {
+            const addOn = pricing.addOns.find(a => a.id === id)
+            return sum + (addOn?.price || 0)
+          }, 0),
+          totalPrice,
+          addOns: selectedAddOns,
+          workspaceId: workspaceId,
+        }),
+      })
+
+      const data = await response.json()
+      console.log("[BOOKING PAGE] Booking response:", response.status, data)
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create booking")
+      }
+
+      // Redirect to success page with booking ID
+      window.location.href = `/booking/success?id=${data.booking.id}`
+    } catch (error) {
+      console.error("[BOOKING PAGE] Booking error:", error)
+      toast.error(
+        "Booking failed",
+        error instanceof Error ? error.message : "Please try again or contact support."
+      )
+      setIsBooking(false)
+    }
   }
 
   const handleAddOnToggle = (addOnId: string) => {
