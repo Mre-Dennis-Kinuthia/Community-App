@@ -80,13 +80,19 @@ This endpoint will show:
 
 ### After Adding Environment Variables
 
-**Important:** After adding or updating environment variables in Vercel:
-1. Go to **Deployments** tab
-2. Click the **⋯** menu on the latest deployment
-3. Click **Redeploy**
-4. Wait for the deployment to complete
+**⚠️ CRITICAL:** Environment variables are only loaded on NEW deployments!
 
-Environment variables are only loaded on new deployments, so you must redeploy after adding them.
+After adding or updating environment variables in Vercel, you MUST redeploy:
+
+1. Go to **Deployments** tab in Vercel Dashboard
+2. Find your latest deployment
+3. Click the **⋯** (three dots) menu
+4. Click **Redeploy**
+5. Select the same branch (usually `main`)
+6. Wait for the deployment to complete (2-5 minutes)
+7. Check `/setup-check` or `/api/auth/health` to verify
+
+**Common mistake:** Adding variables but forgetting to redeploy. The old deployment still has the old environment (without your new variables).
 
 ## Verification Checklist
 

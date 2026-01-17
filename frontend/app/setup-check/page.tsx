@@ -135,32 +135,52 @@ export default function SetupCheckPage() {
           )}
 
           {!isHealthy && (
-            <div className="mt-6 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-              <h3 className="font-semibold text-destructive mb-2">Setup Required</h3>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                <li>
-                  Go to{" "}
-                  <a
-                    href="https://vercel.com/dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    Vercel Dashboard
-                  </a>
-                </li>
-                <li>Select your project</li>
-                <li>Go to Settings → Environment Variables</li>
-                <li>
-                  Add <code className="bg-muted px-1 py-0.5 rounded">AUTH_SECRET</code> (generate with:{" "}
-                  <code className="bg-muted px-1 py-0.5 rounded">openssl rand -base64 32</code>)
-                </li>
-                <li>
-                  Add <code className="bg-muted px-1 py-0.5 rounded">DATABASE_URL</code> (your Neon connection string)
-                </li>
-                <li>Select <strong>all environments</strong> (Production, Preview, Development)</li>
-                <li>Save and <strong>redeploy</strong> your application</li>
-              </ol>
+            <div className="mt-6 space-y-4">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                <h3 className="font-semibold text-destructive mb-2">⚠️ Setup Required</h3>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                  <li>
+                    Go to{" "}
+                    <a
+                      href="https://vercel.com/dashboard"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Vercel Dashboard
+                    </a>
+                  </li>
+                  <li>Select your project</li>
+                  <li>Go to <strong>Settings → Environment Variables</strong></li>
+                  <li>
+                    Add <code className="bg-muted px-1 py-0.5 rounded font-mono">AUTH_SECRET</code> (generate with:{" "}
+                    <code className="bg-muted px-1 py-0.5 rounded font-mono">openssl rand -base64 32</code>)
+                  </li>
+                  <li>
+                    Add <code className="bg-muted px-1 py-0.5 rounded font-mono">DATABASE_URL</code> (your Neon connection string)
+                  </li>
+                  <li>Select <strong>all environments</strong> (Production, Preview, Development)</li>
+                  <li>Click <strong>Save</strong></li>
+                </ol>
+              </div>
+              
+              <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                <h3 className="font-semibold text-amber-700 dark:text-amber-400 mb-2">
+                  🔄 CRITICAL: Redeploy Required!
+                </h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Environment variables are only loaded on <strong>new deployments</strong>. 
+                  If you just added them, you must redeploy:
+                </p>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                  <li>Go to <strong>Deployments</strong> tab in Vercel</li>
+                  <li>Click the <strong>⋯</strong> (three dots) menu on the latest deployment</li>
+                  <li>Click <strong>Redeploy</strong></li>
+                  <li>Select the same branch (usually <code className="bg-muted px-1 py-0.5 rounded">main</code>)</li>
+                  <li>Wait for deployment to complete (2-5 minutes)</li>
+                  <li>Refresh this page to verify</li>
+                </ol>
+              </div>
             </div>
           )}
 

@@ -8,15 +8,28 @@ import { authConfig } from "./auth.config"
 // Validate required environment variables at runtime
 function validateEnvVars() {
   const missing: string[] = []
+  const issues: string[] = []
   
-  if (!process.env.AUTH_SECRET) {
+  const authSecret = process.env.AUTH_SECRET
+  const databaseUrl = process.env.DATABASE_URL
+  
+  if (!authSecret) {
     missing.push("AUTH_SECRET")
     console.error("[AUTH] ERROR: AUTH_SECRET is not set!")
+  } else {
+    // Log secret info (but not the actual secret)
+    console.log("[AUTH] AUTH_SECRET is set, length:", authSecret.length)
+    if (authSecret.length < 32) {
+      issues.push(`AUTH_SECRET is too short (${authSecret.length} chars, need at least 32)`)
+      console.error("[AUTH] ERROR: AUTH_SECRET is too short! Must be at least 32 characters.")
+    }
   }
   
-  if (!process.env.DATABASE_URL) {
+  if (!databaseUrl) {
     missing.push("DATABASE_URL")
     console.error("[AUTH] ERROR: DATABASE_URL is not set!")
+  } else {
+    console.log("[AUTH] DATABASE_URL is set, starts with:", databaseUrl.substring(0, 20) + "...")
   }
   
   if (missing.length > 0) {
@@ -24,20 +37,35 @@ function validateEnvVars() {
     console.error("[AUTH] Please set these in Vercel Dashboard → Settings → Environment Variables")
   }
   
-  return missing.length === 0
+  if (issues.length > 0) {
+    console.error("[AUTH] Configuration issues:", issues.join(", "))
+  }
+  
+  return missing.length === 0 && issues.length === 0
 }
 
 // Validate on module load (but don't throw - let NextAuth handle it gracefully)
 const envValid = validateEnvVars()
 
 // Full auth config for API routes (Node.js runtime) - includes Prisma
-// Note: If AUTH_SECRET is missing, NextAuth will throw a "Configuration" error
+// Note: If AUTH_SECRET is missing or invalid, NextAuth will throw a "Configuration" error
 // which we handle in the login form
+const authSecret = process.env.AUTH_SECRET
+
+// Log configuration status
+console.log("[AUTH] Initializing NextAuth with:", {
+  hasSecret: !!authSecret,
+  secretLength: authSecret?.length || 0,
+  secretValid: authSecret ? authSecret.length >= 32 : false,
+  hasDatabase: !!process.env.DATABASE_URL,
+  envValid,
+})
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: envValid ? PrismaAdapter(prisma) : undefined,
   trustHost: true,
-  secret: process.env.AUTH_SECRET, // Will be undefined if not set, causing Configuration error
+  secret: authSecret, // Will be undefined if not set, causing Configuration error
   providers: [
     Credentials({
       name: "Credentials",
