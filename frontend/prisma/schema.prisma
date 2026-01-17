@@ -1,0 +1,196 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// AUTH & USERS
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String?   // hashed password (if using credentials)
+  emailVerified DateTime?
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  profile   MemberProfile?
+  sessions  Session[]
+  accounts  Account[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============================================
+// MEMBER PROFILES
+// ============================================
+
+model MemberProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio       String?   @db.Text
+  skills    String[] // array of skills
+  location  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("member_profiles")
+}
+
+// ============================================
+// ADMIN & RBAC
+// ============================================
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // hashed password
+  role      String   // super_admin, content_manager, community_manager, programs_manager, finance_ops
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// ============================================
+// CONTENT
+// ============================================
+
+model NewsPost {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  excerpt   String?
+  imageUrl  String?
+  status    String   @default("draft") // draft, scheduled, published
+  publishedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? // soft delete
+
+  @@map("news_posts")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  imageUrl    String?
+  capacity    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  registrations EventRegistration[]
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String?  // nullable for guest registrations
+  email     String
+  name      String?
+  status    String   @default("registered") // registered, cancelled, attended
+  createdAt DateTime @default(now())
+
+  @@map("event_registrations")
+}
+
+model Resource {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  url         String?
+  fileUrl     String?
+  type        String   // link, file, video, etc.
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@map("resources")
+}
+
+// ============================================
+// PLACEHOLDER MODELS (to be expanded)
+// ============================================
+
+model Project {
+  id        String   @id @default(cuid())
+  title     String
+  description String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@map("projects")
+}
+
+model Partner {
+  id        String   @id @default(cuid())
+  name      String
+  logoUrl   String?
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@map("partners")
+}

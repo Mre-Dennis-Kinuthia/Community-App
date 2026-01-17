@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { handleRegister } from "@/app/actions/auth-actions"
 import { toast } from "@/lib/toast"
 import { Loader2, Linkedin } from "lucide-react"
 
@@ -19,20 +18,23 @@ function RegisterForm() {
     firstName: "",
     lastName: "",
     email: "",
+    password: "",
+    confirmPassword: "",
   })
   const [errors, setErrors] = useState<{
     firstName?: string
     lastName?: string
     email?: string
+    password?: string
+    confirmPassword?: string
   }>({})
   const [isLoading, setIsLoading] = useState(false)
 
-  const validateField = (field: "firstName" | "lastName" | "email", value: string) => {
-    const newErrors: {
-      firstName?: string
-      lastName?: string
-      email?: string
-    } = { ...errors }
+  const validateField = (
+    field: "firstName" | "lastName" | "email" | "password" | "confirmPassword",
+    value: string
+  ) => {
+    const newErrors: typeof errors = { ...errors }
 
     if (field === "firstName") {
       if (!value.trim()) {
@@ -60,6 +62,32 @@ function RegisterForm() {
       }
     }
 
+    if (field === "password") {
+      if (!value) {
+        newErrors.password = "Password is required"
+      } else if (value.length < 8) {
+        newErrors.password = "Password must be at least 8 characters"
+      } else {
+        delete newErrors.password
+        // Re-validate confirm password if it exists
+        if (formData.confirmPassword && formData.confirmPassword !== value) {
+          newErrors.confirmPassword = "Passwords do not match"
+        } else if (formData.confirmPassword) {
+          delete newErrors.confirmPassword
+        }
+      }
+    }
+
+    if (field === "confirmPassword") {
+      if (!value) {
+        newErrors.confirmPassword = "Please confirm your password"
+      } else if (value !== formData.password) {
+        newErrors.confirmPassword = "Passwords do not match"
+      } else {
+        delete newErrors.confirmPassword
+      }
+    }
+
     setErrors(newErrors)
     return !newErrors[field]
   }
@@ -68,7 +96,9 @@ function RegisterForm() {
     const firstNameValid = validateField("firstName", formData.firstName)
     const lastNameValid = validateField("lastName", formData.lastName)
     const emailValid = validateField("email", formData.email)
-    return firstNameValid && lastNameValid && emailValid
+    const passwordValid = validateField("password", formData.password)
+    const confirmPasswordValid = validateField("confirmPassword", formData.confirmPassword)
+    return firstNameValid && lastNameValid && emailValid && passwordValid && confirmPasswordValid
   }
 
   const handleChange = (field: string, value: string) => {
@@ -81,23 +111,65 @@ function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    console.log("[REGISTER FORM] Form submitted with data:", {
+      email: formData.email,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      hasPassword: !!formData.password,
+      passwordLength: formData.password.length,
+    })
+
     if (!validate()) {
+      console.log("[REGISTER FORM] Validation failed, errors:", errors)
       toast.error("Please fix the errors in the form")
       return
     }
 
+    console.log("[REGISTER FORM] Validation passed, submitting...")
     setIsLoading(true)
     try {
-      const submitFormData = new FormData()
-      submitFormData.append("first-name", formData.firstName)
-      submitFormData.append("last-name", formData.lastName)
-      submitFormData.append("email", formData.email)
-      await handleRegister(submitFormData)
-      toast.success("Account created!", "Welcome to Impact Hub Nairobi")
-      router.push(redirect)
+      // Combine firstName and lastName into name for API
+      const name = `${formData.firstName} ${formData.lastName}`.trim()
+      // Normalize email to lowercase (server will also normalize, but good to do client-side too)
+      const normalizedEmail = formData.email.toLowerCase().trim()
+      const payload = {
+        email: normalizedEmail,
+        password: formData.password,
+        name: name || undefined,
+      }
+
+      console.log("[REGISTER FORM] Sending request to /api/auth/register:", {
+        email: payload.email,
+        hasPassword: !!payload.password,
+        passwordLength: payload.password.length,
+        name: payload.name,
+      })
+
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      console.log("[REGISTER FORM] Response status:", response.status)
+      const data = await response.json()
+      console.log("[REGISTER FORM] Response data:", data)
+
+      if (!response.ok) {
+        throw new Error(data.error || "Registration failed")
+      }
+
+      console.log("[REGISTER FORM] Registration successful, redirecting to login")
+      toast.success("Account created!", "You can now sign in with your credentials")
+      
+      // Redirect to login page with success message
+      router.push(`/login?email=${encodeURIComponent(formData.email)}&registered=true`)
     } catch (error) {
+      console.error("[REGISTER FORM] Error:", error)
       toast.error(
-        "Oops! Registration didn't work", 
+        "Registration failed",
         error instanceof Error ? error.message : "Please check your information and try again. If the problem persists, contact support."
       )
     } finally {
@@ -171,6 +243,49 @@ function RegisterForm() {
               {errors.email && (
                 <p id="email-error" className="text-sm text-destructive" role="alert">
                   {errors.email}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Enter a secure password"
+                value={formData.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+                onBlur={(e) => validateField("password", e.target.value)}
+                required
+                aria-invalid={errors.password ? "true" : "false"}
+                aria-describedby={errors.password ? "password-error" : undefined}
+              />
+              <p className="text-xs text-muted-foreground">
+                Password must be at least 8 characters
+              </p>
+              {errors.password && (
+                <p id="password-error" className="text-sm text-destructive" role="alert">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                name="confirm-password"
+                type="password"
+                placeholder="Re-enter your password"
+                value={formData.confirmPassword}
+                onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                onBlur={(e) => validateField("confirmPassword", e.target.value)}
+                required
+                aria-invalid={errors.confirmPassword ? "true" : "false"}
+                aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
+              />
+              {errors.confirmPassword && (
+                <p id="confirm-password-error" className="text-sm text-destructive" role="alert">
+                  {errors.confirmPassword}
                 </p>
               )}
             </div>

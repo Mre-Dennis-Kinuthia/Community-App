@@ -2,6 +2,17 @@
 
 This document outlines the backend approach for the public Community App and its Admin App. The goal is a single shared backend that serves both frontends with consistent data, auth, and auditing.
 
+### Tech Stack (decided)
+| Layer        | Choice     | Purpose |
+|-------------|------------|---------|
+| **Database**| **Neon**   | Serverless Postgres; branchable DB, serverless driver, Vercel-native. |
+| **Backend** | **Next.js**| API Route Handlers (`/app/api`) in the Community-App; replaces a standalone Node service. |
+| **Hosting** | **Vercel** | Deploy Next.js; Edge/Serverless for API routes; integrates Neon + Auth.js. |
+| **ORM**     | **Prisma** | Type-safe schema, migrations, and client for Neon. |
+| **Auth**    | **Auth.js**| next-auth (Credentials, OAuth, JWT/session); shared for members + admin RBAC. |
+
+The existing `backend/` (plain Node HTTP server) is a placeholder; the real backend will live as **Next.js API routes** in the Community-App frontend repo.
+
 ### Goals
 - Single source of truth for members, content, events, bookings, and billing.
 - Role-based access control for admin operations.
@@ -9,21 +20,23 @@ This document outlines the backend approach for the public Community App and its
 - Safe evolution from mock data to production APIs.
 
 ### Architecture Overview
-- **Standalone backend service** for both apps, exposed via REST (or REST + limited GraphQL if needed).
-- **PostgreSQL** as the primary database.
-- **Object storage** (S3-compatible) for media and files.
-- **Queue/worker** for email, notifications, and scheduled publishing.
+- **Next.js API routes** (Route Handlers in `/app/api`) as the backend for both Community and Admin apps.
+- **Neon (PostgreSQL)** as the primary database; Prisma for schema, migrations, and queries.
+- **Vercel** for deployment; serverless/edge for `/api` routes.
+- **Auth.js** for member and admin auth; sessions via HTTP-only cookies.
+- **Object storage** (S3-compatible, e.g. Vercel Blob or AWS) for media and files.
+- **Queue/worker** (e.g. Vercel Cron, Inngest, or separate worker) for email, notifications, and scheduled publishing.
 - **Audit logging** for admin actions and sensitive operations.
 
-Recommended deployment paths:
-- **Phase 1 (now):** Separate API service (e.g., NestJS/Express) with the same DB.
-- **Phase 2 (scale):** Split workloads into public + admin services if needed.
+Deployment:
+- **Phase 1:** Single Next.js app (Community-App) on Vercel with `/api`; Admin app calls these APIs (same or cross-origin).
+- **Phase 2 (scale):** Split into dedicated API app or edge functions if needed; same Neon + Prisma.
 
-### Auth and Sessions
-- **Member auth:** email/password + optional magic link or OAuth.
-- **Admin auth:** separate admin table with RBAC.
-- **Session handling:** HTTP-only cookies + short-lived access, long-lived refresh.
-- **Multi-factor auth:** optional for admins in later phase.
+### Auth and Sessions (Auth.js)
+- **Member auth:** Auth.js Credentials (email/password) + optional magic link or OAuth.
+- **Admin auth:** Auth.js with separate admin provider/table; RBAC in callbacks and API middleware.
+- **Session:** Auth.js JWT or DB sessions; HTTP-only cookies; short-lived access, long-lived refresh.
+- **Multi-factor auth:** optional for admins in a later phase.
 
 Roles (Admin):
 - super_admin, content_manager, community_manager, programs_manager, finance_ops.
@@ -80,6 +93,9 @@ Admin app:
 4. **Phase 3:** analytics, notifications, and integrations.
 
 ### Next Steps
-- Confirm backend framework (Express/Nest/Fastify).
-- Confirm identity provider approach (Auth.js vs custom).
-- Lock initial data model and start Prisma schema.
+- **Neon:** Create project, get connection string; add `DATABASE_URL` to Vercel and `.env.local`.
+- **Prisma:** Add Prisma to Community-App, define schema (Users, AdminUsers, Roles, NewsPosts, Events, etc.), run `prisma migrate` against Neon.
+- **Auth.js:** Extend `auth.ts` to use Prisma Adapter (optional) or keep JWT with DB-backed user lookup; add admin provider/role checks.
+- **API routes:** Implement `/app/api/...` Route Handlers for public and admin surfaces; use `auth()` and Prisma in each.
+- **Vercel:** Connect repo, set env vars (`DATABASE_URL`, `AUTH_SECRET`, etc.), deploy.
+- **Deprecate:** `backend/` placeholder once `/api` health and core endpoints exist.

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { handleLogin } from "@/app/actions/auth-actions"
+import { signIn } from "next-auth/react"
 import { toast } from "@/lib/toast"
 import { Loader2 } from "lucide-react"
 
@@ -15,10 +15,20 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get("redirect") || "/dashboard"
-  const [email, setEmail] = useState("")
+  const registeredEmail = searchParams.get("email")
+  const isRegistered = searchParams.get("registered") === "true"
+  const [email, setEmail] = useState(registeredEmail || "")
   const [password, setPassword] = useState("")
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (isRegistered && registeredEmail) {
+      toast.success("Registration successful!", "You can now sign in with your credentials")
+      // Clean up URL
+      router.replace(`/login?redirect=${encodeURIComponent(redirect)}`)
+    }
+  }, [isRegistered, registeredEmail, redirect, router])
 
   const validateField = (field: "email" | "password", value: string) => {
     const newErrors: { email?: string; password?: string } = { ...errors }
@@ -36,8 +46,6 @@ function LoginForm() {
     if (field === "password") {
       if (!value) {
         newErrors.password = "Password is required"
-      } else if (value.length < 6) {
-        newErrors.password = "Password must be at least 6 characters"
       } else {
         delete newErrors.password
       }
@@ -56,20 +64,48 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    console.log("[LOGIN FORM] Form submitted:", {
+      email,
+      hasPassword: !!password,
+      passwordLength: password.length,
+      redirect,
+    })
+
     if (!validate()) {
+      console.log("[LOGIN FORM] Validation failed, errors:", errors)
       toast.error("Please fix the errors in the form")
       return
     }
 
+    // Normalize email to lowercase (server will also normalize, but good to do client-side too)
+    const normalizedEmail = email.toLowerCase().trim()
+    console.log("[LOGIN FORM] Validation passed, attempting sign in with normalized email...")
     setIsLoading(true)
     try {
-      const formData = new FormData()
-      formData.append("email", email)
-      formData.append("password", password)
-      await handleLogin(formData)
+      const result = await signIn("credentials", {
+        redirect: false,
+        email: normalizedEmail,
+        password,
+        callbackUrl: redirect,
+      })
+
+      console.log("[LOGIN FORM] Sign in result:", {
+        error: result?.error,
+        ok: result?.ok,
+        status: result?.status,
+        url: result?.url,
+      })
+
+      if (result?.error) {
+        console.log("[LOGIN FORM] Sign in failed:", result.error)
+        throw new Error("Invalid email or password. Please check your credentials and try again.")
+      }
+
+      console.log("[LOGIN FORM] Sign in successful, redirecting to:", result?.url || redirect)
       toast.success("Welcome back!", "You've been successfully logged in")
-      router.push(redirect)
+      router.push(result?.url || redirect)
     } catch (error) {
+      console.error("[LOGIN FORM] Error:", error)
       toast.error(
         "Oops! That didn't work", 
         error instanceof Error ? error.message : "Please check your email and password, then try again."
@@ -94,7 +130,7 @@ function LoginForm() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="demo@impacthub.co.ke"
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value)
@@ -133,16 +169,12 @@ function LoginForm() {
                 aria-invalid={errors.password ? "true" : "false"}
                 aria-describedby={errors.password ? "password-error" : undefined}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Password must be at least 6 characters
-              </p>
               {errors.password && (
                 <p id="password-error" className="text-sm text-destructive" role="alert">
                   {errors.password}
                 </p>
               )}
             </div>
-            <p className="text-xs text-muted-foreground text-center">Demo: demo@impacthub.co.ke / password123</p>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>

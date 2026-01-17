@@ -1,0 +1,617 @@
+[00:00:03.813] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:03.986] Server  LOG      ✓ Ready in 3.6s
+[00:00:10.219] Server  LOG      ○ Compiling /login ...
+[00:00:22.893] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:23.053] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:00:23.053] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/login","route":"/login"}
+[00:00:23.053] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/login?redirect=%2Fdashboard color: rgb(120, 120, 120) color: inherit {"dp":"/login","o":"http://localhost:3000/login?redirect=%2Fdashboard","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768678886584}
+[00:00:30.419] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:00:30.419] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/register color: rgb(120, 120, 120) color: inherit {"dp":"/register","o":"http://localhost:3000/register","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768678894625}
+[00:30:49.830] Server  LOG        Reload env: .env
+[00:36:48.564] Server  LOG        Reload env: .env.local
+[00:44:06.945] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:09.954] Server  LOG      ○ Compiling /_error ...
+[00:44:11.702] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:14.185] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:14.346] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:14.713] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:14.876] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:15.974] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:23.850] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:23.904] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:44:24.101] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:25.094] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:44:25.865] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:26.008] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:27.174] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:38.018] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:44:38.472] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:38.762] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:39.369] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:41.901] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:44:42.316] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:42.468] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:43.136] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:57.707] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:44:58.562] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:58.718] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:44:59.498] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:54:30.947] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:54:31.834] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:54:32.066] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:54:34.134] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:55:00.532] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:55:00.638] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:55:00.754] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:55:01.254] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:55:18.563] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:55:18.602] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:55:18.719] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:55:19.211] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:56:05.036] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:56:05.834] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Unknown property datasourceUrl provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:56:05.843] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Unknown property datasourceUrl provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:56:06.386] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Unknown property datasourceUrl provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:56:24.017] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:56:24.653] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:56:24.664] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:56:25.327] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:59:11.734] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:59:12.285] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:59:57.767] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:59:58.377] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:59:58.393] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[00:59:59.290] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:02:10.566] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:02:10.609] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:02:10.729] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:02:11.331] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:05:09.694] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:05:35.278] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:05:36.269] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:05:36.519] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:05:38.487] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:06:39.376] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:06:40.580] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:06:40.866] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:06:42.575] Browser ERROR   uncaughtError: PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:06:47.882] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+Import trace for requested module:
+node:process
+./node_modules/pg-connection-string/index.js
+./node_modules/pg/lib/connection-parameters.js
+./node_modules/pg/lib/client.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:06:47.930] Server  ERROR    ⨯ node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+Import trace for requested module:
+node:process
+./node_modules/pg-connection-string/index.js
+./node_modules/pg/lib/connection-parameters.js
+./node_modules/pg/lib/client.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:06:48.026] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:06:48.143] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:06:48.297] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:06:53.046] Server  WARN     ⚠ ./node_modules/pg/lib/native/client.js
+Module not found: Can't resolve 'pg-native' in '/home/nansi/Work/Community-App/frontend/node_modules/pg/lib/native'
+
+Import trace for requested module:
+./node_modules/pg/lib/native/client.js
+./node_modules/pg/lib/native/index.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:06:53.634] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:06:53.721] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:06:54.320] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:07:02.693] Browser ERROR   uncaughtError: ModuleBuildError: Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:6378)
+    at Object.processResource (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+    at NormalModule.needBuild (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:414111)
+    at Compilation._buildModule (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:82199)
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1378173
+    at Hook.eval [as callAsync] (eval at create (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at AsyncQueue._startProcessing (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1378044)
+    at AsyncQueue._ensureProcessing (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1377893)
+    at process.processImmediate (node:internal/timers:504:21)
+    at process.callbackTrampoline (node:internal/async_hooks:130:17)
+[01:07:02.791] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+[01:07:59.420] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:07:59.806] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:07:59.974] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:08:00.189] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:08:00.189] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+Import trace for requested module:
+node:process
+./node_modules/pg-connection-string/index.js
+./node_modules/pg/lib/connection-parameters.js
+./node_modules/pg/lib/client.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:08:00.825] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:08:00.971] Server  ERROR    ⨯ node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+Import trace for requested module:
+node:process
+./node_modules/pg-connection-string/index.js
+./node_modules/pg/lib/connection-parameters.js
+./node_modules/pg/lib/client.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:08:01.035] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+Import trace for requested module:
+node:process
+./node_modules/pg-connection-string/index.js
+./node_modules/pg/lib/connection-parameters.js
+./node_modules/pg/lib/client.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:08:01.270] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:08:01.277] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:08:01.283] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:08:01.290] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:08:01.419] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:08:01.517] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:08:01.886] Server  WARN     ⚠ ./node_modules/pg/lib/native/client.js
+Module not found: Can't resolve 'pg-native' in '/home/nansi/Work/Community-App/frontend/node_modules/pg/lib/native'
+
+Import trace for requested module:
+./node_modules/pg/lib/native/client.js
+./node_modules/pg/lib/native/index.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:08:02.093] Browser ERROR   uncaughtError: ModuleBuildError: Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:6378)
+    at Object.processResource (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+    at NormalModule.needBuild (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:414145)
+    at Compilation._buildModule (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:82199)
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1378173
+    at Hook.eval [as callAsync] (eval at create (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at AsyncQueue._startProcessing (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1378044)
+    at AsyncQueue._ensureProcessing (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1377893)
+    at process.processImmediate (node:internal/timers:504:21)
+    at process.callbackTrampoline (node:internal/async_hooks:130:17)
+[01:08:02.186] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+[01:08:04.539] Server  LOG      ○ Compiling /_not-found ...
+[01:13:35.628] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:13:35.974] Browser ERROR   uncaughtError: ModuleBuildError: Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:6378)
+    at Object.processResource (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+    at NormalModule.needBuild (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:414145)
+    at Compilation._buildModule (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:82199)
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1378173
+    at Hook.eval [as callAsync] (eval at create (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at AsyncQueue._startProcessing (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1378044)
+    at AsyncQueue._ensureProcessing (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1377893)
+    at process.processImmediate (node:internal/timers:504:21)
+    at process.callbackTrampoline (node:internal/async_hooks:130:17)
+[01:13:36.075] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+[01:14:12.716] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:14:13.067] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+Import trace for requested module:
+node:process
+./node_modules/pg-connection-string/index.js
+./node_modules/pg/lib/connection-parameters.js
+./node_modules/pg/lib/client.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:14:13.067] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:14:13.314] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:14:13.380] Server  ERROR    ⨯ node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+Import trace for requested module:
+node:process
+./node_modules/pg-connection-string/index.js
+./node_modules/pg/lib/connection-parameters.js
+./node_modules/pg/lib/client.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:14:13.647] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:14:13.653] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:14:13.662] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:14:13.664] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+Import trace for requested module:
+node:process
+./node_modules/pg-connection-string/index.js
+./node_modules/pg/lib/connection-parameters.js
+./node_modules/pg/lib/client.js
+./node_modules/pg/lib/index.js
+./node_modules/pg/esm/index.mjs
+./lib/prisma.ts
+./auth.ts
+[01:14:13.773] Server  ERROR    ⨯ PrismaClientConstructorValidationError: Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.
+Read more at https://pris.ly/d/client-constructor
+[01:14:14.102] Browser ERROR   uncaughtError: ModuleBuildError: Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:6378)
+    at Object.processResource (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+    at NormalModule.needBuild (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:414145)
+    at Compilation._buildModule (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:82199)
+    at /home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1378173
+    at Hook.eval [as callAsync] (eval at create (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at AsyncQueue._startProcessing (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1378044)
+    at AsyncQueue._ensureProcessing (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/webpack/bundle5.js:29:1377893)
+    at process.processImmediate (node:internal/timers:504:21)
+    at process.callbackTrampoline (node:internal/async_hooks:130:17)
+[01:14:14.198] Browser ERROR   node:process
+Module build failed: UnhandledSchemeError: Reading from "node:process" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+[01:14:15.204] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:14:15.723] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:14:15.742] Server  WARN     ⚠ ./middleware.ts
+Attempted import error: 'auth' is not exported from '@/auth.config' (imported as 'auth').
+[01:14:15.810] Server  ERROR    ⨯ TypeError: (0 , _auth_config__WEBPACK_IMPORTED_MODULE_1__.auth) is not a function
+[01:14:15.811] Server  ERROR    ⨯ TypeError: (0 , _auth_config__WEBPACK_IMPORTED_MODULE_1__.auth) is not a function
+[01:14:15.878] Server  ERROR    ⨯ TypeError: (0 , _auth_config__WEBPACK_IMPORTED_MODULE_1__.auth) is not a function
+[01:14:16.627] Browser ERROR   uncaughtError: TypeError: (0 , _auth_config__WEBPACK_IMPORTED_MODULE_1__.auth) is not a function
+[01:14:28.510] Server  WARN     ⚠ ./middleware.ts
+Attempted import error: 'auth' is not exported from '@/auth.config' (imported as 'auth').
+[01:14:28.535] Server  ERROR    ⨯ TypeError: (0 , _auth_config__WEBPACK_IMPORTED_MODULE_1__.auth) is not a function
+[01:14:28.553] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:14:28.568] Server  ERROR    ⨯ TypeError: (0 , _auth_config__WEBPACK_IMPORTED_MODULE_1__.auth) is not a function
+[01:14:29.061] Browser ERROR   uncaughtError: TypeError: (0 , _auth_config__WEBPACK_IMPORTED_MODULE_1__.auth) is not a function
+[01:14:33.359] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[01:14:34.487] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:14:34.756] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[01:14:34.756] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/register","route":"/register"}
+[01:14:34.756] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/register color: rgb(120, 120, 120) color: inherit {"dp":"/register","o":"http://localhost:3000/register","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768683774191}
+[01:17:19.673] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[01:17:19.673] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/login?redirect=%2Fdashboard color: rgb(120, 120, 120) color: inherit {"dp":"/login","o":"http://localhost:3000/login?redirect=%2Fdashboard","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768683956046}
+[01:22:18.962] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:22:19.185] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[01:22:19.185] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/login","route":"/login"}
+[01:22:19.185] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/login?redirect=%2Fdashboard color: rgb(120, 120, 120) color: inherit {"dp":"/login","o":"http://localhost:3000/login?redirect=%2Fdashboard","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768684287193}
+[01:22:20.571] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[01:22:20.571] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/register color: rgb(120, 120, 120) color: inherit {"dp":"/register","o":"http://localhost:3000/register","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768684288702}
+[01:22:53.607] Browser LOG     [REGISTER FORM] Form submitted with data: {"email":"dennis@ihn.com","firstName":"dennis","hasPassword":true,"lastName":"ndungu","passwordLength":11}
+[01:22:53.607] Browser LOG     [REGISTER FORM] Validation passed, submitting...
+[01:22:53.607] Browser LOG     [REGISTER FORM] Sending request to /api/auth/register: {"email":"dennis@ihn.com","hasPassword":true,"name":"dennis ndungu","passwordLength":11}
+[01:22:55.091] Server  LOG     [REGISTER API] Received registration request: {}
+[01:22:55.094] Server  LOG     [REGISTER API] Validation passed for: "dennis@ihn.com"
+[01:22:55.095] Server  LOG     [REGISTER API] Checking if user exists: "dennis@ihn.com"
+[01:22:55.241] Server  ERROR   (node:8088) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[01:22:57.206] Server  LOG     prisma:query "SELECT \"public\".\"users\".\"id\", \"public\".\"users\".\"email\", \"public\".\"users\".\"name\", \"public\".\"users\".\"password\", \"public\".\"users\".\"emailVerified\", \"public\".\"users\".\"image\", \"public\".\"users\".\"createdAt\", \"public\".\"users\".\"updatedAt\" FROM \"public\".\"users\" WHERE (\"public\".\"users\".\"email\" = $1 AND 1=1) LIMIT $2 OFFSET $3"
+[01:22:57.207] Server  LOG     [REGISTER API] Hashing password...
+[01:22:57.324] Server  LOG     [REGISTER API] Password hashed, creating user...
+[01:22:57.541] Server  LOG     prisma:query "INSERT INTO \"public\".\"users\" (\"id\",\"email\",\"name\",\"password\",\"createdAt\",\"updatedAt\") VALUES ($1,$2,$3,$4,$5,$6) RETURNING \"public\".\"users\".\"id\", \"public\".\"users\".\"email\", \"public\".\"users\".\"name\", \"public\".\"users\".\"createdAt\""
+[01:22:57.544] Server  LOG     [REGISTER API] User created successfully: {}
+[01:22:57.716] Browser LOG     [REGISTER FORM] Response status: 201
+[01:22:57.716] Browser LOG     [REGISTER FORM] Response data: {"message":"User created successfully","user":{"createdAt":"2026-01-17T21:12:09.414Z","email":"dennis@ihn.com","id":"cmkiszeti00008oq9czz70f1w","name":"dennis ndungu"}}
+[01:22:57.716] Browser LOG     [REGISTER FORM] Registration successful, redirecting to login
+[01:22:57.850] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/login?email=dennis%40ihn.com&registered=true color: rgb(120, 120, 120) color: inherit {"dp":"/login","o":"http://localhost:3000/login?email=dennis%40ihn.com&registered=true","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768684329831}
+[01:27:12.193] Browser LOG     [LOGIN FORM] Form submitted: {"email":"dennis@ihn.com","hasPassword":true,"passwordLength":11,"redirect":"/dashboard"}
+[01:27:12.193] Browser LOG     [LOGIN FORM] Validation passed, attempting sign in...
+[01:27:14.137] Server  LOG     [AUTH] Authorize called with credentials: {}
+[01:27:14.138] Server  LOG     [AUTH] Looking up user in database: "dennis@ihn.com"
+[01:27:15.674] Server  LOG     prisma:query "SELECT \"public\".\"users\".\"id\", \"public\".\"users\".\"email\", \"public\".\"users\".\"name\", \"public\".\"users\".\"password\", \"public\".\"users\".\"emailVerified\", \"public\".\"users\".\"image\", \"public\".\"users\".\"createdAt\", \"public\".\"users\".\"updatedAt\" FROM \"public\".\"users\" WHERE (\"public\".\"users\".\"email\" = $1 AND 1=1) LIMIT $2 OFFSET $3"
+[01:27:15.675] Server  LOG     [AUTH] Verifying password...
+[01:27:15.789] Server  LOG     [AUTH] Authentication successful for: {}
+[01:27:15.790] Server  LOG     [AUTH] JWT callback - adding user to token: {}
+[01:27:15.838] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:27:15.916] Browser LOG     [LOGIN FORM] Sign in result: {"ok":true,"status":200,"url":"http://localhost:3000/dashboard"}
+[01:27:15.916] Browser LOG     [LOGIN FORM] Sign in successful, redirecting to: http://localhost:3000/dashboard
+[01:27:19.146] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/dashboard color: rgb(120, 120, 120) color: inherit {"dp":"/dashboard","o":"http://localhost:3000/dashboard","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768684617429}
+[01:28:51.957] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:28:55.072] Server  LOG      ○ Compiling /events ...
+[01:28:55.705] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/events color: rgb(120, 120, 120) color: inherit {"dp":"/events","o":"http://localhost:3000/events","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768684724001}
+[01:28:55.758] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:28:55.807] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:28:57.688] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[01:28:57.688] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[01:29:01.087] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:29:01.351] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/dashboard color: rgb(120, 120, 120) color: inherit {"dp":"/dashboard","o":"http://localhost:3000/dashboard","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768684730264}
+[01:30:16.704] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:16.893] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:21.411] Browser ERROR   Application error: {}
+[01:30:21.411] Browser ERROR   Application error: {}
+[01:30:22.038] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:24.468] Browser ERROR   Application error: {}
+[01:30:24.754] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:29.311] Browser ERROR   Application error: {}
+[01:30:29.609] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:34.024] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:37.782] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:46.184] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:49.258] Browser ERROR   Application error: {}
+[01:30:49.939] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:51.754] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:51.894] Browser ERROR   Application error: {}
+[01:30:54.003] Browser ERROR   Application error: {}
+[01:30:54.224] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:30:59.277] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:31:02.019] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:31:04.785] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:31:16.443] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:31:16.597] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:31:21.562] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:31:24.945] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:31:25.123] Browser ERROR   Application error: {}
+[01:31:36.654] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:31:52.689] Browser ERROR   Application error: {}
+[01:31:52.689] Browser ERROR   Application error: {}
+[01:31:55.873] Browser ERROR   Application error: {}
+[01:31:55.874] Browser ERROR   Application error: {}
+[01:32:05.779] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:32:12.445] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:32:15.160] Browser ERROR   Application error: {}
+[01:32:15.160] Browser ERROR   Application error: {}
+[01:32:42.721] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:33:15.301] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:33:21.945] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:33:56.336] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:33:56.552] Browser WARN    [useSession] SessionProvider not found, returning empty session
+[01:33:56.552] Browser WARN    [useSession] SessionProvider not found, returning empty session
+[01:33:56.552] Browser WARN    [useSession] SessionProvider not found, returning empty session
+[01:33:56.552] Browser WARN    [useSession] SessionProvider not found, returning empty session
+[01:33:56.552] Browser WARN    [useSession] SessionProvider not found, returning empty session
+[01:33:56.552] Browser WARN    [useSession] SessionProvider not found, returning empty session
+[01:33:56.552] Browser WARN    [useSession] SessionProvider not found, returning empty session
+[01:33:56.552] Browser WARN    [useSession] SessionProvider not found, returning empty session
+[01:34:10.292] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:34:10.446] Browser ERROR   React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://react.dev/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ DashboardLayoutContent 1. useContext                 useContext
+2. useState                   useContext
+
+[01:34:10.446] Browser ERROR   Application error: {}
+[01:34:10.446] Browser ERROR   Application error: {}
+[01:35:22.351] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:35:22.544] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:35:26.388] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:35:26.659] Server  ERROR    ⨯ ReferenceError: SessionProvider is not defined
+[01:35:30.186] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:35:30.340] Browser ERROR   Application error: {}
+[01:35:37.620] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:36:31.548] Browser ERROR   Application error: {}
+[01:36:31.548] Browser ERROR   Application error: {}
+[01:36:34.827] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:36:35.900] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:36:36.081] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:36:36.309] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[01:36:36.309] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/dashboard","route":"/dashboard"}
+[01:36:36.309] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/dashboard color: rgb(120, 120, 120) color: inherit {"dp":"/dashboard","o":"http://localhost:3000/dashboard","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768685230246}
+[01:36:37.971] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[01:36:38.037] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:36:38.061] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[01:37:03.643] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:37:03.762] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:37:04.625] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:37:04.817] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[01:37:04.817] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/login","route":"/login"}
+[01:37:04.817] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/login color: rgb(120, 120, 120) color: inherit {"dp":"/login","o":"http://localhost:3000/login","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768685261677}
+[01:37:07.338] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[01:37:07.338] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/register color: rgb(120, 120, 120) color: inherit {"dp":"/register","o":"http://localhost:3000/register","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768685264441}
+[01:37:10.207] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/login color: rgb(120, 120, 120) color: inherit {"dp":"/login","o":"http://localhost:3000/login","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768685267588}
+[01:37:24.397] Server  WARN     ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[01:37:25.064] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:37:25.352] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[01:37:25.352] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/","route":"/"}
+[01:37:25.352] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {"dp":"/","o":"http://localhost:3000/","r":"","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768685284299}
+[01:40:47.430] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[01:40:47.430] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/login color: rgb(120, 120, 120) color: inherit {"dp":"/login","o":"http://localhost:3000/login","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768685507552}
+[01:43:16.985] Browser LOG     [LOGIN FORM] Form submitted: {"email":"DENNIS@IHN.COM","hasPassword":true,"passwordLength":11,"redirect":"/dashboard"}
+[01:43:16.985] Browser LOG     [LOGIN FORM] Validation passed, attempting sign in...
+[01:43:17.082] Server  LOG     [AUTH] Authorize called with credentials: {}
+[01:43:17.083] Server  LOG     [AUTH] Looking up user in database: "DENNIS@IHN.COM"
+[01:43:18.988] Server  LOG     prisma:query "SELECT \"public\".\"users\".\"id\", \"public\".\"users\".\"email\", \"public\".\"users\".\"name\", \"public\".\"users\".\"password\", \"public\".\"users\".\"emailVerified\", \"public\".\"users\".\"image\", \"public\".\"users\".\"createdAt\", \"public\".\"users\".\"updatedAt\" FROM \"public\".\"users\" WHERE (\"public\".\"users\".\"email\" = $1 AND 1=1) LIMIT $2 OFFSET $3"
+[01:43:18.990] Server  LOG     [AUTH] User not found: "DENNIS@IHN.COM"
+[01:43:18.991] Server  ERROR   [auth][error] CredentialsSignin: Read more at https://errors.authjs.dev#credentialssignin
+[01:43:18.993] Server  ERROR       at Module.callback (webpack-internal:///(rsc)/./node_modules/@auth/core/lib/actions/callback/index.js:246:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async AuthInternal (webpack-internal:///(rsc)/./node_modules/@auth/core/lib/index.js:70:24)
+    at async Auth (webpack-internal:///(rsc)/./node_modules/@auth/core/index.js:130:34)
+    at async AppRouteRouteModule.do (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:37789)
+    at async AppRouteRouteModule.handle (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:5:45045)
+    at async responseGenerator (webpack-internal:///(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&page=%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute.ts&appDir=%2Fhome%2Fnansi%2FWork%2FCommunity-App%2Ffrontend%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Fnansi%2FWork%2FCommunity-App%2Ffrontend&isDev=true&tsconfigPath=&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:236:38)
+    at async AppRouteRouteModule.handleResponse (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/compiled/next-server/app-route.runtime.dev.js:1:187776)
+    at async handleResponse (webpack-internal:///(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&page=%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute.ts&appDir=%2Fhome%2Fnansi%2FWork%2FCommunity-App%2Ffrontend%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Fnansi%2FWork%2FCommunity-App%2Ffrontend&isDev=true&tsconfigPath=&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:298:32)
+    at async handler (webpack-internal:///(rsc)/./node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&page=%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute.ts&appDir=%2Fhome%2Fnansi%2FWork%2FCommunity-App%2Ffrontend%2Fapp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=%2Fhome%2Fnansi%2FWork%2FCommunity-App%2Ffrontend&isDev=true&tsconfigPath=&basePath=&assetPrefix=&nextConfigOutput=&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:352:13)
+    at async DevServer.renderToResponseWithComponentsImpl (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/base-server.js:1413:9)
+    at async DevServer.renderPageComponent (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/base-server.js:1465:24)
+    at async DevServer.renderToResponseImpl (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/base-server.js:1515:32)
+    at async DevServer.pipeImpl (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/base-server.js:1021:25)
+    at async NextNodeServer.handleCatchallRenderRequest (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/next-server.js:394:17)
+    at async DevServer.handleRequestImpl (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/base-server.js:912:17)
+    at async /home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/dev/next-dev-server.js:382:20
+    at async Span.traceAsyncFn (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/trace/trace.js:157:20)
+    at async DevServer.handleRequest (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/dev/next-dev-server.js:378:24)
+    at async invokeRender (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/lib/router-server.js:240:21)
+    at async handleRequest (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/lib/router-server.js:436:24)
+    at async requestHandlerImpl (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/lib/router-server.js:484:13)
+    at async Server.requestListener (/home/nansi/Work/Community-App/frontend/node_modules/next/dist/server/lib/start-server.js:226:13)
+[01:43:19.187] Browser LOG     [LOGIN FORM] Sign in result: {"error":"CredentialsSignin","ok":true,"status":200,"url":null}
+[01:43:19.187] Browser LOG     [LOGIN FORM] Sign in failed: CredentialsSignin
+[01:43:19.187] Browser ERROR   [LOGIN FORM] Error: {}
+[01:43:36.943] Browser LOG     [LOGIN FORM] Form submitted: {"email":"dennis@ihn.com","hasPassword":true,"passwordLength":11,"redirect":"/dashboard"}
+[01:43:36.943] Browser LOG     [LOGIN FORM] Validation passed, attempting sign in...
+[01:43:37.023] Server  LOG     [AUTH] Authorize called with credentials: {}
+[01:43:37.023] Server  LOG     [AUTH] Looking up user in database: "dennis@ihn.com"
+[01:43:38.535] Server  LOG     prisma:query "SELECT \"public\".\"users\".\"id\", \"public\".\"users\".\"email\", \"public\".\"users\".\"name\", \"public\".\"users\".\"password\", \"public\".\"users\".\"emailVerified\", \"public\".\"users\".\"image\", \"public\".\"users\".\"createdAt\", \"public\".\"users\".\"updatedAt\" FROM \"public\".\"users\" WHERE (\"public\".\"users\".\"email\" = $1 AND 1=1) LIMIT $2 OFFSET $3"
+[01:43:38.538] Server  LOG     [AUTH] Verifying password...
+[01:43:38.695] Server  LOG     [AUTH] Authentication successful for: {}
+[01:43:38.695] Server  LOG     [AUTH] JWT callback - adding user to token: {}
+[01:43:38.726] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:43:38.781] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[01:43:38.834] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:43:38.887] Browser LOG     [LOGIN FORM] Sign in result: {"ok":true,"status":200,"url":"http://localhost:3000/dashboard"}
+[01:43:38.887] Browser LOG     [LOGIN FORM] Sign in successful, redirecting to: http://localhost:3000/dashboard
+[01:43:39.175] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/dashboard color: rgb(120, 120, 120) color: inherit {"dp":"/dashboard","o":"http://localhost:3000/dashboard","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768685697552}
+[01:44:14.987] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:44:17.775] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:44:22.359] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:44:25.293] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:44:37.330] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:44:39.964] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:44:53.241] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:45:43.448] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:45:44.447] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[01:45:44.536] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[01:45:44.575] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[01:46:03.615] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+[01:46:03.615] Browser WARN    Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.

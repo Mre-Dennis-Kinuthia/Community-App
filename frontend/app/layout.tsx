@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { ThemeProvider } from "@/components/theme-provider"
+import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/toaster"
 import { SkipLink } from "@/components/skip-link"
 import "./globals.css"
@@ -32,16 +32,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
         <SkipLink />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
+        <Providers>
           {children}
           <Toaster />
-        </ThemeProvider>
+        </Providers>
         <Analytics />
       </body>
     </html>

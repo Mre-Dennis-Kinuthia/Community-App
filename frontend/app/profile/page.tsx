@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,17 +12,45 @@ import { Badge } from "@/components/ui/badge"
 import { Edit, Save, X, Plus, Upload } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { toast } from "@/lib/toast"
-
-const initialSkills = ["Product Design", "FinTech", "Social Impact"]
+import { useSession } from "@/lib/use-session"
 
 export default function ProfilePage() {
+  const { user } = useSession()
   const [isEditing, setIsEditing] = useState(false)
-  const [bio, setBio] = useState("Passionate about building tech solutions for local impact in Nairobi.")
-  const [skills, setSkills] = useState(initialSkills)
+  const [bio, setBio] = useState("")
+  const [skills, setSkills] = useState<string[]>([])
   const [newSkill, setNewSkill] = useState("")
   const [linkedin, setLinkedin] = useState("")
   const [website, setWebsite] = useState("")
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [memberSince, setMemberSince] = useState<string>("")
+
+  // Get user initials for avatar fallback
+  const getInitials = (name?: string | null, email?: string | null) => {
+    if (name) {
+      const parts = name.trim().split(" ")
+      if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+      }
+      return name.substring(0, 2).toUpperCase()
+    }
+    if (email) {
+      return email.substring(0, 2).toUpperCase()
+    }
+    return "U"
+  }
+
+  const userInitials = getInitials(user?.name, user?.email)
+  const displayName = user?.name || "User"
+  
+  // Format member since date
+  useEffect(() => {
+    if (user?.id) {
+      // In a real app, fetch user creation date from API
+      // For now, we'll use a placeholder
+      setMemberSince("Jan 2024")
+    }
+  }, [user])
 
   const handleSave = () => {
     setIsEditing(false)
@@ -32,8 +60,7 @@ export default function ProfilePage() {
 
   const handleCancel = () => {
     setIsEditing(false)
-    setBio("Passionate about building tech solutions for local impact in Nairobi.")
-    setSkills(initialSkills)
+    // Reset to current values (would be loaded from API in production)
     setNewSkill("")
     setAvatarPreview(null)
   }
@@ -76,8 +103,8 @@ export default function ProfilePage() {
         <div className="flex items-center gap-4">
           <div className="relative">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={avatarPreview || "/placeholder-user.jpg"} alt="Member profile" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarImage src={avatarPreview || user?.image || "/placeholder-user.jpg"} alt={displayName} />
+              <AvatarFallback>{userInitials}</AvatarFallback>
             </Avatar>
             {isEditing && (
               <label className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-primary p-2 text-primary-foreground shadow-md hover:bg-primary/90">
@@ -92,8 +119,10 @@ export default function ProfilePage() {
             )}
           </div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-semibold tracking-tight">John Doe</h1>
-            <p className="text-muted-foreground text-base">Tech Entrepreneur • Member since Jan 2024</p>
+            <h1 className="text-3xl font-semibold tracking-tight">{displayName}</h1>
+            <p className="text-muted-foreground text-base">
+              {user?.email} • Member since {memberSince}
+            </p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -137,13 +166,16 @@ export default function ProfilePage() {
                   />
                 ) : (
                   <p className="text-sm text-muted-foreground min-h-[100px] p-3 rounded-md border bg-muted/50">
-                    {bio}
+                    {bio || "No bio yet. Click 'Edit Profile' to add one."}
                   </p>
                 )}
               </div>
               <div className="space-y-2">
                 <Label>Skills & Interests</Label>
                 <div className="flex flex-wrap gap-2">
+                  {skills.length === 0 && !isEditing && (
+                    <p className="text-sm text-muted-foreground">No skills added yet. Click 'Edit Profile' to add some.</p>
+                  )}
                   {skills.map((skill) => (
                     <Badge
                       key={skill}

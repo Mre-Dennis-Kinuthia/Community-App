@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/tooltip"
 import { WelcomeModal } from "@/components/welcome-modal"
 import { Celebration } from "@/components/celebration"
+import { useSession } from "@/lib/use-session"
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -24,9 +25,23 @@ function getGreeting() {
 }
 
 export default function DashboardPage() {
+  const { user } = useSession()
   const [greeting, setGreeting] = useState("Good morning")
-  const userName = "John" // In real app, get from session
-  const [showGettingStarted, setShowGettingStarted] = useState(true) // In real app, check if user is new
+  
+  // Get first name from user's name or email
+  const getUserFirstName = () => {
+    if (user?.name) {
+      return user.name.split(" ")[0]
+    }
+    if (user?.email) {
+      return user.email.split("@")[0]
+    }
+    return "there"
+  }
+  
+  const userName = getUserFirstName()
+  // Show getting started for new users (created in last 7 days)
+  const [showGettingStarted, setShowGettingStarted] = useState(false)
 
   useEffect(() => {
     setGreeting(getGreeting())
