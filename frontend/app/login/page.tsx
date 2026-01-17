@@ -98,6 +98,17 @@ function LoginForm() {
 
       if (result?.error) {
         console.log("[LOGIN FORM] Sign in failed:", result.error)
+        
+        // Handle configuration errors
+        if (result.error === "Configuration") {
+          console.error("[LOGIN FORM] Auth.js configuration error - likely missing AUTH_SECRET or DATABASE_URL")
+          throw new Error(
+            "Server configuration error. Please contact support. " +
+            "If you're the administrator, check that AUTH_SECRET and DATABASE_URL are set in Vercel."
+          )
+        }
+        
+        // Handle other errors
         throw new Error("Invalid email or password. Please check your credentials and try again.")
       }
 

@@ -2,6 +2,7 @@ import type { NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 
 // This config is used by middleware (Edge runtime) - no Prisma here
+// Note: AUTH_SECRET validation happens in auth.ts (Node.js runtime)
 export const authConfig = {
   secret: process.env.AUTH_SECRET,
   trustHost: true,

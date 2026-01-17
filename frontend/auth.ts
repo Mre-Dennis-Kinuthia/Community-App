@@ -5,12 +5,39 @@ import { prisma } from "@/lib/prisma"
 import { verifyPassword } from "@/lib/auth-utils"
 import { authConfig } from "./auth.config"
 
+// Validate required environment variables at runtime
+function validateEnvVars() {
+  const missing: string[] = []
+  
+  if (!process.env.AUTH_SECRET) {
+    missing.push("AUTH_SECRET")
+    console.error("[AUTH] ERROR: AUTH_SECRET is not set!")
+  }
+  
+  if (!process.env.DATABASE_URL) {
+    missing.push("DATABASE_URL")
+    console.error("[AUTH] ERROR: DATABASE_URL is not set!")
+  }
+  
+  if (missing.length > 0) {
+    console.error("[AUTH] Missing environment variables:", missing.join(", "))
+    console.error("[AUTH] Please set these in Vercel Dashboard → Settings → Environment Variables")
+  }
+  
+  return missing.length === 0
+}
+
+// Validate on module load (but don't throw - let NextAuth handle it gracefully)
+const envValid = validateEnvVars()
+
 // Full auth config for API routes (Node.js runtime) - includes Prisma
+// Note: If AUTH_SECRET is missing, NextAuth will throw a "Configuration" error
+// which we handle in the login form
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: PrismaAdapter(prisma),
+  adapter: envValid ? PrismaAdapter(prisma) : undefined,
   trustHost: true,
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET, // Will be undefined if not set, causing Configuration error
   providers: [
     Credentials({
       name: "Credentials",

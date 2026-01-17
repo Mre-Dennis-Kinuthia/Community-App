@@ -366,3 +366,326 @@ https://react.dev/link/hydration-mismatch
 [00:10:30.915] Browser ERROR   Application error: {}
 [00:10:33.296] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
 [00:10:47.851] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:16:52.763] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:16:56.373] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:16:59.621] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:17:00.218] Server  ERROR    ⨯ SyntaxError: Unexpected end of JSON input
+[00:17:03.057] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:17:03.281] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:17:03.413] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:17:20.338] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:17:29.316] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:24:44.944] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:26:59.889] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:27:01.665] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[00:27:01.701] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:27:01.890] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:27:01.949] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[00:28:26.772] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:26.867] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[00:28:26.934] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:26.963] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[00:28:29.221] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:30.575] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:28:30.660] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:30.722] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[00:28:31.029] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <div dir="ltr" data-orientation="horizontal" className="space-y-6" ref={null}>
+      <_c>
+      <_c4 value="book" className="space-y-6">
+        <TabsContent ref={null} className="mt-2 ring-..." value="book">
+          <Presence present={true}>
+            <Primitive.div data-state="active" data-orientation="horizontal" role="tabpanel" ...>
+              <div data-state="active" data-orientation="horizontal" role="tabpanel" aria-labelledby="radix-_R_1..." ...>
+                <div className="grid gap-6...">
+                  <div className="lg:col-spa...">
+                    <div>
+                    <AvailabilityCalendar selectedDate={null} onDateSelect={function bound dispatchSetState} ...>
+                      <Card>
+                        <div data-slot="card" className="bg-card te...">
+                          <CardHeader>
+                          <CardContent className="space-y-4">
+                            <div data-slot="card-content" className="px-6 space...">
+                              ...
+                                <tbody data-animated-weeks={undefined} className="rdp-weeks" style={undefined}>
+                                  <Week>
+                                  <Week>
+                                  <Week>
+                                  <Week className="flex w-ful..." style={undefined} week={{days:[...], ...}}>
+                                    <tr className="flex w-ful..." style={undefined}>
+                                      <Day>
+                                      <Day day={{date:Date, ...}} modifiers={{focused:false, ...}} ...>
+                                        <td
++                                         className={"relative w-full h-full p-0 text-center [&:first-child[data-sele..."}
+-                                         className={"relative w-full h-full p-0 text-center [&:first-child[data-sele..."}
+                                          style={{}}
+                                          role="gridcell"
+                                          aria-selected={undefined}
+                                          aria-label={undefined}
+                                          data-day="2026-01-19"
+                                          data-month={undefined}
+                                          data-selected={undefined}
++                                         data-disabled={undefined}
+-                                         data-disabled="true"
+                                          data-hidden={undefined}
+                                          data-outside={undefined}
+                                          data-focused={undefined}
+                                          data-today={undefined}
+                                        >
+                                          <CalendarDayButton className="rdp-day_bu..." style={undefined} type="button" ...>
+                                            <Button ref={{current:null}} variant="ghost" size="icon" data-day="1/19/2026" ...>
+                                              <button
+                                                data-slot="button"
+                                                className={"items-center justify-center whitespace-nowrap rounded-lg ..."}
+                                                ref={{current:null}}
+                                                data-day="1/19/2026"
+                                                data-selected-single={undefined}
+                                                data-range-start={undefined}
+                                                data-range-end={undefined}
+                                                data-range-middle={undefined}
+                                                style={undefined}
+                                                type="button"
++                                               disabled={undefined}
+-                                               disabled=""
++                                               tabIndex={0}
+-                                               tabIndex="-1"
+                                                aria-label="Monday, January 19th, 2026"
+                                                onClick={function}
+                                                onBlur={function}
+                                                onFocus={function}
+                                                onKeyDown={function}
+                                                onMouseEnter={function}
+                                                onMouseLeave={function}
+                                              >
++                                               19
+                                      <Day day={{date:Date, ...}} modifiers={{focused:false, ...}} ...>
+                                        <td className={"relative..."} style={{}} role="gridcell" ...>
+                                          <CalendarDayButton className="rdp-day_bu..." style={undefined} type="button" ...>
+                                            <Button ref={{current:null}} variant="ghost" size="icon" data-day="1/20/2026" ...>
+                                              <button
+                                                data-slot="button"
+                                                className={"items-center justify-center whitespace-nowrap rounded-lg ..."}
+                                                ref={{current:null}}
+                                                data-day="1/20/2026"
+                                                data-selected-single={undefined}
+                                                data-range-start={undefined}
+                                                data-range-end={undefined}
+                                                data-range-middle={undefined}
+                                                style={undefined}
+                                                type="button"
+                                                disabled={undefined}
++                                               tabIndex={-1}
+-                                               tabIndex="0"
+                                                aria-label="Tuesday, January 20th, 2026"
+                                                onClick={function}
+                                                onBlur={function}
+                                                onFocus={function}
+                                                onKeyDown={function}
+                                                onMouseEnter={function}
+                                                onMouseLeave={function}
+                                              >
++                                               20
+                                      <Day day={{date:Date, ...}} modifiers={{focused:false, ...}} ...>
+                                        <td
++                                         className={"relative w-full h-full p-0 text-center [&:first-child[data-sele..."}
+-                                         className={"relative w-full h-full p-0 text-center [&:first-child[data-sele..."}
+                                          style={{}}
+                                          role="gridcell"
+                                          aria-selected={undefined}
+                                          aria-label={undefined}
+                                          data-day="2026-01-21"
+                                          data-month={undefined}
+                                          data-selected={undefined}
++                                         data-disabled={true}
+-                                         data-disabled={null}
+                                          data-hidden={undefined}
+                                          data-outside={undefined}
+                                          data-focused={undefined}
+                                          data-today={undefined}
+                                        >
+                                          <CalendarDayButton className="rdp-day_bu..." style={undefined} type="button" ...>
+                                            <Button ref={{current:null}} variant="ghost" size="icon" data-day="1/21/2026" ...>
+                                              <button
+                                                data-slot="button"
+                                                className={"items-center justify-center whitespace-nowrap rounded-lg ..."}
+                                                ref={{current:null}}
+                                                data-day="1/21/2026"
+                                                data-selected-single={undefined}
+                                                data-range-start={undefined}
+                                                data-range-end={undefined}
+                                                data-range-middle={undefined}
+                                                style={undefined}
+                                                type="button"
++                                               disabled={true}
+-                                               disabled={null}
+                                                tabIndex={-1}
+                                                aria-label="Wednesday, January 21st, 2026"
+                                                onClick={function}
+                                                onBlur={function}
+                                                onFocus={function}
+                                                onKeyDown={function}
+                                                onMouseEnter={function}
+                                                onMouseLeave={function}
+                                              >
++                                               21
+                                      <Day day={{date:Date, ...}} modifiers={{focused:false, ...}} ...>
+                                        <td
++                                         className={"relative w-full h-full p-0 text-center [&:first-child[data-sele..."}
+-                                         className={"relative w-full h-full p-0 text-center [&:first-child[data-sele..."}
+                                          style={{}}
+                                          role="gridcell"
+                                          aria-selected={undefined}
+                                          aria-label={undefined}
+                                          data-day="2026-01-22"
+                                          data-month={undefined}
+                                          data-selected={undefined}
++                                         data-disabled={true}
+-                                         data-disabled={null}
+                                          data-hidden={undefined}
+                                          data-outside={undefined}
+                                          data-focused={undefined}
+                                          data-today={undefined}
+                                        >
+                                          <CalendarDayButton className="rdp-day_bu..." style={undefined} type="button" ...>
+                                            <Button ref={{current:null}} variant="ghost" size="icon" data-day="1/22/2026" ...>
+                                              <button
+                                                data-slot="button"
+                                                className={"items-center justify-center whitespace-nowrap rounded-lg ..."}
+                                                ref={{current:null}}
+                                                data-day="1/22/2026"
+                                                data-selected-single={undefined}
+                                                data-range-start={undefined}
+                                                data-range-end={undefined}
+                                                data-range-middle={undefined}
+                                                style={undefined}
+                                                type="button"
++                                               disabled={true}
+-                                               disabled={null}
+                                                tabIndex={-1}
+                                                aria-label="Thursday, January 22nd, 2026"
+                                                onClick={function}
+                                                onBlur={function}
+                                                onFocus={function}
+                                                onKeyDown={function}
+                                                onMouseEnter={function}
+                                                onMouseLeave={function}
+                                              >
++                                               22
+                                      ...
+                                  <Week className="flex w-ful..." style={undefined} week={{days:[...], ...}}>
+                                    <tr className="flex w-ful..." style={undefined}>
+                                      <Day>
+                                      <Day>
+                                      <Day>
+                                      <Day>
+                                      <Day>
+                                      <Day day={{date:Date, ...}} modifiers={{focused:false, ...}} ...>
+                                        <td
++                                         className={"relative w-full h-full p-0 text-center [&:first-child[data-sele..."}
+-                                         className={"relative w-full h-full p-0 text-center [&:first-child[data-sele..."}
+                                          style={{}}
+                                          role="gridcell"
+                                          aria-selected={undefined}
+                                          aria-label={undefined}
+                                          data-day="2026-01-30"
+                                          data-month={undefined}
+                                          data-selected={undefined}
++                                         data-disabled={true}
+-                                         data-disabled={null}
+                                          data-hidden={undefined}
+                                          data-outside={undefined}
+                                          data-focused={undefined}
+                                          data-today={undefined}
+                                        >
+                                          <CalendarDayButton className="rdp-day_bu..." style={undefined} type="button" ...>
+                                            <Button ref={{current:null}} variant="ghost" size="icon" data-day="1/30/2026" ...>
+                                              <button
+                                                data-slot="button"
+                                                className={"items-center justify-center whitespace-nowrap rounded-lg ..."}
+                                                ref={{current:null}}
+                                                data-day="1/30/2026"
+                                                data-selected-single={undefined}
+                                                data-range-start={undefined}
+                                                data-range-end={undefined}
+                                                data-range-middle={undefined}
+                                                style={undefined}
+                                                type="button"
++                                               disabled={true}
+-                                               disabled={null}
+                                                tabIndex={-1}
+                                                aria-label="Friday, January 30th, 2026"
+                                                onClick={function}
+                                                onBlur={function}
+                                                onFocus={function}
+                                                onKeyDown={function}
+                                                onMouseEnter={function}
+                                                onMouseLeave={function}
+                                              >
++                                               30
+                                      ...
+                              <div className="flex items...">
+                                <Info>
+                                <div className="flex-1">
+                                  <p>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
++                                   Monday, Jan 19, 2026
+-                                   Sunday, Jan 18, 2026
+                    ...
+                  ...
+      ...
+
+[00:28:31.125] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:31.148] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[00:28:31.178] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:28:31.178] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/booking","route":"/booking"}
+[00:28:31.178] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/booking color: rgb(120, 120, 120) color: inherit {"dp":"/booking","o":"http://localhost:3000/booking","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768688214384}
+[00:28:33.838] Browser LOG     [LOGOUT] Logout initiated
+[00:28:33.937] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:34.369] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:34.378] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:34.670] Browser LOG     [LOGOUT] Sign out result: {"url":"http://localhost:3000/login"}
+[00:28:36.486] Server  WARN     ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:28:37.355] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:28:37.532] Browser LOG     %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit
+[00:28:37.532] Browser LOG     %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {"path":"/login","route":"/login"}
+[00:28:37.532] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/login color: rgb(120, 120, 120) color: inherit {"dp":"/login","o":"http://localhost:3000/login","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768688221125}
+[00:28:54.074] Browser LOG     [LOGIN FORM] Form submitted: {"email":"dennis@ihn.com","hasPassword":true,"passwordLength":11,"redirect":"/dashboard"}
+[00:28:54.074] Browser LOG     [LOGIN FORM] Validation passed, attempting sign in with normalized email...
+[00:28:54.169] Server  LOG     [AUTH] Authorize called with credentials: {}
+[00:28:54.170] Server  LOG     [AUTH] Normalized email for lookup: "dennis@ihn.com"
+[00:28:54.170] Server  LOG     [AUTH] Looking up user in database: "dennis@ihn.com"
+[00:28:54.254] Server  ERROR   (node:15921) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+
+To prepare for this change:
+- If you want the current behavior, explicitly use 'sslmode=verify-full'
+- If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+
+See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[00:28:56.057] Server  LOG     prisma:query "SELECT \"public\".\"users\".\"id\", \"public\".\"users\".\"email\", \"public\".\"users\".\"name\", \"public\".\"users\".\"password\", \"public\".\"users\".\"emailVerified\", \"public\".\"users\".\"image\", \"public\".\"users\".\"createdAt\", \"public\".\"users\".\"updatedAt\" FROM \"public\".\"users\" WHERE (\"public\".\"users\".\"email\" = $1 AND 1=1) LIMIT $2 OFFSET $3"
+[00:28:56.059] Server  LOG     [AUTH] Verifying password...
+[00:28:56.149] Server  LOG     [AUTH] Authentication successful for: {}
+[00:28:56.149] Server  LOG     [AUTH] JWT callback - adding user to token: {}
+[00:28:56.305] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:56.327] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:56.494] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[00:28:56.525] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:56.539] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:28:56.696] Browser LOG     [LOGIN FORM] Sign in result: {"ok":true,"status":200,"url":"http://localhost:3000/dashboard"}
+[00:28:56.697] Browser LOG     [LOGIN FORM] Sign in successful, redirecting to: http://localhost:3000/dashboard
+[00:28:58.604] Browser WARN    Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+[00:28:58.604] Browser LOG     %c[Vercel Web Analytics]%c [pageview] http://localhost:3000/dashboard color: rgb(120, 120, 120) color: inherit {"dp":"/dashboard","o":"http://localhost:3000/dashboard","sdkn":"@vercel/analytics/next","sdkv":"1.3.1","sv":"0.1.3","ts":1768688243952}
+[00:29:02.887] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com

@@ -70,6 +70,18 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[REGISTER API] Error occurred:", error)
     
+    // Check for missing environment variables
+    if (!process.env.DATABASE_URL) {
+      console.error("[REGISTER API] DATABASE_URL is not set!")
+      return NextResponse.json(
+        { 
+          error: "Server configuration error",
+          details: "DATABASE_URL environment variable is not set. Please contact support."
+        },
+        { status: 500 }
+      )
+    }
+    
     if (error instanceof z.ZodError) {
       console.log("[REGISTER API] Validation errors:", error.errors)
       // Format Zod errors into user-friendly messages
@@ -88,18 +100,41 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Check if it's a Prisma unique constraint error (duplicate email)
-    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
-      console.log("[REGISTER API] Duplicate email detected (Prisma P2002)")
-      return NextResponse.json(
-        { error: "An account with this email already exists" },
-        { status: 400 }
-      )
+    // Check if it's a Prisma connection error
+    if (error && typeof error === "object") {
+      const errorObj = error as any
+      
+      // Prisma connection errors
+      if (errorObj.code === "P1001" || errorObj.message?.includes("Can't reach database")) {
+        console.error("[REGISTER API] Database connection error:", errorObj.message)
+        return NextResponse.json(
+          { 
+            error: "Database connection failed",
+            details: "Unable to connect to the database. Please try again later."
+          },
+          { status: 500 }
+        )
+      }
+      
+      // Prisma unique constraint error (duplicate email)
+      if (errorObj.code === "P2002") {
+        console.log("[REGISTER API] Duplicate email detected (Prisma P2002)")
+        return NextResponse.json(
+          { error: "An account with this email already exists" },
+          { status: 400 }
+        )
+      }
+      
+      // Log the error code and message for debugging
+      console.error("[REGISTER API] Prisma error code:", errorObj.code, "Message:", errorObj.message)
     }
 
     console.error("[REGISTER API] Unexpected error:", error)
     return NextResponse.json(
-      { error: "Failed to create user. Please try again later." },
+      { 
+        error: "Failed to create user. Please try again later.",
+        details: process.env.NODE_ENV === "development" ? String(error) : undefined
+      },
       { status: 500 }
     )
   }
