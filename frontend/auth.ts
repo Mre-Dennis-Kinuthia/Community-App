@@ -17,7 +17,6 @@ function validateEnvVars() {
     missing.push("AUTH_SECRET")
     console.error("[AUTH] ERROR: AUTH_SECRET is not set!")
   } else {
-    // Log secret info (but not the actual secret)
     console.log("[AUTH] AUTH_SECRET is set, length:", authSecret.length)
     if (authSecret.length < 32) {
       issues.push(`AUTH_SECRET is too short (${authSecret.length} chars, need at least 32)`)
@@ -44,12 +43,8 @@ function validateEnvVars() {
   return missing.length === 0 && issues.length === 0
 }
 
-// Validate on module load (but don't throw - let NextAuth handle it gracefully)
+// Validate on module load
 const envValid = validateEnvVars()
-
-// Full auth config for API routes (Node.js runtime) - includes Prisma
-// Note: If AUTH_SECRET is missing or invalid, NextAuth will throw a "Configuration" error
-// which we handle in the login form
 const authSecret = process.env.AUTH_SECRET
 
 // Log configuration status
@@ -61,13 +56,16 @@ console.log("[AUTH] Initializing NextAuth with:", {
   envValid,
 })
 
-// Validate secret before initializing NextAuth
-if (!authSecret) {
-  console.error("[AUTH] CRITICAL: AUTH_SECRET is not set!")
-  console.error("[AUTH] This will cause Configuration errors in NextAuth")
-} else if (authSecret.length < 32) {
-  console.error("[AUTH] CRITICAL: AUTH_SECRET is too short!")
-  console.error("[AUTH] AUTH_SECRET must be at least 32 characters (current:", authSecret.length, ")")
+// Ensure secret is a valid string before passing to NextAuth
+if (!authSecret || typeof authSecret !== "string" || authSecret.length < 32) {
+  const errorMsg = !authSecret
+    ? "AUTH_SECRET is not set"
+    : typeof authSecret !== "string"
+    ? "AUTH_SECRET is not a string"
+    : `AUTH_SECRET is too short (${authSecret.length} chars, need 32+)`
+  
+  console.error("[AUTH] CRITICAL ERROR:", errorMsg)
+  throw new Error(`NextAuth configuration error: ${errorMsg}`)
 }
 
 // Create NextAuth config with explicit secret validation
@@ -75,18 +73,7 @@ const nextAuthConfig = {
   ...authConfig,
   adapter: envValid ? PrismaAdapter(prisma) : undefined,
   trustHost: true,
-  secret: authSecret || undefined, // Explicitly set - NextAuth will validate
-}
-
-// Log final config (without exposing secret)
-console.log("[AUTH] NextAuth config:", {
-  hasSecret: !!nextAuthConfig.secret,
-  secretLength: nextAuthConfig.secret?.length || 0,
-  hasAdapter: !!nextAuthConfig.adapter,
-  trustHost: nextAuthConfig.trustHost,
-})
-
-export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig)
+  secret: authSecret,
   providers: [
     Credentials({
       name: "Credentials",
@@ -109,7 +96,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig)
         const normalizedEmail = (credentials.email as string).toLowerCase().trim()
         console.log("[AUTH] Normalized email for lookup:", normalizedEmail)
 
-        // Look up user in database (only works in Node.js runtime)
+        // Look up user in database
         console.log("[AUTH] Looking up user in database:", normalizedEmail)
         const user = await prisma.user.findUnique({
           where: { email: normalizedEmail },
@@ -153,4 +140,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig)
       },
     }),
   ],
+}
+
+// Log final config (without exposing secret)
+console.log("[AUTH] NextAuth config:", {
+  hasSecret: !!nextAuthConfig.secret,
+  secretLength: nextAuthConfig.secret?.length || 0,
+  secretType: typeof nextAuthConfig.secret,
+  hasAdapter: !!nextAuthConfig.adapter,
+  trustHost: nextAuthConfig.trustHost,
 })
+
+// Initialize NextAuth with validated config
+export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig)
