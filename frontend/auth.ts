@@ -70,11 +70,23 @@ if (!authSecret) {
   console.error("[AUTH] AUTH_SECRET must be at least 32 characters (current:", authSecret.length, ")")
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+// Create NextAuth config with explicit secret validation
+const nextAuthConfig = {
   ...authConfig,
   adapter: envValid ? PrismaAdapter(prisma) : undefined,
   trustHost: true,
-  secret: authSecret, // Explicitly set - should be valid at this point
+  secret: authSecret || undefined, // Explicitly set - NextAuth will validate
+}
+
+// Log final config (without exposing secret)
+console.log("[AUTH] NextAuth config:", {
+  hasSecret: !!nextAuthConfig.secret,
+  secretLength: nextAuthConfig.secret?.length || 0,
+  hasAdapter: !!nextAuthConfig.adapter,
+  trustHost: nextAuthConfig.trustHost,
+})
+
+export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig)
   providers: [
     Credentials({
       name: "Credentials",
