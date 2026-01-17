@@ -61,11 +61,20 @@ console.log("[AUTH] Initializing NextAuth with:", {
   envValid,
 })
 
+// Validate secret before initializing NextAuth
+if (!authSecret) {
+  console.error("[AUTH] CRITICAL: AUTH_SECRET is not set!")
+  console.error("[AUTH] This will cause Configuration errors in NextAuth")
+} else if (authSecret.length < 32) {
+  console.error("[AUTH] CRITICAL: AUTH_SECRET is too short!")
+  console.error("[AUTH] AUTH_SECRET must be at least 32 characters (current:", authSecret.length, ")")
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: envValid ? PrismaAdapter(prisma) : undefined,
   trustHost: true,
-  secret: authSecret, // Will be undefined if not set, causing Configuration error
+  secret: authSecret, // Explicitly set - should be valid at this point
   providers: [
     Credentials({
       name: "Credentials",
