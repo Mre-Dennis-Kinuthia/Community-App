@@ -351,3 +351,9 @@ https://react.dev/link/hydration-mismatch
 [00:00:14.537] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
 [00:00:14.584] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
 [00:00:14.630] Server  LOG     [AUTH] Session callback - building session for: "dennis@ihn.com"
+[00:05:08.561] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:05:29.661] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:05:50.543] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:06:09.975] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:06:18.664] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
+[00:06:51.950] Server  LOG     [AUTH] Session callback - building session for: dennis@ihn.com
