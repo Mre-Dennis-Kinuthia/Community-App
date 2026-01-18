@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAdmin } from "../../middleware"
+import { requireAdmin } from "@/app/api/admin/middleware"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 
 /**
