@@ -37,8 +37,12 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
+    // Include both user-specific and broadcast (userId: null) notifications
     const where: any = {
-      userId: session.user.id,
+      OR: [
+        { userId: session.user.id },
+        { userId: null }, // Broadcast notifications for all users
+      ],
       deletedAt: null,
     }
 
@@ -62,7 +66,10 @@ export async function GET(request: NextRequest) {
       prisma.notification.count({ where }),
       prisma.notification.count({
         where: {
-          userId: session.user.id,
+          OR: [
+            { userId: session.user.id },
+            { userId: null }, // Broadcast notifications
+          ],
           read: false,
           deletedAt: null,
         },
