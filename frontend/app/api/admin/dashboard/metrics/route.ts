@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireAdmin } from "../middleware"
+import { requireAdmin } from "../../middleware"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 
 /**
