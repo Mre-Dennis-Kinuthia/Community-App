@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "postinstall": "prisma generate",
-    "build": "prisma generate && next build --webpack",
+    "postinstall": "npm run db:sync-schema && prisma generate",
+    "build": "npm run db:sync-schema && prisma generate && next build --webpack",
     "dev": "next dev --webpack",
     "lint": "eslint .",
     "start": "next start",
@@ -13,7 +13,10 @@
     "db:studio": "prisma studio",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:users": "tsx scripts/check-users.ts"
+    "db:users": "tsx scripts/check-users.ts",
+    "db:sync-schema": "tsx scripts/sync-prisma-schema.ts",
+    "db:sync-schema:watch": "tsx scripts/sync-prisma-schema.ts --watch",
+    "admin:create": "tsx scripts/create-admin.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

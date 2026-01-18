@@ -19,6 +19,8 @@ const nextConfig = {
     '/api/**/*': ['./node_modules/.prisma/client/**/*'],
     '/*': ['./node_modules/.prisma/client/**/*'],
   },
+  // CORS is handled in individual API routes via middleware-cors.ts
+  // This allows dynamic origin checking based on request headers
 }
 
 export default nextConfig

@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Sync Prisma schema to Admin App before commit
+echo "🔄 Syncing Prisma schema to Admin App..."
+npm run db:sync-schema || exit 1
