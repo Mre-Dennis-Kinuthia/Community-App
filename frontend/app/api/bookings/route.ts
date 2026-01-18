@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { createNotification, NotificationTemplates } from "@/lib/notifications"
 
 const bookingSchema = z.object({
   resourceType: z.enum(["hot-desk", "meeting-room", "private-office"]),
@@ -229,6 +230,25 @@ export async function POST(request: NextRequest) {
       resourceType: booking.resourceType,
       date: booking.date,
       totalPrice: booking.totalPrice,
+    })
+
+    // Create notification for the user
+    const formattedDate = new Date(booking.date).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+    
+    const notificationParams = NotificationTemplates.bookingConfirmed(
+      booking.id,
+      booking.resourceType.replace("-", " "),
+      formattedDate
+    )
+    
+    await createNotification({
+      userId: userId,
+      ...notificationParams,
     })
 
     return NextResponse.json(

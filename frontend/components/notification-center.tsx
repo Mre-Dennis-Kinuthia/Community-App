@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell, Check, X } from "lucide-react"
+import { Bell, Check, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,56 +13,156 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { formatDistanceToNow } from "date-fns"
 
 interface Notification {
   id: string
   title: string
   message: string
-  time: string
-  read: boolean
   type: "info" | "success" | "warning" | "error"
+  read: boolean
+  readAt: string | null
+  createdAt: string
+  actionUrl?: string | null
+  category?: string | null
 }
 
 export function NotificationCenter() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [unreadCount, setUnreadCount] = useState(0)
 
-  // TODO: Fetch notifications from API when endpoint is available
-  // useEffect(() => {
-  //   async function fetchNotifications() {
-  //     try {
-  //       const response = await fetch("/api/notifications")
-  //       if (response.ok) {
-  //         const data = await response.json()
-  //         setNotifications(data.notifications || [])
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching notifications:", error)
-  //     } finally {
-  //       setIsLoading(false)
-  //     }
-  //   }
-  //   fetchNotifications()
-  // }, [])
-  
   useEffect(() => {
-    // For now, just set loading to false
-    setIsLoading(false)
+    async function fetchNotifications() {
+      try {
+        setIsLoading(true)
+        const response = await fetch("/api/notifications?limit=10")
+        if (response.ok) {
+          const data = await response.json()
+          setNotifications(data.notifications || [])
+          setUnreadCount(data.unreadCount || 0)
+        } else {
+          console.error("Failed to fetch notifications:", response.statusText)
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchNotifications()
+    
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000)
+    return () => clearInterval(interval)
   }, [])
-  const unreadCount = notifications.filter((n) => !n.read).length
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
+    // Optimistic update
     setNotifications(
-      notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
+      notifications.map((n) => (n.id === id ? { ...n, read: true, readAt: new Date().toISOString() } : n))
     )
+    setUnreadCount(Math.max(0, unreadCount - 1))
+
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ read: true }),
+      })
+
+      if (!response.ok) {
+        // Revert on error
+        const data = await response.json()
+        setNotifications(
+          notifications.map((n) => (n.id === id ? { ...n, read: false, readAt: null } : n))
+        )
+        setUnreadCount(unreadCount + 1)
+        console.error("Failed to mark notification as read:", data.error)
+      }
+    } catch (error) {
+      console.error("Error marking notification as read:", error)
+      // Revert on error
+      setNotifications(
+        notifications.map((n) => (n.id === id ? { ...n, read: false, readAt: null } : n))
+      )
+      setUnreadCount(unreadCount + 1)
+    }
   }
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })))
+  const markAllAsRead = async () => {
+    // Optimistic update
+    const previousNotifications = [...notifications]
+    setNotifications(notifications.map((n) => ({ ...n, read: true, readAt: new Date().toISOString() })))
+    setUnreadCount(0)
+
+    try {
+      const response = await fetch("/api/notifications/mark-all-read", {
+        method: "POST",
+      })
+
+      if (!response.ok) {
+        // Revert on error
+        setNotifications(previousNotifications)
+        setUnreadCount(previousNotifications.filter((n) => !n.read).length)
+        const data = await response.json()
+        console.error("Failed to mark all as read:", data.error)
+      } else {
+        // Refresh to get updated data
+        const refreshResponse = await fetch("/api/notifications?limit=10")
+        if (refreshResponse.ok) {
+          const data = await refreshResponse.json()
+          setNotifications(data.notifications || [])
+          setUnreadCount(data.unreadCount || 0)
+        }
+      }
+    } catch (error) {
+      console.error("Error marking all as read:", error)
+      // Revert on error
+      setNotifications(previousNotifications)
+      setUnreadCount(previousNotifications.filter((n) => !n.read).length)
+    }
   }
 
-  const deleteNotification = (id: string) => {
+  const deleteNotification = async (id: string) => {
+    // Optimistic update
+    const previousNotifications = [...notifications]
+    const notification = notifications.find((n) => n.id === id)
     setNotifications(notifications.filter((n) => n.id !== id))
+    if (notification && !notification.read) {
+      setUnreadCount(Math.max(0, unreadCount - 1))
+    }
+
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        // Revert on error
+        setNotifications(previousNotifications)
+        if (notification && !notification.read) {
+          setUnreadCount(unreadCount + 1)
+        }
+        const data = await response.json()
+        console.error("Failed to delete notification:", data.error)
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error)
+      // Revert on error
+      setNotifications(previousNotifications)
+      if (notification && !notification.read) {
+        setUnreadCount(unreadCount + 1)
+      }
+    }
+  }
+
+  const handleNotificationClick = (notification: Notification) => {
+    markAsRead(notification.id)
+    if (notification.actionUrl) {
+      window.location.href = notification.actionUrl
+    }
   }
 
   return (
@@ -97,7 +197,12 @@ export function NotificationCenter() {
         </div>
         <DropdownMenuSeparator />
         <div className="max-h-[400px] overflow-y-auto">
-          {notifications.length === 0 ? (
+          {isLoading ? (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin mx-auto mb-2" />
+              Loading notifications...
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
               No notifications
             </div>
@@ -109,22 +214,35 @@ export function NotificationCenter() {
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
                     !notification.read && "bg-accent"
                   )}
-                  onClick={() => markAsRead(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start justify-between w-full gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium leading-none">
-                        {notification.title}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium leading-none">
+                          {notification.title}
+                        </p>
+                        {notification.category && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {notification.category}
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                         {notification.message}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {notification.time}
+                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                       </p>
                     </div>
                     {!notification.read && (
-                      <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
+                      <div className={cn(
+                        "h-2 w-2 rounded-full shrink-0 mt-1",
+                        notification.type === "error" && "bg-destructive",
+                        notification.type === "warning" && "bg-yellow-500",
+                        notification.type === "success" && "bg-green-500",
+                        notification.type === "info" && "bg-primary"
+                      )} />
                     )}
                   </div>
                 </DropdownMenuItem>
