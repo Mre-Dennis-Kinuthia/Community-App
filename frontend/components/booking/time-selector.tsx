@@ -6,23 +6,30 @@ import { Clock, CheckCircle2 } from "lucide-react"
 import { format } from "date-fns"
 
 export type BookingDuration = "hourly" | "half-day" | "full-day"
+export type HalfDayPeriod = "morning" | "afternoon"
 
 interface TimeSelectorProps {
   selectedTime: string | null
   selectedDuration: BookingDuration
+  selectedHalfDay?: HalfDayPeriod
   onTimeSelect: (time: string) => void
   onDurationChange: (duration: BookingDuration) => void
+  onHalfDaySelect?: (period: HalfDayPeriod) => void
   availableSlots: { time: string; available: boolean }[]
   date: Date | null
+  resourceType?: "hot-desk" | "meeting-room" | "private-office"
 }
 
 export function TimeSelector({
   selectedTime,
   selectedDuration,
+  selectedHalfDay,
   onTimeSelect,
   onDurationChange,
+  onHalfDaySelect,
   availableSlots,
   date,
+  resourceType = "hot-desk",
 }: TimeSelectorProps) {
   if (!date) {
     return (
@@ -31,6 +38,25 @@ export function TimeSelector({
         <p className="text-sm text-muted-foreground">Select a date to see available times</p>
       </div>
     )
+  }
+
+  // For hot desks: full-day doesn't need time selection, half-day needs morning/afternoon selection
+  const isHotDesk = resourceType === "hot-desk"
+  const showTimeSlots = !isHotDesk || selectedDuration === "hourly"
+  const showHalfDaySelector = isHotDesk && selectedDuration === "half-day"
+  const hideTimeSelector = isHotDesk && selectedDuration === "full-day"
+
+  // Calculate start time based on half-day selection
+  const getHalfDayStartTime = (period: HalfDayPeriod) => {
+    return period === "morning" ? "09:00" : "13:00"
+  }
+
+  const handleHalfDaySelect = (period: HalfDayPeriod) => {
+    if (onHalfDaySelect) {
+      onHalfDaySelect(period)
+      // Auto-set the start time for the selected half
+      onTimeSelect(getHalfDayStartTime(period))
+    }
   }
 
   return (
@@ -50,38 +76,82 @@ export function TimeSelector({
         </Select>
       </div>
 
-      {/* Time Slots */}
-      <div>
-        <p className="text-sm font-medium mb-3">Available Times</p>
-        <div className="flex flex-wrap gap-2">
-          {availableSlots.map((slot) => {
-            const isSelected = selectedTime === slot.time
-            const timeDate = new Date()
-            const [hours, minutes] = slot.time.split(":")
-            timeDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-            const displayTime = format(timeDate, "h:mm a")
-
-            return (
-              <Button
-                key={slot.time}
-                size="sm"
-                variant={isSelected ? "default" : "outline"}
-                onClick={() => slot.available && onTimeSelect(slot.time)}
-                disabled={!slot.available}
-                className="h-9 text-xs button-press"
-              >
-                {isSelected && <CheckCircle2 className="mr-1 h-3 w-3" />}
-                {displayTime}
-              </Button>
-            )
-          })}
+      {/* Half Day Selector (for hot desks) */}
+      {showHalfDaySelector && (
+        <div>
+          <p className="text-sm font-medium mb-3">Select Half of Day</p>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={selectedHalfDay === "morning" ? "default" : "outline"}
+              onClick={() => handleHalfDaySelect("morning")}
+              className="flex-1"
+            >
+              {selectedHalfDay === "morning" && <CheckCircle2 className="mr-1 h-3 w-3" />}
+              Morning (9 AM - 1 PM)
+            </Button>
+            <Button
+              size="sm"
+              variant={selectedHalfDay === "afternoon" ? "default" : "outline"}
+              onClick={() => handleHalfDaySelect("afternoon")}
+              className="flex-1"
+            >
+              {selectedHalfDay === "afternoon" && <CheckCircle2 className="mr-1 h-3 w-3" />}
+              Afternoon (1 PM - 5 PM)
+            </Button>
+          </div>
+          {selectedHalfDay && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Selected: {selectedHalfDay === "morning" ? "Morning" : "Afternoon"} half
+            </p>
+          )}
         </div>
-        {availableSlots.filter(s => !s.available).length > 0 && (
-          <p className="text-xs text-muted-foreground mt-2">
-            Unavailable times are disabled
+      )}
+
+      {/* Full Day Message (for hot desks) */}
+      {hideTimeSelector && (
+        <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+          <p className="text-sm font-medium mb-1">Full Day Booking</p>
+          <p className="text-xs text-muted-foreground">
+            You've selected a full day booking. No specific time selection is needed.
           </p>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Time Slots (for hourly bookings or meeting rooms) */}
+      {showTimeSlots && (
+        <div>
+          <p className="text-sm font-medium mb-3">Available Times</p>
+          <div className="flex flex-wrap gap-2">
+            {availableSlots.map((slot) => {
+              const isSelected = selectedTime === slot.time
+              const timeDate = new Date()
+              const [hours, minutes] = slot.time.split(":")
+              timeDate.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+              const displayTime = format(timeDate, "h:mm a")
+
+              return (
+                <Button
+                  key={slot.time}
+                  size="sm"
+                  variant={isSelected ? "default" : "outline"}
+                  onClick={() => slot.available && onTimeSelect(slot.time)}
+                  disabled={!slot.available}
+                  className="h-9 text-xs button-press"
+                >
+                  {isSelected && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                  {displayTime}
+                </Button>
+              )
+            })}
+          </div>
+          {availableSlots.filter(s => !s.available).length > 0 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Unavailable times are disabled
+            </p>
+          )}
+        </div>
+      )}
     </div>
   )
 }

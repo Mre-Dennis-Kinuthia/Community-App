@@ -29,7 +29,8 @@ export default function BookingPage() {
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
   const { 
     slots, 
-    unavailableDates, 
+    unavailableDates,
+    datesWithBookings,
     nextAvailable, 
     selectedDate, 
     setSelectedDate 
@@ -37,6 +38,7 @@ export default function BookingPage() {
   
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("hourly")
+  const [selectedHalfDay, setSelectedHalfDay] = useState<"morning" | "afternoon" | undefined>(undefined)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [isBooking, setIsBooking] = useState(false)
   const [activeTab, setActiveTab] = useState("book")
@@ -50,7 +52,25 @@ export default function BookingPage() {
 
   // Calculate pricing
   const totalPrice = useMemo(() => {
-    if (!selectedDate || !selectedTime || !selectedResource) return 0
+    if (!selectedDate || !selectedResource) return 0
+    
+    // Check if we have required selections based on resource type and duration
+    let hasRequiredSelections = false
+    
+    if (selectedResource === "hot-desk") {
+      if (selectedDuration === "full-day") {
+        hasRequiredSelections = true // Full day doesn't need time selection
+      } else if (selectedDuration === "half-day") {
+        hasRequiredSelections = !!selectedHalfDay // Half day needs morning/afternoon selection
+      } else {
+        hasRequiredSelections = !!selectedTime // Hourly needs time selection
+      }
+    } else {
+      // Meeting rooms and private offices always need time selection
+      hasRequiredSelections = !!selectedTime
+    }
+    
+    if (!hasRequiredSelections) return 0
     
     const basePrice = pricing.options.find(opt => opt.type === selectedDuration)?.price || 0
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
@@ -59,33 +79,64 @@ export default function BookingPage() {
     }, 0)
     
     return basePrice + addOnsPrice
-  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedAddOns, pricing])
+  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, selectedAddOns, pricing])
 
   // Check if booking is valid
   const isValidBooking = useMemo(() => {
-    return !!(
-      selectedDate &&
-      selectedTime &&
-      selectedResource &&
-      totalPrice > 0
-    )
-  }, [selectedDate, selectedTime, selectedResource, totalPrice])
+    if (!selectedDate || !selectedResource || totalPrice <= 0) return false
+    
+    // For hot desks: full-day doesn't need time, half-day needs half-day selection, hourly needs time
+    if (selectedResource === "hot-desk") {
+      if (selectedDuration === "full-day") return true
+      if (selectedDuration === "half-day") return !!selectedHalfDay
+      return !!selectedTime
+    }
+    
+    // For meeting rooms: always need time
+    return !!selectedTime
+  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, totalPrice])
+
+  // Calculate start time based on duration and selection
+  // This ensures we always have a valid startTime for the API
+  const calculateStartTime = useMemo(() => {
+    // Full-day hot desk: always starts at 9 AM
+    if (selectedResource === "hot-desk" && selectedDuration === "full-day") {
+      return "09:00"
+    }
+    // Half-day hot desk: morning (9 AM) or afternoon (1 PM)
+    if (selectedResource === "hot-desk" && selectedDuration === "half-day" && selectedHalfDay) {
+      return selectedHalfDay === "morning" ? "09:00" : "13:00"
+    }
+    // Hourly or meeting rooms: use selected time
+    return selectedTime || null
+  }, [selectedResource, selectedDuration, selectedHalfDay, selectedTime])
 
   // Handle booking
   const handleConfirmBooking = async () => {
-    if (!isValidBooking || !selectedDate || !selectedTime || !selectedResource) {
-      toast.warning("Complete your selection", "Please select date, time, and resource")
+    if (!isValidBooking || !selectedDate || !selectedResource) {
+      toast.warning("Complete your selection", "Please complete all required fields")
       return
+    }
+
+    // Validate time selection based on resource type
+    if (selectedResource !== "hot-desk" || selectedDuration === "hourly") {
+      if (!selectedTime) {
+        toast.warning("Complete your selection", "Please select a time")
+        return
+      }
     }
 
     setIsBooking(true)
     
     try {
+      const startTime = calculateStartTime
+      
       console.log("[BOOKING PAGE] Submitting booking:", {
         resourceType: selectedResource,
         date: selectedDate.toISOString(),
-        startTime: selectedTime,
+        startTime,
         duration: selectedDuration,
+        halfDay: selectedHalfDay,
         basePrice: pricing.options.find(opt => opt.type === selectedDuration)?.price || 0,
         addOnsPrice: selectedAddOns.reduce((sum, id) => {
           const addOn = pricing.addOns.find(a => a.id === id)
@@ -103,7 +154,7 @@ export default function BookingPage() {
         body: JSON.stringify({
           resourceType: selectedResource,
           date: selectedDate.toISOString(),
-          startTime: selectedTime,
+          startTime,
           duration: selectedDuration,
           basePrice: pricing.options.find(opt => opt.type === selectedDuration)?.price || 0,
           addOnsPrice: selectedAddOns.reduce((sum, id) => {
@@ -204,7 +255,14 @@ export default function BookingPage() {
                     </div>
                     <ResourceSelector
                       selectedResource={selectedResource}
-                      onResourceSelect={setSelectedResource}
+                      onResourceSelect={(resource) => {
+                        setSelectedResource(resource)
+                        // Reset selections when changing resource type
+                        setSelectedDate(null)
+                        setSelectedTime(null)
+                        setSelectedHalfDay(undefined)
+                        setSelectedDuration("hourly")
+                      }}
                     />
                   </div>
                 </div>
@@ -214,7 +272,9 @@ export default function BookingPage() {
                   selectedDate={selectedDate}
                   onDateSelect={setSelectedDate}
                   unavailableDates={unavailableDates}
+                  datesWithBookings={datesWithBookings}
                   nextAvailable={nextAvailable}
+                  resourceType={selectedResource || "hot-desk"}
                 />
 
                 {/* Time Selection */}
@@ -229,10 +289,23 @@ export default function BookingPage() {
                     <TimeSelector
                       selectedTime={selectedTime}
                       selectedDuration={selectedDuration}
+                      selectedHalfDay={selectedHalfDay}
                       onTimeSelect={setSelectedTime}
-                      onDurationChange={setSelectedDuration}
+                      onDurationChange={(duration) => {
+                        setSelectedDuration(duration)
+                        // Reset half-day selection when changing duration
+                        if (duration !== "half-day") {
+                          setSelectedHalfDay(undefined)
+                        }
+                        // Reset time for full-day
+                        if (duration === "full-day" && selectedResource === "hot-desk") {
+                          setSelectedTime(null)
+                        }
+                      }}
+                      onHalfDaySelect={setSelectedHalfDay}
                       availableSlots={availableSlots}
                       date={selectedDate}
+                      resourceType={selectedResource || "hot-desk"}
                     />
                   </div>
                 )}

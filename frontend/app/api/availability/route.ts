@@ -65,9 +65,10 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Get unavailable dates (dates with all slots booked or weekends)
+    // Get unavailable dates and dates with bookings
     const today = new Date()
     const unavailableDates: string[] = []
+    const datesWithBookings: string[] = [] // For hot desks - dates that have bookings but aren't blocked
     
     // Check next 30 days
     for (let i = 0; i < 30; i++) {
@@ -80,7 +81,6 @@ export async function GET(request: NextRequest) {
         continue
       }
 
-      // Check if all slots are booked for this date
       const dateStart = new Date(checkDate)
       dateStart.setHours(0, 0, 0, 0)
       const dateEnd = new Date(checkDate)
@@ -99,9 +99,22 @@ export async function GET(request: NextRequest) {
         },
       })
 
-      // If more than 8 bookings (all slots), mark as unavailable
-      if (dateBookings >= 8) {
-        unavailableDates.push(checkDate.toISOString().split("T")[0])
+      // For meeting rooms: block if all slots booked (8+ bookings)
+      // For hot desks: mark as having bookings but don't block
+      if (resourceType === "meeting-room") {
+        if (dateBookings >= 8) {
+          unavailableDates.push(checkDate.toISOString().split("T")[0])
+        }
+      } else if (resourceType === "hot-desk") {
+        // Hot desks don't get blocked, but we track dates with bookings
+        if (dateBookings > 0) {
+          datesWithBookings.push(checkDate.toISOString().split("T")[0])
+        }
+      } else {
+        // For other resource types (private-office), use same logic as meeting rooms
+        if (dateBookings >= 8) {
+          unavailableDates.push(checkDate.toISOString().split("T")[0])
+        }
       }
     }
 
@@ -123,6 +136,7 @@ export async function GET(request: NextRequest) {
       resourceType,
       availableSlots,
       unavailableDates,
+      datesWithBookings, // Dates with bookings (for hot desks - visual indicator only)
       nextAvailable,
     })
   } catch (error) {
