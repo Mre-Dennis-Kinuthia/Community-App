@@ -26,6 +26,21 @@ const TARGET_SCHEMA = resolve(ADMIN_APP_ROOT, "prisma/schema.prisma")
 
 function syncSchema() {
   try {
+    // Check if source schema exists
+    const fs = require("fs")
+    if (!fs.existsSync(SOURCE_SCHEMA)) {
+      console.error("❌ [PRISMA SYNC] Source schema not found!")
+      console.error(`   Source: ${SOURCE_SCHEMA}`)
+      return false
+    }
+
+    // Check if target directory exists, create if not
+    const targetDir = dirname(TARGET_SCHEMA)
+    if (!fs.existsSync(targetDir)) {
+      console.log("[PRISMA SYNC] Creating target directory:", targetDir)
+      fs.mkdirSync(targetDir, { recursive: true })
+    }
+
     console.log("[PRISMA SYNC] Reading schema from:", SOURCE_SCHEMA)
     const schemaContent = readFileSync(SOURCE_SCHEMA, "utf-8")
     
