@@ -8,161 +8,25 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
   Newspaper, 
   Search, 
   X,
   Calendar,
-  User,
-  ExternalLink,
-  Sparkles,
-  TrendingUp,
-  Users,
-  Bell
+  Loader2
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 
-const newsItems = [
-  {
-    id: 1,
-    title: "Impact Hub Nairobi Launches New Incubation Program for Climate Startups",
-    type: "Announcement",
-    category: "Programs",
-    author: "Impact Hub Team",
-    authorAvatar: "/placeholder-user.jpg",
-    date: new Date(2025, 0, 15),
-    excerpt: "We're excited to announce our new 12-week incubation program specifically designed for early-stage climate and sustainability startups. Applications open now!",
-    content: "Impact Hub Nairobi is launching a specialized incubation program focused on climate solutions and sustainable innovation. The program will provide selected startups with workspace, mentorship from industry experts, access to our partner network, and opportunities for seed funding. Applications are now open for the March 2025 cohort.",
-    image: "/placeholder-user.jpg",
-    featured: true,
-    tags: ["Programs", "Climate", "Incubation"],
-  },
-  {
-    id: 2,
-    title: "Member Spotlight: Green Energy Solutions Reaches 5,000 Households",
-    type: "Spotlight",
-    category: "Member Success",
-    author: "Sarah Kamau",
-    authorAvatar: "/placeholder-user.jpg",
-    date: new Date(2025, 0, 10),
-    excerpt: "Congratulations to James Mwangi and his team for reaching this incredible milestone in bringing clean energy to rural communities.",
-    content: "James Mwangi's Green Energy Solutions project has successfully connected 5,000 rural households to clean, affordable solar power. This achievement represents a significant step forward in Kenya's renewable energy transition and demonstrates the power of social entrepreneurship to create lasting impact.",
-    image: "/placeholder-user.jpg",
-    featured: true,
-    tags: ["Member Success", "Energy", "Impact"],
-  },
-  {
-    id: 3,
-    title: "Global Impact Hub Network Meetup: February 2025",
-    type: "Event",
-    category: "Events",
-    author: "Impact Hub Team",
-    authorAvatar: "/placeholder-user.jpg",
-    date: new Date(2025, 0, 8),
-    excerpt: "Join us for our monthly global network meetup where members from Impact Hubs worldwide come together to share experiences and explore collaborations.",
-    content: "This month's global network meetup will feature presentations from Impact Hub members in Lagos, Cape Town, and London. We'll explore cross-continental collaboration opportunities and share best practices for scaling social impact ventures.",
-    image: "/placeholder-user.jpg",
-    featured: false,
-    tags: ["Events", "Networking", "Global"],
-  },
-  {
-    id: 4,
-    title: "New Partnership: Ikigai Workspace Expansion",
-    type: "Announcement",
-    category: "Partnerships",
-    author: "Impact Hub Team",
-    authorAvatar: "/placeholder-user.jpg",
-    date: new Date(2025, 0, 5),
-    excerpt: "We're expanding our partnership with Ikigai to provide even more workspace options for our members, including new wellness studios and collaboration zones.",
-    content: "Impact Hub Nairobi is thrilled to announce an expanded partnership with Ikigai, our workspace partner. This expansion includes new wellness studios, additional collaboration zones, and enhanced amenities designed to support the holistic well-being of our innovation community.",
-    image: "/placeholder-user.jpg",
-    featured: false,
-    tags: ["Partnerships", "Workspace", "Infrastructure"],
-  },
-  {
-    id: 5,
-    title: "Workshop Recap: Fundraising Strategies for Social Entrepreneurs",
-    type: "Recap",
-    category: "Workshops",
-    author: "David Ochieng",
-    authorAvatar: "/placeholder-user.jpg",
-    date: new Date(2024, 11, 28),
-    excerpt: "Our recent workshop on fundraising strategies brought together 30 entrepreneurs and 5 experienced investors for an intensive learning session.",
-    content: "The workshop covered essential fundraising topics including pitch deck development, investor relations, and alternative funding sources. Participants left with actionable strategies and new connections to potential investors in our network.",
-    image: "/placeholder-user.jpg",
-    featured: false,
-    tags: ["Workshops", "Fundraising", "Education"],
-  },
-  {
-    id: 6,
-    title: "Impact Story: How AgriTech Platform Transformed 10,000 Farmers' Lives",
-    type: "Impact Story",
-    category: "Impact",
-    author: "Grace Wanjiru",
-    authorAvatar: "/placeholder-user.jpg",
-    date: new Date(2024, 11, 20),
-    excerpt: "Grace Wanjiru's AgriTech platform has successfully connected over 10,000 smallholder farmers to markets, financing, and agricultural inputs.",
-    content: "Since launching in early 2024, Grace's platform has facilitated over KES 50 million in transactions, connected farmers with 15+ buyers, and enabled access to credit for agricultural inputs. The platform has transformed how smallholder farmers operate, increasing their incomes by an average of 40%.",
-    image: "/placeholder-user.jpg",
-    featured: true,
-    tags: ["Impact", "Agriculture", "Technology"],
-  },
-  {
-    id: 7,
-    title: "Upcoming: Social Innovation Bootcamp Applications Open",
-    type: "Announcement",
-    category: "Programs",
-    author: "Impact Hub Team",
-    authorAvatar: "/placeholder-user.jpg",
-    date: new Date(2024, 11, 15),
-    excerpt: "Applications are now open for our intensive 6-week Social Innovation Bootcamp starting in February 2025.",
-    content: "The Social Innovation Bootcamp is designed for ventures ready to scale their impact. The program includes intensive workshops, one-on-one mentorship, investor connections, and access to our global network. Limited spots available - apply early!",
-    image: "/placeholder-user.jpg",
-    featured: false,
-    tags: ["Programs", "Acceleration", "Applications"],
-  },
-  {
-    id: 8,
-    title: "Member Achievement: Digital Health Platform Wins Innovation Award",
-    type: "Announcement",
-    category: "Member Success",
-    author: "Impact Hub Team",
-    authorAvatar: "/placeholder-user.jpg",
-    date: new Date(2024, 11, 10),
-    excerpt: "Congratulations to Dr. Sarah Kamau and her team for winning the Healthcare Innovation Award at the Kenya Tech Awards 2024.",
-    content: "Dr. Sarah Kamau's digital health platform for maternal care was recognized for its innovative approach to improving healthcare access in underserved areas. The platform has served over 3,000 women with a 95% success rate in improving maternal health outcomes.",
-    image: "/placeholder-user.jpg",
-    featured: false,
-    tags: ["Member Success", "Healthcare", "Awards"],
-  },
-]
-
-const typeIcons: Record<string, any> = {
-  "Announcement": Bell,
-  "Spotlight": Sparkles,
-  "Event": Calendar,
-  "Recap": Newspaper,
-  "Impact Story": TrendingUp,
-}
-
-const typeColors: Record<string, string> = {
-  "Announcement": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Spotlight": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-  "Event": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
-  "Recap": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
-  "Impact Story": "bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary/90",
-}
-
-const categoryColors: Record<string, string> = {
-  "Programs": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Member Success": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
-  "Events": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Partnerships": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
-  "Workshops": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
-  "Impact": "bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary/90",
+interface NewsPost {
+  id: string
+  title: string
+  content: string
+  excerpt: string | null
+  imageUrl: string | null
+  publishedAt: Date | null
+  createdAt: Date
 }
 
 export default function NewsPage() {
@@ -170,55 +34,84 @@ export default function NewsPage() {
   const router = useRouter()
   
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
-  const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
-  const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
+  const [news, setNews] = useState<NewsPost[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Update URL params when filters change
+  // Fetch news from API
+  useEffect(() => {
+    async function fetchNews() {
+      try {
+        setLoading(true)
+        setError(null)
+        const params = new URLSearchParams()
+        if (searchQuery) {
+          params.set("search", searchQuery)
+        }
+        params.set("limit", "50") // Get more items for client-side filtering
+        
+        const response = await fetch(`/api/news?${params.toString()}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch news")
+        }
+        const data = await response.json()
+        setNews(data.posts || [])
+      } catch (err) {
+        console.error("Error fetching news:", err)
+        setError("Failed to load news. Please try again later.")
+        setNews([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    // Debounce search
+    const timer = setTimeout(() => {
+      fetchNews()
+    }, searchQuery ? 500 : 0)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Update URL params when search changes
   useEffect(() => {
     const params = new URLSearchParams()
     if (searchQuery) params.set("search", searchQuery)
-    if (typeFilter !== "all") params.set("type", typeFilter)
-    if (categoryFilter !== "all") params.set("category", categoryFilter)
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
-  }, [searchQuery, typeFilter, categoryFilter, router])
+  }, [searchQuery, router])
 
   const filteredNews = useMemo(() => {
-    return newsItems.filter((item) => {
-      const matchesSearch = 
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      
-      const matchesType = typeFilter === "all" || item.type === typeFilter
-      const matchesCategory = categoryFilter === "all" || item.category === categoryFilter
-
-      return matchesSearch && matchesType && matchesCategory
+    if (!searchQuery) return news
+    
+    const query = searchQuery.toLowerCase()
+    return news.filter((item) => {
+      return (
+        item.title.toLowerCase().includes(query) ||
+        item.excerpt?.toLowerCase().includes(query) ||
+        item.content.toLowerCase().includes(query)
+      )
     })
-  }, [searchQuery, typeFilter, categoryFilter])
-
-  const hasActiveFilters = typeFilter !== "all" || categoryFilter !== "all"
+  }, [news, searchQuery])
 
   const clearFilters = () => {
-    setTypeFilter("all")
-    setCategoryFilter("all")
     setSearchQuery("")
     router.replace(window.location.pathname, { scroll: false })
   }
 
-  const activeFilterCount = [
-    typeFilter !== "all",
-    categoryFilter !== "all",
-    searchQuery.length > 0,
-  ].filter(Boolean).length
+  const hasActiveFilters = searchQuery.length > 0
 
-  const uniqueTypes = Array.from(new Set(newsItems.map((n) => n.type)))
-  const uniqueCategories = Array.from(new Set(newsItems.map((n) => n.category)))
+  // Show featured news (first 2 items) and regular news
+  const featuredNews = filteredNews.slice(0, 2)
+  const regularNews = filteredNews.slice(2)
 
-  const featuredNews = filteredNews.filter((n) => n.featured)
-  const regularNews = filteredNews.filter((n) => !n.featured)
+  const getDisplayDate = (item: NewsPost) => {
+    if (item.publishedAt) {
+      return new Date(item.publishedAt)
+    }
+    return new Date(item.createdAt)
+  }
 
   return (
     <DashboardLayout>
@@ -242,33 +135,6 @@ export default function NewsPage() {
               className="pl-9 shadow-sm"
             />
           </div>
-          {activeFilterCount > 0 && (
-            <Badge variant="secondary" className="hidden md:flex">
-              {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-            </Badge>
-          )}
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-              <SelectValue placeholder="All Types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {uniqueTypes.map((type) => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {uniqueCategories.map((category) => (
-                <SelectItem key={category} value={category}>{category}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           {hasActiveFilters && (
             <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm">
               <X className="mr-2 h-4 w-4" />
@@ -277,52 +143,63 @@ export default function NewsPage() {
           )}
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <Card className="border-border/50 shadow-card">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Newspaper className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground text-center mb-4">{error}</p>
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Featured News */}
-        {featuredNews.length > 0 && (
+        {!loading && !error && featuredNews.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Featured</h2>
             <div className="grid gap-6 md:grid-cols-2">
               {featuredNews.map((item) => {
-                const TypeIcon = typeIcons[item.type] || Newspaper
+                const displayDate = getDisplayDate(item)
                 return (
                   <Link key={item.id} href={`/news/${item.id}`}>
-                    <Card
-                      className="border-border/50 shadow-card transition-all hover:shadow-card  cursor-pointer ring-2 ring-primary/20"
-                    >
-                    <CardHeader>
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <Badge className={typeColors[item.type]}>
-                          <TypeIcon className="mr-1 h-3 w-3" />
-                          {item.type}
-                        </Badge>
-                        <Badge className={categoryColors[item.category]}>
-                          {item.category}
-                        </Badge>
-                        <Badge className="bg-primary/10 text-primary border-primary/20">
+                    <Card className="border-border/50 shadow-card transition-all hover:shadow-card cursor-pointer ring-2 ring-primary/20">
+                      {item.imageUrl && (
+                        <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                      )}
+                      <CardHeader>
+                        <Badge className="bg-primary/10 text-primary border-primary/20 mb-2 w-fit">
                           Featured
                         </Badge>
-                      </div>
-                      <CardTitle className="text-xl">{item.title}</CardTitle>
-                      <CardDescription className="text-base line-clamp-2">
-                        {item.excerpt}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-5 w-5">
-                            <AvatarImage src={item.authorAvatar} alt={item.author} />
-                            <AvatarFallback>{item.author[0]}</AvatarFallback>
-                          </Avatar>
-                          <span>{item.author}</span>
+                        <CardTitle className="text-xl">{item.title}</CardTitle>
+                        <CardDescription className="text-base line-clamp-2">
+                          {item.excerpt || item.content.substring(0, 150) + "..."}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center justify-end text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {formatDistanceToNow(displayDate, { addSuffix: true })}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {formatDistanceToNow(item.date, { addSuffix: true })}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
                   </Link>
                 )
               })}
@@ -331,63 +208,61 @@ export default function NewsPage() {
         )}
 
         {/* Regular News */}
-        <div className="space-y-4">
-          {featuredNews.length > 0 && <h2 className="text-xl font-semibold">All Updates</h2>}
-          {regularNews.length === 0 && filteredNews.length === 0 ? (
-            <Card className="border-border/50 shadow-card">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Newspaper className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground text-center">
-                  No news found matching your filters.
-                </p>
-                <Button variant="outline" onClick={clearFilters} className="mt-4">
-                  Clear Filters
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {regularNews.map((item) => {
-                const TypeIcon = typeIcons[item.type] || Newspaper
-                return (
-                  <Link key={item.id} href={`/news/${item.id}`}>
-                    <Card
-                      className="border-border/50 shadow-card transition-all hover:shadow-card  cursor-pointer"
-                    >
-                    <CardHeader>
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <Badge className={typeColors[item.type]}>
-                          <TypeIcon className="mr-1 h-3 w-3" />
-                          {item.type}
-                        </Badge>
-                        <Badge className={categoryColors[item.category]}>
-                          {item.category}
-                        </Badge>
-                      </div>
-                      <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
-                      <CardDescription className="text-sm line-clamp-2">
-                        {item.excerpt}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <span className="truncate max-w-[100px]">{item.author}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {format(item.date, "MMM d")}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </div>
+        {!loading && !error && (
+          <div className="space-y-4">
+            {featuredNews.length > 0 && <h2 className="text-xl font-semibold">All Updates</h2>}
+            {regularNews.length === 0 && filteredNews.length === 0 ? (
+              <Card className="border-border/50 shadow-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Newspaper className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-center">
+                    {searchQuery ? "No news found matching your search." : "No news posts available yet."}
+                  </p>
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={clearFilters} className="mt-4">
+                      Clear Filters
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {regularNews.map((item) => {
+                  const displayDate = getDisplayDate(item)
+                  return (
+                    <Link key={item.id} href={`/news/${item.id}`}>
+                      <Card className="border-border/50 shadow-card transition-all hover:shadow-card cursor-pointer">
+                        {item.imageUrl && (
+                          <div className="relative h-32 w-full overflow-hidden rounded-t-lg">
+                            <img
+                              src={item.imageUrl}
+                              alt={item.title}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                        )}
+                        <CardHeader>
+                          <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
+                          <CardDescription className="text-sm line-clamp-2">
+                            {item.excerpt || item.content.substring(0, 100) + "..."}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex items-center justify-end text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {format(displayDate, "MMM d, yyyy")}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   )
