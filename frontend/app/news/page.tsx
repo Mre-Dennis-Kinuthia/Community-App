@@ -11,19 +11,56 @@ import {
   X,
   Calendar,
   Loader2,
-  ArrowRight
+  ArrowRight,
+  Clock,
+  Eye,
+  Pin,
+  Star,
+  Tag
 } from "lucide-react"
 import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+
+interface NewsTag {
+  id: string
+  name: string
+  slug: string
+}
+
+interface NewsPostTag {
+  tag: NewsTag
+}
+
+interface Category {
+  id: string
+  name: string
+  slug: string
+  color: string | null
+}
+
+interface Author {
+  id: string
+  name: string | null
+  email: string
+}
 
 interface NewsPost {
   id: string
   title: string
+  slug: string
   content: string
   excerpt: string | null
   imageUrl: string | null
   publishedAt: Date | null
   createdAt: Date
+  isFeatured: boolean
+  isPinned: boolean
+  viewCount: number
+  readingTimeMinutes: number | null
+  author: Author | null
+  category: Category | null
+  tags: NewsPostTag[]
 }
 
 export default function NewsPage() {
@@ -178,8 +215,26 @@ export default function NewsPage() {
                 const preview = item.excerpt || stripHtml(item.content)
                 
                 return (
-                  <article key={item.id} className="group">
+                  <article key={item.id} className={`group ${item.isPinned ? "border-l-4 border-primary pl-6" : ""}`}>
                     <Link href={`/news/${item.id}`} className="block">
+                      {/* Badges */}
+                      {(item.isPinned || item.isFeatured) && (
+                        <div className="flex gap-2 mb-4">
+                          {item.isPinned && (
+                            <Badge variant="default" className="flex items-center gap-1">
+                              <Pin className="h-3 w-3" />
+                              Pinned
+                            </Badge>
+                          )}
+                          {item.isFeatured && (
+                            <Badge variant="secondary" className="flex items-center gap-1">
+                              <Star className="h-3 w-3" />
+                              Featured
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
                       {/* Featured Image */}
                       {item.imageUrl && (
                         <div className="mb-6 overflow-hidden rounded-lg">
@@ -193,12 +248,47 @@ export default function NewsPage() {
                       
                       {/* Article Content */}
                       <div className="space-y-4">
-                        <h2 
-                          className="text-3xl font-bold leading-tight group-hover:text-primary transition-colors"
-                          style={{ fontFamily: "Georgia, serif" }}
-                        >
-                          {item.title}
-                        </h2>
+                        <div className="flex items-start justify-between gap-4">
+                          <h2 
+                            className="text-3xl font-bold leading-tight group-hover:text-primary transition-colors flex-1"
+                            style={{ fontFamily: "Georgia, serif" }}
+                          >
+                            {item.title}
+                          </h2>
+                        </div>
+
+                        {/* Category and Tags */}
+                        {(item.category || item.tags.length > 0) && (
+                          <div className="flex flex-wrap items-center gap-2">
+                            {item.category && (
+                              <Link
+                                href={`/news?categoryId=${item.category.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-block"
+                              >
+                                <Badge
+                                  variant="outline"
+                                  style={item.category.color ? { borderColor: item.category.color, color: item.category.color } : undefined}
+                                >
+                                  {item.category.name}
+                                </Badge>
+                              </Link>
+                            )}
+                            {item.tags.slice(0, 3).map((postTag) => (
+                              <Link
+                                key={postTag.tag.id}
+                                href={`/news?tagId=${postTag.tag.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-block"
+                              >
+                                <Badge variant="outline" className="flex items-center gap-1">
+                                  <Tag className="h-3 w-3" />
+                                  {postTag.tag.name}
+                                </Badge>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                         
                         {preview && (
                           <p 
@@ -209,13 +299,36 @@ export default function NewsPage() {
                           </p>
                         )}
                         
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground pt-2">
+                          {item.author && (
+                            <>
+                              <span>By {item.author.name || item.author.email}</span>
+                              <span>•</span>
+                            </>
+                          )}
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
                             <span>{format(displayDate, "MMMM d, yyyy")}</span>
                           </div>
-                          <span>•</span>
-                          <span className="group-hover:text-primary transition-colors flex items-center gap-1">
+                          {item.readingTimeMinutes && (
+                            <>
+                              <span>•</span>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span>{item.readingTimeMinutes} min read</span>
+                              </div>
+                            </>
+                          )}
+                          {item.viewCount > 0 && (
+                            <>
+                              <span>•</span>
+                              <div className="flex items-center gap-1">
+                                <Eye className="h-4 w-4" />
+                                <span>{item.viewCount} {item.viewCount === 1 ? 'view' : 'views'}</span>
+                              </div>
+                            </>
+                          )}
+                          <span className="ml-auto group-hover:text-primary transition-colors flex items-center gap-1">
                             Read more
                             <ArrowRight className="h-3 w-3" />
                           </span>

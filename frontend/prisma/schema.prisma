@@ -102,6 +102,9 @@ model AdminUser {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Relations
+  newsPosts NewsPost[]
+
   @@map("admin_users")
 }
 
@@ -112,15 +115,39 @@ model AdminUser {
 model NewsPost {
   id        String   @id @default(cuid())
   title     String
+  slug      String?  @unique // URL-friendly slug (nullable for backward compatibility)
   content   String   @db.Text
   excerpt   String?
   imageUrl  String?
   status    String   @default("draft") // draft, scheduled, published
   publishedAt DateTime?
+  
+  // Featured and pinned
+  isFeatured Boolean @default(false)
+  isPinned   Boolean @default(false)
+  featuredOrder Int? // Order for featured posts carousel
+  
+  // Analytics
+  viewCount Int      @default(0)
+  readingTimeMinutes Int? // Cached reading time
+  
+  // Relations
+  authorId  String?
+  author    AdminUser? @relation(fields: [authorId], references: [id])
+  categoryId String?
+  category  Category?  @relation(fields: [categoryId], references: [id])
+  tags      NewsPostTag[]
+  comments  NewsPostComment[]
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime? // soft delete
 
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([isFeatured, publishedAt])
+  @@index([isPinned, publishedAt])
+  @@index([slug])
   @@map("news_posts")
 }
 
@@ -272,4 +299,74 @@ model Notification {
   @@index([read])
   @@index([createdAt])
   @@index([category])
+}
+
+// ============================================
+// NEWS CATEGORIES & TAGS
+// ============================================
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.Text
+  color       String?  // For UI categorization (e.g., "#3b82f6")
+  posts       NewsPost[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model NewsTag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  posts     NewsPostTag[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("news_tags")
+}
+
+model NewsPostTag {
+  postId  String
+  tagId   String
+  post    NewsPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag     NewsTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, tagId])
+  @@map("news_post_tags")
+}
+
+// ============================================
+// NEWS COMMENTS
+// ============================================
+
+model NewsPostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      NewsPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  // Author can be admin or member (optional for guest comments)
+  authorId  String?  // AdminUser ID or User ID
+  authorName String  // Display name
+  authorEmail String? // Email (for notifications)
+  
+  content   String   @db.Text
+  approved  Boolean  @default(true) // Auto-approve for now, can add moderation later
+  
+  // Nested comments support
+  parentId  String?
+  parent    NewsPostComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   NewsPostComment[] @relation("CommentReplies")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime? // soft delete
+  
+  @@index([postId])
+  @@index([parentId])
+  @@index([approved])
+  @@map("news_post_comments")
 }

@@ -41,22 +41,74 @@ export async function GET(request: NextRequest) {
       ]
     }
 
+    // Add category filter if provided
+    const categoryId = searchParams.get("categoryId")
+    if (categoryId) {
+      where.categoryId = categoryId
+    }
+
+    // Add tag filter if provided
+    const tagId = searchParams.get("tagId")
+    if (tagId) {
+      where.tags = {
+        some: {
+          tagId: tagId
+        }
+      }
+    }
+
+    // Determine order: pinned first, then featured, then by date
+    const orderBy: any = [
+      { isPinned: "desc" },
+      { isFeatured: "desc" },
+      { publishedAt: "desc" },
+    ]
+
     const [posts, total] = await Promise.all([
       prisma.newsPost.findMany({
         where,
         skip,
         take: limit,
-        orderBy: {
-          publishedAt: "desc",
-        },
+        orderBy,
         select: {
           id: true,
           title: true,
+          slug: true,
           content: true,
           excerpt: true,
           imageUrl: true,
           publishedAt: true,
           createdAt: true,
+          isFeatured: true,
+          isPinned: true,
+          viewCount: true,
+          readingTimeMinutes: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
+          },
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              color: true,
+            }
+          },
+          tags: {
+            select: {
+              tag: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                }
+              }
+            }
+          },
         },
       }),
       prisma.newsPost.count({ where }),

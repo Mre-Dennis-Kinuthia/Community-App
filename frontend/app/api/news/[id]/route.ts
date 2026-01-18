@@ -11,6 +11,7 @@ export async function OPTIONS(request: NextRequest) {
 
 /**
  * Get a single published news post by ID (public endpoint)
+ * Also increments view count
  */
 export async function GET(
   request: NextRequest,
@@ -33,11 +34,42 @@ export async function GET(
       select: {
         id: true,
         title: true,
+        slug: true,
         content: true,
         excerpt: true,
         imageUrl: true,
         publishedAt: true,
         createdAt: true,
+        isFeatured: true,
+        isPinned: true,
+        viewCount: true,
+        readingTimeMinutes: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          }
+        },
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+          }
+        },
+        tags: {
+          select: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              }
+            }
+          }
+        },
       },
     })
 
@@ -50,6 +82,14 @@ export async function GET(
         }
       )
     }
+
+    // Increment view count (fire and forget - don't wait for it)
+    prisma.newsPost.update({
+      where: { id },
+      data: {
+        viewCount: { increment: 1 },
+      },
+    }).catch(err => console.error("[NEWS API] Failed to increment view count:", err))
 
     return NextResponse.json(
       { post },
