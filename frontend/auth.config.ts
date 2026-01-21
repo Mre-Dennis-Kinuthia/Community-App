@@ -1,5 +1,6 @@
 import type { NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import Google from "next-auth/providers/google"
 
 // This config is used by middleware (Edge runtime) - no Prisma here
 // Note: AUTH_SECRET is set in auth.ts (Node.js runtime), not here
@@ -8,6 +9,11 @@ export const authConfig = {
   // Don't set secret here - it's set in auth.ts for API routes
   trustHost: true,
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true, // Allow linking Google account with existing email
+    }),
     Credentials({
       name: "Credentials",
       credentials: {

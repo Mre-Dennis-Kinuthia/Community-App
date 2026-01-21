@@ -31,8 +31,9 @@ export async function GET(
       )
     }
 
-    // Ensure user can only access their own notifications
-    if (notification.userId !== session.user.id) {
+    // Ensure user can only access their own notifications.
+    // Broadcast notifications (userId: null) are visible to all users.
+    if (notification.userId && notification.userId !== session.user.id) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -96,7 +97,10 @@ export async function PUT(
       )
     }
 
-    if (existing.userId !== session.user.id) {
+    // Allow user to update their own notifications.
+    // Broadcast notifications (userId: null) can be updated by any user,
+    // which will effectively mark them read for everyone.
+    if (existing.userId && existing.userId !== session.user.id) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -182,7 +186,10 @@ export async function DELETE(
       )
     }
 
-    if (existing.userId !== session.user.id) {
+    // Allow user to delete their own notifications.
+    // Broadcast notifications (userId: null) can be deleted by any user,
+    // which removes them for everyone.
+    if (existing.userId && existing.userId !== session.user.id) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }

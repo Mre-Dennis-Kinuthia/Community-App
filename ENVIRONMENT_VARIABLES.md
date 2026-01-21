@@ -19,8 +19,34 @@ This document lists all environment variables needed for both the Community App 
 
 | Variable | Value | Description | Environments |
 |----------|-------|-------------|--------------|
+| `GOOGLE_CLIENT_ID` | `[Google OAuth Client ID]` | Google OAuth Client ID for sign-in with Google (optional) | **All** (Production, Preview, Development) |
+| `GOOGLE_CLIENT_SECRET` | `[Google OAuth Client Secret]` | Google OAuth Client Secret for sign-in with Google (optional) | **All** (Production, Preview, Development) |
 | `ADMIN_APP_URL` | `https://impacthubnairobi-app-admin.vercel.app` | Admin app URL for CORS (optional, CORS handles it dynamically) | Production |
 | `NEXT_PUBLIC_ADMIN_APP_URL` | `https://impacthubnairobi-app-admin.vercel.app` | Public admin app URL (optional) | Production |
+
+### Setting Up Google OAuth
+
+To enable "Sign in with Google":
+
+1. **Create Google OAuth Credentials:**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select an existing one
+   - Enable the **Google+ API** (if not already enabled)
+   - Go to **APIs & Services** → **Credentials**
+   - Click **Create Credentials** → **OAuth client ID**
+   - Choose **Web application**
+   - Add **Authorized redirect URIs**:
+     - Development: `http://localhost:3000/api/auth/callback/google`
+     - Production: `https://your-domain.vercel.app/api/auth/callback/google`
+     - Preview: `https://your-preview-url.vercel.app/api/auth/callback/google`
+   - Copy the **Client ID** and **Client Secret**
+
+2. **Add to Vercel Environment Variables:**
+   - Add `GOOGLE_CLIENT_ID` with your Client ID
+   - Add `GOOGLE_CLIENT_SECRET` with your Client Secret
+   - Set for **Production**, **Preview**, and **Development** environments
+
+3. **Redeploy** your app after adding the variables
 
 ### How to Set in Vercel
 

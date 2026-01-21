@@ -19,7 +19,10 @@ export async function POST(request: NextRequest) {
 
     const result = await prisma.notification.updateMany({
       where: {
-        userId: session.user.id,
+        OR: [
+          { userId: session.user.id },
+          { userId: null }, // Broadcast notifications
+        ],
         read: false,
         deletedAt: null,
       },
