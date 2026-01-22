@@ -33,243 +33,8 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
 
-// This would normally come from an API or database
-const members = [
-  {
-    id: 1,
-    name: "Sarah Kimani",
-    role: "UX Designer",
-    industry: "Design",
-    skills: ["Figma", "Research", "User Testing", "Prototyping"],
-    avatar: "/placeholder-user.jpg",
-    email: "sarah@example.com",
-    linkedin: "linkedin.com/in/sarah",
-    twitter: "twitter.com/sarahkimani",
-    website: "https://sarahkimani.design",
-    bio: "Passionate UX designer with 5+ years of experience creating user-centered designs. Specializing in fintech and healthcare applications.",
-    fullBio: "Sarah Kimani is a UX designer with over 5 years of experience creating intuitive and user-centered digital experiences. She has worked with leading fintech and healthcare companies in Kenya, helping them design products that make a real impact. Sarah is passionate about accessibility and inclusive design, and regularly mentors junior designers in the community.",
-    location: "Nairobi, Kenya",
-    experienceLevel: "Mid-Level",
-    availability: ["Open to Collaboration", "Offering Mentorship"],
-    interests: ["User Research", "Accessibility", "Design Systems"],
-    projectsInvolved: [2, 5],
-    connections: 45,
-    followers: 89,
-    featured: true,
-    joinedDate: new Date(2023, 5, 15),
-    achievements: ["Design Excellence Award 2024", "Top Contributor 2024"],
-    experience: [
-      { company: "FinTech Solutions Ltd", role: "Senior UX Designer", period: "2022 - Present", description: "Leading UX design for mobile banking applications" },
-      { company: "HealthTech Kenya", role: "UX Designer", period: "2020 - 2022", description: "Designed telemedicine platform interfaces" },
-    ],
-    education: [
-      { institution: "University of Nairobi", degree: "BSc Computer Science", period: "2015 - 2019" },
-    ],
-  },
-  {
-    id: 2,
-    name: "David Ochieng",
-    role: "Software Engineer",
-    industry: "FinTech",
-    skills: ["React", "Node.js", "TypeScript", "AWS", "Docker"],
-    avatar: "/placeholder-user.jpg",
-    email: "david@example.com",
-    linkedin: "linkedin.com/in/david",
-    twitter: "twitter.com/davidochieng",
-    website: "https://davidochieng.dev",
-    bio: "Full-stack developer specializing in fintech solutions and scalable applications.",
-    fullBio: "David Ochieng is a full-stack software engineer with expertise in building scalable fintech applications. He has worked on several successful projects including payment platforms and financial management tools. David is known for writing clean, maintainable code and is always eager to share knowledge with the community.",
-    location: "Nairobi, Kenya",
-    experienceLevel: "Senior",
-    availability: ["Open to Collaboration", "Seeking Mentorship"],
-    interests: ["FinTech", "Open Source", "System Architecture"],
-    projectsInvolved: [1, 5],
-    connections: 78,
-    followers: 156,
-    featured: false,
-    joinedDate: new Date(2023, 2, 10),
-    achievements: ["Open Source Contributor of the Year 2024"],
-    experience: [
-      { company: "Payment Solutions Inc", role: "Senior Software Engineer", period: "2021 - Present", description: "Building payment gateway infrastructure" },
-      { company: "FinTech Startup", role: "Full-stack Developer", period: "2019 - 2021", description: "Developed financial management platform" },
-    ],
-    education: [
-      { institution: "JKUAT", degree: "BSc Software Engineering", period: "2014 - 2018" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Faith Njeri",
-    role: "Founder",
-    industry: "AgriTech",
-    skills: ["Business Strategy", "Fundraising", "Product Management", "Market Research"],
-    avatar: "/placeholder-user.jpg",
-    email: "faith@example.com",
-    linkedin: "linkedin.com/in/faith",
-    twitter: "twitter.com/faithnjeri",
-    bio: "Entrepreneur building sustainable agricultural technology solutions for smallholder farmers.",
-    fullBio: "Faith Njeri is the founder of an innovative AgriTech platform that connects smallholder farmers with markets and financing. With a background in agriculture and business, she has successfully raised funding and built a team of 15+ people. Faith is passionate about food security and rural development in Kenya.",
-    location: "Nairobi, Kenya",
-    experienceLevel: "Expert",
-    availability: ["Open to Collaboration", "Offering Mentorship", "Open to Partnerships"],
-    interests: ["Agriculture", "Sustainability", "Social Impact"],
-    projectsInvolved: [2],
-    connections: 92,
-    followers: 234,
-    featured: true,
-    joinedDate: new Date(2022, 11, 5),
-    achievements: ["Social Entrepreneur of the Year 2023", "Innovation Award 2024"],
-    experience: [
-      { company: "AgriTech Platform", role: "Founder & CEO", period: "2021 - Present", description: "Building platform connecting farmers to markets" },
-    ],
-    education: [
-      { institution: "University of Nairobi", degree: "BSc Agriculture", period: "2015 - 2019" },
-      { institution: "Strathmore Business School", degree: "MBA", period: "2020 - 2022" },
-    ],
-  },
-  {
-    id: 4,
-    name: "Michael Mwangi",
-    role: "Marketing Lead",
-    industry: "E-commerce",
-    skills: ["Growth Marketing", "SEO", "Content Strategy", "Analytics", "Paid Advertising"],
-    avatar: "/placeholder-user.jpg",
-    email: "michael@example.com",
-    linkedin: "linkedin.com/in/michael",
-    website: "https://michaelmwangi.marketing",
-    bio: "Growth marketing expert helping e-commerce businesses scale through data-driven strategies.",
-    fullBio: "Michael Mwangi is a growth marketing expert with a proven track record of scaling e-commerce businesses. He specializes in SEO, content marketing, and paid advertising, helping companies achieve sustainable growth. Michael regularly shares insights on growth strategies through workshops and community events.",
-    location: "Nairobi, Kenya",
-    experienceLevel: "Mid-Level",
-    availability: ["Open to Collaboration"],
-    interests: ["Growth Marketing", "E-commerce", "Analytics"],
-    projectsInvolved: [],
-    connections: 56,
-    followers: 112,
-    featured: false,
-    joinedDate: new Date(2024, 0, 20),
-    achievements: [],
-    experience: [
-      { company: "E-commerce Solutions", role: "Marketing Lead", period: "2022 - Present", description: "Leading growth marketing initiatives" },
-    ],
-    education: [
-      { institution: "University of Nairobi", degree: "BSc Marketing", period: "2017 - 2021" },
-    ],
-  },
-  {
-    id: 5,
-    name: "James Mwangi",
-    role: "Founder & CEO",
-    industry: "Climate & Environment",
-    skills: ["Renewable Energy", "Project Management", "Fundraising", "Team Leadership"],
-    avatar: "/placeholder-user.jpg",
-    email: "james@example.com",
-    linkedin: "linkedin.com/in/jamesmwangi",
-    bio: "Founder of Green Energy Solutions, bringing clean energy to rural Kenya.",
-    fullBio: "James Mwangi is the founder and CEO of Green Energy Solutions, a social enterprise focused on bringing affordable solar energy to rural communities. Under his leadership, the company has provided clean energy to over 5,000 households. James is passionate about climate action and sustainable development.",
-    location: "Nairobi, Kenya",
-    experienceLevel: "Expert",
-    availability: ["Open to Collaboration", "Open to Partnerships"],
-    interests: ["Renewable Energy", "Climate Action", "Rural Development"],
-    projectsInvolved: [1],
-    connections: 134,
-    followers: 245,
-    featured: true,
-    joinedDate: new Date(2022, 8, 15),
-    achievements: ["Climate Innovation Award 2024", "Community Impact Award 2023"],
-    experience: [
-      { company: "Green Energy Solutions", role: "Founder & CEO", period: "2022 - Present", description: "Leading renewable energy company serving rural communities" },
-    ],
-    education: [
-      { institution: "University of Nairobi", degree: "BSc Electrical Engineering", period: "2014 - 2018" },
-    ],
-  },
-  {
-    id: 6,
-    name: "Grace Wanjiru",
-    role: "Founder",
-    industry: "Agriculture",
-    skills: ["AgriTech", "Business Development", "Partnerships", "Team Building"],
-    avatar: "/placeholder-user.jpg",
-    email: "grace@example.com",
-    linkedin: "linkedin.com/in/grace",
-    bio: "Founder of AgriTech Platform connecting farmers to markets and financing.",
-    fullBio: "Grace Wanjiru is the founder of an innovative AgriTech platform that connects smallholder farmers with buyers, markets, and financing. Her platform has facilitated transactions worth over KES 50M and connected over 10,000 farmers. Grace is committed to transforming agriculture in Kenya through technology.",
-    location: "Nairobi, Kenya",
-    experienceLevel: "Senior",
-    availability: ["Open to Collaboration", "Offering Mentorship"],
-    interests: ["Agriculture", "Technology", "Financial Inclusion"],
-    projectsInvolved: [2],
-    connections: 87,
-    followers: 189,
-    featured: false,
-    joinedDate: new Date(2023, 2, 10),
-    achievements: ["Women in Tech Award 2024"],
-    experience: [
-      { company: "AgriTech Platform", role: "Founder", period: "2022 - Present", description: "Building platform connecting farmers to markets" },
-    ],
-    education: [
-      { institution: "University of Nairobi", degree: "BSc Agriculture", period: "2016 - 2020" },
-    ],
-  },
-  {
-    id: 7,
-    name: "Dr. Sarah Kamau",
-    role: "Founder & Medical Director",
-    industry: "Healthcare",
-    skills: ["Telemedicine", "Healthcare Innovation", "Clinical Practice", "Digital Health"],
-    avatar: "/placeholder-user.jpg",
-    email: "sarah@example.com",
-    linkedin: "linkedin.com/in/sarahkamau",
-    bio: "Founder of digital health platform improving maternal care outcomes.",
-    fullBio: "Dr. Sarah Kamau is a medical doctor and founder of a digital health platform focused on improving maternal healthcare outcomes. Her platform has served over 3,000 women with a 95% success rate. She combines clinical expertise with technology innovation to address healthcare access challenges.",
-    location: "Nairobi, Kenya",
-    experienceLevel: "Expert",
-    availability: ["Open to Partnerships"],
-    interests: ["Healthcare", "Telemedicine", "Women's Health"],
-    projectsInvolved: [4],
-    connections: 156,
-    followers: 312,
-    featured: true,
-    joinedDate: new Date(2023, 10, 5),
-    achievements: ["Healthcare Innovation Award 2024", "Impact Award 2024"],
-    experience: [
-      { company: "Digital Health Platform", role: "Founder & Medical Director", period: "2023 - Present", description: "Leading telemedicine platform for maternal care" },
-      { company: "Nairobi Hospital", role: "Medical Doctor", period: "2020 - 2023", description: "Providing clinical care and leading digital health initiatives" },
-    ],
-    education: [
-      { institution: "University of Nairobi", degree: "MBChB Medicine", period: "2012 - 2018" },
-    ],
-  },
-  {
-    id: 8,
-    name: "Peter Ochieng",
-    role: "Founder & Director",
-    industry: "Circular Economy",
-    skills: ["Waste Management", "Community Organizing", "Social Impact", "Operations"],
-    avatar: "/placeholder-user.jpg",
-    email: "peter@example.com",
-    linkedin: "linkedin.com/in/peter",
-    bio: "Founder of waste-to-wealth recycling initiative creating income opportunities.",
-    fullBio: "Peter Ochieng is the founder and director of a community-based recycling initiative that transforms plastic waste into economic opportunities. The program has created income for 200+ collectors while diverting 100+ tons of waste monthly. Peter is passionate about circular economy and community empowerment.",
-    location: "Nairobi, Kenya",
-    experienceLevel: "Mid-Level",
-    availability: ["Open to Collaboration", "Looking for Volunteers"],
-    interests: ["Circular Economy", "Waste Management", "Community Development"],
-    projectsInvolved: [3],
-    connections: 43,
-    followers: 156,
-    featured: false,
-    joinedDate: new Date(2024, 7, 1),
-    achievements: [],
-    experience: [
-      { company: "Waste-to-Wealth Initiative", role: "Founder & Director", period: "2023 - Present", description: "Leading community recycling program" },
-    ],
-    education: [
-      { institution: "University of Nairobi", degree: "BSc Environmental Science", period: "2017 - 2021" },
-    ],
-  },
-]
+// TODO: Replace with API call to fetch member from database
+const members: any[] = []
 
 const experienceColors: Record<string, string> = {
   "Early Career": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
@@ -292,12 +57,12 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
   const memberId = parseInt(id)
   const member = members.find((m) => m.id === memberId)
 
-  // Mock connections (current user's connections)
-  const myConnections = [2, 5, 6]
+  // TODO: Replace with API call to fetch user's connections
+  const myConnections: number[] = []
   const isConnected = myConnections.includes(memberId)
 
-  // Mock mutual connections
-  const mutualConnections = members.filter(m => m.id !== memberId && myConnections.includes(m.id) && member?.connections).slice(0, 5)
+  // TODO: Replace with API call to fetch mutual connections
+  const mutualConnections: any[] = []
 
   if (!member) {
     return (
@@ -521,19 +286,12 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                       </h3>
                       <div className="space-y-2">
                         {member.projectsInvolved.map((projectId) => {
-                          // This would normally fetch from projects data
-                          const projectNames: Record<number, string> = {
-                            1: "Green Energy Solutions for Rural Kenya",
-                            2: "AgriTech Platform for Smallholder Farmers",
-                            3: "Waste-to-Wealth Recycling Initiative",
-                            4: "Digital Health Platform for Maternal Care",
-                            5: "Financial Inclusion for Youth Entrepreneurs",
-                          }
+                          // TODO: Fetch project name from API
                           return (
                             <Link key={projectId} href={`/projects/${projectId}`}>
                               <div className="flex items-center gap-2 p-3 rounded-lg border border-border/50 hover:border-primary/50 transition-colors cursor-pointer">
                                 <Briefcase className="h-4 w-4 text-primary" />
-                                <span className="text-sm flex-1">{projectNames[projectId] || `Project ${projectId}`}</span>
+                                <span className="text-sm flex-1">Project {projectId}</span>
                                 <ExternalLink className="h-4 w-4 text-muted-foreground" />
                               </div>
                             </Link>
