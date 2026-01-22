@@ -25,8 +25,29 @@ export default function BookingPage() {
   const workspaceId = "impact-hub-nairobi"
   
   // Hooks
-  const { workspace } = useWorkspace(workspaceId)
+  const { workspace, isLoading: isLoadingWorkspace } = useWorkspace(workspaceId)
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
+  
+  // Provide fallback values when workspace is null
+  const safeWorkspace = workspace || {
+    id: workspaceId,
+    name: "Workspace",
+    location: "",
+    address: "",
+    valueProposition: "",
+    startingPrice: 0,
+    currency: "KES",
+    rating: 0,
+    reviewCount: 0,
+    images: [],
+    amenities: [],
+    whoIsThisFor: "",
+    openingHours: "",
+    houseRules: [],
+    securityInfo: "",
+    coordinates: { lat: 0, lng: 0 },
+    landmarks: [],
+  }
   const { 
     slots, 
     unavailableDates,
@@ -49,6 +70,14 @@ export default function BookingPage() {
     selectedDate || undefined,
     selectedDuration === "hourly" ? 1 : selectedDuration === "half-day" ? 4 : 8
   )
+  
+  // Provide fallback pricing when null
+  const safePricing = pricing || {
+    basePrice: 0,
+    currency: "KES",
+    options: [],
+    addOns: [],
+  }
 
   // Calculate pricing
   const totalPrice = useMemo(() => {
@@ -72,14 +101,14 @@ export default function BookingPage() {
     
     if (!hasRequiredSelections) return 0
     
-    const basePrice = pricing.options.find(opt => opt.type === selectedDuration)?.price || 0
+    const basePrice = safePricing.options.find(opt => opt.type === selectedDuration)?.price || 0
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
-      const addOn = pricing.addOns.find(a => a.id === id)
+      const addOn = safePricing.addOns.find(a => a.id === id)
       return sum + (addOn?.price || 0)
     }, 0)
     
     return basePrice + addOnsPrice
-  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, selectedAddOns, pricing])
+  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, selectedAddOns, safePricing])
 
   // Check if booking is valid
   const isValidBooking = useMemo(() => {
@@ -137,9 +166,9 @@ export default function BookingPage() {
         startTime,
         duration: selectedDuration,
         halfDay: selectedHalfDay,
-        basePrice: pricing.options.find(opt => opt.type === selectedDuration)?.price || 0,
+        basePrice: safePricing.options.find(opt => opt.type === selectedDuration)?.price || 0,
         addOnsPrice: selectedAddOns.reduce((sum, id) => {
-          const addOn = pricing.addOns.find(a => a.id === id)
+          const addOn = safePricing.addOns.find(a => a.id === id)
           return sum + (addOn?.price || 0)
         }, 0),
         totalPrice,
@@ -223,14 +252,24 @@ export default function BookingPage() {
 
         {/* Above the Fold - Critical Information */}
         <div className="space-y-8">
-          <BookingHeader
-            workspace={workspace}
-            onBookNow={handleCheckAvailability}
-            onCheckAvailability={handleCheckAvailability}
-          />
+          {isLoadingWorkspace ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <p className="text-muted-foreground">Loading workspace...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <BookingHeader
+                workspace={safeWorkspace}
+                onBookNow={handleCheckAvailability}
+                onCheckAvailability={handleCheckAvailability}
+              />
 
-          {/* Image Gallery */}
-          <ImageGallery images={workspace.images} spaceName={workspace.name} />
+              {/* Image Gallery */}
+              <ImageGallery images={safeWorkspace.images} spaceName={safeWorkspace.name} />
+            </>
+          )}
         </div>
 
         {/* Main Content with Tabs */}
@@ -320,7 +359,7 @@ export default function BookingPage() {
                       </p>
                     </div>
                     <AddOnSelector
-                      addOns={pricing.addOns}
+                      addOns={safePricing.addOns}
                       selectedAddOns={selectedAddOns}
                       onToggle={handleAddOnToggle}
                     />
@@ -332,7 +371,7 @@ export default function BookingPage() {
               <div className="lg:col-span-1 space-y-6">
                 {isValidBooking && (
                   <PricingBreakdown
-                    pricing={pricing}
+                    pricing={safePricing}
                     selectedDuration={selectedDuration}
                     selectedAddOns={selectedAddOns}
                     resourceType={selectedResource || "hot-desk"}
@@ -345,10 +384,10 @@ export default function BookingPage() {
           <TabsContent value="details" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2">
               <AmenitiesGrid
-                amenities={workspace.amenities}
-                whoIsThisFor={workspace.whoIsThisFor}
+                amenities={safeWorkspace.amenities}
+                whoIsThisFor={safeWorkspace.whoIsThisFor}
               />
-              <LocationSection workspace={workspace} />
+              <LocationSection workspace={safeWorkspace} />
             </div>
           </TabsContent>
         </Tabs>
@@ -362,7 +401,7 @@ export default function BookingPage() {
             resourceType: selectedResource,
             addOns: selectedAddOns,
             totalPrice,
-            currency: pricing.currency,
+            currency: safePricing.currency,
           }}
           onClear={() => {
             setSelectedDate(null)

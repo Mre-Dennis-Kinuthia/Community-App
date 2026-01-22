@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useMemo, useEffect } from "react"
+import { Suspense, useState, useMemo, useEffect, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
@@ -24,7 +24,9 @@ import {
   TrendingUp,
   Heart,
   Briefcase,
-  GraduationCap
+  GraduationCap,
+  Loader2,
+  AlertCircle
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import {
@@ -34,15 +36,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useCommunityMembers } from "@/lib/hooks/use-community"
+import { CommunityMember } from "@/types/community"
 
-// TODO: Replace with API call to fetch members from database
-const members: any[] = []
-
-const industries = ["All"]
-const roles = ["All"]
 const experienceLevels = ["All", "Early Career", "Mid-Level", "Senior", "Expert"]
 const availabilityOptions = ["All", "Open to Collaboration", "Seeking Mentorship", "Offering Mentorship", "Open to Partnerships", "Looking for Volunteers"]
-const locations = ["All"]
+
+// Simple debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
 
 function CommunityPageContent() {
   const searchParams = useSearchParams()
@@ -50,23 +65,46 @@ function CommunityPageContent() {
   
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "all")
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
+  const debouncedSearch = useDebounce(searchQuery, 300)
   const [selectedIndustry, setSelectedIndustry] = useState(searchParams.get("industry") || "All")
   const [selectedRole, setSelectedRole] = useState(searchParams.get("role") || "All")
   const [selectedExperience, setSelectedExperience] = useState(searchParams.get("experience") || "All")
   const [selectedAvailability, setSelectedAvailability] = useState(searchParams.get("availability") || "All")
   const [selectedLocation, setSelectedLocation] = useState(searchParams.get("location") || "All")
-  const [selectedSkills, setSelectedSkills] = useState<string[]>(searchParams.get("skills")?.split(",") || [])
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(searchParams.get("skills")?.split(",").filter(Boolean) || [])
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest")
   const [showFeatured, setShowFeatured] = useState(searchParams.get("featured") === "true")
+  const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"))
 
-  // TODO: Replace with API call to fetch user's connections
-  const myConnections: number[] = []
+  // Fetch members from API
+  const {
+    members,
+    pagination,
+    filters,
+    userConnections,
+    isLoading,
+    error,
+  } = useCommunityMembers({
+    page,
+    limit: 20,
+    search: debouncedSearch || undefined,
+    industry: selectedIndustry !== "All" ? selectedIndustry : undefined,
+    role: selectedRole !== "All" ? selectedRole : undefined,
+    experience: selectedExperience !== "All" ? selectedExperience : undefined,
+    location: selectedLocation !== "All" ? selectedLocation : undefined,
+    skills: selectedSkills.length > 0 ? selectedSkills : undefined,
+    sort: sortBy as any,
+    featured: showFeatured || undefined,
+    connectionsOnly: activeTab === "connections" || undefined,
+  })
+
+  const myConnections = userConnections
 
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams()
     if (activeTab !== "all") params.set("tab", activeTab)
-    if (searchQuery) params.set("search", searchQuery)
+    if (debouncedSearch) params.set("search", debouncedSearch)
     if (selectedIndustry !== "All") params.set("industry", selectedIndustry)
     if (selectedRole !== "All") params.set("role", selectedRole)
     if (selectedExperience !== "All") params.set("experience", selectedExperience)
@@ -75,65 +113,23 @@ function CommunityPageContent() {
     if (selectedSkills.length > 0) params.set("skills", selectedSkills.join(","))
     if (sortBy !== "newest") params.set("sort", sortBy)
     if (showFeatured) params.set("featured", "true")
+    if (page > 1) params.set("page", page.toString())
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
-  }, [activeTab, searchQuery, selectedIndustry, selectedRole, selectedExperience, selectedAvailability, selectedLocation, selectedSkills, sortBy, showFeatured, router])
+  }, [activeTab, debouncedSearch, selectedIndustry, selectedRole, selectedExperience, selectedAvailability, selectedLocation, selectedSkills, sortBy, showFeatured, page, router])
 
-  const allUniqueSkills = Array.from(new Set(members.flatMap(m => m.skills)))
+  // Get filter options from API response
+  const allUniqueSkills = filters?.skills || []
+  const locations = ["All", ...(filters?.locations || [])]
+  const industries = ["All"] // TODO: Add when industry field is added to schema
+  const roles = ["All"] // TODO: Add when role field is added to schema
 
-  const filteredAndSortedMembers = useMemo(() => {
-    let filtered = members.filter((member) => {
-      // Filter by tab
-      if (activeTab === "connections") {
-        if (!myConnections.includes(member.id)) return false
-      }
-
-      const matchesSearch =
-        member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.industry.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.skills.some((skill) => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        member.interests.some((interest) => interest.toLowerCase().includes(searchQuery.toLowerCase()))
-
-      const matchesIndustry = selectedIndustry === "All" || member.industry === selectedIndustry
-      const matchesRole = selectedRole === "All" || member.role === selectedRole
-      const matchesExperience = selectedExperience === "All" || member.experienceLevel === selectedExperience
-      const matchesAvailability = selectedAvailability === "All" || member.availability.includes(selectedAvailability)
-      const matchesLocation = selectedLocation === "All" || member.location === selectedLocation
-      const matchesSkills = selectedSkills.length === 0 || selectedSkills.some(skill => member.skills.includes(skill))
-      const matchesFeatured = !showFeatured || member.featured
-
-      return matchesSearch && matchesIndustry && matchesRole && matchesExperience && matchesAvailability && matchesLocation && matchesSkills && matchesFeatured
-    })
-
-    // Sort members
-    filtered = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return b.joinedDate.getTime() - a.joinedDate.getTime()
-        case "oldest":
-          return a.joinedDate.getTime() - b.joinedDate.getTime()
-        case "most_connected":
-          return b.connections - a.connections
-        case "most_active":
-          // Sort by followers + connections + projects involved
-          const aActivity = a.followers + a.connections + a.projectsInvolved.length
-          const bActivity = b.followers + b.connections + b.projectsInvolved.length
-          return bActivity - aActivity
-        case "alphabetical":
-          return a.name.localeCompare(b.name)
-        default:
-          return 0
-      }
-    })
-
-    return filtered
-  }, [activeTab, searchQuery, selectedIndustry, selectedRole, selectedExperience, selectedAvailability, selectedLocation, selectedSkills, sortBy, showFeatured, myConnections])
+  const filteredAndSortedMembers = members // Already filtered and sorted by API
 
   const featuredMembers = useMemo(() => {
     return members.filter(m => m.featured)
-  }, [])
+  }, [members])
 
   const hasActiveFilters = selectedIndustry !== "All" || selectedRole !== "All" || selectedExperience !== "All" || selectedAvailability !== "All" || selectedLocation !== "All" || selectedSkills.length > 0 || sortBy !== "newest" || showFeatured
 
@@ -197,7 +193,13 @@ function CommunityPageContent() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Members</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold">{members.length}</div>
+              <div className="text-2xl font-semibold">
+                {isLoading ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  pagination?.total || 0
+                )}
+              </div>
             </CardContent>
           </Card>
           <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
@@ -222,7 +224,7 @@ function CommunityPageContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold">
-                {members.reduce((sum, m) => sum + m.connections, 0)}
+                {members.reduce((sum, m) => sum + (m.connections || 0), 0)}
               </div>
             </CardContent>
           </Card>
@@ -399,7 +401,25 @@ function CommunityPageContent() {
             </div>
 
             {/* Members Grid */}
-            {filteredAndSortedMembers.length === 0 ? (
+            {isLoading ? (
+              <Card className="py-12">
+                <CardContent className="flex flex-col items-center justify-center text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground">Loading members...</p>
+                </CardContent>
+              </Card>
+            ) : error ? (
+              <Card className="py-12">
+                <CardContent className="flex flex-col items-center justify-center text-center">
+                  <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+                  <p className="text-lg font-medium text-destructive">Error loading members</p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-4">{error}</p>
+                  <Button variant="outline" onClick={() => window.location.reload()}>
+                    Retry
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : filteredAndSortedMembers.length === 0 ? (
               <Card className="py-12">
                 <CardContent className="flex flex-col items-center justify-center text-center">
                   <Users className="h-12 w-12 text-muted-foreground mb-4" />
@@ -440,8 +460,12 @@ function CommunityPageContent() {
                             </Avatar>
                             <div className="space-y-1 mt-3">
                               <CardTitle className="text-lg">{member.name}</CardTitle>
-                              <p className="text-sm font-medium text-primary">{member.role}</p>
-                              <p className="text-xs text-muted-foreground">{member.industry}</p>
+                              {member.role && (
+                                <p className="text-sm font-medium text-primary">{member.role}</p>
+                              )}
+                              {member.industry && (
+                                <p className="text-xs text-muted-foreground">{member.industry}</p>
+                              )}
                             </div>
                           </CardHeader>
                           <CardContent className="flex-1 text-center space-y-3">
@@ -461,9 +485,11 @@ function CommunityPageContent() {
                                 </div>
                               )}
                             </div>
-                            <Badge className={`${experienceColors[member.experienceLevel]} text-xs`} variant="outline">
-                              {member.experienceLevel}
-                            </Badge>
+                            {member.experienceLevel && (
+                              <Badge className={`${experienceColors[member.experienceLevel]} text-xs`} variant="outline">
+                                {member.experienceLevel}
+                              </Badge>
+                            )}
                             <div className="flex flex-wrap justify-center gap-1">
                               {member.skills.slice(0, 3).map((skill) => (
                                 <Badge key={skill} variant="secondary" className="text-[10px]">
@@ -506,19 +532,21 @@ function CommunityPageContent() {
                               <Mail className="h-4 w-4" />
                               Email
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full gap-2"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                window.open(`https://${member.linkedin}`, "_blank")
-                              }}
-                            >
-                              <Linkedin className="h-4 w-4" />
-                              Profile
-                            </Button>
+                            {member.email && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full gap-2"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  window.location.href = `mailto:${member.email}`
+                                }}
+                              >
+                                <Mail className="h-4 w-4" />
+                                Email
+                              </Button>
+                            )}
                           </CardFooter>
                         </Card>
                       </Link>
@@ -530,7 +558,22 @@ function CommunityPageContent() {
           </TabsContent>
 
           <TabsContent value="connections" className="space-y-6 mt-6">
-            {filteredAndSortedMembers.length === 0 ? (
+            {isLoading ? (
+              <Card className="py-12">
+                <CardContent className="flex flex-col items-center justify-center text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground">Loading connections...</p>
+                </CardContent>
+              </Card>
+            ) : error ? (
+              <Card className="py-12">
+                <CardContent className="flex flex-col items-center justify-center text-center">
+                  <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+                  <p className="text-lg font-medium text-destructive">Error loading connections</p>
+                  <p className="text-sm text-muted-foreground mt-2 mb-4">{error}</p>
+                </CardContent>
+              </Card>
+            ) : filteredAndSortedMembers.length === 0 ? (
               <Card className="py-12">
                 <CardContent className="flex flex-col items-center justify-center text-center">
                   <Users className="h-12 w-12 text-muted-foreground mb-4" />
@@ -555,8 +598,12 @@ function CommunityPageContent() {
                         </Avatar>
                         <div className="space-y-1 mt-3">
                           <CardTitle className="text-lg">{member.name}</CardTitle>
-                          <p className="text-sm font-medium text-primary">{member.role}</p>
-                          <p className="text-xs text-muted-foreground">{member.industry}</p>
+                          {member.role && (
+                            <p className="text-sm font-medium text-primary">{member.role}</p>
+                          )}
+                          {member.industry && (
+                            <p className="text-xs text-muted-foreground">{member.industry}</p>
+                          )}
                         </div>
                       </CardHeader>
                       <CardContent className="flex-1 text-center space-y-3">
@@ -589,19 +636,21 @@ function CommunityPageContent() {
                           <Mail className="h-4 w-4" />
                           Email
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full gap-2"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            window.open(`https://${member.linkedin}`, "_blank")
-                          }}
-                        >
-                          <Linkedin className="h-4 w-4" />
-                          Profile
-                        </Button>
+                        {member.email && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full gap-2"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              window.location.href = `mailto:${member.email}`
+                            }}
+                          >
+                            <Mail className="h-4 w-4" />
+                            Email
+                          </Button>
+                        )}
                       </CardFooter>
                     </Card>
                   </Link>

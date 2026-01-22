@@ -32,9 +32,8 @@ import {
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
-
-// TODO: Replace with API call to fetch member from database
-const members: any[] = []
+import { useCommunityMember } from "@/lib/hooks/use-community"
+import { Loader2, AlertCircle } from "lucide-react"
 
 const experienceColors: Record<string, string> = {
   "Early Career": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
@@ -54,24 +53,38 @@ const availabilityColors: Record<string, string> = {
 export default function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const memberId = parseInt(id)
-  const member = members.find((m) => m.id === memberId)
+  
+  const { member, isLoading, error } = useCommunityMember(id)
+  const isConnected = member?.isConnected || false
+  const mutualConnections = member?.mutualConnections || []
 
-  // TODO: Replace with API call to fetch user's connections
-  const myConnections: number[] = []
-  const isConnected = myConnections.includes(memberId)
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <Breadcrumbs items={[{ label: "Community" }, { label: "Loading..." }]} />
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">Loading member profile...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
-  // TODO: Replace with API call to fetch mutual connections
-  const mutualConnections: any[] = []
-
-  if (!member) {
+  if (error || !member) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
           <Breadcrumbs items={[{ label: "Community" }, { label: "Not Found" }]} />
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">Member not found</p>
+              <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+              <p className="text-muted-foreground mb-2">
+                {error || "Member not found"}
+              </p>
               <Button onClick={() => router.push("/community")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Community
@@ -111,9 +124,11 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                           Featured
                         </Badge>
                       )}
-                      <Badge className={experienceColors[member.experienceLevel]}>
-                        {member.experienceLevel}
-                      </Badge>
+                      {member.experienceLevel && (
+                        <Badge className={experienceColors[member.experienceLevel]}>
+                          {member.experienceLevel}
+                        </Badge>
+                      )}
                       {isConnected && (
                         <Badge variant="default">
                           <CheckCircle2 className="mr-1 h-3 w-3" />
@@ -122,16 +137,20 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                       )}
                     </div>
                     <CardTitle className="text-3xl">{member.name}</CardTitle>
-                    <p className="text-lg font-medium text-primary">{member.role}</p>
-                    <p className="text-sm text-muted-foreground">{member.industry}</p>
+                    {member.role && (
+                      <p className="text-lg font-medium text-primary">{member.role}</p>
+                    )}
+                    {member.industry && (
+                      <p className="text-sm text-muted-foreground">{member.industry}</p>
+                    )}
                     <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
-                        <span>{member.location}</span>
+                        <span>{member.location || "Not specified"}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>Joined {format(member.joinedDate, "MMMM yyyy")}</span>
+                        <span>Joined {format(new Date(member.joinedDate), "MMMM yyyy")}</span>
                       </div>
                     </div>
                   </div>
