@@ -249,12 +249,12 @@ export default function NewsPage() {
                       {/* Article Content */}
                       <div className="space-y-4">
                         <div className="flex items-start justify-between gap-4">
-                          <h2 
+                        <h2 
                             className="text-3xl font-bold leading-tight group-hover:text-primary transition-colors flex-1"
-                            style={{ fontFamily: "Georgia, serif" }}
-                          >
-                            {item.title}
-                          </h2>
+                          style={{ fontFamily: "Georgia, serif" }}
+                        >
+                          {item.title}
+                        </h2>
                         </div>
 
                         {/* Category and Tags */}
@@ -321,7 +321,7 @@ export default function NewsPage() {
                           )}
                           {item.viewCount > 0 && (
                             <>
-                              <span>•</span>
+                          <span>•</span>
                               <div className="flex items-center gap-1">
                                 <Eye className="h-4 w-4" />
                                 <span>{item.viewCount} {item.viewCount === 1 ? 'view' : 'views'}</span>

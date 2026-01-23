@@ -461,10 +461,10 @@ function CommunityPageContent() {
                             <div className="space-y-1 mt-3">
                               <CardTitle className="text-lg">{member.name}</CardTitle>
                               {member.role && (
-                                <p className="text-sm font-medium text-primary">{member.role}</p>
+                              <p className="text-sm font-medium text-primary">{member.role}</p>
                               )}
                               {member.industry && (
-                                <p className="text-xs text-muted-foreground">{member.industry}</p>
+                              <p className="text-xs text-muted-foreground">{member.industry}</p>
                               )}
                             </div>
                           </CardHeader>
@@ -486,9 +486,9 @@ function CommunityPageContent() {
                               )}
                             </div>
                             {member.experienceLevel && (
-                              <Badge className={`${experienceColors[member.experienceLevel]} text-xs`} variant="outline">
-                                {member.experienceLevel}
-                              </Badge>
+                            <Badge className={`${experienceColors[member.experienceLevel]} text-xs`} variant="outline">
+                              {member.experienceLevel}
+                            </Badge>
                             )}
                             <div className="flex flex-wrap justify-center gap-1">
                               {member.skills.slice(0, 3).map((skill) => (
@@ -533,19 +533,19 @@ function CommunityPageContent() {
                               Email
                             </Button>
                             {member.email && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full gap-2"
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full gap-2"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
                                   window.location.href = `mailto:${member.email}`
-                                }}
-                              >
+                              }}
+                            >
                                 <Mail className="h-4 w-4" />
                                 Email
-                              </Button>
+                            </Button>
                             )}
                           </CardFooter>
                         </Card>
@@ -599,10 +599,10 @@ function CommunityPageContent() {
                         <div className="space-y-1 mt-3">
                           <CardTitle className="text-lg">{member.name}</CardTitle>
                           {member.role && (
-                            <p className="text-sm font-medium text-primary">{member.role}</p>
+                          <p className="text-sm font-medium text-primary">{member.role}</p>
                           )}
                           {member.industry && (
-                            <p className="text-xs text-muted-foreground">{member.industry}</p>
+                          <p className="text-xs text-muted-foreground">{member.industry}</p>
                           )}
                         </div>
                       </CardHeader>
@@ -637,19 +637,19 @@ function CommunityPageContent() {
                           Email
                         </Button>
                         {member.email && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full gap-2"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full gap-2"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
                               window.location.href = `mailto:${member.email}`
-                            }}
-                          >
+                          }}
+                        >
                             <Mail className="h-4 w-4" />
                             Email
-                          </Button>
+                        </Button>
                         )}
                       </CardFooter>
                     </Card>

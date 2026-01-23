@@ -16,6 +16,7 @@ import { AmenitiesGrid } from "@/components/booking/amenities-grid"
 import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
 import { LocationSection } from "@/components/booking/location-section"
+import { WorkspaceDetails } from "@/components/booking/workspace-details"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
 import { Button } from "@/components/ui/button"
 import { MessageCircle } from "lucide-react"
@@ -268,6 +269,9 @@ export default function BookingPage() {
 
               {/* Image Gallery */}
               <ImageGallery images={safeWorkspace.images} spaceName={safeWorkspace.name} />
+
+              {/* Workspace Details */}
+              <WorkspaceDetails workspace={safeWorkspace} />
             </>
           )}
         </div>

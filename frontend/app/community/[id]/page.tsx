@@ -125,9 +125,9 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                         </Badge>
                       )}
                       {member.experienceLevel && (
-                        <Badge className={experienceColors[member.experienceLevel]}>
-                          {member.experienceLevel}
-                        </Badge>
+                      <Badge className={experienceColors[member.experienceLevel]}>
+                        {member.experienceLevel}
+                      </Badge>
                       )}
                       {isConnected && (
                         <Badge variant="default">
@@ -138,10 +138,10 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                     </div>
                     <CardTitle className="text-3xl">{member.name}</CardTitle>
                     {member.role && (
-                      <p className="text-lg font-medium text-primary">{member.role}</p>
+                    <p className="text-lg font-medium text-primary">{member.role}</p>
                     )}
                     {member.industry && (
-                      <p className="text-sm text-muted-foreground">{member.industry}</p>
+                    <p className="text-sm text-muted-foreground">{member.industry}</p>
                     )}
                     <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2">
                       <div className="flex items-center gap-1">
