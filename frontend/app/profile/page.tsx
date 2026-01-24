@@ -43,19 +43,64 @@ export default function ProfilePage() {
   const userInitials = getInitials(user?.name, user?.email)
   const displayName = user?.name || "User"
   
+  // Fetch profile data
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!user?.id) return
+      
+      try {
+        const response = await fetch("/api/profile")
+        if (response.ok) {
+          const data = await response.json()
+          const profile = data.profile
+          if (profile) {
+            setBio(profile.bio || "")
+            setSkills(profile.skills || [])
+            // Set other fields as needed
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile:", error)
+      }
+    }
+
+    fetchProfile()
+  }, [user])
+
   // Format member since date
   useEffect(() => {
     if (user?.id) {
-      // In a real app, fetch user creation date from API
-      // For now, we'll use a placeholder
-      setMemberSince("Jan 2024")
+      // Format user creation date
+      const createdAt = user.createdAt ? new Date(user.createdAt) : new Date()
+      setMemberSince(createdAt.toLocaleDateString("en-US", { month: "short", year: "numeric" }))
     }
   }, [user])
 
-  const handleSave = () => {
-    setIsEditing(false)
-    // In real app, this would save to backend
-    toast.success("Profile updated!", "Your changes have been saved successfully")
+  const handleSave = async () => {
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bio,
+          skills,
+          // Add other fields as needed
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to update profile")
+      }
+
+      setIsEditing(false)
+      toast.success("Profile updated!", "Your changes have been saved successfully")
+    } catch (error: any) {
+      console.error("Failed to update profile:", error)
+      toast.error("Update failed", error.message || "Please try again")
+    }
   }
 
   const handleCancel = () => {

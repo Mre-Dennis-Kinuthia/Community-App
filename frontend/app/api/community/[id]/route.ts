@@ -35,6 +35,12 @@ export async function GET(
             bio: true,
             skills: true,
             location: true,
+            industry: true,
+            role: true,
+            experienceLevel: true,
+            availability: true,
+            interests: true,
+            isFeatured: true,
           },
         },
       },
@@ -51,14 +57,83 @@ export async function GET(
     let userConnections: string[] = []
     let isConnected = false
     if (session?.user?.id) {
-      // TODO: Fetch connections from database when implemented
+      const connections = await prisma.connection.findMany({
+        where: {
+          OR: [
+            { fromUserId: session.user.id, status: "accepted" },
+            { toUserId: session.user.id, status: "accepted" },
+          ],
+        },
+        select: {
+          fromUserId: true,
+          toUserId: true,
+        },
+      })
+      
+      connections.forEach((conn) => {
+        if (conn.fromUserId === session.user.id) {
+          userConnections.push(conn.toUserId)
+        } else {
+          userConnections.push(conn.fromUserId)
+        }
+      })
+      
       isConnected = userConnections.includes(member.id)
     }
+
+    // Get connection and follower counts
+    const [connectionCount, followerCount] = await Promise.all([
+      prisma.connection.count({
+        where: {
+          OR: [
+            { fromUserId: member.id, status: "accepted" },
+            { toUserId: member.id, status: "accepted" },
+          ],
+        },
+      }),
+      prisma.follow.count({
+        where: { followingId: member.id },
+      }),
+    ])
 
     // Get mutual connections
     let mutualConnections: any[] = []
     if (session?.user?.id && isConnected) {
-      // TODO: Calculate mutual connections when implemented
+      const userConnectionsSet = new Set(userConnections)
+      const memberConnections = await prisma.connection.findMany({
+        where: {
+          OR: [
+            { fromUserId: member.id, status: "accepted" },
+            { toUserId: member.id, status: "accepted" },
+          ],
+        },
+        select: {
+          fromUserId: true,
+          toUserId: true,
+        },
+      })
+      
+      const memberConnectionsSet = new Set(
+        memberConnections.map((c) =>
+          c.fromUserId === member.id ? c.toUserId : c.fromUserId
+        )
+      )
+      
+      const mutual = Array.from(userConnectionsSet).filter((id) =>
+        memberConnectionsSet.has(id)
+      )
+      
+      if (mutual.length > 0) {
+        const mutualUsers = await prisma.user.findMany({
+          where: { id: { in: mutual } },
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        })
+        mutualConnections = mutualUsers
+      }
     }
 
     // Format response
@@ -71,19 +146,19 @@ export async function GET(
       fullBio: member.profile.bio || "",
       skills: member.profile.skills || [],
       location: member.profile.location || null,
-      industry: null, // TODO: Add to schema
-      role: null, // TODO: Add to schema
-      experienceLevel: null, // TODO: Add to schema
-      availability: [], // TODO: Add to schema
-      interests: [], // TODO: Add to schema
-      connections: 0, // TODO: Calculate from connections
-      followers: 0, // TODO: Calculate from followers
-      projectsInvolved: [], // TODO: Add relationship
-      featured: false, // TODO: Add to schema
+      industry: member.profile.industry || null,
+      role: member.profile.role || null,
+      experienceLevel: member.profile.experienceLevel || null,
+      availability: member.profile.availability || [],
+      interests: member.profile.interests || [],
+      connections: connectionCount,
+      followers: followerCount,
+      projectsInvolved: [], // Can be added later with Project model
+      featured: member.profile.isFeatured || false,
       joinedDate: member.createdAt,
-      achievements: [], // TODO: Add to schema
-      experience: [], // TODO: Add to schema
-      education: [], // TODO: Add to schema
+      achievements: [], // Can be added later
+      experience: [], // Can be added later
+      education: [], // Can be added later
       isConnected,
       mutualConnections,
     }

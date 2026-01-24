@@ -192,15 +192,36 @@ export default function EventsPage() {
     }
 
     setRegistering({ ...registering, [eventId]: true })
-    // TODO: Implement actual registration API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setRegistering({ ...registering, [eventId]: false })
+    
+    try {
+      const response = await fetch(`/api/events/${eventId}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: "", // Will be filled from session if available
+          name: "", // Will be filled from session if available
+        }),
+      })
 
-    // Update event status (in real app, this would be an API call)
-    if (event) {
-      event.status = "Registered"
-      event.registered = (event.registered || 0) + 1
-      setAllEvents([...allEvents])
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to register for event")
+      }
+
+      // Update event status
+      if (event) {
+        event.status = "Registered"
+        event.registered = (event.registered || 0) + 1
+        setAllEvents([...allEvents])
+      }
+    } catch (error: any) {
+      console.error("Failed to register for event:", error)
+      // Show error toast or notification
+      alert(error.message || "Failed to register for event. Please try again.")
+    } finally {
+      setRegistering({ ...registering, [eventId]: false })
     }
   }
 

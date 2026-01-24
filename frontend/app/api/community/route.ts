@@ -46,9 +46,28 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    // Industry filter (if we add industry to profile)
+    // Industry filter
     if (industry && industry !== "All") {
-      // TODO: Add industry field to MemberProfile schema
+      where.profile = {
+        ...where.profile,
+        industry: { equals: industry, mode: "insensitive" },
+      }
+    }
+
+    // Role filter
+    if (role && role !== "All") {
+      where.profile = {
+        ...where.profile,
+        role: { equals: role, mode: "insensitive" },
+      }
+    }
+
+    // Experience filter
+    if (experience && experience !== "All") {
+      where.profile = {
+        ...where.profile,
+        experienceLevel: { equals: experience, mode: "insensitive" },
+      }
     }
 
     // Skills filter
@@ -67,15 +86,45 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Featured filter (if we add featured field)
+    // Featured filter
     if (featured) {
-      // TODO: Add featured field to MemberProfile schema
+      where.profile = {
+        ...where.profile,
+        isFeatured: true,
+      }
     }
 
     // Connections filter (if user is logged in)
     if (connectionsOnly && session?.user?.id) {
-      // TODO: Implement connections relationship
-      // For now, return empty or all members
+      // Get user's accepted connections
+      const userConnections = await prisma.connection.findMany({
+        where: {
+          OR: [
+            { fromUserId: session.user.id, status: "accepted" },
+            { toUserId: session.user.id, status: "accepted" },
+          ],
+        },
+        select: {
+          fromUserId: true,
+          toUserId: true,
+        },
+      })
+      
+      const connectedUserIds = new Set<string>()
+      userConnections.forEach((conn) => {
+        if (conn.fromUserId === session.user.id) {
+          connectedUserIds.add(conn.toUserId)
+        } else {
+          connectedUserIds.add(conn.fromUserId)
+        }
+      })
+      
+      if (connectedUserIds.size > 0) {
+        where.id = { in: Array.from(connectedUserIds) }
+      } else {
+        // No connections, return empty result
+        where.id = { in: [] }
+      }
     }
 
     // Build orderBy
@@ -91,11 +140,11 @@ export async function GET(request: NextRequest) {
         orderBy = { name: "asc" }
         break
       case "most_connected":
-        // TODO: Add connections count when connections are implemented
+        // Sort by connection count (will be calculated in response)
         orderBy = { createdAt: "desc" }
         break
       case "most_active":
-        // TODO: Add activity metrics when implemented
+        // Sort by recent activity (createdAt for now, can add activity tracking later)
         orderBy = { createdAt: "desc" }
         break
       default:
@@ -119,6 +168,12 @@ export async function GET(request: NextRequest) {
               bio: true,
               skills: true,
               location: true,
+              industry: true,
+              role: true,
+              experienceLevel: true,
+              availability: true,
+              interests: true,
+              isFeatured: true,
             },
           },
         },
@@ -129,32 +184,87 @@ export async function GET(request: NextRequest) {
     // Get current user's connections if logged in
     let userConnections: string[] = []
     if (session?.user?.id) {
-      // TODO: Fetch connections from database when implemented
-      // For now, return empty array
+      const connections = await prisma.connection.findMany({
+        where: {
+          OR: [
+            { fromUserId: session.user.id, status: "accepted" },
+            { toUserId: session.user.id, status: "accepted" },
+          ],
+        },
+        select: {
+          fromUserId: true,
+          toUserId: true,
+        },
+      })
+      
+      connections.forEach((conn) => {
+        if (conn.fromUserId === session.user.id) {
+          userConnections.push(conn.toUserId)
+        } else {
+          userConnections.push(conn.fromUserId)
+        }
+      })
     }
 
+    // Get connection and follower counts for all members
+    const memberIds = members.map((m) => m.id)
+    const [connectionCounts, followerCounts] = await Promise.all([
+      prisma.connection.groupBy({
+        by: ["fromUserId"],
+        where: {
+          fromUserId: { in: memberIds },
+          status: "accepted",
+        },
+        _count: true,
+      }),
+      prisma.follow.groupBy({
+        by: ["followingId"],
+        where: {
+          followingId: { in: memberIds },
+        },
+        _count: true,
+      }),
+    ])
+
+    const connectionCountMap = new Map(
+      connectionCounts.map((c) => [c.fromUserId, c._count])
+    )
+    const followerCountMap = new Map(
+      followerCounts.map((f) => [f.followingId, f._count])
+    )
+
     // Format response
-    const formattedMembers = members.map((member) => ({
-      id: member.id,
-      name: member.name || "Anonymous",
-      email: member.email,
-      avatar: member.image || null,
-      bio: member.profile?.bio || "",
-      skills: member.profile?.skills || [],
-      location: member.profile?.location || null,
-      industry: null, // TODO: Add to schema
-      role: null, // TODO: Add to schema
-      experienceLevel: null, // TODO: Add to schema
-      availability: [], // TODO: Add to schema
-      interests: [], // TODO: Add to schema
-      connections: 0, // TODO: Calculate from connections
-      followers: 0, // TODO: Calculate from followers
-      projectsInvolved: [], // TODO: Add relationship
-      featured: false, // TODO: Add to schema
-      joinedDate: member.createdAt,
-      achievements: [], // TODO: Add to schema
-      isConnected: userConnections.includes(member.id),
-    }))
+    const formattedMembers = members.map((member) => {
+      const connections = connectionCountMap.get(member.id) || 0
+      const followers = followerCountMap.get(member.id) || 0
+      
+      return {
+        id: member.id,
+        name: member.name || "Anonymous",
+        email: member.email,
+        avatar: member.image || null,
+        bio: member.profile?.bio || "",
+        skills: member.profile?.skills || [],
+        location: member.profile?.location || null,
+        industry: member.profile?.industry || null,
+        role: member.profile?.role || null,
+        experienceLevel: member.profile?.experienceLevel || null,
+        availability: member.profile?.availability || [],
+        interests: member.profile?.interests || [],
+        connections,
+        followers,
+        projectsInvolved: [], // Can be added later with Project model
+        featured: member.profile?.isFeatured || false,
+        joinedDate: member.createdAt,
+        achievements: [], // Can be added later
+        isConnected: userConnections.includes(member.id),
+      }
+    })
+
+    // Sort by most connected if needed
+    if (sortBy === "most_connected") {
+      formattedMembers.sort((a, b) => b.connections - a.connections)
+    }
 
     // Get unique values for filters (for dropdowns)
     const allMembers = await prisma.user.findMany({
@@ -163,6 +273,8 @@ export async function GET(request: NextRequest) {
           select: {
             skills: true,
             location: true,
+            industry: true,
+            role: true,
           },
         },
       },
@@ -178,6 +290,20 @@ export async function GET(request: NextRequest) {
           .filter((loc): loc is string => Boolean(loc))
       )
     )
+    const allIndustries = Array.from(
+      new Set(
+        allMembers
+          .map((m) => m.profile?.industry)
+          .filter((ind): ind is string => Boolean(ind))
+      )
+    )
+    const allRoles = Array.from(
+      new Set(
+        allMembers
+          .map((m) => m.profile?.role)
+          .filter((r): r is string => Boolean(r))
+      )
+    )
 
     return NextResponse.json(
       {
@@ -191,6 +317,8 @@ export async function GET(request: NextRequest) {
         filters: {
           skills: allSkills,
           locations: allLocations,
+          industries: allIndustries,
+          roles: allRoles,
         },
         userConnections,
       },

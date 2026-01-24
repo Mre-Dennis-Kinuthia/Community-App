@@ -543,10 +543,26 @@ function CommunityPageContent() {
                               variant="ghost"
                               size="sm"
                               className="w-full gap-2"
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
-                                // TODO: Implement connect functionality
+                                try {
+                                  const response = await fetch("/api/connections", {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                      toUserId: member.id,
+                                    }),
+                                  })
+                                  if (response.ok) {
+                                    // Refresh page or update state
+                                    window.location.reload()
+                                  }
+                                } catch (error) {
+                                  console.error("Failed to send connection request:", error)
+                                }
                               }}
                             >
                               <UserPlus className="h-4 w-4" />

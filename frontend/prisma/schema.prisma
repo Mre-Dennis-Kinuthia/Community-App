@@ -83,10 +83,44 @@ model MemberProfile {
   bio       String?   @db.Text
   skills    String[] // array of skills
   location  String?
+  industry  String?
+  role      String?
+  experienceLevel String? // Early Career, Mid-Level, Senior, Expert
+  availability String[] // Open to Collaboration, Seeking Mentorship, Offering Mentorship, etc.
+  interests String[] // array of interests
+  isFeatured Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("member_profiles")
+}
+
+// Connections between members (using User IDs directly)
+model Connection {
+  id        String   @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  status    String   @default("pending") // pending, accepted, blocked
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([fromUserId, toUserId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@map("connections")
+}
+
+// Follow relationships (one-way, using User IDs)
+model Follow {
+  id        String   @id @default(cuid())
+  followerId String
+  followingId String
+  createdAt DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
 }
 
 // ============================================
