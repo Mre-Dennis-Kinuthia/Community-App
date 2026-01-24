@@ -26,6 +26,10 @@ export function PricingBreakdown({
   const addOnsTotal = selectedAddOnItems.reduce((sum, addOn) => sum + addOn.price, 0)
   const total = subtotal + addOnsTotal
 
+  // Show estimate if no selection made
+  const showEstimate = !selectedOption && pricing.options.length > 0
+  const estimateOption = showEstimate ? pricing.options[0] : null
+
   const savings = useMemo(() => {
     // Check if weekly/monthly options have savings
     const weeklyOption = pricing.options.find(opt => opt.type === "weekly")
@@ -53,6 +57,19 @@ export function PricingBreakdown({
             </div>
             <p className="text-sm font-semibold">
               {pricing.currency} {selectedOption.price.toLocaleString()}
+            </p>
+          </div>
+        )}
+
+        {/* Estimate when no selection */}
+        {showEstimate && estimateOption && (
+          <div className="flex items-center justify-between py-2 border-b border-border/50">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Starting from</p>
+              <p className="text-xs text-muted-foreground">{estimateOption.label}</p>
+            </div>
+            <p className="text-sm font-semibold text-muted-foreground">
+              {pricing.currency} {estimateOption.price.toLocaleString()}
             </p>
           </div>
         )}
@@ -89,9 +106,11 @@ export function PricingBreakdown({
 
         {/* Total */}
         <div className="flex items-center justify-between pt-4 border-t border-border/50">
-          <p className="text-base font-semibold">Total</p>
-          <p className="text-2xl font-bold text-primary">
-            {pricing.currency} {total.toLocaleString()}
+          <p className="text-base font-semibold">
+            {showEstimate ? "Estimate" : "Total"}
+          </p>
+          <p className={`text-2xl font-bold ${showEstimate ? "text-muted-foreground" : "text-primary"}`}>
+            {pricing.currency} {(showEstimate && estimateOption) ? estimateOption.price.toLocaleString() : total.toLocaleString()}
           </p>
         </div>
 

@@ -33,11 +33,8 @@ export async function GET(request: NextRequest) {
     const session = await auth()
 
     // Build where clause
-    const where: any = {
-      profile: {
-        isNot: null, // Only users with profiles
-      },
-    }
+    // Show all users - profiles are optional
+    const where: any = {}
 
     // Search filter
     if (search) {
@@ -161,9 +158,6 @@ export async function GET(request: NextRequest) {
 
     // Get unique values for filters (for dropdowns)
     const allMembers = await prisma.user.findMany({
-      where: {
-        profile: { isNot: null },
-      },
       select: {
         profile: {
           select: {

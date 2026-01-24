@@ -26,7 +26,61 @@ export interface PricingData {
 
 export function usePricing(workspaceId: string, resourceType: string, date?: Date, duration?: number) {
   // TODO: Replace with API call
-  const pricing: PricingData | null = useMemo(() => null, [workspaceId, resourceType, date, duration])
+  const pricing: PricingData | null = useMemo(() => {
+    // Default pricing for Ikigai Space
+    const basePricing: PricingData = {
+      basePrice: 0,
+      currency: "KES",
+      options: [
+        {
+          type: "hourly",
+          label: "Hourly Rate",
+          price: resourceType === "hot-desk" ? 500 : resourceType === "meeting-room" ? 2000 : 5000,
+        },
+        {
+          type: "half-day",
+          label: "Half Day (4 Hours)",
+          price: resourceType === "hot-desk" ? 1500 : resourceType === "meeting-room" ? 6000 : 15000,
+        },
+        {
+          type: "full-day",
+          label: "Full Day (8 Hours)",
+          price: resourceType === "hot-desk" ? 2500 : resourceType === "meeting-room" ? 10000 : 25000,
+        },
+      ],
+      addOns: [
+        {
+          id: "projector",
+          name: "Projector",
+          description: "HD Projector for presentations",
+          price: 2000,
+          icon: "projector",
+        },
+        {
+          id: "whiteboard",
+          name: "Whiteboard",
+          description: "Large whiteboard for brainstorming",
+          price: 500,
+          icon: "whiteboard",
+        },
+        {
+          id: "catering",
+          name: "Catering",
+          description: "Coffee, tea, and light snacks",
+          price: 3000,
+          icon: "catering",
+        },
+        {
+          id: "parking",
+          name: "Parking",
+          description: "Secure parking space",
+          price: 1000,
+          icon: "parking",
+        },
+      ],
+    }
+    return basePricing
+  }, [workspaceId, resourceType, date, duration])
 
   const calculateTotal = (selectedOptions: string[], selectedAddOns: string[]) => {
     if (!pricing) return 0

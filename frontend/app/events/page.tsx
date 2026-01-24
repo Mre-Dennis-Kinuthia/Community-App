@@ -15,17 +15,32 @@ import { EventsTimeline } from "@/components/events/events-timeline"
 import { EventDetailSheet } from "@/components/events/event-detail-sheet"
 import { format, isToday, isTomorrow, startOfWeek, endOfWeek, isWithinInterval } from "date-fns"
 
-// TODO: Replace with API call to fetch events from database
-const pastEvents: any[] = []
-const upcomingEvents: any[] = []
-const allEvents: any[] = []
+interface Event {
+  id: number | string
+  title: string
+  type: string
+  category: string
+  time: string
+  endTime?: string
+  organizer: string
+  platform: string
+  status: string
+  thumbnail?: string
+  date: Date
+  capacity?: number
+  registered?: number
+  registrationDeadline?: Date
+  description?: string
+  location?: string
+  tags?: string[]
+}
 
 export default function EventsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">(
-    (searchParams.get("tab") as "upcoming" | "past") || "past"
+    (searchParams.get("tab") as "upcoming" | "past") || "upcoming"
   )
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
   const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
@@ -34,9 +49,62 @@ export default function EventsPage() {
   const [platformFilter, setPlatformFilter] = useState<string>(searchParams.get("platform") || "all")
   const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "date")
   const [dateRangeFilter, setDateRangeFilter] = useState<string>(searchParams.get("dateRange") || "all")
-  const [selectedEvent, setSelectedEvent] = useState<typeof allEvents[0] | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [registering, setRegistering] = useState<Record<number, boolean>>({})
+  const [registering, setRegistering] = useState<Record<string | number, boolean>>({})
+  const [allEvents, setAllEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch events from API
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        setLoading(true)
+        const filter = activeTab === "upcoming" ? "upcoming" : "past"
+        const response = await fetch(`/api/events?filter=${filter}&limit=100&${searchQuery ? `search=${encodeURIComponent(searchQuery)}` : ""}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch events")
+        }
+        const data = await response.json()
+        
+        // Transform API data to match UI expectations
+        const transformedEvents: Event[] = (data.events || []).map((event: any) => {
+          const startDate = new Date(event.startDate)
+          const endDate = event.endDate ? new Date(event.endDate) : null
+          const registeredCount = event._count?.registrations || 0
+          const isFull = event.capacity && registeredCount >= event.capacity
+          
+          return {
+            id: event.id,
+            title: event.title,
+            type: "event", // Default type, can be enhanced later
+            category: "general",
+            time: format(startDate, "HH:mm"),
+            endTime: endDate ? format(endDate, "HH:mm") : undefined,
+            organizer: "Impact Hub Nairobi", // Default organizer
+            platform: event.location ? "In-Person" : "Online",
+            status: isFull ? "Full" : "Open",
+            thumbnail: event.imageUrl,
+            date: startDate,
+            capacity: event.capacity,
+            registered: registeredCount,
+            description: event.description,
+            location: event.location,
+            tags: [],
+          }
+        })
+        
+        setAllEvents(transformedEvents)
+      } catch (error) {
+        console.error("Failed to fetch events:", error)
+        setAllEvents([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchEvents()
+  }, [activeTab, searchQuery])
 
   // Update URL params when filters change
   useEffect(() => {
@@ -54,23 +122,23 @@ export default function EventsPage() {
     router.replace(newUrl, { scroll: false })
   }, [activeTab, searchQuery, typeFilter, statusFilter, organizerFilter, platformFilter, sortBy, dateRangeFilter, router])
 
-  // Get events based on active tab
+  // Get events based on active tab (already filtered by API, but double-check client-side)
   const baseEvents = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     return activeTab === "past"
       ? allEvents.filter((e) => e.date < today)
       : allEvents.filter((e) => e.date >= today)
-  }, [activeTab])
+  }, [activeTab, allEvents])
 
   // Filter events
   const filteredEvents = useMemo(() => {
     let filtered = baseEvents.filter((event) => {
       const matchesSearch =
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (event.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
         event.organizer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        (event.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())) || false)
 
       const matchesType = typeFilter === "all" || event.type === typeFilter
       const matchesStatus = statusFilter === "all" || event.status === statusFilter
@@ -107,23 +175,24 @@ export default function EventsPage() {
   }, [baseEvents, searchQuery, typeFilter, statusFilter, organizerFilter, platformFilter, sortBy, activeTab, dateRangeFilter])
 
   // Get unique values for filters
-  const uniqueTypes = useMemo(() => Array.from(new Set(allEvents.map((e) => e.type))), [])
-  const uniqueStatuses = useMemo(() => Array.from(new Set(allEvents.map((e) => e.status))), [])
-  const uniqueOrganizers = useMemo(() => Array.from(new Set(allEvents.map((e) => e.organizer))), [])
-  const uniquePlatforms = useMemo(() => Array.from(new Set(allEvents.map((e) => e.platform))), [])
+  const uniqueTypes = useMemo(() => Array.from(new Set(allEvents.map((e) => e.type))), [allEvents])
+  const uniqueStatuses = useMemo(() => Array.from(new Set(allEvents.map((e) => e.status))), [allEvents])
+  const uniqueOrganizers = useMemo(() => Array.from(new Set(allEvents.map((e) => e.organizer))), [allEvents])
+  const uniquePlatforms = useMemo(() => Array.from(new Set(allEvents.map((e) => e.platform))), [allEvents])
 
-  const handleEventClick = (event: typeof allEvents[0]) => {
+  const handleEventClick = (event: Event) => {
     setSelectedEvent(event)
     setIsSheetOpen(true)
   }
 
-  const handleRegister = async (eventId: number) => {
+  const handleRegister = async (eventId: number | string) => {
     const event = allEvents.find((e) => e.id === eventId)
     if (!event || event.status === "Full" || event.status === "Registered" || event.status === "Attended") {
       return
     }
 
     setRegistering({ ...registering, [eventId]: true })
+    // TODO: Implement actual registration API call
     await new Promise((resolve) => setTimeout(resolve, 1500))
     setRegistering({ ...registering, [eventId]: false })
 
@@ -131,6 +200,7 @@ export default function EventsPage() {
     if (event) {
       event.status = "Registered"
       event.registered = (event.registered || 0) + 1
+      setAllEvents([...allEvents])
     }
   }
 
@@ -341,13 +411,24 @@ export default function EventsPage() {
 
         {/* Events Timeline */}
         <div className="mx-auto max-w-5xl">
-          <EventsTimeline
-            events={filteredEvents}
-            onEventClick={handleEventClick}
-            activeTab={activeTab}
-            onRegister={handleRegister}
-            registering={registering}
-          />
+          {loading ? (
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">Loading events...</span>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <EventsTimeline
+              events={filteredEvents}
+              onEventClick={handleEventClick}
+              activeTab={activeTab}
+              onRegister={handleRegister}
+              registering={registering}
+            />
+          )}
         </div>
 
         {/* Event Detail Sheet */}
