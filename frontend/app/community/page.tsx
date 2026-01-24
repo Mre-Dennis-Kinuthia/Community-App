@@ -84,6 +84,7 @@ function CommunityPageContent() {
     userConnections,
     isLoading,
     error,
+    refetch,
   } = useCommunityMembers({
     page,
     limit: 20,
@@ -255,10 +256,10 @@ function CommunityPageContent() {
                               Featured
                             </Badge>
                           </div>
-                          <Avatar className="mx-auto h-20 w-20">
-                            <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
-                            <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
+                            <Avatar className="mx-auto h-20 w-20">
+                              <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name || "Member"} />
+                              <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
                           <div className="space-y-1 mt-3">
                             <CardTitle className="text-lg">{member.name}</CardTitle>
                             <p className="text-sm font-medium text-primary">{member.role}</p>
@@ -276,18 +277,20 @@ function CommunityPageContent() {
                               <span>{member.followers}</span>
                             </div>
                           </div>
-                          <div className="flex flex-wrap justify-center gap-1">
-                            {member.skills.slice(0, 3).map((skill) => (
-                              <Badge key={skill} variant="secondary" className="text-[10px]">
-                                {skill}
-                              </Badge>
-                            ))}
-                            {member.skills.length > 3 && (
-                              <Badge variant="secondary" className="text-[10px]">
-                                +{member.skills.length - 3}
-                              </Badge>
-                            )}
-                          </div>
+                          {member.skills && member.skills.length > 0 && (
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {member.skills.slice(0, 3).map((skill) => (
+                                <Badge key={skill} variant="secondary" className="text-[10px]">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {member.skills.length > 3 && (
+                                <Badge variant="secondary" className="text-[10px]">
+                                  +{member.skills.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                           {member.availability.length > 0 && (
                             <div className="flex flex-wrap justify-center gap-1">
                               {member.availability.slice(0, 1).map((avail, idx) => (
@@ -455,30 +458,30 @@ function CommunityPageContent() {
                               </div>
                             )}
                             <Avatar className="mx-auto h-20 w-20">
-                              <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
-                              <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                              <AvatarImage src={member.avatar || member.image || "/placeholder.svg"} alt={member.name} />
+                              <AvatarFallback>{member.name?.charAt(0) || "?"}</AvatarFallback>
                             </Avatar>
-                            <div className="space-y-1 mt-3">
-                              <CardTitle className="text-lg">{member.name}</CardTitle>
-                              {member.role && (
+                          <div className="space-y-1 mt-3">
+                            <CardTitle className="text-lg">{member.name || "Anonymous"}</CardTitle>
+                            {member.role && (
                               <p className="text-sm font-medium text-primary">{member.role}</p>
-                              )}
-                              {member.industry && (
+                            )}
+                            {member.industry && (
                               <p className="text-xs text-muted-foreground">{member.industry}</p>
-                              )}
-                            </div>
+                            )}
+                          </div>
                           </CardHeader>
                           <CardContent className="flex-1 text-center space-y-3">
                             <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
-                                <span>{member.connections}</span>
+                                <span>{member.connections || 0}</span>
                               </div>
                               <div className="flex items-center gap-1">
                                 <Heart className="h-3 w-3" />
-                                <span>{member.followers}</span>
+                                <span>{member.followers || 0}</span>
                               </div>
-                              {member.projectsInvolved.length > 0 && (
+                              {member.projectsInvolved && member.projectsInvolved.length > 0 && (
                                 <div className="flex items-center gap-1">
                                   <Briefcase className="h-3 w-3" />
                                   <span>{member.projectsInvolved.length}</span>
@@ -490,22 +493,24 @@ function CommunityPageContent() {
                               {member.experienceLevel}
                             </Badge>
                             )}
-                            <div className="flex flex-wrap justify-center gap-1">
-                              {member.skills.slice(0, 3).map((skill) => (
-                                <Badge key={skill} variant="secondary" className="text-[10px]">
-                                  {skill}
-                                </Badge>
-                              ))}
-                              {member.skills.length > 3 && (
-                                <Badge variant="secondary" className="text-[10px]">
-                                  +{member.skills.length - 3}
-                                </Badge>
-                              )}
-                            </div>
+                            {member.skills && member.skills.length > 0 && (
+                              <div className="flex flex-wrap justify-center gap-1">
+                                {member.skills.slice(0, 3).map((skill) => (
+                                  <Badge key={skill} variant="secondary" className="text-[10px]">
+                                    {skill}
+                                  </Badge>
+                                ))}
+                                {member.skills.length > 3 && (
+                                  <Badge variant="secondary" className="text-[10px]">
+                                    +{member.skills.length - 3}
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
                             {member.availability.length > 0 && (
                               <div className="flex flex-wrap justify-center gap-1">
                                 {member.availability.slice(0, 1).map((avail, idx) => (
-                                  <Badge key={idx} className={availabilityColors[avail]} variant="outline" className="text-[9px]">
+                                  <Badge key={idx} className={`${availabilityColors[avail]} text-[9px]`} variant="outline">
                                     {avail}
                                   </Badge>
                                 ))}
@@ -519,40 +524,65 @@ function CommunityPageContent() {
                             )}
                           </CardContent>
                           <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full gap-2"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                window.location.href = `mailto:${member.email}`
-                              }}
-                            >
-                              <Mail className="h-4 w-4" />
-                              Email
-                            </Button>
                             {member.email && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full gap-2"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full gap-2"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
                                   window.location.href = `mailto:${member.email}`
-                              }}
-                            >
+                                }}
+                              >
                                 <Mail className="h-4 w-4" />
                                 Email
-                            </Button>
+                              </Button>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full gap-2"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                // TODO: Implement connect functionality
+                              }}
+                            >
+                              <UserPlus className="h-4 w-4" />
+                              {isConnected ? "Connected" : "Connect"}
+                            </Button>
                           </CardFooter>
                         </Card>
                       </Link>
                     )
                   })}
                 </div>
+
+                {/* Pagination */}
+                {pagination && pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 pt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1 || isLoading}
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      Page {pagination.page} of {pagination.totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(Math.min(pagination.totalPages, page + 1))}
+                      disabled={page >= pagination.totalPages || isLoading}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
               </>
             )}
           </TabsContent>
@@ -592,19 +622,19 @@ function CommunityPageContent() {
                   <Link key={member.id} href={`/community/${member.id}`}>
                     <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 h-full">
                       <CardHeader className="text-center">
-                        <Avatar className="mx-auto h-20 w-20">
-                          <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
-                          <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-1 mt-3">
-                          <CardTitle className="text-lg">{member.name}</CardTitle>
-                          {member.role && (
-                          <p className="text-sm font-medium text-primary">{member.role}</p>
-                          )}
-                          {member.industry && (
-                          <p className="text-xs text-muted-foreground">{member.industry}</p>
-                          )}
-                        </div>
+                            <Avatar className="mx-auto h-20 w-20">
+                              <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name || "Member"} />
+                              <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                          <div className="space-y-1 mt-3">
+                            <CardTitle className="text-lg">{member.name || "Anonymous"}</CardTitle>
+                            {member.role && (
+                              <p className="text-sm font-medium text-primary">{member.role}</p>
+                            )}
+                            {member.industry && (
+                              <p className="text-xs text-muted-foreground">{member.industry}</p>
+                            )}
+                          </div>
                       </CardHeader>
                       <CardContent className="flex-1 text-center space-y-3">
                         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
@@ -623,34 +653,34 @@ function CommunityPageContent() {
                         </Badge>
                       </CardContent>
                       <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full gap-2"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            window.location.href = `mailto:${member.email}`
-                          }}
-                        >
-                          <Mail className="h-4 w-4" />
-                          Email
-                        </Button>
                         {member.email && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full gap-2"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full gap-2"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
                               window.location.href = `mailto:${member.email}`
-                          }}
-                        >
+                            }}
+                          >
                             <Mail className="h-4 w-4" />
                             Email
-                        </Button>
+                          </Button>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full gap-2"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            // Already connected, show profile
+                          }}
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                          View
+                        </Button>
                       </CardFooter>
                     </Card>
                   </Link>
