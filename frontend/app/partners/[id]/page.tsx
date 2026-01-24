@@ -23,13 +23,16 @@ import {
   Mail,
   Calendar,
   DollarSign,
-  Sparkles
+  Sparkles,
+  Loader2
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
+import { useEffect, useState } from "react"
+import { Loader2 } from "lucide-react"
 
-// This would normally come from an API or database
-const partners = [
+// Partners will be fetched from API
+const partners: any[] = []
   {
     id: 1,
     name: "Ikigai",
@@ -286,19 +289,50 @@ const opportunityCategoryColors: Record<string, string> = {
 export default function PartnerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const partnerId = parseInt(id)
-  const partner = partners.find((p) => p.id === partnerId)
+  const [partner, setPartner] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
-  const partnerOpportunities = partnershipOpportunities.filter(opp => opp.partnerId === partnerId)
-
-  if (!partner) {
+  useEffect(() => {
+    async function fetchPartner() {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await fetch(`/api/partners/${id}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch partner")
+        }
+        const data = await response.json()
+        setPartner(data.partner)
+      } catch (err: any) {
+        console.error("Failed to fetch partner:", err)
+        setError(err.message || "Failed to load partner")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchPartner()
+  }, [id])
+  
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+  
+  if (error || !partner) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
           <Breadcrumbs items={[{ label: "Partners & Network" }, { label: "Not Found" }]} />
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">Partner not found</p>
+              <p className="text-muted-foreground mb-4">{error || "Partner not found"}</p>
               <Button onClick={() => router.push("/partners")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Partners
@@ -309,6 +343,8 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
       </DashboardLayout>
     )
   }
+  
+  const partnerOpportunities = partner.opportunities || []
 
   const TypeIcon = typeIcons[partner.type] || Building2
 

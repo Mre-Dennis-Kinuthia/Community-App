@@ -34,9 +34,11 @@ import {
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
 
-// Program Opportunities - Ongoing programs (not calendar-based events)
-const programOpportunities = [
+// Note: Programs are currently managed as events in the system
+// For now, we'll show an empty state or fetch from events API if needed
+const programOpportunities: any[] = []
   {
     id: 1,
     title: "Mentorship Program",
@@ -156,8 +158,8 @@ const programOpportunities = [
   },
 ]
 
-// Expanded Resource Categories
-const resourceCategories = [
+// Resources will be fetched from API
+const resourceCategories: any[] = []
   {
     id: 1,
     title: "Legal & Compliance",
@@ -263,6 +265,11 @@ function ResourcesPageContent() {
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("status") || "all")
   const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
+  
+  // Resources state
+  const [resources, setResources] = useState<any[]>([])
+  const [isLoadingResources, setIsLoadingResources] = useState(true)
+  const [resourcesError, setResourcesError] = useState<string | null>(null)
 
   // Store scroll positions for each tab
   const scrollPositionsRef = useRef<{ programs: number; resources: number }>({
@@ -317,6 +324,37 @@ function ResourcesPageContent() {
     return () => clearTimeout(timer)
   }, [activeTab])
 
+  // Fetch resources from API
+  useEffect(() => {
+    async function fetchResources() {
+      if (activeTab !== "resources") return
+      
+      try {
+        setIsLoadingResources(true)
+        setResourcesError(null)
+        const params = new URLSearchParams()
+        if (searchQuery) params.set("search", searchQuery)
+        if (typeFilter !== "all") params.set("type", typeFilter)
+        if (categoryFilter !== "all") params.set("category", categoryFilter)
+        
+        const response = await fetch(`/api/resources?${params.toString()}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch resources")
+        }
+        const data = await response.json()
+        setResources(data.resources || [])
+      } catch (error: any) {
+        console.error("Failed to fetch resources:", error)
+        setResourcesError(error.message || "Failed to load resources")
+        setResources([])
+      } finally {
+        setIsLoadingResources(false)
+      }
+    }
+
+    fetchResources()
+  }, [activeTab, searchQuery, typeFilter, categoryFilter])
+
   // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams()
@@ -346,22 +384,19 @@ function ResourcesPageContent() {
     })
   }, [searchQuery, categoryFilter, statusFilter, typeFilter])
 
-  // Filter Resources
+  // Filter Resources (already filtered by API, but apply client-side filters if needed)
   const filteredResources = useMemo(() => {
-    return resourceCategories.map((category) => {
-      const filteredItems = category.resources.filter((resource) => {
-        const matchesSearch = 
-          resource.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          resource.description?.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesType = typeFilter === "all" || resource.type.toLowerCase() === typeFilter.toLowerCase()
-        const matchesCategory = categoryFilter === "all" || category.title === categoryFilter
+    return resources.filter((resource) => {
+      const matchesSearch = 
+        resource.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        resource.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        resource.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      const matchesType = typeFilter === "all" || resource.type?.toLowerCase() === typeFilter.toLowerCase()
+      const matchesCategory = categoryFilter === "all" || resource.category === categoryFilter
 
-        return matchesSearch && matchesType && matchesCategory
-      })
-
-      return { ...category, resources: filteredItems }
-    }).filter((category) => category.resources.length > 0)
-  }, [searchQuery, categoryFilter, typeFilter])
+      return matchesSearch && matchesType && matchesCategory
+    })
+  }, [resources, searchQuery, categoryFilter, typeFilter])
 
   const hasActiveFilters = 
     searchQuery || 
@@ -387,7 +422,8 @@ function ResourcesPageContent() {
   const uniqueProgramCategories = Array.from(new Set(programOpportunities.map((p) => p.category)))
   const uniqueProgramTypes = Array.from(new Set(programOpportunities.map((p) => p.type)))
   const uniqueStatuses = Array.from(new Set(programOpportunities.map((p) => p.status)))
-  const resourceCategoryNames = resourceCategories.map((c) => c.title)
+  const resourceCategoryNames = Array.from(new Set(resources.map((r) => r.category).filter(Boolean)))
+  const uniqueResourceTypes = Array.from(new Set(resources.map((r) => r.type).filter(Boolean)))
 
   return (
     <DashboardLayout>
@@ -506,9 +542,9 @@ function ResourcesPageContent() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Types</SelectItem>
-                          <SelectItem value="pdf">PDF</SelectItem>
-                          <SelectItem value="docx">DOCX</SelectItem>
-                          <SelectItem value="link">Links</SelectItem>
+                          {uniqueResourceTypes.map((type) => (
+                            <SelectItem key={type} value={type.toLowerCase()}>{type}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -539,7 +575,7 @@ function ResourcesPageContent() {
                   <span className="text-sm text-muted-foreground">
                     {activeTab === "programs" 
                       ? `${filteredPrograms.length} program${filteredPrograms.length !== 1 ? "s" : ""} found`
-                      : `${filteredResources.reduce((sum, cat) => sum + cat.resources.length, 0)} resource${filteredResources.reduce((sum, cat) => sum + cat.resources.length, 0) !== 1 ? "s" : ""} found`}
+                      : `${filteredResources.length} resource${filteredResources.length !== 1 ? "s" : ""} found`}
                   </span>
                 </div>
               </div>
@@ -664,7 +700,24 @@ function ResourcesPageContent() {
           style={{ display: activeTab === "resources" ? "block" : "none" }}
           aria-hidden={activeTab !== "resources"}
         >
-            {filteredResources.length === 0 ? (
+            {isLoadingResources ? (
+              <Card className="border-border/50 shadow-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground text-center">Loading resources...</p>
+                </CardContent>
+              </Card>
+            ) : resourcesError ? (
+              <Card className="border-border/50 shadow-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-center">{resourcesError}</p>
+                  <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+                    Retry
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : filteredResources.length === 0 ? (
               <Card className="border-border/50 shadow-card">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <FileText className="h-12 w-12 text-muted-foreground mb-4" />
@@ -678,80 +731,67 @@ function ResourcesPageContent() {
               </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-3 w-full min-w-0">
-                {filteredResources.map((category) => {
-                  const Icon = category.icon
-                  return (
-                    <Card key={category.id} className="flex flex-col border-border/50 shadow-card">
-                      <CardHeader>
-                        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <Icon className="h-6 w-6" />
+                {filteredResources.map((resource) => (
+                  <Card key={resource.id} className="flex flex-col border-border/50 shadow-card">
+                    <CardHeader>
+                      <CardTitle className="text-lg">{resource.title}</CardTitle>
+                      {resource.description && (
+                        <CardDescription className="text-sm">{resource.description}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="flex-1 space-y-3">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] ${typeColors[resource.type] || ""}`}>
+                          {resource.type}
+                        </span>
+                        {resource.category && (
+                          <>
+                            <span>•</span>
+                            <span>{resource.category}</span>
+                          </>
+                        )}
+                      </div>
+                      {resource.tags && resource.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {resource.tags.slice(0, 3).map((tag: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
                         </div>
-                        <CardTitle className="text-lg">{category.title}</CardTitle>
-                        <CardDescription className="text-sm">{category.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-1 space-y-3">
-                        {category.resources.map((res) => (
-                          <div
-                            key={res.id}
-                            className="flex items-center justify-between rounded-lg border border-border/50 p-3 text-sm transition-all hover:shadow-sm hover:border-primary/50"
+                      )}
+                      <div className="flex gap-2 pt-2">
+                        {resource.url && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => window.open(resource.url, "_blank")}
                           >
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              {res.type === "Link" ? (
-                                <LinkIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                              ) : res.type === "Video" ? (
-                                <PlayCircle className="h-4 w-4 text-muted-foreground shrink-0" />
-                              ) : (
-                                <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <p className="font-medium truncate text-sm">{res.name}</p>
-                                  {res.popular && (
-                                    <Badge variant="secondary" className="text-[10px]">Popular</Badge>
-                                  )}
-                                  {res.new && (
-                                    <Badge variant="default" className="text-[10px] bg-primary">New</Badge>
-                                  )}
-                                </div>
-                                {res.description && (
-                                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                                    {res.description}
-                                  </p>
-                                )}
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${typeColors[res.type] || ""}`}>
-                                    {res.type}
-                                  </span>
-                                  <span>•</span>
-                                  <span className="text-[10px]">{res.size}</span>
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 shrink-0"
-                              onClick={(e) => {
-                                e.preventDefault()
-                                if (res.type === "Link") {
-                                  alert(`Opening ${res.name}`)
-                                } else {
-                                  alert(`Downloading ${res.name}`)
-                                }
-                              }}
-                            >
-                              {res.type === "Link" ? (
-                                <ExternalLink className="h-4 w-4" />
-                              ) : (
-                                <Download className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
-                  )
-                })}
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Open Link
+                          </Button>
+                        )}
+                        {resource.fileUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => {
+                              const link = document.createElement("a")
+                              link.href = resource.fileUrl
+                              link.download = resource.title
+                              link.click()
+                            }}
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            Download
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
 

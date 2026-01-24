@@ -32,9 +32,11 @@ import {
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
+import { useEffect, useState } from "react"
+import { Loader2 } from "lucide-react"
 
-// This would normally come from an API or database
-const projects = [
+// Projects will be fetched from API
+const projects: any[] = []
   {
     id: 1,
     title: "Green Energy Solutions for Rural Kenya",
@@ -347,22 +349,50 @@ const needsIcons: Record<string, any> = {
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const projectId = parseInt(id)
-  const project = projects.find((p) => p.id === projectId)
-
-  // Find related projects (same category or stage, excluding current)
-  const relatedProjects = projects.filter(
-    (p) => p.id !== projectId && (p.category === project?.category || p.stage === project?.stage)
-  ).slice(0, 3)
-
-  if (!project) {
+  const [project, setProject] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  useEffect(() => {
+    async function fetchProject() {
+      try {
+        setIsLoading(true)
+        setError(null)
+        const response = await fetch(`/api/projects/${id}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch project")
+        }
+        const data = await response.json()
+        setProject(data.project)
+      } catch (err: any) {
+        console.error("Failed to fetch project:", err)
+        setError(err.message || "Failed to load project")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    fetchProject()
+  }, [id])
+  
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    )
+  }
+  
+  if (error || !project) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
           <Breadcrumbs items={[{ label: "Projects & Initiatives" }, { label: "Not Found" }]} />
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">Project not found</p>
+              <p className="text-muted-foreground mb-4">{error || "Project not found"}</p>
               <Button onClick={() => router.push("/projects")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Projects
@@ -373,6 +403,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       </DashboardLayout>
     )
   }
+  
+  const projectId = id
+  // Related projects would need to be fetched separately or included in the API response
+  const relatedProjects: any[] = []
 
   const completedMilestones = project.milestones.filter(m => m.completed).length
   const totalMilestones = project.milestones.length

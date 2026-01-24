@@ -336,6 +336,136 @@ model Notification {
 }
 
 // ============================================
+// PROGRAMS & COHORTS
+// ============================================
+
+model Program {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // accelerator, incubator, fellowship, bootcamp
+  description String?  @db.Text
+  status      String   @default("upcoming") // upcoming, active, completed
+  applicationOpen Boolean @default(false)
+  capacity    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  cohorts     Cohort[]
+  applications ProgramApplication[]
+
+  @@map("programs")
+}
+
+model Cohort {
+  id          String   @id @default(cuid())
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name        String
+  startDate   DateTime
+  endDate     DateTime?
+  phase       String?  // onboarding, active, graduation
+  capacity    Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  applications ProgramApplication[]
+
+  @@map("cohorts")
+}
+
+// ============================================
+// APPLICATIONS & SELECTION
+// ============================================
+
+model ProgramApplication {
+  id          String   @id @default(cuid())
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  cohortId    String?
+  cohort      Cohort?  @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  userId      String?
+  applicantName String
+  email       String
+  venture     String?
+  status      String   @default("in-review") // in-review, shortlisted, accepted, rejected, waitlist
+  score       Int?     // evaluation score
+  appliedDate DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("program_applications")
+  @@index([programId])
+  @@index([status])
+}
+
+// ============================================
+// MEDIA LIBRARY
+// ============================================
+
+model MediaAsset {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // image, document, video, link
+  url         String
+  size        Int?     // file size in bytes
+  mimeType    String?
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@map("media_assets")
+  @@index([type])
+}
+
+// ============================================
+// AUDIT LOGS
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     String   // admin email or system
+  action    String   // create, update, delete, etc.
+  target    String   // entity type and ID
+  severity  String   @default("info") // info, warning, critical
+  details   String?  @db.Text
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+  @@index([actor])
+  @@index([action])
+  @@index([createdAt])
+  @@index([severity])
+}
+
+// ============================================
+// SUPPORT & HELPDESK
+// ============================================
+
+model SupportTicket {
+  id          String   @id @default(cuid())
+  member      String   // member name or email
+  subject     String
+  description String   @db.Text
+  status      String   @default("open") // open, pending, resolved, closed
+  priority    String   @default("medium") // low, medium, high
+  category    String?  // technical, billing, general
+  assignedTo  String?  // admin email
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  resolvedAt DateTime?
+
+  @@map("support_tickets")
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+// ============================================
 // NEWS CATEGORIES & TAGS
 // ============================================
 

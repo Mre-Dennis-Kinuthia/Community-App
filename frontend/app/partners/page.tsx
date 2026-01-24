@@ -29,8 +29,10 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import Link from "next/link"
 import { format } from "date-fns"
+import { Loader2 } from "lucide-react"
 
-const partners = [
+// Partners will be fetched from API
+const partners: any[] = []
   {
     id: 1,
     name: "Ikigai",
@@ -185,7 +187,8 @@ const partners = [
   },
 ]
 
-const partnershipOpportunities = [
+// Partnership opportunities will be fetched from partner detail API
+const partnershipOpportunities: any[] = []
   {
     id: 1,
     partnerId: 2,
@@ -294,6 +297,43 @@ function PartnersPageContent() {
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
   const [locationFilter, setLocationFilter] = useState<string>(searchParams.get("location") || "all")
   const [opportunityCategoryFilter, setOpportunityCategoryFilter] = useState<string>(searchParams.get("oppCategory") || "all")
+  
+  // Partners state
+  const [partnersData, setPartnersData] = useState<any[]>([])
+  const [isLoadingPartners, setIsLoadingPartners] = useState(true)
+  const [partnersError, setPartnersError] = useState<string | null>(null)
+
+  // Fetch partners from API
+  useEffect(() => {
+    async function fetchPartners() {
+      if (activeTab !== "partners") return
+      
+      try {
+        setIsLoadingPartners(true)
+        setPartnersError(null)
+        const params = new URLSearchParams()
+        if (searchQuery) params.set("search", searchQuery)
+        if (typeFilter !== "all") params.set("type", typeFilter)
+        if (categoryFilter !== "all") params.set("category", categoryFilter)
+        if (locationFilter !== "all") params.set("location", locationFilter)
+        
+        const response = await fetch(`/api/partners?${params.toString()}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch partners")
+        }
+        const data = await response.json()
+        setPartnersData(data.partners || [])
+      } catch (error: any) {
+        console.error("Failed to fetch partners:", error)
+        setPartnersError(error.message || "Failed to load partners")
+        setPartnersData([])
+      } finally {
+        setIsLoadingPartners(false)
+      }
+    }
+
+    fetchPartners()
+  }, [activeTab, searchQuery, typeFilter, categoryFilter, locationFilter])
 
   // Update URL params when filters change
   useEffect(() => {
@@ -310,11 +350,11 @@ function PartnersPageContent() {
   }, [activeTab, searchQuery, typeFilter, categoryFilter, locationFilter, opportunityCategoryFilter, router])
 
   const filteredPartners = useMemo(() => {
-    return partners.filter((partner) => {
+    return partnersData.filter((partner) => {
       const matchesSearch = 
-        partner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        partner.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        partner.focus.some((f) => f.toLowerCase().includes(searchQuery.toLowerCase()))
+        partner.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        partner.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        partner.focus?.some((f: string) => f.toLowerCase().includes(searchQuery.toLowerCase()))
       
       const matchesType = typeFilter === "all" || partner.type === typeFilter
       const matchesCategory = categoryFilter === "all" || partner.category === categoryFilter
@@ -322,7 +362,7 @@ function PartnersPageContent() {
 
       return matchesSearch && matchesType && matchesCategory && matchesLocation
     })
-  }, [searchQuery, typeFilter, categoryFilter, locationFilter])
+  }, [partnersData, searchQuery, typeFilter, categoryFilter, locationFilter])
 
   const filteredOpportunities = useMemo(() => {
     return partnershipOpportunities.filter((opp) => {
@@ -354,10 +394,10 @@ function PartnersPageContent() {
     searchQuery.length > 0,
   ].filter(Boolean).length
 
-  const uniqueTypes = Array.from(new Set(partners.map((p) => p.type)))
-  const uniqueCategories = Array.from(new Set(partners.map((p) => p.category)))
-  const uniqueLocationTypes = Array.from(new Set(partners.map((p) => p.locationType)))
-  const uniqueOpportunityCategories = Array.from(new Set(partnershipOpportunities.map((o) => o.category)))
+  const uniqueTypes = Array.from(new Set(partnersData.map((p) => p.type).filter(Boolean)))
+  const uniqueCategories = Array.from(new Set(partnersData.map((p) => p.category).filter(Boolean)))
+  const uniqueLocationTypes = Array.from(new Set(partnersData.map((p) => p.locationType).filter(Boolean)))
+  const uniqueOpportunityCategories = Array.from(new Set(partnershipOpportunities.map((o) => o.category).filter(Boolean)))
 
   const hasActiveFilters = typeFilter !== "all" || categoryFilter !== "all" || locationFilter !== "all" || (activeTab === "opportunities" && opportunityCategoryFilter !== "all")
 
@@ -379,7 +419,7 @@ function PartnersPageContent() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Partners</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold">{partners.length}</div>
+              <div className="text-2xl font-semibold">{partnersData.length}</div>
             </CardContent>
           </Card>
           <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
@@ -388,7 +428,7 @@ function PartnersPageContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold">
-                {partners.filter((p) => p.type === "Investor" || p.type === "Funder").length}
+                {partnersData.filter((p) => p.type === "Investor" || p.type === "Funder").length}
               </div>
             </CardContent>
           </Card>
@@ -397,7 +437,7 @@ function PartnersPageContent() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Opportunities</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold">{partnershipOpportunities.filter(o => o.status === "Open").length}</div>
+              <div className="text-2xl font-semibold">{partnershipOpportunities.filter((o: any) => o.status === "Open").length}</div>
             </CardContent>
           </Card>
           <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
@@ -406,7 +446,7 @@ function PartnersPageContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold">
-                {partners.reduce((sum, p) => sum + p.memberConnections, 0)}
+                0
               </div>
             </CardContent>
           </Card>
@@ -477,7 +517,24 @@ function PartnersPageContent() {
             </div>
 
             {/* Partners Grid */}
-            {filteredPartners.length === 0 ? (
+            {isLoadingPartners ? (
+              <Card className="border-border/50 shadow-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground text-center">Loading partners...</p>
+                </CardContent>
+              </Card>
+            ) : partnersError ? (
+              <Card className="border-border/50 shadow-card">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-center">{partnersError}</p>
+                  <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+                    Retry
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : filteredPartners.length === 0 ? (
               <Card className="border-border/50 shadow-card">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
@@ -521,31 +578,35 @@ function PartnersPageContent() {
                               <MapPin className="h-4 w-4" />
                               {partner.location}
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Users className="h-4 w-4" />
-                                <span>{partner.memberConnections} connections</span>
+                            {partner._count && (
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-4 w-4" />
+                                  <span>0 connections</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Target className="h-4 w-4" />
+                                  <span>{partner._count.opportunities || 0} opportunities</span>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Target className="h-4 w-4" />
-                                <span>{partner.opportunitiesCount} opportunities</span>
+                            )}
+                            {partner.focus && partner.focus.length > 0 && (
+                              <div className="text-sm">
+                                <p className="font-medium mb-1">Focus Areas:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {partner.focus.slice(0, 3).map((area: string, idx: number) => (
+                                    <Badge key={idx} variant="outline" className="text-xs">
+                                      {area}
+                                    </Badge>
+                                  ))}
+                                  {partner.focus.length > 3 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      +{partner.focus.length - 3}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                            <div className="text-sm">
-                              <p className="font-medium mb-1">Focus Areas:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {partner.focus.slice(0, 3).map((area, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-xs">
-                                    {area}
-                                  </Badge>
-                                ))}
-                                {partner.focus.length > 3 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{partner.focus.length - 3}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
+                            )}
                           </div>
                           <Button
                             variant="outline"

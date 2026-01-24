@@ -29,8 +29,10 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
 import Link from "next/link"
+import { Loader2 } from "lucide-react"
 
-const projects = [
+// Projects will be fetched from API
+const projects: any[] = []
   {
     id: 1,
     title: "Green Energy Solutions for Rural Kenya",
@@ -236,6 +238,42 @@ function ProjectsPageContent() {
   const [locationFilter, setLocationFilter] = useState<string>(searchParams.get("location") || "all")
   const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "newest")
   const [showFeatured, setShowFeatured] = useState<boolean>(searchParams.get("featured") === "true")
+  
+  // Projects state
+  const [projectsData, setProjectsData] = useState<any[]>([])
+  const [isLoadingProjects, setIsLoadingProjects] = useState(true)
+  const [projectsError, setProjectsError] = useState<string | null>(null)
+
+  // Fetch projects from API
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        setIsLoadingProjects(true)
+        setProjectsError(null)
+        const params = new URLSearchParams()
+        if (searchQuery) params.set("search", searchQuery)
+        if (categoryFilter !== "all") params.set("category", categoryFilter)
+        if (stageFilter !== "all") params.set("stage", stageFilter)
+        if (locationFilter !== "all") params.set("location", locationFilter)
+        if (showFeatured) params.set("featured", "true")
+        
+        const response = await fetch(`/api/projects?${params.toString()}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch projects")
+        }
+        const data = await response.json()
+        setProjectsData(data.projects || [])
+      } catch (error: any) {
+        console.error("Failed to fetch projects:", error)
+        setProjectsError(error.message || "Failed to load projects")
+        setProjectsData([])
+      } finally {
+        setIsLoadingProjects(false)
+      }
+    }
+
+    fetchProjects()
+  }, [searchQuery, categoryFilter, stageFilter, locationFilter, showFeatured])
 
   // Update URL params when filters change
   useEffect(() => {
@@ -253,18 +291,18 @@ function ProjectsPageContent() {
   }, [searchQuery, categoryFilter, stageFilter, needsFilter, locationFilter, sortBy, showFeatured, router])
 
   const filteredAndSortedProjects = useMemo(() => {
-    let filtered = projects.filter((project) => {
+    let filtered = projectsData.filter((project) => {
       const matchesSearch = 
-        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.founder.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.founder?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       
       const matchesCategory = categoryFilter === "all" || project.category === categoryFilter
       const matchesStage = stageFilter === "all" || project.stage === stageFilter
-      const matchesNeeds = needsFilter === "all" || project.needs.includes(needsFilter)
+      const matchesNeeds = needsFilter === "all" || project.needs?.includes(needsFilter)
       const matchesLocation = locationFilter === "all" || project.location === locationFilter
-      const matchesFeatured = !showFeatured || project.featured
+      const matchesFeatured = !showFeatured || project.isFeatured
 
       return matchesSearch && matchesCategory && matchesStage && matchesNeeds && matchesLocation && matchesFeatured
     })
@@ -273,15 +311,19 @@ function ProjectsPageContent() {
     filtered = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case "newest":
-          return b.launchDate.getTime() - a.launchDate.getTime()
+          const aDate = a.launchDate ? new Date(a.launchDate).getTime() : new Date(a.createdAt).getTime()
+          const bDate = b.launchDate ? new Date(b.launchDate).getTime() : new Date(b.createdAt).getTime()
+          return bDate - aDate
         case "oldest":
-          return a.launchDate.getTime() - b.launchDate.getTime()
+          const aDateOld = a.launchDate ? new Date(a.launchDate).getTime() : new Date(a.createdAt).getTime()
+          const bDateOld = b.launchDate ? new Date(b.launchDate).getTime() : new Date(b.createdAt).getTime()
+          return aDateOld - bDateOld
         case "popular":
-          return b.followers - a.followers
+          return (b._count?.followers || 0) - (a._count?.followers || 0)
         case "impactful":
-          // Sort by total engagement (followers + volunteers + collaboration requests)
-          const aEngagement = a.followers + a.volunteers + a.collaborationRequests
-          const bEngagement = b.followers + b.volunteers + b.collaborationRequests
+          // Sort by total engagement (followers + volunteers)
+          const aEngagement = (a._count?.followers || 0) + (a._count?.volunteers || 0)
+          const bEngagement = (b._count?.followers || 0) + (b._count?.volunteers || 0)
           return bEngagement - aEngagement
         default:
           return 0
@@ -289,11 +331,11 @@ function ProjectsPageContent() {
     })
 
     return filtered
-  }, [searchQuery, categoryFilter, stageFilter, needsFilter, locationFilter, sortBy, showFeatured])
+  }, [projectsData, searchQuery, categoryFilter, stageFilter, needsFilter, locationFilter, sortBy, showFeatured])
 
   const featuredProjects = useMemo(() => {
-    return projects.filter(p => p.featured)
-  }, [])
+    return projectsData.filter((p: any) => p.isFeatured)
+  }, [projectsData])
 
   const hasActiveFilters = categoryFilter !== "all" || stageFilter !== "all" || needsFilter !== "all" || locationFilter !== "all" || sortBy !== "newest" || showFeatured
 
@@ -318,10 +360,10 @@ function ProjectsPageContent() {
     searchQuery.length > 0,
   ].filter(Boolean).length
 
-  const uniqueCategories = Array.from(new Set(projects.map((p) => p.category)))
-  const uniqueStages = Array.from(new Set(projects.map((p) => p.stage)))
-  const uniqueNeeds = Array.from(new Set(projects.flatMap((p) => p.needs)))
-  const uniqueLocations = Array.from(new Set(projects.map((p) => p.location)))
+  const uniqueCategories = Array.from(new Set(projectsData.map((p) => p.category).filter(Boolean)))
+  const uniqueStages = Array.from(new Set(projectsData.map((p) => p.stage).filter(Boolean)))
+  const uniqueNeeds = Array.from(new Set(projectsData.flatMap((p) => p.needs || []).filter(Boolean)))
+  const uniqueLocations = Array.from(new Set(projectsData.map((p) => p.location).filter(Boolean)))
 
   return (
     <DashboardLayout>
@@ -341,7 +383,7 @@ function ProjectsPageContent() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Projects</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold">{projects.length}</div>
+              <div className="text-2xl font-semibold">{projectsData.length}</div>
             </CardContent>
           </Card>
           <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
@@ -350,7 +392,7 @@ function ProjectsPageContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold">
-                {projects.filter((p) => p.featured).length}
+                {projectsData.filter((p) => p.isFeatured).length}
               </div>
             </CardContent>
           </Card>
@@ -360,7 +402,7 @@ function ProjectsPageContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold">
-                {projects.filter((p) => p.needs.length > 0).length}
+                {projectsData.filter((p) => p.needs && p.needs.length > 0).length}
               </div>
             </CardContent>
           </Card>
@@ -370,7 +412,7 @@ function ProjectsPageContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-semibold">
-                {projects.reduce((sum, p) => sum + p.followers, 0)}
+                {projectsData.reduce((sum, p) => sum + (p._count?.followers || 0), 0)}
               </div>
             </CardContent>
           </Card>
@@ -553,7 +595,24 @@ function ProjectsPageContent() {
         </div>
 
         {/* Projects Grid */}
-        {filteredAndSortedProjects.length === 0 ? (
+        {isLoadingProjects ? (
+          <Card className="border-border/50 shadow-card">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground text-center">Loading projects...</p>
+            </CardContent>
+          </Card>
+        ) : projectsError ? (
+          <Card className="border-border/50 shadow-card">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground text-center">{projectsError}</p>
+              <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
+        ) : filteredAndSortedProjects.length === 0 ? (
           <Card className="border-border/50 shadow-card">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
@@ -576,13 +635,13 @@ function ProjectsPageContent() {
               {filteredAndSortedProjects.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`}>
                   <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full ${
-                    project.featured ? "ring-2 ring-primary/20" : ""
+                    project.isFeatured ? "ring-2 ring-primary/20" : ""
                   }`}>
                     <CardHeader>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 space-y-3">
                           <div className="flex items-center gap-2 flex-wrap">
-                            {project.featured && (
+                            {project.isFeatured && (
                               <Badge className="bg-primary/10 text-primary border-primary/20">
                                 <Star className="mr-1 h-3 w-3" />
                                 Featured
@@ -641,25 +700,27 @@ function ProjectsPageContent() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
                         <div className="flex items-center gap-1">
                           <Heart className="h-3 w-3" />
-                          <span>{project.followers} followers</span>
+                          <span>{project._count?.followers || 0} followers</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          <span>{project.volunteers} volunteers</span>
+                          <span>{project._count?.volunteers || 0} volunteers</span>
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        {project.tags.slice(0, 3).map((tag, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {project.tags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{project.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
+                      {project.tags && project.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {project.tags.slice(0, 3).map((tag: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {project.tags.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{project.tags.length - 3}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </Link>
