@@ -14,7 +14,6 @@ import { ResourceSelector, type ResourceType } from "@/components/booking/resour
 import { PricingBreakdown } from "@/components/booking/pricing-breakdown"
 import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
-import { PricingBreakdown } from "@/components/booking/pricing-breakdown"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, Loader2 } from "lucide-react"
@@ -81,7 +80,6 @@ export default function BookingPage() {
   const [selectedHalfDay, setSelectedHalfDay] = useState<"morning" | "afternoon" | undefined>(undefined)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [isBooking, setIsBooking] = useState(false)
-  const [activeTab, setActiveTab] = useState("book")
 
   const { pricing, calculateTotal } = usePricing(
     workspaceId,
@@ -411,7 +409,6 @@ export default function BookingPage() {
               </div>
             </div>
           </div>
-        </div>
 
         {/* Sticky Booking Summary */}
         <StickyBookingSummary
