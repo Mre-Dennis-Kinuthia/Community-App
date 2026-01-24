@@ -29,7 +29,6 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
 import { useEffect, useState } from "react"
-import { Loader2 } from "lucide-react"
 
 // Partners will be fetched from API
 const partners: any[] = []
