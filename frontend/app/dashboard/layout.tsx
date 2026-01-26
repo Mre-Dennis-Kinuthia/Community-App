@@ -137,7 +137,7 @@ function DashboardLayoutContent({
           </div>
         </div>
       </header>
-      <div className="flex flex-1 relative">
+      <div className="flex flex-1 relative min-h-0">
         <aside className={cn(
           "hidden fixed left-0 top-16 bottom-0 flex-col border-r border-border/50 bg-sidebar/30 md:flex z-30 overflow-y-auto scrollbar-thin",
           "transition-[width] duration-300 ease-in-out",
@@ -164,7 +164,7 @@ function DashboardLayoutContent({
         <main 
           id="main-content" 
           className={cn(
-            "flex w-full flex-1 flex-col overflow-y-auto py-8 px-4 md:px-8 pb-20 md:pb-8 container",
+            "flex w-full flex-1 flex-col overflow-y-auto py-8 px-4 md:px-8 pb-20 md:pb-8 container min-h-0",
             "transition-[margin-left] duration-300 ease-in-out will-change-[margin-left]",
             isCollapsed ? "md:ml-[64px]" : "md:ml-[220px]"
           )}
