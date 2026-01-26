@@ -309,11 +309,11 @@ export default function DashboardPage() {
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold min-h-[2rem] flex items-center">
                 {isLoadingStats ? (
-                  <span className="text-muted-foreground">...</span>
+                  <span className="text-muted-foreground animate-pulse">...</span>
                 ) : (
-                  stats.upcomingEvents
+                  <span className="transition-opacity duration-150 ease-out opacity-100">{stats.upcomingEvents}</span>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">This week</p>
@@ -337,11 +337,11 @@ export default function DashboardPage() {
               <Users2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold min-h-[2rem] flex items-center">
                 {isLoadingStats ? (
-                  <span className="text-muted-foreground">...</span>
+                  <span className="text-muted-foreground animate-pulse">...</span>
                 ) : (
-                  stats.activeMembers
+                  <span className="transition-opacity duration-150 ease-out opacity-100">{stats.activeMembers}</span>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">Active members</p>
@@ -408,7 +408,7 @@ export default function DashboardPage() {
           <CardContent>
             {isLoadingEvents ? (
               <div className="flex items-center justify-center py-8">
-                <p className="text-sm text-muted-foreground">Loading highlights...</p>
+                <p className="text-sm text-muted-foreground animate-pulse">Loading highlights...</p>
               </div>
             ) : recentEvents.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-center">
@@ -420,7 +420,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : (
-              <>
+              <div className="transition-opacity duration-150 ease-out opacity-100">
                 <div className="space-y-4">
                   {recentEvents.map((event) => {
                     const eventDate = new Date(event.startDate)
@@ -433,7 +433,7 @@ export default function DashboardPage() {
                     })
                     return (
                       <Link key={event.id} href={`/events/${event.id}`} className="block">
-                        <div className="flex gap-4 hover:opacity-80 transition-opacity">
+                        <div className="flex gap-4 hover:opacity-80 transition-opacity duration-150">
                           <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                             <CalendarDays className="h-5 w-5" />
                           </div>
@@ -455,7 +455,7 @@ export default function DashboardPage() {
                     <ExternalLink className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-              </>
+              </div>
             )}
           </CardContent>
         </Card>

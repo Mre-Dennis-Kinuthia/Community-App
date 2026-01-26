@@ -56,6 +56,7 @@ export default function EventsPage() {
   const [registering, setRegistering] = useState<Record<string | number, boolean>>({})
   const [allEvents, setAllEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
+  const [isFiltering, setIsFiltering] = useState(false)
 
   // Fetch events from API
   useEffect(() => {
@@ -110,6 +111,7 @@ export default function EventsPage() {
 
   // Update URL params when filters change
   useEffect(() => {
+    setIsFiltering(true)
     const params = new URLSearchParams()
     if (activeTab) params.set("tab", activeTab)
     if (searchQuery) params.set("search", searchQuery)
@@ -122,6 +124,9 @@ export default function EventsPage() {
 
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
+    
+    const timer = setTimeout(() => setIsFiltering(false), 200)
+    return () => clearTimeout(timer)
   }, [activeTab, searchQuery, typeFilter, statusFilter, organizerFilter, platformFilter, sortBy, dateRangeFilter, router])
 
   // Get events based on active tab (already filtered by API, but double-check client-side)
@@ -504,13 +509,15 @@ export default function EventsPage() {
               </CardContent>
             </Card>
           ) : (
-            <EventsTimeline
-              events={filteredEvents}
-              onEventClick={handleEventClick}
-              activeTab={activeTab}
-              onRegister={handleRegister}
-              registering={registering}
-            />
+            <div className="transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
+              <EventsTimeline
+                events={filteredEvents}
+                onEventClick={handleEventClick}
+                activeTab={activeTab}
+                onRegister={handleRegister}
+                registering={registering}
+              />
+            </div>
           )}
         </div>
 

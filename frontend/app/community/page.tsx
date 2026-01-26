@@ -75,6 +75,7 @@ function CommunityPageContent() {
   const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest")
   const [showFeatured, setShowFeatured] = useState(searchParams.get("featured") === "true")
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"))
+  const [isFiltering, setIsFiltering] = useState(false)
 
   // Fetch members from API
   const {
@@ -103,6 +104,7 @@ function CommunityPageContent() {
 
   // Update URL params when filters change
   useEffect(() => {
+    setIsFiltering(true)
     const params = new URLSearchParams()
     if (activeTab !== "all") params.set("tab", activeTab)
     if (debouncedSearch) params.set("search", debouncedSearch)
@@ -118,6 +120,9 @@ function CommunityPageContent() {
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
+    
+    const timer = setTimeout(() => setIsFiltering(false), 200)
+    return () => clearTimeout(timer)
   }, [activeTab, debouncedSearch, selectedIndustry, selectedRole, selectedExperience, selectedAvailability, selectedLocation, selectedSkills, sortBy, showFeatured, page, router])
 
   // Get filter options from API response
@@ -237,7 +242,7 @@ function CommunityPageContent() {
             <TabsTrigger value="connections">My Connections ({myConnections.length})</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-6 mt-6">
+          <TabsContent value="all" className="space-y-6 mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
             {/* Featured Members Section */}
             {!hasActiveFilters && featuredMembers.length > 0 && (
               <div className="space-y-4">
@@ -603,7 +608,7 @@ function CommunityPageContent() {
             )}
           </TabsContent>
 
-          <TabsContent value="connections" className="space-y-6 mt-6">
+          <TabsContent value="connections" className="space-y-6 mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
             {isLoading ? (
               <Card className="py-12">
                 <CardContent className="flex flex-col items-center justify-center text-center">

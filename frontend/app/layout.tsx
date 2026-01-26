@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/toaster"
 import { SkipLink } from "@/components/skip-link"
+import { PageTransition } from "@/app/components/page-transition"
 import "./globals.css"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
@@ -33,7 +34,9 @@ export default function RootLayout({
       <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
         <SkipLink />
         <Providers>
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
           <Toaster />
         </Providers>
         <Analytics />
