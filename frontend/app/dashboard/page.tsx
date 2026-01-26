@@ -35,11 +35,35 @@ interface Booking {
   totalPrice: number
 }
 
+interface DashboardStats {
+  upcomingEvents: number
+  activeMembers: number
+  userConnections: number
+  userEvents: number
+}
+
+interface Event {
+  id: string
+  title: string
+  description: string
+  startDate: string
+  location: string | null
+}
+
 export default function DashboardPage() {
   const { user } = useSession()
   const [greeting, setGreeting] = useState("Good morning")
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([])
   const [isLoadingBookings, setIsLoadingBookings] = useState(true)
+  const [stats, setStats] = useState<DashboardStats>({
+    upcomingEvents: 0,
+    activeMembers: 0,
+    userConnections: 0,
+    userEvents: 0,
+  })
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
+  const [recentEvents, setRecentEvents] = useState<Event[]>([])
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true)
   
   // Get first name from user's name or email
   const getUserFirstName = () => {
@@ -59,6 +83,50 @@ export default function DashboardPage() {
   useEffect(() => {
     setGreeting(getGreeting())
   }, [])
+
+  // Fetch dashboard stats
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        setIsLoadingStats(true)
+        const response = await fetch("/api/dashboard/stats")
+        if (response.ok) {
+          const data = await response.json()
+          setStats(data)
+        }
+      } catch (error) {
+        console.error("[Dashboard] Error fetching stats:", error)
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+
+    if (user) {
+      fetchStats()
+    }
+  }, [user])
+
+  // Fetch recent events for highlights
+  useEffect(() => {
+    async function fetchRecentEvents() {
+      try {
+        setIsLoadingEvents(true)
+        const response = await fetch("/api/events?filter=upcoming&limit=2")
+        if (response.ok) {
+          const data = await response.json()
+          setRecentEvents(data.events || [])
+        }
+      } catch (error) {
+        console.error("[Dashboard] Error fetching events:", error)
+      } finally {
+        setIsLoadingEvents(false)
+      }
+    }
+
+    if (user) {
+      fetchRecentEvents()
+    }
+  }, [user])
 
   // Fetch upcoming bookings
   useEffect(() => {
@@ -242,10 +310,11 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {(() => {
-                  // This will be populated by stats API if needed
-                  return "3"
-                })()}
+                {isLoadingStats ? (
+                  <span className="text-muted-foreground">...</span>
+                ) : (
+                  stats.upcomingEvents
+                )}
               </div>
               <p className="text-xs text-muted-foreground">This week</p>
             </CardContent>
@@ -269,10 +338,11 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {(() => {
-                  // This will be populated by stats API if needed
-                  return "127"
-                })()}
+                {isLoadingStats ? (
+                  <span className="text-muted-foreground">...</span>
+                ) : (
+                  stats.activeMembers
+                )}
               </div>
               <p className="text-xs text-muted-foreground">Active members</p>
             </CardContent>
@@ -336,33 +406,57 @@ export default function DashboardPage() {
             <CardDescription>Stay updated with what's happening.</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* TODO: Fetch from events/news API - show recent community highlights */}
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <ArrowUpRight className="h-5 w-5" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium leading-none">New Program: Social Lab</p>
-                  <p className="text-xs text-muted-foreground">Applications open until next Friday.</p>
+            {isLoadingEvents ? (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-sm text-muted-foreground">Loading highlights...</p>
+              </div>
+            ) : recentEvents.length === 0 ? (
+              <div className="flex items-center justify-center py-8 text-center">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">No upcoming events</p>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/events">View Events</Link>
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-4">
-                <div className="h-10 w-10 shrink-0 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
-                  <Users2 className="h-5 w-5" />
+            ) : (
+              <>
+                <div className="space-y-4">
+                  {recentEvents.map((event) => {
+                    const eventDate = new Date(event.startDate)
+                    const formattedDate = eventDate.toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })
+                    return (
+                      <Link key={event.id} href={`/events/${event.id}`} className="block">
+                        <div className="flex gap-4 hover:opacity-80 transition-opacity">
+                          <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <CalendarDays className="h-5 w-5" />
+                          </div>
+                          <div className="space-y-1 flex-1">
+                            <p className="text-sm font-medium leading-none">{event.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formattedDate}
+                              {event.location && ` • ${event.location}`}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })}
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium leading-none">Monthly Townhall</p>
-                  <p className="text-xs text-muted-foreground">Join us this Thursday at 4 PM in the lounge.</p>
-                </div>
-              </div>
-            </div>
-            <Button className="mt-4 w-full" asChild>
-              <Link href="/events">
-                View All Events
-                <ExternalLink className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+                <Button className="mt-4 w-full" asChild>
+                  <Link href="/events">
+                    View All Events
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
