@@ -78,8 +78,8 @@ function DashboardLayoutContent({
   const displayEmail = user?.email || ""
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <div className="flex h-screen flex-col overflow-hidden">
+      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 flex-shrink-0">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center gap-4">
             <MobileNav />
@@ -164,7 +164,7 @@ function DashboardLayoutContent({
         <main 
           id="main-content" 
           className={cn(
-            "flex w-full flex-1 flex-col overflow-hidden py-8 px-4 md:px-8 pb-20 md:pb-8 container",
+            "flex w-full flex-1 flex-col overflow-y-auto py-8 px-4 md:px-8 pb-20 md:pb-8 container",
             "transition-[margin-left] duration-300 ease-in-out will-change-[margin-left]",
             isCollapsed ? "md:ml-[64px]" : "md:ml-[220px]"
           )}
