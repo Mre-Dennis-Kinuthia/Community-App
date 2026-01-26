@@ -22,11 +22,12 @@ const registrationSchema = z.object({
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await auth()
-    const { id: eventId } = params
+    const resolvedParams = await Promise.resolve(params)
+    const { id: eventId } = resolvedParams
 
     // Get event
     const event = await prisma.event.findUnique({
@@ -49,8 +50,32 @@ export async function POST(
     }
 
     // Parse request body
-    const body = await request.json()
-    const validatedData = registrationSchema.parse(body)
+    const body = await request.json().catch(() => ({}))
+    
+    // Get email from body or session and normalize to lowercase
+    const rawEmail = body.email || session?.user?.email
+    const email = rawEmail ? String(rawEmail).toLowerCase().trim() : null
+    const name = body.name || session?.user?.name || null
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "Email is required for registration" },
+        { status: 400, headers: corsHeaders }
+      )
+    }
+
+    // Get userId from session or look up by email
+    let userId: string | null = null
+    if (session?.user?.id) {
+      userId = session.user.id
+    } else if (email) {
+      // Try to find user by email for guest registrations
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+      })
+      userId = user?.id || null
+    }
 
     // Check capacity if set
     if (event.capacity) {
@@ -73,7 +98,7 @@ export async function POST(
     const existingRegistration = await prisma.eventRegistration.findFirst({
       where: {
         eventId,
-        email: validatedData.email,
+        email: email,
         status: { not: "cancelled" },
       },
     })
@@ -89,9 +114,9 @@ export async function POST(
     const registration = await prisma.eventRegistration.create({
       data: {
         eventId,
-        userId: session?.user?.id || null,
-        email: validatedData.email,
-        name: validatedData.name || session?.user?.name || null,
+        userId: userId,
+        email: email,
+        name: name || null,
         status: "registered",
       },
       include: {
@@ -118,6 +143,12 @@ export async function POST(
     )
   } catch (error: any) {
     console.error("[EVENT REGISTRATION API] Error:", error)
+    console.error("[EVENT REGISTRATION API] Error details:", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta,
+      stack: error?.stack,
+    })
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -129,8 +160,16 @@ export async function POST(
       )
     }
 
+    // Provide more detailed error in development
+    const errorMessage = process.env.NODE_ENV === "development" 
+      ? error?.message || "Failed to register for event"
+      : "Failed to register for event"
+
     return NextResponse.json(
-      { error: "Failed to register for event" },
+      { 
+        error: errorMessage,
+        ...(process.env.NODE_ENV === "development" && { details: error?.message }),
+      },
       { status: 500, headers: corsHeaders }
     )
   }

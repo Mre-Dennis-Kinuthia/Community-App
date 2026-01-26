@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, X, Calendar, Filter, Loader2, Clock, MapPin, Users, Video, ExternalLink } from "lucide-react"
+import { Search, X, Calendar, Filter, Loader2, Clock, MapPin, Users, Video, ExternalLink, Share2 } from "lucide-react"
 import { EventsHeader } from "@/components/events/events-header"
 import { EventsTimeline } from "@/components/events/events-timeline"
 import { EventDetailSheet } from "@/components/events/event-detail-sheet"
 import { format, isToday, isTomorrow, startOfWeek, endOfWeek, isWithinInterval } from "date-fns"
+import { useSession } from "@/lib/use-session"
 
 interface Event {
   id: number | string
@@ -38,6 +39,7 @@ interface Event {
 export default function EventsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { user } = useSession()
 
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">(
     (searchParams.get("tab") as "upcoming" | "past") || "upcoming"
@@ -191,6 +193,45 @@ export default function EventsPage() {
       return
     }
 
+    // If user is not logged in, prompt for email
+    if (!user?.email) {
+      const email = prompt("Please enter your email to register for this event:")
+      if (!email) return
+      
+      setRegistering({ ...registering, [eventId]: true })
+      
+      try {
+        const response = await fetch(`/api/events/${eventId}/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            name: prompt("Please enter your name (optional):") || undefined,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to register for event")
+        }
+
+        // Update event status
+        if (event) {
+          event.status = "Registered"
+          event.registered = (event.registered || 0) + 1
+          setAllEvents([...allEvents])
+        }
+      } catch (error: any) {
+        console.error("Failed to register for event:", error)
+        alert(error.message || "Failed to register for event. Please try again.")
+      } finally {
+        setRegistering({ ...registering, [eventId]: false })
+      }
+      return
+    }
+
     setRegistering({ ...registering, [eventId]: true })
     
     try {
@@ -200,8 +241,8 @@ export default function EventsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: "", // Will be filled from session if available
-          name: "", // Will be filled from session if available
+          email: user.email || "",
+          name: user.name || undefined,
         }),
       })
 
@@ -218,10 +259,31 @@ export default function EventsPage() {
       }
     } catch (error: any) {
       console.error("Failed to register for event:", error)
-      // Show error toast or notification
       alert(error.message || "Failed to register for event. Please try again.")
     } finally {
       setRegistering({ ...registering, [eventId]: false })
+    }
+  }
+
+  const handleShareEvent = async (event: Event) => {
+    const eventUrl = `${window.location.origin}/events/${event.id}`
+    const shareText = `Check out this event: ${event.title}`
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event.title,
+          text: shareText,
+          url: eventUrl,
+        })
+      } catch (error) {
+        // User cancelled or error occurred
+        console.log("Share cancelled or failed")
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(eventUrl)
+      alert("Event link copied to clipboard!")
     }
   }
 
