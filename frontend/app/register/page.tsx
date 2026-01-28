@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/lib/toast"
+import { startNavigation } from "@/lib/navigation"
 import { Loader2, Linkedin } from "lucide-react"
 
 function RegisterForm() {
@@ -163,8 +164,7 @@ function RegisterForm() {
 
       console.log("[REGISTER FORM] Registration successful, redirecting to login")
       toast.success("Account created!", "You can now sign in with your credentials")
-      
-      // Redirect to login page with success message
+      startNavigation()
       router.push(`/login?email=${encodeURIComponent(formData.email)}&registered=true`)
     } catch (error) {
       console.error("[REGISTER FORM] Error:", error)

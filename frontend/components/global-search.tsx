@@ -110,6 +110,7 @@ export function GlobalSearch() {
     if (searchTerm) {
       saveSearch(searchTerm)
     }
+    startNavigation()
     router.push(href)
     setOpen(false)
     setQuery("")

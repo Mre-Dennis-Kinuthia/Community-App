@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { signIn } from "next-auth/react"
 import { toast } from "@/lib/toast"
+import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
 
 function LoginForm() {
@@ -115,6 +116,7 @@ function LoginForm() {
 
       console.log("[LOGIN FORM] Sign in successful, redirecting to:", result?.url || redirect)
       toast.success("Welcome back!", "You've been successfully logged in")
+      startNavigation()
       router.push(result?.url || redirect)
     } catch (error) {
       console.error("[LOGIN FORM] Error:", error)
@@ -143,6 +145,7 @@ function LoginForm() {
       if (result?.ok) {
         console.log("[LOGIN FORM] Google sign in successful, redirecting to:", result?.url || redirect)
         toast.success("Welcome!", "You've been successfully logged in with Google")
+        startNavigation()
         router.push(result?.url || redirect)
       }
     } catch (error) {

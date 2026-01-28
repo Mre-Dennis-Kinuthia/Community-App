@@ -25,10 +25,8 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setIsVisible(false)
-    const timer = setTimeout(() => {
-      setIsVisible(true)
-    }, 10)
-    return () => clearTimeout(timer)
+    const id = setTimeout(() => setIsVisible(true), 4)
+    return () => clearTimeout(id)
   }, [pathname])
 
   if (reducedMotion) {
@@ -38,7 +36,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={cn(
-        "transition-all duration-200 ease-out",
+        "transition-all duration-150 ease-out",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
       )}
       style={{ 

@@ -6,6 +6,7 @@ import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/toaster"
 import { SkipLink } from "@/components/skip-link"
 import { PageTransition } from "@/app/components/page-transition"
+import { TopLoadingBar } from "@/app/components/top-loading-bar"
 import "./globals.css"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
         <SkipLink />
         <Providers>
+          <TopLoadingBar />
           <PageTransition>
             {children}
           </PageTransition>
