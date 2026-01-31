@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Bell, Check, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,6 +30,7 @@ interface Notification {
 }
 
 export function NotificationCenter() {
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -36,7 +39,7 @@ export function NotificationCenter() {
     async function fetchNotifications() {
       try {
         setIsLoading(true)
-        const response = await fetch("/api/notifications?limit=10")
+        const response = await fetch("/api/notifications?limit=10", { credentials: "include" })
         if (response.ok) {
           const data = await response.json()
           const list = data.notifications || []
@@ -79,6 +82,7 @@ export function NotificationCenter() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ read: true }),
+        credentials: "include",
       })
 
       if (!response.ok) {
@@ -109,6 +113,7 @@ export function NotificationCenter() {
     try {
       const response = await fetch("/api/notifications/mark-all-read", {
         method: "POST",
+        credentials: "include",
       })
 
       if (!response.ok) {
@@ -119,7 +124,7 @@ export function NotificationCenter() {
         console.error("Failed to mark all as read:", data.error)
       } else {
         // Refresh to get updated data
-        const refreshResponse = await fetch("/api/notifications?limit=10")
+        const refreshResponse = await fetch("/api/notifications?limit=10", { credentials: "include" })
         if (refreshResponse.ok) {
           const data = await refreshResponse.json()
           setNotifications(data.notifications || [])
@@ -146,6 +151,7 @@ export function NotificationCenter() {
     try {
       const response = await fetch(`/api/notifications/${id}`, {
         method: "DELETE",
+        credentials: "include",
       })
 
       if (!response.ok) {
@@ -170,7 +176,12 @@ export function NotificationCenter() {
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id)
     if (notification.actionUrl) {
-      window.location.href = notification.actionUrl
+      const url = notification.actionUrl
+      if (url.startsWith("http://") || url.startsWith("https://")) {
+        window.location.href = url
+      } else {
+        router.push(url)
+      }
     }
   }
 
@@ -274,9 +285,9 @@ export function NotificationCenter() {
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <a href="#" className="text-center text-sm text-primary">
+              <Link href="/dashboard/notifications" className="text-center text-sm text-primary block w-full py-2">
                 View all notifications
-              </a>
+              </Link>
             </DropdownMenuItem>
           </>
         )}

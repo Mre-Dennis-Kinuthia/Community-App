@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma"
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await auth()
@@ -20,8 +20,9 @@ export async function GET(
       )
     }
 
-    const notification = await prisma.notification.findUnique({
-      where: { id: params.id },
+    const { id } = await Promise.resolve(params)
+    const notification = await prisma.notification.findFirst({
+      where: { id, deletedAt: null },
     })
 
     if (!notification) {
@@ -70,7 +71,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await auth()
@@ -82,12 +83,13 @@ export async function PUT(
       )
     }
 
+    const { id } = await Promise.resolve(params)
     const body = await request.json()
     const { read, ...otherUpdates } = body
 
-    // First, verify the notification exists and belongs to the user
-    const existing = await prisma.notification.findUnique({
-      where: { id: params.id },
+    // First, verify the notification exists, is not deleted, and belongs to the user
+    const existing = await prisma.notification.findFirst({
+      where: { id, deletedAt: null },
     })
 
     if (!existing) {
@@ -119,7 +121,7 @@ export async function PUT(
     }
 
     const notification = await prisma.notification.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
     })
 
@@ -162,7 +164,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await auth()
@@ -174,9 +176,10 @@ export async function DELETE(
       )
     }
 
-    // Verify the notification exists and belongs to the user
-    const existing = await prisma.notification.findUnique({
-      where: { id: params.id },
+    const { id } = await Promise.resolve(params)
+    // Verify the notification exists, is not deleted, and belongs to the user
+    const existing = await prisma.notification.findFirst({
+      where: { id, deletedAt: null },
     })
 
     if (!existing) {
@@ -198,7 +201,7 @@ export async function DELETE(
 
     // Soft delete
     const notification = await prisma.notification.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         deletedAt: new Date(),
       },
