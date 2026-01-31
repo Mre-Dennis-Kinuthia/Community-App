@@ -80,6 +80,13 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   const [error, setError] = useState<string | null>(null)
   const [commentForm, setCommentForm] = useState({ authorName: "", authorEmail: "", content: "" })
   const [submittingComment, setSubmittingComment] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
+
+  const onScroll = useCallback(() => {
+    const winScroll = document.documentElement.scrollTop
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight
+    setScrollProgress(height > 0 ? (winScroll / height) * 100 : 0)
+  }, [])
 
   useEffect(() => {
     async function fetchNewsItem() {
@@ -121,6 +128,12 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
     fetchComments()
   }, [id])
 
+  useEffect(() => {
+    window.addEventListener("scroll", onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [onScroll])
+
   const getDisplayDate = (item: NewsPost) => {
     if (item.publishedAt) {
       return new Date(item.publishedAt)
@@ -160,19 +173,6 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   const displayDate = getDisplayDate(newsItem)
-
-  // Reading progress bar
-  const [scrollProgress, setScrollProgress] = useState(0)
-  const onScroll = useCallback(() => {
-    const winScroll = document.documentElement.scrollTop
-    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight
-    setScrollProgress(height > 0 ? (winScroll / height) * 100 : 0)
-  }, [])
-  useEffect(() => {
-    window.addEventListener("scroll", onScroll, { passive: true })
-    onScroll()
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [onScroll])
 
   return (
     <DashboardLayout>
