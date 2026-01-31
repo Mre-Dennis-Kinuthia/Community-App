@@ -64,8 +64,12 @@ export function MobileNav() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Menu className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden transition-colors duration-200 ease-out hover:bg-muted/60"
+        >
+          <Menu className="h-5 w-5 transition-transform duration-200 ease-out" />
           <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
@@ -83,13 +87,13 @@ export function MobileNav() {
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 ease-out",
                   isActive
                     ? "bg-accent text-accent-foreground"
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4 transition-colors duration-200 ease-out" />
                 <span>{item.title}</span>
               </Link>
             )

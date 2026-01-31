@@ -188,12 +188,16 @@ export function NotificationCenter() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-9 w-9">
-          <Bell className="h-4 w-4" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9 transition-colors duration-200 ease-out hover:bg-muted/60"
+        >
+          <Bell className="h-4 w-4 transition-transform duration-200 ease-out" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px]"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] transition-transform duration-200 ease-out"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
@@ -208,7 +212,7 @@ export function NotificationCenter() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-xs"
+              className="h-7 text-xs transition-colors duration-200 ease-out hover:bg-muted/60"
               onClick={markAllAsRead}
             >
               Mark all read
@@ -231,7 +235,7 @@ export function NotificationCenter() {
               <div key={notification.id} className="relative group">
                 <DropdownMenuItem
                   className={cn(
-                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                    "flex flex-col items-start gap-1 p-3 cursor-pointer transition-colors duration-150 ease-out",
                     !notification.read && "bg-accent"
                   )}
                   onClick={() => handleNotificationClick(notification)}
@@ -269,7 +273,7 @@ export function NotificationCenter() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-2 top-2 h-6 w-6 opacity-0 group-hover:opacity-100"
+                  className="absolute right-2 top-2 h-6 w-6 opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100"
                   onClick={(e) => {
                     e.stopPropagation()
                     deleteNotification(notification.id)
