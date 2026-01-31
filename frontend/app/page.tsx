@@ -34,6 +34,7 @@ import {
   Globe,
   Lightbulb
 } from "lucide-react"
+import { Logo } from "@/components/logo"
 
 // Accordion component for FAQ
 interface AccordionItemProps {
@@ -146,15 +147,9 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header - Apple Style */}
-      <header className="sticky top-0 z-50 border-b border-border/30 glass">
-        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-3">
-            <Building2 className="h-6 w-6 text-primary" />
-            <div className="flex flex-col">
-              <span className="font-semibold text-base leading-tight">Community Platform</span>
-              <span className="text-xs text-muted-foreground leading-tight">Powered by Impact Hub Nairobi</span>
-            </div>
-          </div>
+      <header className="sticky top-0 z-50 overflow-x-hidden border-b border-border/30 glass">
+        <div className="container flex h-16 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
+          <Logo href="/" />
           <nav className="hidden md:flex items-center gap-8 text-sm">
             <a href="#how-it-works" className="text-foreground/70 ">How it Works</a>
             <a href="#testimonials" className="text-foreground/70 ">Testimonials</a>
@@ -787,10 +782,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* Brand */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Building2 className="h-6 w-6 text-primary" />
-                <span className="font-semibold text-lg">Impact Hub Nairobi</span>
-              </div>
+              <Logo />
               <p className="text-sm text-muted-foreground">
                 Kenya's leading innovation community for social entrepreneurs and changemakers.
               </p>

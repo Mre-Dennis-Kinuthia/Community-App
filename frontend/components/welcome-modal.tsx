@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/logo"
 import { Sparkles, Calendar, Users, BookOpen, X } from "lucide-react"
 import Link from "next/link"
 
@@ -76,10 +77,8 @@ export function WelcomeModal() {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary/10 p-2">
-                <Sparkles className="h-6 w-6 text-primary" />
-              </div>
+            <div className="flex flex-col gap-3">
+              <Logo variant="compact" />
               <div>
                 <DialogTitle className="text-2xl">Welcome to Impact Hub Nairobi!</DialogTitle>
                 <DialogDescription className="text-base mt-1">

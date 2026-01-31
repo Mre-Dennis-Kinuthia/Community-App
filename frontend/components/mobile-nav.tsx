@@ -4,7 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Users, BookOpen, Menu, X, CalendarDays, Handshake, Lightbulb, Newspaper } from "lucide-react"
+import { LayoutDashboard, Calendar, Users, BookOpen, Menu, CalendarDays, Handshake, Lightbulb, Newspaper } from "lucide-react"
+import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -73,9 +74,10 @@ export function MobileNav() {
           <span className="sr-only">Toggle menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[200px] p-0">
+      <SheetContent side="left" className="w-[260px] p-0">
         <SheetHeader className="p-4 border-b">
-          <SheetTitle>Menu</SheetTitle>
+          <SheetTitle className="sr-only">Menu</SheetTitle>
+          <Logo href="/dashboard" variant="compact" className="mt-1" />
         </SheetHeader>
         <nav className="grid items-start gap-2 p-4">
           {items.map((item) => {

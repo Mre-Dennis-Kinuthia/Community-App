@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, ArrowRight, ArrowLeft, Sparkles, User, Briefcase, Heart, Plus, X } from "lucide-react"
+import { Logo } from "@/components/logo"
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 
@@ -183,6 +184,9 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="mx-auto max-w-xl space-y-6">
+        <div className="flex justify-center">
+          <Logo href="/dashboard" variant="compact" />
+        </div>
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary mb-4">
             <Sparkles className="h-4 w-4" />

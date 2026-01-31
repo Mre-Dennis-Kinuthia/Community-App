@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "@/lib/toast"
 import { startNavigation } from "@/lib/navigation"
 import { Loader2, Linkedin } from "lucide-react"
+import { Logo } from "@/components/logo"
 
 function RegisterForm() {
   const router = useRouter()
@@ -178,7 +179,8 @@ function RegisterForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/50 p-4">
+      <Logo href="/" className="mb-6" />
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">Join the Community</CardTitle>
