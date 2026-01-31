@@ -21,7 +21,7 @@ const items = [
     icon: LayoutDashboard,
   },
   {
-    title: "Events & Programs",
+    title: "Events",
     href: "/events",
     icon: CalendarDays,
   },

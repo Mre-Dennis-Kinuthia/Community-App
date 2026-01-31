@@ -1,10 +1,10 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import { use, useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Button } from "@/components/ui/button"
-import { 
+import {
   ArrowLeft,
   Calendar,
   Newspaper,
@@ -13,7 +13,7 @@ import {
   Eye,
   Tag,
   MessageSquare,
-  User
+  User,
 } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
@@ -161,19 +161,43 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
   const displayDate = getDisplayDate(newsItem)
 
+  // Reading progress bar
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const onScroll = useCallback(() => {
+    const winScroll = document.documentElement.scrollTop
+    const height = document.documentElement.scrollHeight - document.documentElement.clientHeight
+    setScrollProgress(height > 0 ? (winScroll / height) * 100 : 0)
+  }, [])
+  useEffect(() => {
+    window.addEventListener("scroll", onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [onScroll])
+
   return (
     <DashboardLayout>
+      {/* Reading progress bar */}
+      <div
+        className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-primary/20"
+        aria-hidden
+      >
+        <div
+          className="h-full bg-primary transition-[width] duration-150 ease-out"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
       <div className="min-h-screen bg-background">
         {/* Medium-style Article */}
         <article className="max-w-3xl mx-auto px-6 py-12">
           {/* Back Button */}
           <div className="mb-8">
-            <Button 
-              variant="ghost" 
-              onClick={() => router.back()} 
-              className="text-muted-foreground hover:text-foreground"
+            <Button
+              variant="ghost"
+              onClick={() => router.back()}
+              className="group text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-200 ease-out group-hover:-translate-x-0.5" />
               Back
             </Button>
           </div>
@@ -255,11 +279,11 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Featured Image */}
           {newsItem.imageUrl && (
-            <div className="mb-12 -mx-6">
+            <div className="mb-12 -mx-6 overflow-hidden rounded-lg transition-shadow duration-300 ease-out">
               <img
                 src={newsItem.imageUrl}
                 alt={newsItem.title}
-                className="w-full h-auto rounded-lg"
+                className="w-full h-auto rounded-lg transition-transform duration-500 ease-out"
               />
             </div>
           )}
@@ -288,12 +312,12 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           {/* Article Footer */}
           <footer className="mt-16 pt-8 border-t border-border/50">
             <div className="flex items-center justify-between">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => router.push("/news")}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-200 ease-out" />
                 Back to News
               </Button>
             </div>

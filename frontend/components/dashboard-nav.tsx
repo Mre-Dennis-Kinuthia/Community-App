@@ -77,7 +77,7 @@ const navGroups: NavGroup[] = [
     title: "Programs",
     items: [
       {
-        title: "Events & Programs",
+        title: "Events",
         href: "/events",
         icon: CalendarDays,
       },

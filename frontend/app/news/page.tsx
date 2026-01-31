@@ -67,11 +67,16 @@ interface NewsPost {
 export default function NewsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
+
+  const searchQuery = searchParams.get("search") || ""
+  const categoryId = searchParams.get("categoryId") || ""
+  const tagId = searchParams.get("tagId") || ""
+  const [searchInput, setSearchInput] = useState(searchQuery)
 
   const newsParams = new URLSearchParams()
   if (searchQuery) newsParams.set("search", searchQuery)
+  if (categoryId) newsParams.set("categoryId", categoryId)
+  if (tagId) newsParams.set("tagId", tagId)
   newsParams.set("limit", "50")
   const newsKey = `/api/news?${newsParams.toString()}`
   const { data: newsResponse, error: newsError, isLoading: loading } = useSWR<{ posts?: NewsPost[] }>(newsKey)
@@ -79,30 +84,27 @@ export default function NewsPage() {
   const error = newsError?.message ? "Failed to load news. Please try again later." : null
 
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (searchQuery) params.set("search", searchQuery)
-    
-    const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
-    router.replace(newUrl, { scroll: false })
-  }, [searchQuery, router])
+    setSearchInput(searchQuery)
+  }, [searchQuery])
 
-  const filteredNews = useMemo(() => {
-    if (!searchQuery) return news
-    
-    const query = searchQuery.toLowerCase()
-    return news.filter((item) => {
-      return (
-        item.title.toLowerCase().includes(query) ||
-        item.excerpt?.toLowerCase().includes(query) ||
-        item.content.toLowerCase().includes(query)
-      )
-    })
-  }, [news, searchQuery])
+  const applySearch = () => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (searchInput.trim()) params.set("search", searchInput.trim())
+    else params.delete("search")
+    params.delete("page")
+    router.replace(params.toString() ? `?${params.toString()}` : "/news", { scroll: false })
+  }
 
   const clearFilters = () => {
-    setSearchQuery("")
-    router.replace(window.location.pathname, { scroll: false })
+    setSearchInput("")
+    router.replace("/news", { scroll: false })
   }
+
+  const hasActiveFilters = searchQuery || categoryId || tagId
+  const activeCategoryName =
+    categoryId && (news.find((p) => p.category?.id === categoryId)?.category?.name ?? "Category")
+  const activeTagName =
+    tagId && (news.find((p) => p.tags?.some((t) => t.tag.id === tagId))?.tags?.find((t) => t.tag.id === tagId)?.tag.name ?? "Tag")
 
   const getDisplayDate = (item: NewsPost) => {
     if (item.publishedAt) {
@@ -131,23 +133,64 @@ export default function NewsPage() {
               </p>
               
               {/* Search */}
-              <div className="relative max-w-md mt-6">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search articles..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 border-border/50 bg-background"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={clearFilters}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
+              <div className="flex gap-2 max-w-md mt-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                  <Input
+                    placeholder="Search articles..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && applySearch()}
+                    className="pl-9 pr-9 border-border/50 bg-background transition-colors duration-200 ease-out focus:ring-2 focus:ring-primary/20"
+                  />
+                  {hasActiveFilters && (
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground"
+                      aria-label="Clear filters"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className="shrink-0 transition-colors duration-200 ease-out"
+                  onClick={applySearch}
+                  aria-label="Search"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
               </div>
+
+              {/* Active filters */}
+              {hasActiveFilters && (
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <span className="text-sm text-muted-foreground">Filters:</span>
+                  {searchQuery && (
+                    <Badge variant="secondary" className="font-normal">
+                      Search: &quot;{searchQuery}&quot;
+                    </Badge>
+                  )}
+                  {activeCategoryName && (
+                    <Badge variant="outline">{activeCategoryName}</Badge>
+                  )}
+                  {activeTagName && (
+                    <Badge variant="outline">{activeTagName}</Badge>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground"
+                    onClick={clearFilters}
+                  >
+                    Clear all
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -170,90 +213,98 @@ export default function NewsPage() {
             </div>
           )}
 
-          {!loading && !error && filteredNews.length === 0 && (
+          {!loading && !error && news.length === 0 && (
             <div className="text-center py-20">
               <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
-                {searchQuery ? "No articles found matching your search." : "No articles available yet."}
+                {hasActiveFilters ? "No articles match your filters. Try clearing them." : "No articles available yet."}
               </p>
+              {hasActiveFilters && (
+                <Button variant="outline" className="mt-4 transition-colors duration-200 ease-out" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              )}
             </div>
           )}
 
-          {/* Medium-style Article List */}
-          {!loading && !error && filteredNews.length > 0 && (
-            <div className="space-y-16">
-              {filteredNews.map((item) => {
+          {/* Article Grid */}
+          {!loading && !error && news.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {news.map((item) => {
                 const displayDate = getDisplayDate(item)
                 const preview = item.excerpt || stripHtml(item.content)
-                
-                return (
-                  <article key={item.id} className={`group ${item.isPinned ? "border-l-4 border-primary pl-6" : ""}`}>
-                    <Link href={`/news/${item.id}`} className="block">
-                      {/* Badges */}
-                      {(item.isPinned || item.isFeatured) && (
-                        <div className="flex gap-2 mb-4">
-                          {item.isPinned && (
-                            <Badge variant="default" className="flex items-center gap-1">
-                              <Pin className="h-3 w-3" />
-                              Pinned
-                            </Badge>
-                          )}
-                          {item.isFeatured && (
-                            <Badge variant="secondary" className="flex items-center gap-1">
-                              <Star className="h-3 w-3" />
-                              Featured
-                            </Badge>
-                          )}
-                        </div>
-                      )}
 
+                return (
+                  <article
+                    key={item.id}
+                    className={`group flex flex-col rounded-xl border border-border/50 bg-card overflow-hidden transition-all duration-200 ease-out hover:shadow-md hover:border-border ${
+                      item.isPinned ? "ring-2 ring-primary ring-offset-2" : ""
+                    }`}
+                  >
+                    <Link href={`/news/${item.id}`} className="flex flex-col flex-1">
                       {/* Featured Image */}
-                      {item.imageUrl && (
-                        <div className="mb-6 overflow-hidden rounded-lg">
+                      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                        {item.imageUrl ? (
                           <img
                             src={item.imageUrl}
                             alt={item.title}
-                            className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                           />
-                        </div>
-                      )}
-                      
-                      {/* Article Content */}
-                      <div className="space-y-4">
-                        <div className="flex items-start justify-between gap-4">
-                        <h2 
-                            className="text-3xl font-bold leading-tight group-hover:text-primary transition-colors flex-1"
-                          style={{ fontFamily: "Georgia, serif" }}
-                        >
-                          {item.title}
-                        </h2>
-                        </div>
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Newspaper className="h-12 w-12 text-muted-foreground/50" />
+                          </div>
+                        )}
+                        {/* Badges overlay */}
+                        {(item.isPinned || item.isFeatured) && (
+                          <div className="absolute top-2 left-2 flex gap-2">
+                            {item.isPinned && (
+                              <Badge variant="default" className="flex items-center gap-1 shadow-sm">
+                                <Pin className="h-3 w-3" />
+                                Pinned
+                              </Badge>
+                            )}
+                            {item.isFeatured && (
+                              <Badge variant="secondary" className="flex items-center gap-1 shadow-sm">
+                                <Star className="h-3 w-3" />
+                                Featured
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                      </div>
 
+                      {/* Card content */}
+                      <div className="flex flex-1 flex-col p-5">
                         {/* Category and Tags */}
                         {(item.category || item.tags.length > 0) && (
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
                             {item.category && (
                               <Link
-                                href={`/news?categoryId=${item.category.id}`}
+                                href={categoryId === item.category.id ? "/news" : `/news?categoryId=${item.category.id}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="inline-block"
+                                className="inline-block transition-opacity duration-200 ease-out hover:opacity-80"
                               >
                                 <Badge
                                   variant="outline"
+                                  className={`text-xs ${categoryId === item.category.id ? "ring-2 ring-primary ring-offset-1" : ""}`}
                                   style={item.category.color ? { borderColor: item.category.color, color: item.category.color } : undefined}
                                 >
                                   {item.category.name}
                                 </Badge>
                               </Link>
                             )}
-                            {item.tags.slice(0, 3).map((postTag) => (
+                            {item.tags.slice(0, 2).map((postTag) => (
                               <Link
                                 key={postTag.tag.id}
-                                href={`/news?tagId=${postTag.tag.id}`}
+                                href={tagId === postTag.tag.id ? "/news" : `/news?tagId=${postTag.tag.id}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="inline-block"
+                                className="inline-block transition-opacity duration-200 ease-out hover:opacity-80"
                               >
-                                <Badge variant="outline" className="flex items-center gap-1">
+                                <Badge
+                                  variant="outline"
+                                  className={`text-xs flex items-center gap-1 ${tagId === postTag.tag.id ? "ring-2 ring-primary ring-offset-1" : ""}`}
+                                >
                                   <Tag className="h-3 w-3" />
                                   {postTag.tag.name}
                                 </Badge>
@@ -261,48 +312,43 @@ export default function NewsPage() {
                             ))}
                           </div>
                         )}
-                        
+
+                        <h2
+                          className="text-xl font-bold leading-snug group-hover:text-primary transition-colors duration-200 ease-out line-clamp-2 mb-2"
+                          style={{ fontFamily: "Georgia, serif" }}
+                        >
+                          {item.title}
+                        </h2>
+
                         {preview && (
-                          <p 
-                            className="text-lg text-muted-foreground leading-relaxed line-clamp-3"
+                          <p
+                            className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1 mb-4"
                             style={{ fontFamily: "Georgia, serif" }}
                           >
                             {preview}
                           </p>
                         )}
-                        
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground pt-2">
-                          {item.author && (
-                            <>
-                              <span>By {item.author.name || item.author.email}</span>
-                              <span>•</span>
-                            </>
-                          )}
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>{format(displayDate, "MMMM d, yyyy")}</span>
+
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-auto pt-3 border-t border-border/50">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5 shrink-0" />
+                            <span>{format(displayDate, "MMM d, yyyy")}</span>
                           </div>
                           {item.readingTimeMinutes && (
-                            <>
-                              <span>•</span>
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                <span>{item.readingTimeMinutes} min read</span>
-                              </div>
-                            </>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5 shrink-0" />
+                              <span>{item.readingTimeMinutes} min</span>
+                            </div>
                           )}
                           {item.viewCount > 0 && (
-                            <>
-                          <span>•</span>
-                              <div className="flex items-center gap-1">
-                                <Eye className="h-4 w-4" />
-                                <span>{item.viewCount} {item.viewCount === 1 ? 'view' : 'views'}</span>
-                              </div>
-                            </>
+                            <div className="flex items-center gap-1">
+                              <Eye className="h-3.5 w-3.5 shrink-0" />
+                              <span>{item.viewCount}</span>
+                            </div>
                           )}
-                          <span className="ml-auto group-hover:text-primary transition-colors flex items-center gap-1">
-                            Read more
-                            <ArrowRight className="h-3 w-3" />
+                          <span className="ml-auto flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-[gap] duration-200 ease-out">
+                            Read
+                            <ArrowRight className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
                           </span>
                         </div>
                       </div>

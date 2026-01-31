@@ -1,6 +1,6 @@
 "use client"
 
-import { Star, MapPin, Users } from "lucide-react"
+import { MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -29,20 +29,10 @@ export function BookingHeader({ workspace, onBookNow, onCheckAvailability }: Boo
         </p>
       </div>
 
-      {/* Trust Indicators & Pricing */}
+      {/* Pricing */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <Star className="h-5 w-5 fill-primary text-primary" />
-            <span className="text-lg font-semibold">{workspace.rating}</span>
-            <span className="text-sm text-muted-foreground">
-              ({workspace.reviewCount} reviews)
-            </span>
-          </div>
-          <div className="h-6 w-px bg-border" />
-          <div className="text-lg font-semibold text-primary">
-            From {workspace.currency} {workspace.startingPrice.toLocaleString()}/day
-          </div>
+        <div className="text-lg font-semibold text-primary">
+          From {workspace.currency} {workspace.startingPrice.toLocaleString()}/day
         </div>
       </div>
 
