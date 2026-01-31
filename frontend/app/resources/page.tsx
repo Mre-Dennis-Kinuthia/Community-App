@@ -434,7 +434,7 @@ function ResourcesPageContent() {
                         <div className="flex items-center gap-2 pt-2 border-t">
                           <Avatar className="h-6 w-6">
                             <AvatarImage src={program.programLeadAvatar} alt={program.programLead} />
-                            <AvatarFallback>{program.programLead[0]}</AvatarFallback>
+                            <AvatarFallback>{(program.programLead ?? "?")[0]}</AvatarFallback>
                           </Avatar>
                           <span className="text-sm text-muted-foreground">Led by {program.programLead}</span>
                         </div>

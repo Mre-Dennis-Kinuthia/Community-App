@@ -166,7 +166,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 <div className="flex items-center gap-4 mt-4">
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={project.founderAvatar} alt={project.founder} />
-                    <AvatarFallback>{project.founder[0]}</AvatarFallback>
+                    <AvatarFallback>{(project.founder ?? "?")[0]}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-medium">by {project.founder}</p>
@@ -249,7 +249,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border/50">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={member.avatar} alt={member.name} />
-                          <AvatarFallback>{member.name[0]}</AvatarFallback>
+                          <AvatarFallback>{(member.name ?? "?")[0]}</AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-medium text-sm">{member.name}</p>

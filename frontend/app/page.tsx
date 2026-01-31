@@ -571,7 +571,7 @@ export default function HomePage() {
                 <div className="flex items-center gap-3">
                   <Avatar>
                     <AvatarImage src={testimonial.avatar} />
-                    <AvatarFallback>{testimonial.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    <AvatarFallback>{(testimonial.name ?? "").split(" ").filter(Boolean).map((n) => n[0]).join("") || "?"}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-semibold text-sm">{testimonial.name}</p>

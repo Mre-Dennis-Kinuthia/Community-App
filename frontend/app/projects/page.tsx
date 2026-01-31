@@ -257,7 +257,7 @@ function ProjectsPageContent() {
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
                               <AvatarImage src={project.founderAvatar} alt={project.founder} />
-                              <AvatarFallback>{project.founder[0]}</AvatarFallback>
+                              <AvatarFallback>{(project.founder ?? "?")[0]}</AvatarFallback>
                             </Avatar>
                             <span className="text-sm text-muted-foreground">by {project.founder}</span>
                           </div>
@@ -467,7 +467,7 @@ function ProjectsPageContent() {
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
                               <AvatarImage src={project.founderAvatar} alt={project.founder} />
-                              <AvatarFallback>{project.founder[0]}</AvatarFallback>
+                              <AvatarFallback>{(project.founder ?? "?")[0]}</AvatarFallback>
                             </Avatar>
                             <span className="text-sm text-muted-foreground">by {project.founder}</span>
                           </div>

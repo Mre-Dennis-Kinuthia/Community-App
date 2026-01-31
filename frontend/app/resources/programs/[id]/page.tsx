@@ -308,7 +308,7 @@ export default function ProgramDetailPage({ params }: { params: Promise<{ id: st
                     <div className="flex items-center gap-3 mt-4">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={program.programLeadAvatar} alt={program.programLead} />
-                        <AvatarFallback>{program.programLead[0]}</AvatarFallback>
+                        <AvatarFallback>{(program.programLead ?? "?")[0]}</AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-medium">Led by {program.programLead}</p>
@@ -464,7 +464,7 @@ export default function ProgramDetailPage({ params }: { params: Promise<{ id: st
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={program.programLeadAvatar} alt={program.programLead} />
-                      <AvatarFallback>{program.programLead[0]}</AvatarFallback>
+                      <AvatarFallback>{(program.programLead ?? "?")[0]}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium">{program.programLead}</span>
                   </div>

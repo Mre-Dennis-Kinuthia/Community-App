@@ -277,7 +277,7 @@ export default function NewsPage() {
                       {/* Card content */}
                       <div className="flex flex-1 flex-col p-5">
                         {/* Category and Tags */}
-                        {(item.category || item.tags.length > 0) && (
+                        {(item.category || (item.tags?.length ?? 0) > 0) && (
                           <div className="flex flex-wrap items-center gap-2 mb-3">
                             {item.category && (
                               <Link
@@ -294,7 +294,7 @@ export default function NewsPage() {
                                 </Badge>
                               </Link>
                             )}
-                            {item.tags.slice(0, 2).map((postTag) => (
+                            {(item.tags ?? []).slice(0, 2).map((postTag) => (
                               <Link
                                 key={postTag.tag.id}
                                 href={tagId === postTag.tag.id ? "/news" : `/news?tagId=${postTag.tag.id}`}
