@@ -17,32 +17,36 @@ export async function GET(
   try {
     const { id } = params
 
-    const partner = await prisma.partner.findUnique({
+    const row = await prisma.partner.findUnique({
       where: {
         id,
         deletedAt: null,
       },
-      include: {
-        opportunities: {
-          where: {
-            deletedAt: null,
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-      },
     })
 
-    if (!partner) {
+    if (!row) {
       return NextResponse.json(
         { error: "Partner not found" },
         { status: 404, headers: corsHeaders }
       )
     }
 
+    const partner = {
+      id: row.id,
+      name: row.name,
+      logoUrl: row.logoUrl ?? null,
+      website: row.website ?? null,
+      createdAt: row.createdAt,
+      type: "Partner",
+      category: "",
+      description: "",
+      focus: [] as string[],
+      locationType: "",
+      opportunities: [] as unknown[],
+    }
+
     return NextResponse.json({ partner }, { headers: corsHeaders })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[PARTNER API] Error:", error)
     return NextResponse.json(
       { error: "Failed to fetch partner" },

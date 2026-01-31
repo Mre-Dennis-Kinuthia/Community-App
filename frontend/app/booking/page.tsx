@@ -79,7 +79,6 @@ export default function BookingPage() {
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("hourly")
   const [selectedHalfDay, setSelectedHalfDay] = useState<"morning" | "afternoon" | undefined>(undefined)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
-  const [isBooking, setIsBooking] = useState(false)
 
   const { pricing, calculateTotal } = usePricing(
     workspaceId,
@@ -157,14 +156,13 @@ export default function BookingPage() {
     return selectedTime || null
   }, [selectedResource, selectedDuration, selectedHalfDay, selectedTime])
 
-  // Handle booking
-  const handleConfirmBooking = async () => {
+  // Proceed to payment (booking is confirmed only after payment on /booking/payment)
+  const handleConfirmBooking = () => {
     if (!isValidBooking || !selectedDate || !selectedResource) {
       toast.warning("Complete your selection", "Please complete all required fields")
       return
     }
 
-    // Validate time selection based on resource type
     if (selectedResource !== "hot-desk" || selectedDuration === "hourly") {
       if (!selectedTime) {
         toast.warning("Complete your selection", "Please select a time")
@@ -172,63 +170,36 @@ export default function BookingPage() {
       }
     }
 
-    setIsBooking(true)
-    
+    const startTime = calculateStartTime
+    if (!startTime) {
+      toast.warning("Complete your selection", "Please select a time")
+      return
+    }
+
+    const basePrice = safePricing.options.find(opt => opt.type === selectedDuration)?.price ?? 0
+    const addOnsPrice = selectedAddOns.reduce((sum, id) => {
+      const addOn = safePricing.addOns.find(a => a.id === id)
+      return sum + (addOn?.price || 0)
+    }, 0)
+
+    const payload = {
+      resourceType: selectedResource,
+      date: selectedDate.toISOString(),
+      startTime,
+      duration: selectedDuration,
+      basePrice,
+      addOnsPrice,
+      totalPrice,
+      addOns: selectedAddOns,
+      workspaceId,
+    }
+
     try {
-      const startTime = calculateStartTime
-      
-      console.log("[BOOKING PAGE] Submitting booking:", {
-        resourceType: selectedResource,
-        date: selectedDate.toISOString(),
-        startTime,
-        duration: selectedDuration,
-        halfDay: selectedHalfDay,
-        basePrice: safePricing.options.find(opt => opt.type === selectedDuration)?.price || 0,
-        addOnsPrice: selectedAddOns.reduce((sum, id) => {
-          const addOn = safePricing.addOns.find(a => a.id === id)
-          return sum + (addOn?.price || 0)
-        }, 0),
-        totalPrice,
-        addOns: selectedAddOns,
-      })
-
-      const response = await fetch("/api/bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          resourceType: selectedResource,
-          date: selectedDate.toISOString(),
-          startTime,
-          duration: selectedDuration,
-          basePrice: pricing.options.find(opt => opt.type === selectedDuration)?.price || 0,
-          addOnsPrice: selectedAddOns.reduce((sum, id) => {
-            const addOn = pricing.addOns.find(a => a.id === id)
-            return sum + (addOn?.price || 0)
-          }, 0),
-          totalPrice,
-          addOns: selectedAddOns,
-          workspaceId: workspaceId,
-        }),
-      })
-
-      const data = await response.json()
-      console.log("[BOOKING PAGE] Booking response:", response.status, data)
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create booking")
-      }
-
-      // Redirect to success page with booking ID
-      window.location.href = `/booking/success?id=${data.booking.id}`
-    } catch (error) {
-      console.error("[BOOKING PAGE] Booking error:", error)
-      toast.error(
-        "Booking failed",
-        error instanceof Error ? error.message : "Please try again or contact support."
-      )
-      setIsBooking(false)
+      sessionStorage.setItem("pendingWorkspaceBooking", JSON.stringify(payload))
+      window.location.href = "/booking/payment"
+    } catch (e) {
+      console.error("[BOOKING PAGE] Failed to save pending booking:", e)
+      toast.error("Something went wrong", "Please try again.")
     }
   }
 
@@ -394,16 +365,8 @@ export default function BookingPage() {
                     size="lg"
                     className="w-full button-press"
                     onClick={handleConfirmBooking}
-                    disabled={isBooking}
                   >
-                    {isBooking ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      "Confirm Booking"
-                    )}
+                    Proceed to payment
                   </Button>
                 )}
               </div>
@@ -427,7 +390,7 @@ export default function BookingPage() {
             setSelectedAddOns([])
           }}
           onConfirm={handleConfirmBooking}
-          isBooking={isBooking}
+          isBooking={false}
           isValid={isValidBooking}
         />
 

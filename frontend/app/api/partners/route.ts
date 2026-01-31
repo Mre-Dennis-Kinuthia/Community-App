@@ -14,54 +14,45 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search") || ""
-    const type = searchParams.get("type") || ""
-    const category = searchParams.get("category") || ""
-    const location = searchParams.get("location") || ""
-    const limit = parseInt(searchParams.get("limit") || "100")
-    const offset = parseInt(searchParams.get("offset") || "0")
+    const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "100", 10), 1), 200)
+    const offset = Math.max(parseInt(searchParams.get("offset") || "0", 10), 0)
 
-    const where: any = {
+    const where: { deletedAt: null; name?: { contains: string; mode: "insensitive" } } = {
       deletedAt: null,
     }
 
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { focus: { has: search } },
-      ]
+    if (search.trim()) {
+      where.name = { contains: search.trim(), mode: "insensitive" }
     }
 
-    if (type) {
-      where.type = type
-    }
-
-    if (category) {
-      where.category = category
-    }
-
-    if (location) {
-      where.locationType = location
-    }
-
-    const [partners, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       prisma.partner.findMany({
         where,
         take: limit,
         skip: offset,
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          _count: {
-            select: {
-              opportunities: true,
-            },
-          },
-        },
+        orderBy: { createdAt: "desc" },
       }),
       prisma.partner.count({ where }),
     ])
+
+    const partners = rows.map((p) => ({
+      id: p.id,
+      name: p.name,
+      logoUrl: p.logoUrl ?? null,
+      website: p.website ?? null,
+      createdAt: p.createdAt,
+      type: "Partner",
+      category: "",
+      description: "",
+      focus: [] as string[],
+      locationType: "",
+    }))
+
+    const filters = {
+      types: ["Partner"],
+      categories: [] as string[],
+      locationTypes: [] as string[],
+    }
 
     return NextResponse.json(
       {
@@ -69,10 +60,11 @@ export async function GET(request: NextRequest) {
         total,
         limit,
         offset,
+        filters,
       },
       { headers: corsHeaders }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[PARTNERS API] Error:", error)
     return NextResponse.json(
       { error: "Failed to fetch partners" },
