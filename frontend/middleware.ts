@@ -17,6 +17,7 @@ const protectedRoutes = [
   "/partners",
   "/projects",
   "/news",
+  "/onboarding",
 ]
 
 export default auth((request) => {

@@ -12,6 +12,7 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 const profileUpdateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
   bio: z.string().optional(),
   skills: z.array(z.string()).optional(),
   location: z.string().optional(),
@@ -69,10 +70,12 @@ export async function GET(request: NextRequest) {
           },
         },
       })
-      return NextResponse.json({ profile: newProfile }, { headers: corsHeaders })
+      const needsOnboarding = !newProfile.bio && !newProfile.industry && !newProfile.role
+      return NextResponse.json({ profile: newProfile, needsOnboarding }, { headers: corsHeaders })
     }
 
-    return NextResponse.json({ profile }, { headers: corsHeaders })
+    const needsOnboarding = !profile.bio && !profile.industry && !profile.role
+    return NextResponse.json({ profile, needsOnboarding }, { headers: corsHeaders })
   } catch (error: any) {
     console.error("[PROFILE API] Error:", error)
     return NextResponse.json(
@@ -98,17 +101,26 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
     const validatedData = profileUpdateSchema.parse(body)
+    const { name: nameUpdate, ...profileData } = validatedData
 
-    // Upsert profile
+    // Update user name if provided
+    if (nameUpdate !== undefined && nameUpdate.trim()) {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { name: nameUpdate.trim() },
+      })
+    }
+
+    // Upsert profile (exclude name from profile model)
     const profile = await prisma.memberProfile.upsert({
       where: { userId: session.user.id },
       update: {
-        ...validatedData,
+        ...profileData,
         updatedAt: new Date(),
       },
       create: {
         userId: session.user.id,
-        ...validatedData,
+        ...profileData,
       },
       include: {
         user: {

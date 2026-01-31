@@ -2,6 +2,7 @@
 
 import type React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { DashboardNav } from "@/components/dashboard-nav"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -15,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { User, Settings, LogOut, ChevronLeft, ChevronRight } from "lucide-react"
 import { signOut } from "next-auth/react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { MobileNav } from "@/components/mobile-nav"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { NotificationCenter } from "@/components/notification-center"
@@ -30,9 +31,28 @@ function DashboardLayoutContent({
 }: {
   children: React.ReactNode
 }) {
+  const router = useRouter()
   const { isCollapsed, toggleSidebar } = useSidebar()
   const { user } = useSession()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  // Redirect first-time users to onboarding
+  useEffect(() => {
+    if (!user?.id) return
+    let cancelled = false
+    fetch("/api/profile", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        if (data.needsOnboarding === true) {
+          router.replace("/onboarding")
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id, router])
 
   const handleLogout = async () => {
     console.log("[LOGOUT] Logout initiated")
