@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 import { z } from "zod"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
-import { randomUUID } from "crypto"
 
 const mpesaPaymentSchema = z.object({
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
@@ -16,9 +17,8 @@ export async function OPTIONS(request: NextRequest) {
 
 /**
  * POST /api/billing/mpesa
- * Initiate M-Pesa STK Push payment.
- * Payment model is optional; returns a payment reference so booking flow can continue.
- * TODO: Add Payment model to schema and persist; integrate Safaricom Daraja API for real STK push.
+ * Initiate M-Pesa STK Push payment. Creates a Payment record (pending).
+ * TODO: Integrate Safaricom Daraja API for real STK push and callback.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -30,26 +30,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const userId = session.user.id
     const body = await request.json()
     const { phoneNumber, amount, description } = mpesaPaymentSchema.parse(body)
 
-    // TODO: Integrate with Safaricom Daraja API STK Push
-    // 1. Call Daraja STK Push endpoint with phoneNumber, amount
-    // 2. Store checkout request ID when Payment model exists
-    // 3. Poll/callback for payment status
-    const paymentId = randomUUID()
+    const payment = await prisma.payment.create({
+      data: {
+        userId,
+        amount: new Prisma.Decimal(amount),
+        currency: "KES",
+        method: "mpesa",
+        status: "pending",
+        metadata: {
+          phoneNumber,
+          description: description ?? "Payment via M-Pesa",
+        },
+      },
+    })
+
+    // TODO: Call Safaricom Daraja API STK Push, store transactionId, handle callback
 
     return NextResponse.json(
       {
         message: "M-Pesa payment initiated. Please check your phone to complete the payment.",
-        paymentId,
+        paymentId: payment.id,
         payment: {
-          id: paymentId,
-          amount,
-          currency: "KES",
-          method: "mpesa",
-          status: "pending",
-          metadata: { phoneNumber, description: description || "Payment via M-Pesa" },
+          id: payment.id,
+          amount: Number(payment.amount),
+          currency: payment.currency,
+          method: payment.method,
+          status: payment.status,
+          metadata: payment.metadata,
         },
       },
       { status: 201, headers: corsHeaders }

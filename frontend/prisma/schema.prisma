@@ -29,6 +29,14 @@ model User {
   accounts  Account[]
   bookings  WorkspaceBooking[]
   notifications Notification[]
+  subscriptions Subscription[]
+  payments  Payment[]
+  paymentMethods PaymentMethod[]
+  invoices  Invoice[]
+  projects  Project[]           // projects founded
+  projectFollows ProjectFollow[]
+  projectVolunteers ProjectVolunteer[]
+  projectCollaborations ProjectCollaboration[]
 
   @@map("users")
 }
@@ -236,26 +244,125 @@ model Resource {
 // ============================================
 
 model Project {
-  id        String   @id @default(cuid())
-  title     String
-  description String? @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  id          String    @id @default(cuid())
+  title       String
+  description String    @db.Text
+  category    String?   // Climate & Environment, Agriculture, etc.
+  stage       String?   // Early Stage, Growth, Scaling
+  impact      String?   @db.Text
+  metrics     Json?     // Object with metrics
+  tags        String[]  @default([])
+  founderId   String?   // optional for backward compatibility
+  founder     User?     @relation(fields: [founderId], references: [id], onDelete: SetNull)
+  location    String?
+  needs       String[]  @default([]) // Seeking Funding, Seeking Collaborators, etc.
+  website     String?
+  socialLinks Json?     // Object with social links
+  launchDate  DateTime?
+  isFeatured  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  followers             ProjectFollow[]
+  volunteers            ProjectVolunteer[]
+  collaborationRequests  ProjectCollaboration[]
 
   @@map("projects")
+  @@index([founderId])
+  @@index([category])
+  @@index([stage])
+  @@index([isFeatured])
+}
+
+model ProjectFollow {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, userId])
+  @@map("project_follows")
+  @@index([userId])
+}
+
+model ProjectVolunteer {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    String   @default("pending") // pending, accepted, rejected
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, userId])
+  @@map("project_volunteers")
+  @@index([userId])
+}
+
+model ProjectCollaboration {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String?  @db.Text
+  status    String   @default("pending") // pending, accepted, rejected
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, userId])
+  @@map("project_collaborations")
+  @@index([userId])
 }
 
 model Partner {
-  id        String   @id @default(cuid())
-  name      String
-  logoUrl   String?
-  website   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  id              String   @id @default(cuid())
+  name            String
+  type            String?  // Workspace Partner, Investor, Partner, Funder, Government, Network
+  category        String?  // Infrastructure, Funding, Ecosystem, Public Sector
+  description     String?  @db.Text
+  logoUrl         String?
+  website         String?
+  location        String?
+  locationType    String?  // Local, Global
+  focus           String[] @default([]) // Array of focus areas
+  contactEmail    String?
+  isFeatured      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  opportunities   PartnerOpportunity[]
 
   @@map("partners")
+  @@index([type])
+  @@index([category])
+  @@index([locationType])
+}
+
+model PartnerOpportunity {
+  id                  String   @id @default(cuid())
+  partnerId           String
+  partner             Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  title               String
+  description         String   @db.Text
+  category            String?  // Funding, Program, Resource
+  amount              String?  // e.g., "$50K - $2M"
+  deadline            DateTime?
+  eligibility         String[] @default([])
+  applicationProcess  String[] @default([]) // process steps
+  status              String   @default("Open") // Open, Closed, Ongoing
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+
+  @@map("partner_opportunities")
+  @@index([partnerId])
+  @@index([status])
 }
 
 // ============================================
@@ -297,6 +404,116 @@ model WorkspaceBooking {
   @@map("workspace_bookings")
   @@index([userId])
   @@index([date])
+  @@index([status])
+}
+
+// ============================================
+// BILLING & SUBSCRIPTIONS
+// ============================================
+
+model Plan {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(12, 2)
+  currency    String   @default("KES")
+  interval    String   // monthly, yearly
+  features    Json?    // Array of feature strings
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId              String
+  plan                Plan     @relation(fields: [planId], references: [id])
+  status              String   // active, cancelled, expired, trialing
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  cancelAtPeriodEnd   Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
+
+  payments Payment[]
+  invoices Invoice[]
+
+  @@map("subscriptions")
+  @@index([userId])
+  @@index([status])
+}
+
+model Payment {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId  String?
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  amount          Decimal   @db.Decimal(12, 2)
+  currency        String    @default("KES")
+  method          String    // mpesa, card, bank_transfer
+  status          String    // pending, completed, failed, refunded
+  transactionId   String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  invoice Invoice?
+
+  @@map("payments")
+  @@index([userId])
+  @@index([subscriptionId])
+  @@index([status])
+}
+
+model PaymentMethod {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String   // card, mpesa, bank_account
+  provider    String?  // safaricom, stripe, etc.
+  last4       String?
+  brand       String?
+  expiryMonth Int?
+  expiryYear  Int?
+  isDefault   Boolean  @default(false)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@map("payment_methods")
+  @@index([userId])
+}
+
+model Invoice {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionId  String?
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  paymentId       String?   @unique
+  payment         Payment?  @relation(fields: [paymentId], references: [id])
+  invoiceNumber   String    @unique
+  amount          Decimal   @db.Decimal(12, 2)
+  currency        String    @default("KES")
+  status          String    // draft, paid, overdue, cancelled
+  dueDate         DateTime?
+  paidAt          DateTime?
+  pdfUrl          String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("invoices")
+  @@index([userId])
+  @@index([subscriptionId])
   @@index([status])
 }
 

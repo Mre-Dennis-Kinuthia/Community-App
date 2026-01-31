@@ -65,7 +65,6 @@ const navGroups: NavGroup[] = [
         title: "News & Updates",
         href: "/news",
         icon: Newspaper,
-        badge: "3", // Example: unread count
       },
     ],
   },

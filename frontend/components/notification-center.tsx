@@ -39,20 +39,29 @@ export function NotificationCenter() {
         const response = await fetch("/api/notifications?limit=10")
         if (response.ok) {
           const data = await response.json()
-          setNotifications(data.notifications || [])
-          setUnreadCount(data.unreadCount || 0)
+          const list = data.notifications || []
+          setNotifications(list)
+          // Use API unread count when present; otherwise derive from fetched list
+          const count =
+            typeof data.unreadCount === "number"
+              ? data.unreadCount
+              : list.filter((n: Notification) => !n.read).length
+          setUnreadCount(count)
         } else {
-          console.error("Failed to fetch notifications:", response.statusText)
+          setNotifications([])
+          setUnreadCount(0)
         }
       } catch (error) {
         console.error("Error fetching notifications:", error)
+        setNotifications([])
+        setUnreadCount(0)
       } finally {
         setIsLoading(false)
       }
     }
-    
+
     fetchNotifications()
-    
+
     // Poll for new notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)

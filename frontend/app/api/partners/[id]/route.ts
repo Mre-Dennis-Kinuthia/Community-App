@@ -8,7 +8,7 @@ export async function OPTIONS(request: NextRequest) {
 
 /**
  * GET /api/partners/[id]
- * Get a single partner with opportunities
+ * Get a single partner with opportunities (full schema: description, type, category, focus, PartnerOpportunity[])
  */
 export async function GET(
   request: NextRequest,
@@ -22,6 +22,12 @@ export async function GET(
         id,
         deletedAt: null,
       },
+      include: {
+        opportunities: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: "desc" },
+        },
+      },
     })
 
     if (!row) {
@@ -34,15 +40,29 @@ export async function GET(
     const partner = {
       id: row.id,
       name: row.name,
+      type: row.type ?? "Partner",
+      category: row.category ?? "",
+      description: row.description ?? "",
       logoUrl: row.logoUrl ?? null,
       website: row.website ?? null,
+      location: row.location ?? null,
+      locationType: row.locationType ?? "",
+      focus: row.focus ?? [],
+      contactEmail: row.contactEmail ?? null,
+      isFeatured: row.isFeatured ?? false,
       createdAt: row.createdAt,
-      type: "Partner",
-      category: "",
-      description: "",
-      focus: [] as string[],
-      locationType: "",
-      opportunities: [] as unknown[],
+      opportunities: row.opportunities.map((o) => ({
+        id: o.id,
+        title: o.title,
+        description: o.description,
+        category: o.category ?? null,
+        amount: o.amount ?? null,
+        deadline: o.deadline,
+        eligibility: o.eligibility ?? [],
+        applicationProcess: o.applicationProcess ?? [],
+        status: o.status,
+        createdAt: o.createdAt,
+      })),
     }
 
     return NextResponse.json({ partner }, { headers: corsHeaders })
