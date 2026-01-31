@@ -129,9 +129,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   // Related projects would need to be fetched separately or included in the API response
   const relatedProjects: any[] = []
 
-  const completedMilestones = project.milestones.filter(m => m.completed).length
-  const totalMilestones = project.milestones.length
-  const progressPercentage = (completedMilestones / totalMilestones) * 100
+  const milestones = project.milestones ?? []
+  const completedMilestones = milestones.filter((m: any) => m.completed).length
+  const totalMilestones = milestones.length
+  const progressPercentage = totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0
 
   return (
     <DashboardLayout>
@@ -214,11 +215,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                   </div>
                   <div className="space-y-4">
-                    {project.milestones.map((milestone, idx) => (
+                    {milestones.map((milestone: any, idx: number) => (
                       <div key={idx} className="flex gap-4">
                         <div className="flex flex-col items-center">
                           <div className={`h-3 w-3 rounded-full ${milestone.completed ? "bg-primary" : "bg-muted"}`} />
-                          {idx < project.milestones.length - 1 && (
+                          {idx < milestones.length - 1 && (
                             <div className={`w-0.5 h-full min-h-[60px] ${milestone.completed ? "bg-primary/30" : "bg-muted"}`} />
                           )}
                         </div>
@@ -270,7 +271,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         Project Needs & Opportunities
                       </h3>
                       <div className="space-y-4">
-                        {project.needs.map((need, idx) => {
+                        {(project.needs ?? []).map((need: string, idx: number) => {
                           const NeedIcon = needsIcons[need] || Users
                           return (
                             <div key={idx} className="p-4 rounded-lg border border-border/50">
@@ -302,7 +303,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                 <div className="mt-2">
                                   <p className="text-sm text-muted-foreground mb-1">Interested in partnerships with:</p>
                                   <div className="flex flex-wrap gap-1">
-                                    {project.partnershipInterests.map((interest, iIdx) => (
+                                    {(project.partnershipInterests ?? []).map((interest: string, iIdx: number) => (
                                       <Badge key={iIdx} variant="outline" className="text-xs">
                                         {interest}
                                       </Badge>
@@ -338,7 +339,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 <div>
                   <h3 className="font-semibold mb-3">Tags</h3>
                   <div className="flex flex-wrap gap-2">
-                    {project.tags.map((tag, idx) => (
+                    {(project.tags ?? []).map((tag: string, idx: number) => (
                       <Badge key={idx} variant="outline" className="text-sm">
                         {tag}
                       </Badge>
@@ -400,25 +401,25 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   <Bell className="mr-2 h-4 w-4" />
                   Subscribe to Updates
                 </Button>
-                {project.needs.includes("Seeking Collaborators") && (
+                {(project.needs ?? []).includes("Seeking Collaborators") && (
                   <Button variant="outline" className="w-full">
                     <UserPlus className="mr-2 h-4 w-4" />
                     Join as Collaborator
                   </Button>
                 )}
-                {project.needs.includes("Looking for Volunteers") && (
+                {(project.needs ?? []).includes("Looking for Volunteers") && (
                   <Button variant="outline" className="w-full">
                     <Users className="mr-2 h-4 w-4" />
                     Volunteer
                   </Button>
                 )}
-                {project.needs.includes("Seeking Funding") && (
+                {(project.needs ?? []).includes("Seeking Funding") && (
                   <Button variant="outline" className="w-full">
                     <DollarSign className="mr-2 h-4 w-4" />
                     Support Funding
                   </Button>
                 )}
-                {project.needs.includes("Open to Partnerships") && (
+                {(project.needs ?? []).includes("Open to Partnerships") && (
                   <Button variant="outline" className="w-full">
                     <Handshake className="mr-2 h-4 w-4" />
                     Explore Partnership
