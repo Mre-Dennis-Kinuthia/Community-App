@@ -245,7 +245,7 @@ export function DashboardNav() {
                               isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                             )}
                           />
-                          <span className="truncate">{item.title}</span>
+                          <span className="min-w-0 break-words">{item.title}</span>
                         </div>
                         {item.badge && (
                           <Badge variant="secondary" className="ml-2 h-5 min-w-5 shrink-0 px-1.5 text-xs transition-opacity duration-200">
