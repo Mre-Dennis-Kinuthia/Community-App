@@ -46,6 +46,11 @@ const navGroups: NavGroup[] = [
         href: "/booking",
         icon: Calendar,
       },
+      {
+        title: "My Bookings",
+        href: "/dashboard/bookings",
+        icon: BookOpen,
+      },
     ],
   },
   {
