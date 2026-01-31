@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { randomUUID } from "crypto"
 
 const mpesaPaymentSchema = z.object({
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
@@ -16,7 +16,9 @@ export async function OPTIONS(request: NextRequest) {
 
 /**
  * POST /api/billing/mpesa
- * Initiate M-Pesa STK Push payment
+ * Initiate M-Pesa STK Push payment.
+ * Payment model is optional; returns a payment reference so booking flow can continue.
+ * TODO: Add Payment model to schema and persist; integrate Safaricom Daraja API for real STK push.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -28,41 +30,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = session.user.id
     const body = await request.json()
     const { phoneNumber, amount, description } = mpesaPaymentSchema.parse(body)
 
-    // TODO: Integrate with actual M-Pesa API (Safaricom Daraja API)
-    // For now, create a payment record
-    const payment = await prisma.payment.create({
-      data: {
-        userId,
-        amount,
-        currency: "KES",
-        method: "mpesa",
-        status: "pending",
-        metadata: {
-          phoneNumber,
-          description: description || "Payment via M-Pesa",
-        },
-      },
-    })
-
-    // In production, this would:
-    // 1. Call Safaricom Daraja API STK Push endpoint
-    // 2. Store the checkout request ID
-    // 3. Poll for payment status
-    // 4. Update payment record when confirmed
+    // TODO: Integrate with Safaricom Daraja API STK Push
+    // 1. Call Daraja STK Push endpoint with phoneNumber, amount
+    // 2. Store checkout request ID when Payment model exists
+    // 3. Poll/callback for payment status
+    const paymentId = randomUUID()
 
     return NextResponse.json(
       {
         message: "M-Pesa payment initiated. Please check your phone to complete the payment.",
-        paymentId: payment.id,
-        payment,
+        paymentId,
+        payment: {
+          id: paymentId,
+          amount,
+          currency: "KES",
+          method: "mpesa",
+          status: "pending",
+          metadata: { phoneNumber, description: description || "Payment via M-Pesa" },
+        },
       },
       { status: 201, headers: corsHeaders }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[MPESA PAYMENT API] Error:", error)
     if (error instanceof z.ZodError) {
       return NextResponse.json(
