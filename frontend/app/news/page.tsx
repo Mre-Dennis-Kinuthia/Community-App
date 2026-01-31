@@ -229,7 +229,7 @@ export default function NewsPage() {
 
           {/* Article Grid */}
           {!loading && !error && news.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
               {news.map((item) => {
                 const displayDate = getDisplayDate(item)
                 const preview = item.excerpt || stripHtml(item.content)

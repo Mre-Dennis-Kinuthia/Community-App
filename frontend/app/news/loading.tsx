@@ -34,7 +34,7 @@ export default function NewsLoading() {
         </div>
         <div className="space-y-4">
           <Skeleton className="h-7 w-32" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i}>
                 <CardHeader>
