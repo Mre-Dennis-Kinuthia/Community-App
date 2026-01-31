@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useRef, Suspense } from "react"
+import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -75,11 +76,6 @@ function ResourcesPageContent() {
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("status") || "all")
   const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
   
-  // Resources state
-  const [resources, setResources] = useState<any[]>([])
-  const [isLoadingResources, setIsLoadingResources] = useState(true)
-  const [resourcesError, setResourcesError] = useState<string | null>(null)
-
   // Store scroll positions for each tab
   const scrollPositionsRef = useRef<{ programs: number; resources: number }>({
     programs: 0,
@@ -104,65 +100,31 @@ function ResourcesPageContent() {
   // Restore scroll position after tab content is rendered
   useEffect(() => {
     const savedPosition = scrollPositionsRef.current[activeTab]
-    
-    // Use requestAnimationFrame to ensure DOM and layout are fully updated after display change
     const restoreScroll = () => {
-      requestAnimationFrame(() => {
+      if (savedPosition !== undefined && savedPosition > 0) {
         requestAnimationFrame(() => {
-          // One more frame to ensure layout is completely stable
-          requestAnimationFrame(() => {
-            if (savedPosition !== undefined && savedPosition > 0) {
-              // Wait for layout to complete, then restore scroll position
-              const maxScroll = Math.max(
-                document.documentElement.scrollHeight - window.innerHeight,
-                0
-              )
-              // Restore position, but cap it at max scrollable position to prevent errors
-              const targetPosition = Math.min(savedPosition, Math.max(maxScroll, 0))
-              if (targetPosition > 0) {
-                window.scrollTo({ top: targetPosition, behavior: 'instant' })
-              }
-            }
-          })
+          const maxScroll = Math.max(
+            document.documentElement.scrollHeight - window.innerHeight,
+            0
+          )
+          const targetPosition = Math.min(savedPosition, Math.max(maxScroll, 0))
+          if (targetPosition > 0) {
+            window.scrollTo({ top: targetPosition, behavior: "instant" })
+          }
         })
-      })
-    }
-    
-    // Small delay to ensure content is rendered and layout is calculated
-    const timer = setTimeout(restoreScroll, 50)
-    return () => clearTimeout(timer)
-  }, [activeTab])
-
-  // Fetch resources from API
-  useEffect(() => {
-    async function fetchResources() {
-      if (activeTab !== "resources") return
-      
-      try {
-        setIsLoadingResources(true)
-        setResourcesError(null)
-        const params = new URLSearchParams()
-        if (searchQuery) params.set("search", searchQuery)
-        if (typeFilter !== "all") params.set("type", typeFilter)
-        if (categoryFilter !== "all") params.set("category", categoryFilter)
-        
-        const response = await fetch(`/api/resources?${params.toString()}`)
-        if (!response.ok) {
-          throw new Error("Failed to fetch resources")
-        }
-        const data = await response.json()
-        setResources(data.resources || [])
-      } catch (error: any) {
-        console.error("Failed to fetch resources:", error)
-        setResourcesError(error.message || "Failed to load resources")
-        setResources([])
-      } finally {
-        setIsLoadingResources(false)
       }
     }
+    restoreScroll()
+  }, [activeTab])
 
-    fetchResources()
-  }, [activeTab, searchQuery, typeFilter, categoryFilter])
+  const resourcesParams = new URLSearchParams()
+  if (searchQuery) resourcesParams.set("search", searchQuery)
+  if (typeFilter !== "all") resourcesParams.set("type", typeFilter)
+  if (categoryFilter !== "all") resourcesParams.set("category", categoryFilter)
+  const resourcesKey = activeTab === "resources" ? `/api/resources?${resourcesParams.toString()}` : null
+  const { data: resourcesResponse, error: resourcesError, isLoading: isLoadingResources } = useSWR<{ resources?: any[] }>(resourcesKey)
+  const resources = resourcesResponse?.resources ?? []
+  const resourcesErrorMsg = resourcesError?.message ?? null
 
   // Update URL params when filters change
   useEffect(() => {
@@ -516,11 +478,11 @@ function ResourcesPageContent() {
                   <p className="text-muted-foreground text-center">Loading resources...</p>
                 </CardContent>
               </Card>
-            ) : resourcesError ? (
+            ) : resourcesErrorMsg ? (
               <Card className="border-border/50 shadow-card">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-center">{resourcesError}</p>
+                  <p className="text-muted-foreground text-center">{resourcesErrorMsg}</p>
                   <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
                     Retry
                   </Button>

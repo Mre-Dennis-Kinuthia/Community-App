@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -61,54 +62,24 @@ export default function PartnersPageClient() {
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
   const [locationFilter, setLocationFilter] = useState<string>(searchParams.get("location") || "all")
   
-  // Partners state
-  const [partnersData, setPartnersData] = useState<any[]>([])
-  const [isLoadingPartners, setIsLoadingPartners] = useState(true)
-  const [partnersError, setPartnersError] = useState<string | null>(null)
-  const [filters, setFilters] = useState<{ types: string[], categories: string[], locationTypes: string[] }>({
-    types: [],
-    categories: [],
-    locationTypes: []
-  })
+  const partnersParams = new URLSearchParams()
+  if (searchQuery) partnersParams.set("search", searchQuery)
+  if (typeFilter !== "all") partnersParams.set("type", typeFilter)
+  if (categoryFilter !== "all") partnersParams.set("category", categoryFilter)
+  if (locationFilter !== "all") partnersParams.set("location", locationFilter)
+  const partnersKey = activeTab === "partners" ? `/api/partners?${partnersParams.toString()}` : null
+  const { data: partnersResponse, error: partnersError, isLoading: isLoadingPartners } = useSWR<{
+    partners?: any[]
+    filters?: { types?: string[]; categories?: string[]; locationTypes?: string[] }
+  }>(partnersKey)
 
-  // Fetch partners from API
-  useEffect(() => {
-    async function fetchPartners() {
-      if (activeTab !== "partners") return
-      
-      try {
-        setIsLoadingPartners(true)
-        setPartnersError(null)
-        const params = new URLSearchParams()
-        if (searchQuery) params.set("search", searchQuery)
-        if (typeFilter !== "all") params.set("type", typeFilter)
-        if (categoryFilter !== "all") params.set("category", categoryFilter)
-        if (locationFilter !== "all") params.set("location", locationFilter)
-        
-        const response = await fetch(`/api/partners?${params.toString()}`)
-        if (!response.ok) {
-          throw new Error("Failed to fetch partners")
-        }
-        const data = await response.json()
-        setPartnersData(data.partners || [])
-        if (data.filters) {
-          setFilters({
-            types: data.filters.types || [],
-            categories: data.filters.categories || [],
-            locationTypes: data.filters.locationTypes || []
-          })
-        }
-      } catch (error: any) {
-        console.error("Failed to fetch partners:", error)
-        setPartnersError(error.message || "Failed to load partners")
-        setPartnersData([])
-      } finally {
-        setIsLoadingPartners(false)
-      }
-    }
-
-    fetchPartners()
-  }, [activeTab, searchQuery, typeFilter, categoryFilter, locationFilter])
+  const partnersData = partnersResponse?.partners ?? []
+  const filters = {
+    types: partnersResponse?.filters?.types ?? [],
+    categories: partnersResponse?.filters?.categories ?? [],
+    locationTypes: partnersResponse?.filters?.locationTypes ?? [],
+  }
+  const partnersErrorMsg = partnersError?.message ?? null
 
   // Update URL params when filters change
   useEffect(() => {
@@ -283,11 +254,11 @@ export default function PartnersPageClient() {
                   <p className="text-muted-foreground text-center">Loading partners...</p>
                 </CardContent>
               </Card>
-            ) : partnersError ? (
+            ) : partnersErrorMsg ? (
               <Card className="border-border/50 shadow-card">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-center">{partnersError}</p>
+                  <p className="text-muted-foreground text-center">{partnersErrorMsg}</p>
                   <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
                     Retry
                   </Button>

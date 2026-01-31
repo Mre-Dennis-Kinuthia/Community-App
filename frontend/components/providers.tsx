@@ -1,7 +1,9 @@
 "use client"
 
+import { SWRConfig } from "swr"
 import { SessionProvider } from "@/components/session-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { fetcher, SWR_CONFIG } from "@/lib/fetcher"
 import type { ReactNode } from "react"
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -14,7 +16,9 @@ export function Providers({ children }: { children: ReactNode }) {
         enableSystem={false}
         disableTransitionOnChange
       >
-        {children}
+        <SWRConfig value={{ fetcher, ...SWR_CONFIG }}>
+          {children}
+        </SWRConfig>
       </ThemeProvider>
     </SessionProvider>
   )

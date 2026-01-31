@@ -1,6 +1,7 @@
 "use client"
 
 import { Suspense, useState, useMemo, useEffect } from "react"
+import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,9 +31,6 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
-
-// Projects will be fetched from API
-const projects: any[] = []
 
 const categoryColors: Record<string, string> = {
   "Climate & Environment": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
@@ -75,41 +73,16 @@ function ProjectsPageContent() {
   const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "newest")
   const [showFeatured, setShowFeatured] = useState<boolean>(searchParams.get("featured") === "true")
   
-  // Projects state
-  const [projectsData, setProjectsData] = useState<any[]>([])
-  const [isLoadingProjects, setIsLoadingProjects] = useState(true)
-  const [projectsError, setProjectsError] = useState<string | null>(null)
-
-  // Fetch projects from API
-  useEffect(() => {
-    async function fetchProjects() {
-      try {
-        setIsLoadingProjects(true)
-        setProjectsError(null)
-        const params = new URLSearchParams()
-        if (searchQuery) params.set("search", searchQuery)
-        if (categoryFilter !== "all") params.set("category", categoryFilter)
-        if (stageFilter !== "all") params.set("stage", stageFilter)
-        if (locationFilter !== "all") params.set("location", locationFilter)
-        if (showFeatured) params.set("featured", "true")
-        
-        const response = await fetch(`/api/projects?${params.toString()}`)
-        if (!response.ok) {
-          throw new Error("Failed to fetch projects")
-        }
-        const data = await response.json()
-        setProjectsData(data.projects || [])
-      } catch (error: any) {
-        console.error("Failed to fetch projects:", error)
-        setProjectsError(error.message || "Failed to load projects")
-        setProjectsData([])
-      } finally {
-        setIsLoadingProjects(false)
-      }
-    }
-
-    fetchProjects()
-  }, [searchQuery, categoryFilter, stageFilter, locationFilter, showFeatured])
+  const projectsParams = new URLSearchParams()
+  if (searchQuery) projectsParams.set("search", searchQuery)
+  if (categoryFilter !== "all") projectsParams.set("category", categoryFilter)
+  if (stageFilter !== "all") projectsParams.set("stage", stageFilter)
+  if (locationFilter !== "all") projectsParams.set("location", locationFilter)
+  if (showFeatured) projectsParams.set("featured", "true")
+  const projectsKey = `/api/projects?${projectsParams.toString()}`
+  const { data: projectsResponse, error: projectsError, isLoading: isLoadingProjects } = useSWR<{ projects?: any[] }>(projectsKey)
+  const projectsData = projectsResponse?.projects ?? []
+  const projectsErrorMsg = projectsError?.message ?? null
 
   // Update URL params when filters change
   useEffect(() => {
@@ -438,11 +411,11 @@ function ProjectsPageContent() {
               <p className="text-muted-foreground text-center">Loading projects...</p>
             </CardContent>
           </Card>
-        ) : projectsError ? (
+        ) : projectsErrorMsg ? (
           <Card className="border-border/50 shadow-card">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground text-center">{projectsError}</p>
+              <p className="text-muted-foreground text-center">{projectsErrorMsg}</p>
               <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
                 Retry
               </Button>

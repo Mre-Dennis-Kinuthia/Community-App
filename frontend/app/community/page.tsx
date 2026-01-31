@@ -120,9 +120,7 @@ function CommunityPageContent() {
     
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
-    
-    const timer = setTimeout(() => setIsFiltering(false), 200)
-    return () => clearTimeout(timer)
+    requestAnimationFrame(() => setIsFiltering(false))
   }, [activeTab, debouncedSearch, selectedIndustry, selectedRole, selectedExperience, selectedAvailability, selectedLocation, selectedSkills, sortBy, showFeatured, page, router])
 
   // Get filter options from API response

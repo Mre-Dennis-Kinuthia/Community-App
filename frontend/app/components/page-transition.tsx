@@ -25,7 +25,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setIsVisible(false)
-    const id = setTimeout(() => setIsVisible(true), 4)
+    const id = setTimeout(() => setIsVisible(true), 0)
     return () => clearTimeout(id)
   }, [pathname])
 

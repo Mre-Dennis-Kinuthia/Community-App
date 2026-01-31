@@ -7,6 +7,7 @@ import { CalendarDays, Users2, CheckCircle2, ArrowUpRight, ExternalLink, HelpCir
 import Link from "next/link"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { useState, useEffect } from "react"
+import useSWR from "swr"
 import {
   Tooltip,
   TooltipContent,
@@ -53,102 +54,35 @@ interface Event {
 export default function DashboardPage() {
   const { user } = useSession()
   const [greeting, setGreeting] = useState("Good morning")
-  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([])
-  const [isLoadingBookings, setIsLoadingBookings] = useState(true)
-  const [stats, setStats] = useState<DashboardStats>({
+  const [showGettingStarted, setShowGettingStarted] = useState(false)
+
+  const statsKey = user ? "/api/dashboard/stats" : null
+  const eventsKey = user ? "/api/events?filter=upcoming&limit=2" : null
+  const bookingsKey = user ? "/api/bookings/upcoming?limit=5&days=7" : null
+
+  const { data: stats = null, isLoading: isLoadingStats } = useSWR<DashboardStats>(statsKey)
+  const { data: eventsData, isLoading: isLoadingEvents } = useSWR<{ events?: Event[] }>(eventsKey)
+  const { data: bookingsData, isLoading: isLoadingBookings } = useSWR<{ bookings?: Booking[] }>(bookingsKey)
+
+  const statsWithDefaults: DashboardStats = stats ?? {
     upcomingEvents: 0,
     activeMembers: 0,
     userConnections: 0,
     userEvents: 0,
-  })
-  const [isLoadingStats, setIsLoadingStats] = useState(true)
-  const [recentEvents, setRecentEvents] = useState<Event[]>([])
-  const [isLoadingEvents, setIsLoadingEvents] = useState(true)
-  
-  // Get first name from user's name or email
+  }
+  const recentEvents = eventsData?.events ?? []
+  const upcomingBookings = bookingsData?.bookings ?? []
+
   const getUserFirstName = () => {
-    if (user?.name) {
-      return user.name.split(" ")[0]
-    }
-    if (user?.email) {
-      return user.email.split("@")[0]
-    }
+    if (user?.name) return user.name.split(" ")[0]
+    if (user?.email) return user.email.split("@")[0]
     return "there"
   }
-  
   const userName = getUserFirstName()
-  // Show getting started for new users (created in last 7 days)
-  const [showGettingStarted, setShowGettingStarted] = useState(false)
 
   useEffect(() => {
     setGreeting(getGreeting())
   }, [])
-
-  // Fetch dashboard stats
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        setIsLoadingStats(true)
-        const response = await fetch("/api/dashboard/stats")
-        if (response.ok) {
-          const data = await response.json()
-          setStats(data)
-        }
-      } catch (error) {
-        console.error("[Dashboard] Error fetching stats:", error)
-      } finally {
-        setIsLoadingStats(false)
-      }
-    }
-
-    if (user) {
-      fetchStats()
-    }
-  }, [user])
-
-  // Fetch recent events for highlights
-  useEffect(() => {
-    async function fetchRecentEvents() {
-      try {
-        setIsLoadingEvents(true)
-        const response = await fetch("/api/events?filter=upcoming&limit=2")
-        if (response.ok) {
-          const data = await response.json()
-          setRecentEvents(data.events || [])
-        }
-      } catch (error) {
-        console.error("[Dashboard] Error fetching events:", error)
-      } finally {
-        setIsLoadingEvents(false)
-      }
-    }
-
-    if (user) {
-      fetchRecentEvents()
-    }
-  }, [user])
-
-  // Fetch upcoming bookings
-  useEffect(() => {
-    async function fetchBookings() {
-      try {
-        setIsLoadingBookings(true)
-        const response = await fetch("/api/bookings/upcoming?limit=5&days=7")
-        if (response.ok) {
-          const data = await response.json()
-          setUpcomingBookings(data.bookings || [])
-        }
-      } catch (error) {
-        console.error("[Dashboard] Error fetching bookings:", error)
-      } finally {
-        setIsLoadingBookings(false)
-      }
-    }
-
-    if (user) {
-      fetchBookings()
-    }
-  }, [user])
 
   // Format booking display
   const formatBookingDisplay = (booking: Booking) => {
@@ -313,7 +247,7 @@ export default function DashboardPage() {
                 {isLoadingStats ? (
                   <span className="text-muted-foreground animate-pulse">...</span>
                 ) : (
-                  <span className="transition-opacity duration-150 ease-out opacity-100">{stats.upcomingEvents}</span>
+                  <span className="transition-opacity duration-150 ease-out opacity-100">{statsWithDefaults.upcomingEvents}</span>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">This week</p>
@@ -341,7 +275,7 @@ export default function DashboardPage() {
                 {isLoadingStats ? (
                   <span className="text-muted-foreground animate-pulse">...</span>
                 ) : (
-                  <span className="transition-opacity duration-150 ease-out opacity-100">{stats.activeMembers}</span>
+                  <span className="transition-opacity duration-150 ease-out opacity-100">{statsWithDefaults.activeMembers}</span>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">Active members</p>

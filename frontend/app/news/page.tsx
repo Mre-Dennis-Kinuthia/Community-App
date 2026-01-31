@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Button } from "@/components/ui/button"
@@ -68,43 +69,14 @@ export default function NewsPage() {
   const router = useRouter()
   
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
-  const [news, setNews] = useState<NewsPost[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
-  // Fetch news from API
-  useEffect(() => {
-    async function fetchNews() {
-      try {
-        setLoading(true)
-        setError(null)
-        const params = new URLSearchParams()
-        if (searchQuery) {
-          params.set("search", searchQuery)
-        }
-        params.set("limit", "50")
-        
-        const response = await fetch(`/api/news?${params.toString()}`)
-        if (!response.ok) {
-          throw new Error("Failed to fetch news")
-        }
-        const data = await response.json()
-        setNews(data.posts || [])
-      } catch (err) {
-        console.error("Error fetching news:", err)
-        setError("Failed to load news. Please try again later.")
-        setNews([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    const timer = setTimeout(() => {
-      fetchNews()
-    }, searchQuery ? 500 : 0)
-
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+  const newsParams = new URLSearchParams()
+  if (searchQuery) newsParams.set("search", searchQuery)
+  newsParams.set("limit", "50")
+  const newsKey = `/api/news?${newsParams.toString()}`
+  const { data: newsResponse, error: newsError, isLoading: loading } = useSWR<{ posts?: NewsPost[] }>(newsKey)
+  const news = newsResponse?.posts ?? []
+  const error = newsError?.message ? "Failed to load news. Please try again later." : null
 
   useEffect(() => {
     const params = new URLSearchParams()

@@ -77,11 +77,11 @@ export function GlobalSearch() {
   // Focus input when dialog opens
   useEffect(() => {
     if (open) {
-      const timer = setTimeout(() => {
+      const id = requestAnimationFrame(() => {
         const input = document.querySelector('[data-search-input]') as HTMLInputElement
         input?.focus()
-      }, 100)
-      return () => clearTimeout(timer)
+      })
+      return () => cancelAnimationFrame(id)
     }
   }, [open])
 

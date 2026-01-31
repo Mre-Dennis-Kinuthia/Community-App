@@ -7,6 +7,7 @@ export interface CommunityMember {
   name: string
   email: string
   avatar: string | null
+  image?: string | null
   bio: string
   fullBio?: string
   skills: string[]

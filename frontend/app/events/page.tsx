@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
@@ -54,60 +55,39 @@ export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [registering, setRegistering] = useState<Record<string | number, boolean>>({})
-  const [allEvents, setAllEvents] = useState<Event[]>([])
-  const [loading, setLoading] = useState(true)
   const [isFiltering, setIsFiltering] = useState(false)
 
-  // Fetch events from API
-  useEffect(() => {
-    async function fetchEvents() {
-      try {
-        setLoading(true)
-        const filter = activeTab === "upcoming" ? "upcoming" : "past"
-        const response = await fetch(`/api/events?filter=${filter}&limit=100&${searchQuery ? `search=${encodeURIComponent(searchQuery)}` : ""}`)
-        if (!response.ok) {
-          throw new Error("Failed to fetch events")
-        }
-        const data = await response.json()
-        
-        // Transform API data to match UI expectations
-        const transformedEvents: Event[] = (data.events || []).map((event: any) => {
-          const startDate = new Date(event.startDate)
-          const endDate = event.endDate ? new Date(event.endDate) : null
-          const registeredCount = event._count?.registrations || 0
-          const isFull = event.capacity && registeredCount >= event.capacity
-          
-          return {
-            id: event.id,
-            title: event.title,
-            type: "event", // Default type, can be enhanced later
-            category: "general",
-            time: format(startDate, "HH:mm"),
-            endTime: endDate ? format(endDate, "HH:mm") : undefined,
-            organizer: "Impact Hub Nairobi", // Default organizer
-            platform: event.location ? "In-Person" : "Online",
-            status: isFull ? "Full" : "Open",
-            thumbnail: event.imageUrl,
-            date: startDate,
-            capacity: event.capacity,
-            registered: registeredCount,
-            description: event.description,
-            location: event.location,
-            tags: [],
-          }
-        })
-        
-        setAllEvents(transformedEvents)
-      } catch (error) {
-        console.error("Failed to fetch events:", error)
-        setAllEvents([])
-      } finally {
-        setLoading(false)
-      }
-    }
+  const filter = activeTab === "upcoming" ? "upcoming" : "past"
+  const eventsKey = `/api/events?filter=${filter}&limit=100&${searchQuery ? `search=${encodeURIComponent(searchQuery)}` : ""}`
+  const { data: eventsData, error: eventsError, isLoading: loading } = useSWR<{ events?: any[] }>(eventsKey)
 
-    fetchEvents()
-  }, [activeTab, searchQuery])
+  const allEvents: Event[] = useMemo(() => {
+    const raw = eventsData?.events ?? []
+    return raw.map((event: any) => {
+      const startDate = new Date(event.startDate)
+      const endDate = event.endDate ? new Date(event.endDate) : null
+      const registeredCount = event._count?.registrations || 0
+      const isFull = event.capacity && registeredCount >= event.capacity
+      return {
+        id: event.id,
+        title: event.title,
+        type: "event",
+        category: "general",
+        time: format(startDate, "HH:mm"),
+        endTime: endDate ? format(endDate, "HH:mm") : undefined,
+        organizer: "Impact Hub Nairobi",
+        platform: event.location ? "In-Person" : "Online",
+        status: isFull ? "Full" : "Open",
+        thumbnail: event.imageUrl,
+        date: startDate,
+        capacity: event.capacity,
+        registered: registeredCount,
+        description: event.description,
+        location: event.location,
+        tags: [],
+      }
+    })
+  }, [eventsData])
 
   // Update URL params when filters change
   useEffect(() => {
@@ -124,9 +104,7 @@ export default function EventsPage() {
 
     const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
-    
-    const timer = setTimeout(() => setIsFiltering(false), 200)
-    return () => clearTimeout(timer)
+    requestAnimationFrame(() => setIsFiltering(false))
   }, [activeTab, searchQuery, typeFilter, statusFilter, organizerFilter, platformFilter, sortBy, dateRangeFilter, router])
 
   // Get events based on active tab (already filtered by API, but double-check client-side)
