@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Inter, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Providers } from "@/components/providers"
 import { Toaster } from "@/components/ui/toaster"
@@ -9,8 +9,8 @@ import { PageTransition } from "@/app/components/page-transition"
 import { TopLoadingBar } from "@/app/components/top-loading-bar"
 import "./globals.css"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
-const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
   title: "Impact Hub Nairobi Community Platform - Powered by Impact Hub Nairobi",
@@ -23,6 +23,18 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-icon.png",
   },
+  openGraph: {
+    title: "Impact Hub Nairobi Community Platform",
+    description:
+      "Impact Hub Nairobi's official digital platform. Access programs, resources, and community connections.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Impact Hub Nairobi Community Platform",
+    description:
+      "Impact Hub Nairobi's official digital platform. Access programs, resources, and community connections.",
+  },
 }
 
 export default function RootLayout({
@@ -32,7 +44,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <SkipLink />
         <Providers>
           <TopLoadingBar />
