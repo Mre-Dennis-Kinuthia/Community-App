@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -11,21 +12,26 @@ import {
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/logo"
 import { Sparkles, Calendar, Users, BookOpen, X } from "lucide-react"
-import Link from "next/link"
 
-export function WelcomeModal() {
+interface WelcomeModalProps {
+  /** Only show the tutorial after onboarding is complete (default true for backward compat) */
+  onboardingComplete?: boolean
+}
+
+export function WelcomeModal({ onboardingComplete = true }: WelcomeModalProps) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
-    // Check if user has seen welcome before
-    if (typeof window !== "undefined") {
+    // Show tutorial only after onboarding is complete, and only once
+    if (typeof window !== "undefined" && onboardingComplete) {
       const hasSeenWelcome = localStorage.getItem("hasSeenWelcome")
       if (!hasSeenWelcome) {
         setOpen(true)
       }
     }
-  }, [])
+  }, [onboardingComplete])
 
   const handleClose = () => {
     if (typeof window !== "undefined") {
@@ -129,10 +135,14 @@ export function WelcomeModal() {
               Next
             </Button>
           ) : (
-            <Button asChild onClick={handleClose} className="flex-1">
-              <Link href={steps[currentStep].href}>
-                {steps[currentStep].action}
-              </Link>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                handleClose()
+                router.push(steps[currentStep].href)
+              }}
+            >
+              {steps[currentStep].action}
             </Button>
           )}
         </div>

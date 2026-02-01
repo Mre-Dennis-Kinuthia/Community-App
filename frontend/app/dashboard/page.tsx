@@ -55,6 +55,23 @@ export default function DashboardPage() {
   const { user } = useSession()
   const [greeting, setGreeting] = useState("Good morning")
   const [showGettingStarted, setShowGettingStarted] = useState(false)
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null)
+
+  // Only show tutorial after onboarding is complete (avoids showing before redirect)
+  useEffect(() => {
+    if (!user?.id) return
+    let cancelled = false
+    fetch("/api/profile", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        setOnboardingComplete(data.needsOnboarding === false)
+      })
+      .catch(() => setOnboardingComplete(false))
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
 
   const statsKey = user ? "/api/dashboard/stats" : null
   const eventsKey = user ? "/api/events?filter=upcoming&limit=2" : null
@@ -114,7 +131,7 @@ export default function DashboardPage() {
 
   return (
     <TooltipProvider>
-      <WelcomeModal />
+      <WelcomeModal onboardingComplete={onboardingComplete ?? false} />
       <Celebration />
       <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Dashboard" }]} />
