@@ -161,6 +161,10 @@ export default function OnboardingPage() {
         throw new Error(err.error || "Failed to save")
       }
       toast.success("Profile complete!", "Your profile has been set up.")
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("onboardingJustCompleted", "true")
+        localStorage.removeItem("hasSeenWelcome")
+      }
       router.replace("/dashboard")
     } catch (e: any) {
       toast.error("Could not save", e?.message || "Please try again.")

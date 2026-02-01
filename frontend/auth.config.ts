@@ -2,12 +2,10 @@ import type { NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 
-// This config is used by middleware (Edge runtime) - no Prisma here
-// Note: AUTH_SECRET is set in auth.ts (Node.js runtime), not here
-// Middleware doesn't need the secret for JWT validation
+// This config is used by middleware (Edge runtime) and auth.ts
 export const authConfig = {
-  // Don't set secret here - it's set in auth.ts for API routes
   trustHost: true,
+  secret: process.env.AUTH_SECRET,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,

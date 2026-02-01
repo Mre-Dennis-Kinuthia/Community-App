@@ -37,15 +37,18 @@ function DashboardLayoutContent({
   const { user } = useSession()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  // Redirect first-time users to onboarding
+  // Redirect first-time users to onboarding (skip if they just completed it)
   useEffect(() => {
     if (!user?.id) return
     let cancelled = false
     fetch("/api/profile", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (cancelled || !data) return
-        if (data.needsOnboarding === true) {
+        if (cancelled) return
+        if (typeof window !== "undefined" && sessionStorage.getItem("onboardingJustCompleted") === "true") {
+          return
+        }
+        if (data?.needsOnboarding === true) {
           router.replace("/onboarding")
         }
       })

@@ -24,11 +24,11 @@ export function WelcomeModal({ onboardingComplete = true }: WelcomeModalProps) {
   const [currentStep, setCurrentStep] = useState(0)
 
   useEffect(() => {
-    // Show tutorial only after onboarding is complete, and only once
     if (typeof window !== "undefined" && onboardingComplete) {
       const hasSeenWelcome = localStorage.getItem("hasSeenWelcome")
       if (!hasSeenWelcome) {
         setOpen(true)
+        sessionStorage.removeItem("onboardingJustCompleted")
       }
     }
   }, [onboardingComplete])
@@ -36,8 +36,14 @@ export function WelcomeModal({ onboardingComplete = true }: WelcomeModalProps) {
   const handleClose = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("hasSeenWelcome", "true")
+      sessionStorage.removeItem("onboardingJustCompleted")
     }
     setOpen(false)
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) handleClose()
+    setOpen(nextOpen)
   }
 
   const handleNext = () => {
@@ -79,7 +85,7 @@ export function WelcomeModal({ onboardingComplete = true }: WelcomeModalProps) {
   const StepIcon = steps[currentStep].icon
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <div className="flex items-center justify-between">

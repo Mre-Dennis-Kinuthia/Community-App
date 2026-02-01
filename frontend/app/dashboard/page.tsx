@@ -57,17 +57,29 @@ export default function DashboardPage() {
   const [showGettingStarted, setShowGettingStarted] = useState(false)
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null)
 
-  // Only show tutorial after onboarding is complete (avoids showing before redirect)
+  // Only show tutorial after onboarding is complete (or when user just completed onboarding)
   useEffect(() => {
     if (!user?.id) return
     let cancelled = false
+    if (typeof window !== "undefined" && sessionStorage.getItem("onboardingJustCompleted") === "true") {
+      setOnboardingComplete(true)
+      return
+    }
     fetch("/api/profile", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (cancelled || !data) return
-        setOnboardingComplete(data.needsOnboarding === false)
+        if (cancelled) return
+        if (data?.needsOnboarding === false) {
+          setOnboardingComplete(true)
+        } else if (typeof window !== "undefined" && sessionStorage.getItem("onboardingJustCompleted") === "true") {
+          setOnboardingComplete(true)
+        }
       })
-      .catch(() => setOnboardingComplete(false))
+      .catch(() => {
+        if (typeof window !== "undefined" && sessionStorage.getItem("onboardingJustCompleted") === "true") {
+          setOnboardingComplete(true)
+        }
+      })
     return () => {
       cancelled = true
     }
