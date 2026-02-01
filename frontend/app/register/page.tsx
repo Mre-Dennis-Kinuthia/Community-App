@@ -164,9 +164,9 @@ function RegisterForm() {
       }
 
       console.log("[REGISTER FORM] Registration successful, redirecting to login")
-      toast.success("Account created!", "You can now sign in with your credentials")
+      toast.success("Account created!", "You can now sign in and complete your profile.")
       startNavigation()
-      router.push(`/login?email=${encodeURIComponent(formData.email)}&registered=true`)
+      router.push(`/login?email=${encodeURIComponent(formData.email)}&registered=true&redirect=${encodeURIComponent("/onboarding")}`)
     } catch (error) {
       console.error("[REGISTER FORM] Error:", error)
       toast.error(

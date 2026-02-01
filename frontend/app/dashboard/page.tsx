@@ -143,7 +143,7 @@ export default function DashboardPage() {
 
   return (
     <TooltipProvider>
-      <WelcomeModal onboardingComplete={onboardingComplete ?? false} />
+      <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
       <Celebration />
       <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Dashboard" }]} />

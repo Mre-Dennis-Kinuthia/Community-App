@@ -18,11 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, ArrowRight, ArrowLeft, Sparkles, User, Briefcase, Heart, Plus, X } from "lucide-react"
+import { Loader2, ArrowRight, ArrowLeft, Sparkles, Briefcase, Heart, Plus, X } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 
+const BIO_MAX_LENGTH = 500
 const EXPERIENCE_LEVELS = [
   "Early Career",
   "Mid-Level",
@@ -37,6 +38,8 @@ const AVAILABILITY_OPTIONS = [
   "Open to Projects",
   "Available for Events",
 ]
+
+const STEP_LABELS = ["About you", "Skills & interests", "How you engage"]
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -125,14 +128,21 @@ export default function OnboardingPage() {
     )
   }
 
-  const totalSteps = 4
+  const totalSteps = 3
   const canNext =
-    (step === 1 && name.trim()) ||
-    (step === 2 && (bio.trim() || industry || role)) ||
-    step === 3 ||
-    step === 4
+    (step === 1 && (bio.trim() || industry || role)) ||
+    step === 2 ||
+    step === 3
+
+  const firstName = session?.user?.name?.split(/\s+/)[0] || ""
+  const canSkipStep = step === 2 || step === 3
 
   const handleNext = () => {
+    if (step < totalSteps) setStep(step + 1)
+    else handleComplete()
+  }
+
+  const handleSkip = () => {
     if (step < totalSteps) setStep(step + 1)
     else handleComplete()
   }
@@ -145,7 +155,7 @@ export default function OnboardingPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          name: name.trim() || undefined,
+          name: (session?.user?.name ?? name.trim()) || undefined,
           bio: bio.trim() || undefined,
           industry: industry || undefined,
           role: role || undefined,
@@ -196,18 +206,21 @@ export default function OnboardingPage() {
             <Sparkles className="h-4 w-4" />
             Welcome to Impact Hub Nairobi
           </div>
-          <h1 className="text-2xl font-bold">Complete your profile</h1>
+          <h1 className="text-2xl font-bold">
+            {firstName ? `Complete your profile, ${firstName}` : "Complete your profile"}
+          </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Step {step} of {totalSteps}
+            Step {step} of {totalSteps} · {STEP_LABELS[step - 1]}
           </p>
-          <div className="flex justify-center gap-1 mt-4">
+          <div className="flex justify-center gap-1.5 mt-4" aria-label={`Step ${step} of ${totalSteps}`}>
             {Array.from({ length: totalSteps }).map((_, i) => (
               <div
                 key={i}
                 className={cn(
-                  "h-1.5 w-8 rounded-full transition-colors",
+                  "h-2 w-10 rounded-full transition-all duration-300",
                   i + 1 <= step ? "bg-primary" : "bg-muted"
                 )}
+                title={STEP_LABELS[i]}
               />
             ))}
           </div>
@@ -218,17 +231,6 @@ export default function OnboardingPage() {
             {step === 1 && (
               <>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  What should we call you?
-                </CardTitle>
-                <CardDescription>
-                  This name will appear on your profile and in the community.
-                </CardDescription>
-              </>
-            )}
-            {step === 2 && (
-              <>
-                <CardTitle className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5" />
                   Tell us about yourself
                 </CardTitle>
@@ -237,7 +239,7 @@ export default function OnboardingPage() {
                 </CardDescription>
               </>
             )}
-            {step === 3 && (
+            {step === 2 && (
               <>
                 <CardTitle className="flex items-center gap-2">
                   <Heart className="h-5 w-5" />
@@ -248,7 +250,7 @@ export default function OnboardingPage() {
                 </CardDescription>
               </>
             )}
-            {step === 4 && (
+            {step === 3 && (
               <>
                 <CardTitle className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5" />
@@ -262,37 +264,31 @@ export default function OnboardingPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 1 && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Display name</Label>
-                <Input
-                  id="name"
-                  placeholder="e.g. Jane Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && canNext && handleNext()}
-                />
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-4">
+              <div className="space-y-4 animate-in fade-in-0 duration-200" key="step1">
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Short bio</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="bio">Short bio</Label>
+                    <span className={cn("text-xs text-muted-foreground", bio.length > BIO_MAX_LENGTH && "text-destructive")}>
+                      {bio.length}/{BIO_MAX_LENGTH}
+                    </span>
+                  </div>
                   <Textarea
                     id="bio"
-                    placeholder="A few lines about you and what you do..."
+                    placeholder="A few lines about you, your work, and what you care about..."
                     value={bio}
-                    onChange={(e) => setBio(e.target.value)}
+                    onChange={(e) => setBio(e.target.value.slice(0, BIO_MAX_LENGTH))}
                     rows={3}
                     className="resize-none"
+                    maxLength={BIO_MAX_LENGTH}
                   />
+                  <p className="text-xs text-muted-foreground">At least one of bio, industry, or role helps others find you.</p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="industry">Industry</Label>
                     <Input
                       id="industry"
-                      placeholder="e.g. EdTech, Health"
+                      placeholder="e.g. EdTech, Health, FinTech"
                       value={industry}
                       onChange={(e) => setIndustry(e.target.value)}
                     />
@@ -301,61 +297,70 @@ export default function OnboardingPage() {
                     <Label htmlFor="role">Role</Label>
                     <Input
                       id="role"
-                      placeholder="e.g. Founder, Designer"
+                      placeholder="e.g. Founder, Designer, Developer"
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="experience">Experience level</Label>
-                  <Select value={experienceLevel} onValueChange={setExperienceLevel}>
-                    <SelectTrigger id="experience">
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXPERIENCE_LEVELS.map((l) => (
-                        <SelectItem key={l} value={l}>
-                          {l}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    placeholder="e.g. Nairobi, Kenya"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                  />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="experience">Experience level</Label>
+                    <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                      <SelectTrigger id="experience">
+                        <SelectValue placeholder="Select (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EXPERIENCE_LEVELS.map((l) => (
+                          <SelectItem key={l} value={l}>
+                            {l}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      placeholder="e.g. Nairobi, Kenya"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             )}
 
-            {step === 3 && (
-              <div className="space-y-4">
+            {step === 2 && (
+              <div className="space-y-4 animate-in fade-in-0 duration-200" key="step2">
+                <p className="text-sm text-muted-foreground">Optional — add as many as you like, or skip.</p>
                 <div className="space-y-2">
                   <Label>Skills</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {skills.map((s) => (
-                      <Badge key={s} variant="secondary" className="gap-1">
-                        {s}
-                        <button type="button" onClick={() => removeSkill(s)} className="hover:text-destructive">
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                    <div className="flex gap-1">
+                  <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+                    {skills.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {skills.map((s) => (
+                          <Badge key={s} variant="secondary" className="gap-1 pr-1">
+                            {s}
+                            <button type="button" onClick={() => removeSkill(s)} className="hover:text-destructive rounded-sm" aria-label={`Remove ${s}`}>
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">Add skills to help others find you.</p>
+                    )}
+                    <div className="flex gap-2">
                       <Input
-                        placeholder="Add skill"
+                        placeholder="e.g. React, Marketing, Design"
                         value={newSkill}
                         onChange={(e) => setNewSkill(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
-                        className="h-8 w-28 text-sm"
+                        className="h-9 flex-1 min-w-0 text-sm"
                       />
-                      <Button type="button" size="sm" variant="outline" onClick={addSkill} className="h-8">
+                      <Button type="button" size="sm" variant="outline" onClick={addSkill} className="h-9 shrink-0">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -363,24 +368,30 @@ export default function OnboardingPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Interests</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {interests.map((i) => (
-                      <Badge key={i} variant="outline" className="gap-1">
-                        {i}
-                        <button type="button" onClick={() => removeInterest(i)} className="hover:text-destructive">
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                    <div className="flex gap-1">
+                  <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+                    {interests.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {interests.map((i) => (
+                          <Badge key={i} variant="outline" className="gap-1 pr-1">
+                            {i}
+                            <button type="button" onClick={() => removeInterest(i)} className="hover:text-destructive rounded-sm" aria-label={`Remove ${i}`}>
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">Add topics you care about.</p>
+                    )}
+                    <div className="flex gap-2">
                       <Input
-                        placeholder="Add interest"
+                        placeholder="e.g. Sustainability, EdTech"
                         value={newInterest}
                         onChange={(e) => setNewInterest(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInterest())}
-                        className="h-8 w-28 text-sm"
+                        className="h-9 flex-1 min-w-0 text-sm"
                       />
-                      <Button type="button" size="sm" variant="outline" onClick={addInterest} className="h-8">
+                      <Button type="button" size="sm" variant="outline" onClick={addInterest} className="h-9 shrink-0">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
@@ -389,27 +400,30 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {step === 4 && (
-              <div className="space-y-3">
-                <Label>I am...</Label>
+            {step === 3 && (
+              <div className="space-y-3 animate-in fade-in-0 duration-200" key="step3">
+                <p className="text-sm text-muted-foreground">Select all that apply — or skip and set later.</p>
                 <div className="flex flex-col gap-2">
                   {AVAILABILITY_OPTIONS.map((opt) => (
                     <label
                       key={opt}
-                      className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/50"
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
+                        availability.includes(opt) ? "border-primary bg-primary/5" : "hover:bg-muted/50"
+                      )}
                     >
                       <Checkbox
                         checked={availability.includes(opt)}
                         onCheckedChange={() => toggleAvailability(opt)}
                       />
-                      <span className="text-sm">{opt}</span>
+                      <span className="text-sm font-medium">{opt}</span>
                     </label>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="flex justify-between pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t">
               <Button
                 type="button"
                 variant="ghost"
@@ -419,18 +433,30 @@ export default function OnboardingPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <Button
-                type="button"
-                onClick={handleNext}
-                disabled={!canNext || saving}
-              >
-                {saving ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <ArrowRight className="mr-2 h-4 w-4" />
+              <div className="flex items-center gap-2">
+                {canSkipStep && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSkip}
+                    disabled={saving}
+                  >
+                    Skip for now
+                  </Button>
                 )}
-                {step === totalSteps ? "Finish" : "Next"}
-              </Button>
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={!canNext || saving}
+                >
+                  {saving ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                  )}
+                  {step === totalSteps ? "Finish" : "Next"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

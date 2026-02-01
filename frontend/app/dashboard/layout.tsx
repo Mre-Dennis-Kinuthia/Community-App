@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { User, Settings, LogOut, ChevronLeft, ChevronRight } from "lucide-react"
+import { User, Settings, LogOut, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useState, useEffect } from "react"
 import { Logo } from "@/components/logo"
@@ -34,29 +34,40 @@ function DashboardLayoutContent({
 }) {
   const router = useRouter()
   const { isCollapsed, toggleSidebar } = useSidebar()
-  const { user } = useSession()
+  const { user, status } = useSession()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [onboardingChecked, setOnboardingChecked] = useState(false)
+  const [redirectingToOnboarding, setRedirectingToOnboarding] = useState(false)
 
-  // Redirect first-time users to onboarding (skip if they just completed it)
+  // Block dashboard until onboarding is verified; redirect if needed
   useEffect(() => {
-    if (!user?.id) return
+    if (status === "loading" || !user?.id) return
     let cancelled = false
+    if (typeof window !== "undefined" && sessionStorage.getItem("onboardingJustCompleted") === "true") {
+      setOnboardingChecked(true)
+      return
+    }
     fetch("/api/profile", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (cancelled) return
-        if (typeof window !== "undefined" && sessionStorage.getItem("onboardingJustCompleted") === "true") {
+        if (data?.needsOnboarding === true) {
+          setRedirectingToOnboarding(true)
+          router.replace("/onboarding")
           return
         }
-        if (data?.needsOnboarding === true) {
-          router.replace("/onboarding")
-        }
+        setOnboardingChecked(true)
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) setOnboardingChecked(true)
+      })
     return () => {
       cancelled = true
     }
-  }, [user?.id, router])
+  }, [user?.id, status, router])
+
+  const canShowDashboard = onboardingChecked && !redirectingToOnboarding
+  const showLoading = status === "loading" || !user || !canShowDashboard
 
   const handleLogout = async () => {
     console.log("[LOGOUT] Logout initiated")
@@ -100,6 +111,14 @@ function DashboardLayoutContent({
   const userInitials = getInitials(user?.name, user?.email)
   const displayName = user?.name || "User"
   const displayEmail = user?.email || ""
+
+  if (showLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden">
