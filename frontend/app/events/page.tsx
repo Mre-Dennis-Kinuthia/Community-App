@@ -62,7 +62,7 @@ export default function EventsPage() {
   const { data: eventsData, error: eventsError, isLoading: loading } = useSWR<{ events?: any[] }>(eventsKey)
 
   const allEvents: Event[] = useMemo(() => {
-    const raw = eventsData?.events ?? []
+    const raw = Array.isArray(eventsData?.events) ? eventsData.events : []
     return raw.map((event: any) => {
       const startDate = new Date(event.startDate)
       const endDate = event.endDate ? new Date(event.endDate) : null

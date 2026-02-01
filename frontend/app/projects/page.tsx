@@ -81,7 +81,7 @@ function ProjectsPageContent() {
   if (showFeatured) projectsParams.set("featured", "true")
   const projectsKey = `/api/projects?${projectsParams.toString()}`
   const { data: projectsResponse, error: projectsError, isLoading: isLoadingProjects } = useSWR<{ projects?: any[] }>(projectsKey)
-  const projectsData = projectsResponse?.projects ?? []
+  const projectsData = Array.isArray(projectsResponse?.projects) ? projectsResponse.projects : []
   const projectsErrorMsg = projectsError?.message ?? null
 
   // Update URL params when filters change
@@ -275,9 +275,9 @@ function ProjectsPageContent() {
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">{project.impact}</p>
                       </div>
-                      {project.needs.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {project.needs.slice(0, 2).map((need, idx) => {
+                      {(project.needs ?? []).length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {(project.needs ?? []).slice(0, 2).map((need, idx) => {
                             const NeedIcon = needsIcons[need] || Users
                             return (
                               <Badge key={idx} className={needsColors[need]} variant="outline">
@@ -286,9 +286,9 @@ function ProjectsPageContent() {
                               </Badge>
                             )
                           })}
-                          {project.needs.length > 2 && (
+                          {(project.needs ?? []).length > 2 && (
                             <Badge variant="outline" className="text-xs">
-                              +{project.needs.length - 2}
+                              +{(project.needs ?? []).length - 2}
                             </Badge>
                           )}
                         </div>
@@ -485,11 +485,11 @@ function ProjectsPageContent() {
                         </div>
                         <p className="text-sm text-muted-foreground">{project.impact}</p>
                       </div>
-                      {project.needs.length > 0 && (
+                      {(project.needs ?? []).length > 0 && (
                         <div>
                           <p className="text-sm font-medium mb-2">Looking For:</p>
                           <div className="flex flex-wrap gap-1">
-                            {project.needs.slice(0, 2).map((need, idx) => {
+                            {(project.needs ?? []).slice(0, 2).map((need, idx) => {
                               const NeedIcon = needsIcons[need] || Users
                               return (
                                 <Badge key={idx} className={needsColors[need]} variant="outline">
@@ -498,9 +498,9 @@ function ProjectsPageContent() {
                                 </Badge>
                               )
                             })}
-                            {project.needs.length > 2 && (
+                            {(project.needs ?? []).length > 2 && (
                               <Badge variant="outline" className="text-xs">
-                                +{project.needs.length - 2}
+                                +{(project.needs ?? []).length - 2}
                               </Badge>
                             )}
                           </div>
@@ -516,16 +516,16 @@ function ProjectsPageContent() {
                           <span>{project._count?.volunteers || 0} volunteers</span>
                         </div>
                       </div>
-                      {project.tags && project.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {project.tags.slice(0, 3).map((tag: string, idx: number) => (
+                      {(project.tags ?? []).length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {(project.tags ?? []).slice(0, 3).map((tag: string, idx: number) => (
                             <Badge key={idx} variant="outline" className="text-xs">
                               {tag}
                             </Badge>
                           ))}
-                          {project.tags.length > 3 && (
+                          {(project.tags ?? []).length > 3 && (
                             <Badge variant="outline" className="text-xs">
-                              +{project.tags.length - 3}
+                              +{(project.tags ?? []).length - 3}
                             </Badge>
                           )}
                         </div>

@@ -99,8 +99,8 @@ export default function DashboardPage() {
     userConnections: 0,
     userEvents: 0,
   }
-  const recentEvents = eventsData?.events ?? []
-  const upcomingBookings = bookingsData?.bookings ?? []
+  const recentEvents = Array.isArray(eventsData?.events) ? eventsData.events : []
+  const upcomingBookings = Array.isArray(bookingsData?.bookings) ? bookingsData.bookings : []
 
   const getUserFirstName = () => {
     if (user?.name) return user.name.split(" ")[0]
@@ -129,10 +129,10 @@ export default function DashboardPage() {
       dateLabel = date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })
     }
 
-    const resourceName = booking.resourceType
+    const resourceName = (booking.resourceType ?? "")
       .split("-")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
+      .join(" ") || "Workspace"
 
     return {
       room: resourceName,

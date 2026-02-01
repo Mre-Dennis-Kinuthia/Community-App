@@ -294,9 +294,9 @@ function CommunityPageContent() {
                               )}
                             </div>
                           )}
-                          {member.availability.length > 0 && (
+                          {(member.availability ?? []).length > 0 && (
                             <div className="flex flex-wrap justify-center gap-1">
-                              {member.availability.slice(0, 1).map((avail, idx) => (
+                              {(member.availability ?? []).slice(0, 1).map((avail, idx) => (
                                 <Badge key={idx} className={`${availabilityColors[avail]} text-[9px]`} variant="outline">
                                   {avail}
                                 </Badge>
@@ -510,9 +510,9 @@ function CommunityPageContent() {
                                 )}
                               </div>
                             )}
-                            {member.availability.length > 0 && (
+                            {(member.availability ?? []).length > 0 && (
                               <div className="flex flex-wrap justify-center gap-1">
-                                {member.availability.slice(0, 1).map((avail, idx) => (
+                                {(member.availability ?? []).slice(0, 1).map((avail, idx) => (
                                   <Badge key={idx} className={`${availabilityColors[avail]} text-[9px]`} variant="outline">
                                     {avail}
                                   </Badge>

@@ -80,7 +80,7 @@ export default function NewsPage() {
   newsParams.set("limit", "50")
   const newsKey = `/api/news?${newsParams.toString()}`
   const { data: newsResponse, error: newsError, isLoading: loading } = useSWR<{ posts?: NewsPost[] }>(newsKey)
-  const news = newsResponse?.posts ?? []
+  const news = Array.isArray(newsResponse?.posts) ? newsResponse.posts : []
   const error = newsError?.message ? "Failed to load news. Please try again later." : null
 
   useEffect(() => {

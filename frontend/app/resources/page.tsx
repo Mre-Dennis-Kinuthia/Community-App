@@ -123,7 +123,7 @@ function ResourcesPageContent() {
   if (categoryFilter !== "all") resourcesParams.set("category", categoryFilter)
   const resourcesKey = activeTab === "resources" ? `/api/resources?${resourcesParams.toString()}` : null
   const { data: resourcesResponse, error: resourcesError, isLoading: isLoadingResources } = useSWR<{ resources?: any[] }>(resourcesKey)
-  const resources = resourcesResponse?.resources ?? []
+  const resources = Array.isArray(resourcesResponse?.resources) ? resourcesResponse.resources : []
   const resourcesErrorMsg = resourcesError?.message ?? null
 
   // Update URL params when filters change

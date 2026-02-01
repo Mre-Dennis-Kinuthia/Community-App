@@ -49,10 +49,10 @@ export function useCommunityMembers(options: UseCommunityMembersOptions = {}) {
 
   return {
     data,
-    members: data?.members || [],
+    members: Array.isArray(data?.members) ? data.members : [],
     pagination: data?.pagination,
     filters: data?.filters,
-    userConnections: data?.userConnections || [],
+    userConnections: Array.isArray(data?.userConnections) ? data.userConnections : [],
     isLoading,
     error: error?.message ?? null,
     refetch: () => mutate(),
