@@ -21,7 +21,6 @@ import { Logo } from "@/components/logo"
 import { MobileNav } from "@/components/mobile-nav"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { NotificationCenter } from "@/components/notification-center"
-import { GlobalSearch } from "@/components/global-search"
 import { SidebarProvider, useSidebar } from "@/components/sidebar-context"
 import { cn } from "@/lib/utils"
 import { useSession } from "@/lib/use-session"
@@ -123,15 +122,13 @@ function DashboardLayoutContent({
   return (
     <div className="flex h-screen flex-col overflow-hidden">
       <header className="sticky top-0 z-40 overflow-x-hidden border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 flex-shrink-0 transition-colors duration-200 ease-out">
-        <div className="container flex h-16 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
-          <div className="flex min-w-0 shrink items-center gap-4">
+        <div className="container flex h-14 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
+          <div className="flex min-w-0 shrink items-center gap-3">
             <MobileNav />
-            <Logo href="/dashboard" />
+            <Logo href="/dashboard" variant="compact" />
+            <span className="hidden text-sm font-medium text-muted-foreground md:inline">Dashboard</span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <div className="hidden md:block">
-              <GlobalSearch />
-            </div>
             <NotificationCenter />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -184,7 +181,7 @@ function DashboardLayoutContent({
       <div className="flex flex-1 relative min-h-0">
         <aside
           className={cn(
-            "hidden fixed left-0 top-16 bottom-0 flex-col border-r border-border/50 bg-sidebar/30 md:flex z-30 overflow-y-auto scrollbar-thin",
+            "hidden fixed left-0 top-14 bottom-0 flex-col border-r border-border/50 bg-sidebar/30 md:flex z-30 overflow-y-auto scrollbar-thin",
             "transition-[width] duration-300 ease-out",
             isCollapsed ? "w-[64px]" : "w-64 min-w-64"
           )}
