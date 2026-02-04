@@ -145,19 +145,19 @@ export default function DashboardPage() {
     <TooltipProvider>
       <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
       <Celebration />
-      <div className="relative min-h-[85vh] -mx-4 -my-8 md:-mx-8 px-4 py-8 md:px-8">
-        {/* Background image – top half of page, sharper */}
-        <div className="pointer-events-none absolute inset-0 rounded-lg overflow-hidden" aria-hidden>
+      <div className="relative min-h-[85vh] -mx-4 -my-8 md:-mx-8 px-4 py-8 md:px-8 bg-background">
+        {/* Background image – extends to end of first row (3 cards), covering ~half of top content */}
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[420px] rounded-t-lg overflow-hidden" aria-hidden>
           <div
-            className="absolute top-0 left-0 right-0 h-1/2 bg-cover bg-center bg-no-repeat opacity-[0.36] dark:opacity-[0.22]"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.36] dark:opacity-[0.22]"
             style={{
               backgroundImage: `url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=90')`,
             }}
           />
           <div
-            className="absolute inset-0 rounded-lg"
+            className="absolute inset-0 rounded-t-lg"
             style={{
-              background: "linear-gradient(180deg, transparent 0%, hsl(var(--background) / 0.4) 35%, hsl(var(--background) / 0.92) 52%, hsl(var(--background)) 100%)",
+              background: "linear-gradient(180deg, transparent 0%, hsl(var(--background) / 0.25) 50%, hsl(var(--background) / 0.88) 85%, hsl(var(--background)) 100%)",
             }}
           />
         </div>

@@ -91,29 +91,55 @@ export async function GET(request: NextRequest) {
       prisma.project.count({ where }),
     ])
 
+    const founder = (p: (typeof rawProjects)[0]) =>
+      p.founder as { id: string; name: string | null; image: string | null } | null
+
     const projects = rawProjects.map((p) => {
-      const founder = p.founder as { id: string; name: string | null; image: string | null } | null
+      const f = founder(p)
       return {
-        ...p,
-        founder: founder?.name ?? null,
-        founderAvatar: founder?.image ?? null,
+        id: p.id,
+        title: p.title,
+        description: p.description ?? "",
+        category: p.category ?? null,
+        stage: p.stage ?? null,
+        impact: p.impact ?? null,
+        imageUrl: p.imageUrl ?? null,
+        location: p.location ?? null,
+        website: p.website ?? null,
+        tags: Array.isArray(p.tags) ? p.tags : [],
+        needs: Array.isArray(p.needs) ? p.needs : [],
+        isFeatured: Boolean(p.isFeatured),
+        status: p.status ?? "approved",
+        founder: f?.name ?? null,
+        founderAvatar: f?.image ?? null,
+        followers: typeof p._count?.followers === "number" ? p._count.followers : 0,
+        volunteers: typeof p._count?.volunteers === "number" ? p._count.volunteers : 0,
+        createdAt: p.createdAt instanceof Date ? p.createdAt.toISOString() : p.createdAt,
+        updatedAt: p.updatedAt instanceof Date ? p.updatedAt.toISOString() : p.updatedAt,
+        submittedAt: p.submittedAt ? (p.submittedAt instanceof Date ? p.submittedAt.toISOString() : p.submittedAt) : null,
+        launchDate: p.launchDate ? (p.launchDate instanceof Date ? p.launchDate.toISOString() : p.launchDate) : null,
       }
     })
 
     return NextResponse.json(
       {
         projects,
-        total,
+        total: Number(total),
         limit,
         offset,
       },
       { headers: corsHeaders }
     )
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error"
     console.error("[PROJECTS API] Error:", error)
+    const isUnavailable =
+      /DATABASE_URL|not available|Prisma Client|ECONNREFUSED|connection/i.test(message)
     return NextResponse.json(
-      { error: "Failed to fetch projects" },
-      { status: 500, headers: corsHeaders }
+      {
+        error: isUnavailable ? "Service temporarily unavailable. Please try again." : "Failed to fetch projects",
+      },
+      { status: isUnavailable ? 503 : 500, headers: corsHeaders }
     )
   }
 }
