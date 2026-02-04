@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
-import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -142,8 +141,7 @@ export default function MyProjectsPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <Breadcrumbs items={[{ label: "Dashboard" }, { label: "My projects" }]} />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
@@ -327,7 +325,6 @@ export default function MyProjectsPage() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   )
 }
