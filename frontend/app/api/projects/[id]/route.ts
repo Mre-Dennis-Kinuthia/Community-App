@@ -21,6 +21,7 @@ export async function GET(
       where: {
         id,
         deletedAt: null,
+        status: "approved", // Only approved projects are visible on the community
       },
       include: {
         founder: {

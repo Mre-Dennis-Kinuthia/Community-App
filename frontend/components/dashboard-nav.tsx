@@ -67,6 +67,16 @@ const navGroups: NavGroup[] = [
         icon: Lightbulb,
       },
       {
+        title: "My projects",
+        href: "/dashboard/projects",
+        icon: FolderOpen,
+      },
+      {
+        title: "Submit a project",
+        href: "/dashboard/projects/new",
+        icon: PlusCircle,
+      },
+      {
         title: "News & Updates",
         href: "/news",
         icon: Newspaper,

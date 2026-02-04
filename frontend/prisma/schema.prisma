@@ -260,6 +260,11 @@ model Project {
   socialLinks Json?     // Object with social links
   launchDate  DateTime?
   isFeatured  Boolean   @default(false)
+  // Publish workflow: pending = awaiting admin approval, approved = visible on community, rejected = not published
+  status      String    @default("approved") // "draft" | "pending" | "approved" | "rejected"
+  submittedAt DateTime?
+  approvedAt  DateTime?
+  approvedById String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
@@ -273,6 +278,7 @@ model Project {
   @@index([category])
   @@index([stage])
   @@index([isFeatured])
+  @@index([status])
 }
 
 model ProjectFollow {
