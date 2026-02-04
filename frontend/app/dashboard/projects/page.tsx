@@ -1,14 +1,42 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
+import { useSearchParams } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Loader2, Clock, CheckCircle2, XCircle } from "lucide-react"
-import Link from "next/link"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Plus, Loader2, Clock, CheckCircle2, XCircle, Send, Lightbulb } from "lucide-react"
 import { format } from "date-fns"
+import { toast } from "@/lib/toast"
+
+const CATEGORIES = [
+  "Climate & Environment",
+  "Agriculture",
+  "Circular Economy",
+  "Healthcare",
+  "FinTech",
+  "Water & Sanitation",
+]
+const STAGES = ["Early Stage", "Growth", "Scaling"]
+const NEEDS_OPTIONS = [
+  "Seeking Funding",
+  "Seeking Collaborators",
+  "Looking for Volunteers",
+  "Open to Partnerships",
+]
 
 interface MyProject {
   id: string
@@ -18,25 +46,47 @@ interface MyProject {
   createdAt: string
 }
 
+const emptyForm = {
+  title: "",
+  description: "",
+  category: "",
+  stage: "",
+  impact: "",
+  location: "",
+  needs: [] as string[],
+  tags: "",
+  website: "",
+}
+
 export default function MyProjectsPage() {
+  const searchParams = useSearchParams()
   const [projects, setProjects] = useState<MyProject[]>([])
   const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [formData, setFormData] = useState(emptyForm)
+
+  const fetchMy = useCallback(async () => {
+    try {
+      setLoading(true)
+      const res = await fetch("/api/projects?mine=true&limit=50", { credentials: "include" })
+      if (!res.ok) return
+      const data = await res.json()
+      setProjects(data.projects || [])
+    } catch {
+      setProjects([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    async function fetchMy() {
-      try {
-        const res = await fetch("/api/projects?mine=true&limit=50", { credentials: "include" })
-        if (!res.ok) return
-        const data = await res.json()
-        setProjects(data.projects || [])
-      } catch {
-        setProjects([])
-      } finally {
-        setLoading(false)
-      }
-    }
     fetchMy()
-  }, [])
+  }, [fetchMy])
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") setShowForm(true)
+  }, [searchParams])
 
   const statusConfig: Record<string, { label: string; variant: "secondary" | "default" | "destructive" | "outline"; icon: React.ComponentType<{ className?: string }> }> = {
     pending: { label: "Pending review", variant: "secondary", icon: Clock },
@@ -44,29 +94,213 @@ export default function MyProjectsPage() {
     rejected: { label: "Rejected", variant: "destructive", icon: XCircle },
   }
 
+  const toggleNeed = (need: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      needs: prev.needs.includes(need) ? prev.needs.filter((n) => n !== need) : [...prev.needs, need],
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.title.trim()) {
+      toast.error("Title is required", "Please enter a project title.")
+      return
+    }
+    setSubmitting(true)
+    try {
+      const tagsArray = formData.tags.split(",").map((t) => t.trim()).filter(Boolean)
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title: formData.title.trim(),
+          description: formData.description.trim() || undefined,
+          category: formData.category || undefined,
+          stage: formData.stage || undefined,
+          impact: formData.impact.trim() || undefined,
+          location: formData.location.trim() || undefined,
+          needs: formData.needs.length > 0 ? formData.needs : undefined,
+          tags: tagsArray.length > 0 ? tagsArray : undefined,
+          website: formData.website.trim() || undefined,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || "Failed to submit")
+      }
+      toast.success("Project submitted", "It will be reviewed by the admin and published once approved.")
+      setFormData(emptyForm)
+      setShowForm(false)
+      fetchMy()
+    } catch (err: any) {
+      toast.error("Could not submit", err?.message || "Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Dashboard" }, { label: "My projects" }]} />
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold">My projects</h1>
-            <p className="text-muted-foreground text-sm">
-              Projects you’ve submitted. They need admin approval before they appear on the community.
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/dashboard/projects/new">
-              <Plus className="h-4 w-4" />
-              Submit a project
-            </Link>
-          </Button>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-semibold tracking-tight">My projects</h1>
+          <p className="text-muted-foreground text-base">
+            Submit a project or view your submissions. Projects need admin approval before they appear on the community.
+          </p>
         </div>
 
-        <Card>
+        {showForm ? (
+          <Card className="border-border/50 shadow-card">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-primary" />
+                    Submit a project
+                  </CardTitle>
+                  <CardDescription>
+                    Fill in the details below. Your project will be reviewed before it is published.
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="e.g. Sustainable Energy Initiative"
+                    required
+                    className="border-border/50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Describe your project and goals..."
+                    rows={4}
+                    className="border-border/50 resize-none"
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select value={formData.category || undefined} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                      <SelectTrigger className="border-border/50"><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Stage</Label>
+                    <Select value={formData.stage || undefined} onValueChange={(v) => setFormData({ ...formData, stage: v })}>
+                      <SelectTrigger className="border-border/50"><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        {STAGES.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="impact">Impact</Label>
+                  <Textarea
+                    id="impact"
+                    value={formData.impact}
+                    onChange={(e) => setFormData({ ...formData, impact: e.target.value })}
+                    placeholder="Social or environmental impact..."
+                    rows={2}
+                    className="border-border/50 resize-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="e.g. Nairobi, Kenya"
+                    className="border-border/50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Looking for</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {NEEDS_OPTIONS.map((need) => (
+                      <label key={need} className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          checked={formData.needs.includes(need)}
+                          onCheckedChange={() => toggleNeed(need)}
+                        />
+                        <span className="text-sm">{need}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags (comma-separated)</Label>
+                  <Input
+                    id="tags"
+                    value={formData.tags}
+                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                    placeholder="e.g. sustainability, cleantech"
+                    className="border-border/50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    type="url"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://..."
+                    className="border-border/50"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={submitting} className="bg-primary text-primary-foreground">
+                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    Submit for approval
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="flex justify-end">
+            <Button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground shadow-sm">
+              <Plus className="h-4 w-4" />
+              Submit a project
+            </Button>
+          </div>
+        )}
+
+        <Card className="border-border/50 shadow-card transition-all hover:shadow-card">
           <CardHeader>
-            <CardTitle>Submissions</CardTitle>
-            <CardDescription>Status: Pending = under review, Published = live on Projects & Initiatives, Rejected = not published.</CardDescription>
+            <CardTitle className="text-base font-medium">Your submissions</CardTitle>
+            <CardDescription>
+              Pending = under review · Published = live on Projects & Initiatives · Rejected = not published
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -75,13 +309,16 @@ export default function MyProjectsPage() {
               </div>
             ) : projects.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
-                <p className="mb-4">You haven’t submitted any projects yet.</p>
-                <Button asChild>
-                  <Link href="/dashboard/projects/new">Submit your first project</Link>
+                <Lightbulb className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                <p className="font-medium text-foreground">No projects yet</p>
+                <p className="text-sm mt-1">Submit your first project to share it with the community after approval.</p>
+                <Button onClick={() => setShowForm(true)} className="mt-4 bg-primary text-primary-foreground">
+                  <Plus className="h-4 w-4" />
+                  Submit a project
                 </Button>
               </div>
             ) : (
-              <ul className="divide-y">
+              <ul className="divide-y divide-border">
                 {projects.map((p) => {
                   const config = statusConfig[p.status] || statusConfig.pending
                   const Icon = config.icon
@@ -89,7 +326,7 @@ export default function MyProjectsPage() {
                     <li key={p.id} className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
                       <div className="min-w-0">
                         <p className="font-medium truncate">{p.title}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           Submitted {p.submittedAt ? format(new Date(p.submittedAt), "PP") : format(new Date(p.createdAt), "PP")}
                         </p>
                       </div>
