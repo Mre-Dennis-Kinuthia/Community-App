@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2 } from "lucide-react"
+import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2, FolderOpen, PlusCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useSidebar } from "@/components/sidebar-context"
 import {
