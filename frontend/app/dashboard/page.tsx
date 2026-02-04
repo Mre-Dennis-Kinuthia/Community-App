@@ -147,7 +147,7 @@ export default function DashboardPage() {
       <Celebration />
       <div className="relative min-h-[85vh] -mx-4 -my-8 md:-mx-8 px-4 py-8 md:px-8 bg-background">
         {/* Background image – extends to end of first row (3 cards), covering ~half of top content */}
-        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[420px] rounded-t-lg overflow-hidden" aria-hidden>
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[410px] rounded-t-lg overflow-hidden" aria-hidden>
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.36] dark:opacity-[0.22]"
             style={{
