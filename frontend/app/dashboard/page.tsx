@@ -146,18 +146,18 @@ export default function DashboardPage() {
       <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
       <Celebration />
       <div className="relative min-h-[85vh] -mx-4 -my-8 md:-mx-8 px-4 py-8 md:px-8">
-        {/* Background image only for Dashboard page */}
+        {/* Background image – top half of page, sharper */}
         <div className="pointer-events-none absolute inset-0 rounded-lg overflow-hidden" aria-hidden>
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.18] dark:opacity-[0.10]"
+            className="absolute top-0 left-0 right-0 h-1/2 bg-cover bg-center bg-no-repeat opacity-[0.36] dark:opacity-[0.22]"
             style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80')`,
+              backgroundImage: `url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=90')`,
             }}
           />
           <div
             className="absolute inset-0 rounded-lg"
             style={{
-              background: "linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background) / 0.94) 20%, hsl(var(--background) / 0.88) 45%, hsl(var(--background)) 100%)",
+              background: "linear-gradient(180deg, transparent 0%, hsl(var(--background) / 0.4) 35%, hsl(var(--background) / 0.92) 52%, hsl(var(--background)) 100%)",
             }}
           />
         </div>

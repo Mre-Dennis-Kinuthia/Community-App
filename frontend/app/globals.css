@@ -50,6 +50,8 @@ html {
   --chart-5: oklch(0.45 0.12 280); /* Purple accent */
   
   --radius: 0.75rem;
+  --radius-glass: 1rem;
+  --radius-glass-lg: 1.25rem;
   
   /* Clean sidebar with subtle gray background */
   --sidebar: oklch(0.98 0 0);
@@ -139,7 +141,8 @@ html {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: var(--radius-glass);
+  --radius-2xl: var(--radius-glass-lg);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -308,19 +311,41 @@ html {
     padding: 0.75rem 1rem;
   }
   
-  /* Apple-style blur effect - subtle and refined */
+  /* Liquid glass – Apple aesthetic: frosted, soft edges, subtle borders */
   .glass {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border: 0.5px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border: 0.5px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.04) inset;
   }
   
   .glass-dark {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(28, 28, 30, 0.72);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.2) inset;
+  }
+  
+  .glass-card {
+    background: rgba(255, 255, 255, 0.65);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    border: 0.5px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.03) inset, 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+  }
+  
+  .dark .glass-card {
+    background: rgba(38, 38, 42, 0.7);
+    border: 0.5px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.15) inset, 0 2px 12px -2px rgba(0, 0, 0, 0.25);
+  }
+  
+  .dark .glass {
+    background: rgba(28, 28, 30, 0.72);
+    border: 0.5px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.2) inset;
   }
   
   /* Apple-style smooth transitions */
