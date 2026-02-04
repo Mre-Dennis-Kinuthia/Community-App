@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
       where.isFeatured = true
     }
 
-    const [projects, total] = await Promise.all([
+    const [rawProjects, total] = await Promise.all([
       prisma.project.findMany({
         where,
         take: limit,
@@ -90,6 +90,15 @@ export async function GET(request: NextRequest) {
       }),
       prisma.project.count({ where }),
     ])
+
+    const projects = rawProjects.map((p) => {
+      const founder = p.founder as { id: string; name: string | null; image: string | null } | null
+      return {
+        ...p,
+        founder: founder?.name ?? null,
+        founderAvatar: founder?.image ?? null,
+      }
+    })
 
     return NextResponse.json(
       {

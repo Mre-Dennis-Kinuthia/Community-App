@@ -61,6 +61,14 @@ const needsIcons: Record<string, any> = {
   "Open to Partnerships": Handshake,
 }
 
+function founderName(project: any): string {
+  if (project == null) return "Unknown"
+  const f = project.founder
+  if (typeof f === "string") return f || "Unknown"
+  if (f && typeof f === "object" && "name" in f) return (f as { name?: string }).name ?? "Unknown"
+  return "Unknown"
+}
+
 function ProjectsPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -104,7 +112,7 @@ function ProjectsPageContent() {
       const matchesSearch = 
         project.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.founder?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        founderName(project).toLowerCase().includes(searchQuery.toLowerCase()) ||
         project.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       
       const matchesCategory = categoryFilter === "all" || project.category === categoryFilter
@@ -246,20 +254,20 @@ function ProjectsPageContent() {
                               <Star className="mr-1 h-3 w-3" />
                               Featured
                             </Badge>
-                            <Badge className={categoryColors[project.category]}>
-                              {project.category}
-                            </Badge>
-                            <Badge className={stageColors[project.stage]}>
-                              {project.stage}
-                            </Badge>
+                            {project.category && (
+                              <Badge className={categoryColors[project.category] ?? ""}>{project.category}</Badge>
+                            )}
+                            {project.stage && (
+                              <Badge className={stageColors[project.stage] ?? ""}>{project.stage}</Badge>
+                            )}
                           </div>
                           <CardTitle className="text-xl">{project.title}</CardTitle>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={project.founderAvatar} alt={project.founder} />
-                              <AvatarFallback>{(project.founder ?? "?")[0]}</AvatarFallback>
+                              <AvatarImage src={project.founderAvatar ?? (typeof project.founder === "object" && project.founder != null ? (project.founder as any).image : null)} alt={founderName(project)} />
+                              <AvatarFallback>{(founderName(project) ?? "?")[0]}</AvatarFallback>
                             </Avatar>
-                            <span className="text-sm text-muted-foreground">by {project.founder}</span>
+                            <span className="text-sm text-muted-foreground">by {founderName(project)}</span>
                           </div>
                           <CardDescription className="text-base line-clamp-2">
                             {project.description}
@@ -277,7 +285,7 @@ function ProjectsPageContent() {
                       </div>
                       {(project.needs ?? []).length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {(project.needs ?? []).slice(0, 2).map((need, idx) => {
+                            {(project.needs ?? []).slice(0, 2).map((need: string, idx: number) => {
                             const NeedIcon = needsIcons[need] || Users
                             return (
                               <Badge key={idx} className={needsColors[need]} variant="outline">
@@ -296,16 +304,18 @@ function ProjectsPageContent() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
                         <div className="flex items-center gap-1">
                           <Heart className="h-3 w-3" />
-                          <span>{project.followers}</span>
+                          <span>{project._count?.followers ?? project.followers ?? 0} followers</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
-                          <span>{project.volunteers}</span>
+                          <span>{project._count?.volunteers ?? project.volunteers ?? 0} volunteers</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          <span>{project.location}</span>
-                        </div>
+                        {(project.location ?? null) && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            <span>{project.location}</span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -456,20 +466,20 @@ function ProjectsPageContent() {
                                 Featured
                               </Badge>
                             )}
-                            <Badge className={categoryColors[project.category]}>
-                              {project.category}
-                            </Badge>
-                            <Badge className={stageColors[project.stage]}>
-                              {project.stage}
-                            </Badge>
+                            {project.category && (
+                              <Badge className={categoryColors[project.category] ?? ""}>{project.category}</Badge>
+                            )}
+                            {project.stage && (
+                              <Badge className={stageColors[project.stage] ?? ""}>{project.stage}</Badge>
+                            )}
                           </div>
                           <CardTitle className="text-xl">{project.title}</CardTitle>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={project.founderAvatar} alt={project.founder} />
-                              <AvatarFallback>{(project.founder ?? "?")[0]}</AvatarFallback>
+                              <AvatarImage src={project.founderAvatar ?? (typeof project.founder === "object" && project.founder != null ? (project.founder as any).image : null)} alt={founderName(project)} />
+                              <AvatarFallback>{(founderName(project) ?? "?")[0]}</AvatarFallback>
                             </Avatar>
-                            <span className="text-sm text-muted-foreground">by {project.founder}</span>
+                            <span className="text-sm text-muted-foreground">by {founderName(project)}</span>
                           </div>
                           <CardDescription className="text-base line-clamp-2">
                             {project.description}
@@ -478,18 +488,20 @@ function ProjectsPageContent() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Target className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">Impact</span>
+                      {(project.impact ?? null) && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Target className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">Impact</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{project.impact}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{project.impact}</p>
-                      </div>
+                      )}
                       {(project.needs ?? []).length > 0 && (
                         <div>
                           <p className="text-sm font-medium mb-2">Looking For:</p>
                           <div className="flex flex-wrap gap-1">
-                            {(project.needs ?? []).slice(0, 2).map((need, idx) => {
+                            {(project.needs ?? []).slice(0, 2).map((need: string, idx: number) => {
                               const NeedIcon = needsIcons[need] || Users
                               return (
                                 <Badge key={idx} className={needsColors[need]} variant="outline">
