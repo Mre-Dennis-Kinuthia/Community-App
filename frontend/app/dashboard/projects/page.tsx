@@ -143,28 +143,31 @@ export default function MyProjectsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-10">
+      <div className="space-y-6">
         <Breadcrumbs items={[{ label: "Dashboard" }, { label: "My projects" }]} />
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">My projects</h1>
-          <p className="text-muted-foreground text-base">
-            Submit a project or view your submissions. Projects need admin approval before they appear on the community.
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-semibold tracking-tight">My projects</h1>
+            <p className="text-muted-foreground text-sm">
+              {showForm ? "Submit for admin approval to publish on Projects & Initiatives." : "View and submit projects."}
+            </p>
+          </div>
+          {!showForm && (
+            <Button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground shadow-sm">
+              <Plus className="h-4 w-4" />
+              Submit a project
+            </Button>
+          )}
         </div>
 
         {showForm ? (
           <Card className="border-border/50 shadow-card">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5 text-primary" />
-                    Submit a project
-                  </CardTitle>
-                  <CardDescription>
-                    Fill in the details below. Your project will be reviewed before it is published.
-                  </CardDescription>
-                </div>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Lightbulb className="h-4 w-4 text-primary" />
+                  New project
+                </CardTitle>
                 <Button variant="ghost" size="sm" onClick={() => setShowForm(false)}>
                   Cancel
                 </Button>
@@ -287,60 +290,43 @@ export default function MyProjectsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="flex justify-end">
-            <Button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground shadow-sm">
-              <Plus className="h-4 w-4" />
-              Submit a project
-            </Button>
-          </div>
+          <Card className="border-border/50 shadow-card">
+            <CardContent className="pt-6">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : projects.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Lightbulb className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                  <p className="font-medium text-foreground">No projects yet</p>
+                  <p className="text-sm mt-1">Use the button above to submit your first project.</p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {projects.map((p) => {
+                    const config = statusConfig[p.status] || statusConfig.pending
+                    const Icon = config.icon
+                    return (
+                      <li key={p.id} className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{p.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Submitted {p.submittedAt ? format(new Date(p.submittedAt), "PP") : format(new Date(p.createdAt), "PP")}
+                          </p>
+                        </div>
+                        <Badge variant={config.variant} className="gap-1 shrink-0">
+                          <Icon className="h-3 w-3" />
+                          {config.label}
+                        </Badge>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
         )}
-
-        <Card className="border-border/50 shadow-card transition-all hover:shadow-card">
-          <CardHeader>
-            <CardTitle className="text-base font-medium">Your submissions</CardTitle>
-            <CardDescription>
-              Pending = under review · Published = live on Projects & Initiatives · Rejected = not published
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : projects.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Lightbulb className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                <p className="font-medium text-foreground">No projects yet</p>
-                <p className="text-sm mt-1">Submit your first project to share it with the community after approval.</p>
-                <Button onClick={() => setShowForm(true)} className="mt-4 bg-primary text-primary-foreground">
-                  <Plus className="h-4 w-4" />
-                  Submit a project
-                </Button>
-              </div>
-            ) : (
-              <ul className="divide-y divide-border">
-                {projects.map((p) => {
-                  const config = statusConfig[p.status] || statusConfig.pending
-                  const Icon = config.icon
-                  return (
-                    <li key={p.id} className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">{p.title}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Submitted {p.submittedAt ? format(new Date(p.submittedAt), "PP") : format(new Date(p.createdAt), "PP")}
-                        </p>
-                      </div>
-                      <Badge variant={config.variant} className="gap-1 shrink-0">
-                        <Icon className="h-3 w-3" />
-                        {config.label}
-                      </Badge>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </DashboardLayout>
   )
