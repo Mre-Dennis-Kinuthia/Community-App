@@ -145,7 +145,23 @@ export default function DashboardPage() {
     <TooltipProvider>
       <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
       <Celebration />
-      <div className="space-y-10">
+      <div className="relative min-h-[85vh] -mx-4 -my-8 md:-mx-8 px-4 py-8 md:px-8">
+        {/* Background image only for Dashboard page */}
+        <div className="pointer-events-none absolute inset-0 rounded-lg overflow-hidden" aria-hidden>
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.18] dark:opacity-[0.10]"
+            style={{
+              backgroundImage: `url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80')`,
+            }}
+          />
+          <div
+            className="absolute inset-0 rounded-lg"
+            style={{
+              background: "linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background) / 0.94) 20%, hsl(var(--background) / 0.88) 45%, hsl(var(--background)) 100%)",
+            }}
+          />
+        </div>
+        <div className="relative z-10 space-y-10">
         <Breadcrumbs items={[{ label: "Dashboard" }]} />
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -423,7 +439,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+        </div>
+      </div>
     </TooltipProvider>
   )
 }
