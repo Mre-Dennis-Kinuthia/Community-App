@@ -156,37 +156,45 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       Featured
                     </Badge>
                   )}
-                  <Badge className={categoryColors[project.category]}>
-                    {project.category}
-                  </Badge>
-                  <Badge className={stageColors[project.stage]}>
-                    {project.stage}
-                  </Badge>
+                  {project.category && (
+                    <Badge className={categoryColors[project.category] ?? ""}>
+                      {project.category}
+                    </Badge>
+                  )}
+                  {project.stage && (
+                    <Badge className={stageColors[project.stage] ?? ""}>
+                      {project.stage}
+                    </Badge>
+                  )}
                 </div>
                 <CardTitle className="text-3xl">{project.title}</CardTitle>
                 <div className="flex items-center gap-4 mt-4">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={project.founderAvatar} alt={project.founder} />
+                    <AvatarImage src={project.founderAvatar ?? undefined} alt={project.founder ?? "Founder"} />
                     <AvatarFallback>{(project.founder ?? "?")[0]}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">by {project.founder}</p>
+                    <p className="font-medium">by {project.founder ?? "Unknown"}</p>
                     <p className="text-sm text-muted-foreground">Project Founder</p>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground ml-auto">
-                    <MapPin className="h-4 w-4" />
-                    <span>{project.location}</span>
-                  </div>
+                  {(project.location ?? null) && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground ml-auto">
+                      <MapPin className="h-4 w-4" />
+                      <span>{project.location}</span>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <Target className="h-5 w-5 text-primary" />
-                    Impact
-                  </h3>
-                  <p className="text-muted-foreground text-lg">{project.impact}</p>
-                </div>
+                {(project.impact ?? null) && (
+                  <div>
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <Target className="h-5 w-5 text-primary" />
+                      Impact
+                    </h3>
+                    <p className="text-muted-foreground text-lg">{project.impact}</p>
+                  </div>
+                )}
 
                 <Separator />
 
@@ -246,7 +254,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     Team & Collaborators
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {project.team.map((member, idx) => (
+                    {(project.team ?? []).map((member: any, idx: number) => (
                       <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border/50">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={member.avatar} alt={member.name} />
@@ -288,9 +296,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                   <p><strong>Deadline:</strong> {format(project.fundingNeeds.deadline, "MMMM d, yyyy")}</p>
                                 </div>
                               )}
-                              {need === "Looking for Volunteers" && project.volunteerNeeds && project.volunteerNeeds.length > 0 && (
+                              {need === "Looking for Volunteers" && (project.volunteerNeeds ?? []).length > 0 && (
                                 <div className="mt-2 space-y-2">
-                                  {project.volunteerNeeds.map((volunteer, vIdx) => (
+                                  {(project.volunteerNeeds ?? []).map((volunteer: any, vIdx: number) => (
                                     <div key={vIdx} className="text-sm text-muted-foreground p-2 bg-muted/50 rounded">
                                       <p className="font-medium">{volunteer.role}</p>
                                       <p>Time: {volunteer.hours}</p>
@@ -299,7 +307,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                   ))}
                                 </div>
                               )}
-                              {need === "Open to Partnerships" && project.partnershipInterests && project.partnershipInterests.length > 0 && (
+                              {need === "Open to Partnerships" && (project.partnershipInterests ?? []).length > 0 && (
                                 <div className="mt-2">
                                   <p className="text-sm text-muted-foreground mb-1">Interested in partnerships with:</p>
                                   <div className="flex flex-wrap gap-1">
@@ -323,7 +331,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 <div>
                   <h3 className="font-semibold mb-3">Key Metrics</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(project.metrics).map(([key, value]) => (
+                    {Object.entries(project.metrics ?? {}).map(([key, value]) => (
                       <div key={key} className="p-4 rounded-lg bg-muted/50">
                         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                           {key.replace(/([A-Z])/g, " $1").trim()}
@@ -347,10 +355,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t">
-                  <Calendar className="h-4 w-4" />
-                  <span>Launched {format(project.launchDate, "MMMM d, yyyy")}</span>
-                </div>
+                {(project.launchDate ?? null) && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground pt-4 border-t">
+                    <Calendar className="h-4 w-4" />
+                    <span>Launched {format(new Date(project.launchDate), "MMMM d, yyyy")}</span>
+                  </div>
+                )}
 
                 {relatedProjects.length > 0 && (
                   <>
@@ -457,7 +467,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 <CardTitle className="text-lg">Contact & Links</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {project.website && (
+                                {(project.website ?? null) && (
                   <Button 
                     variant="outline" 
                     className="w-full"
@@ -477,21 +487,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     Contact Project
                   </Button>
                 )}
-                {project.socialLinks.linkedin && (
+                {(project.socialLinks ?? {}).linkedin && (
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => window.open(project.socialLinks.linkedin!, "_blank")}
+                    onClick={() => window.open((project.socialLinks as any).linkedin, "_blank")}
                   >
                     <Linkedin className="mr-2 h-4 w-4" />
                     LinkedIn
                   </Button>
                 )}
-                {project.socialLinks.twitter && (
+                {(project.socialLinks ?? {}).twitter && (
                   <Button 
                     variant="outline" 
                     className="w-full"
-                    onClick={() => window.open(project.socialLinks.twitter!, "_blank")}
+                    onClick={() => window.open((project.socialLinks as any).twitter, "_blank")}
                   >
                     <Globe className="mr-2 h-4 w-4" />
                     X/Twitter
