@@ -55,6 +55,7 @@ const emptyForm = {
   needs: [] as string[],
   tags: "",
   website: "",
+  imageUrl: "",
 }
 
 export default function MyProjectsPage() {
@@ -123,6 +124,7 @@ export default function MyProjectsPage() {
           needs: formData.needs.length > 0 ? formData.needs : undefined,
           tags: tagsArray.length > 0 ? tagsArray : undefined,
           website: formData.website.trim() || undefined,
+          imageUrl: formData.imageUrl.trim() || undefined,
         }),
       })
       if (!res.ok) {
@@ -194,6 +196,18 @@ export default function MyProjectsPage() {
                     rows={4}
                     className="border-border/50 resize-none"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl">Project image URL</Label>
+                  <Input
+                    id="imageUrl"
+                    type="url"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                    placeholder="https://example.com/your-project-image.jpg"
+                    className="border-border/50"
+                  />
+                  <p className="text-xs text-muted-foreground">Optional. Link to a cover image for your project.</p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">

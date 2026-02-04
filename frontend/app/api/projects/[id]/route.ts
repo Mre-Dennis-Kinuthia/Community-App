@@ -67,6 +67,7 @@ export async function GET(
       category: raw.category,
       stage: raw.stage,
       impact: raw.impact,
+      imageUrl: raw.imageUrl ?? null,
       location: raw.location,
       website: raw.website,
       launchDate: raw.launchDate,

@@ -250,6 +250,7 @@ model Project {
   category    String?   // Climate & Environment, Agriculture, etc.
   stage       String?   // Early Stage, Growth, Scaling
   impact      String?   @db.Text
+  imageUrl    String?   // Cover/thumbnail image URL for the project
   metrics     Json?     // Object with metrics
   tags        String[]  @default([])
   founderId   String?   // optional for backward compatibility

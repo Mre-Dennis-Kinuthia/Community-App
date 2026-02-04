@@ -147,7 +147,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-border/50">
+            <Card className="border-border/50 overflow-hidden">
+              {(project.imageUrl ?? null) && (
+                <div className="aspect-[21/9] w-full max-h-[320px] overflow-hidden bg-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
+                </div>
+              )}
               <CardHeader>
                 <div className="flex items-center gap-2 flex-wrap mb-4">
                   {project.featured && (

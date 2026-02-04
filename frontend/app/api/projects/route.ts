@@ -141,6 +141,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const imageUrl =
+      body.imageUrl && typeof body.imageUrl === "string" && body.imageUrl.trim()
+        ? body.imageUrl.trim()
+        : null
+
     const project = await prisma.project.create({
       data: {
         title,
@@ -148,6 +153,7 @@ export async function POST(request: NextRequest) {
         category: body.category ?? null,
         stage: body.stage ?? null,
         impact: body.impact ?? null,
+        imageUrl,
         location: body.location ?? null,
         needs: Array.isArray(body.needs) ? body.needs : [],
         tags: Array.isArray(body.tags) ? body.tags : [],

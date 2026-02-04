@@ -210,12 +210,29 @@ function DashboardLayoutContent({
         <main
           id="main-content"
           className={cn(
-            "flex w-full flex-1 flex-col overflow-y-auto py-8 px-4 md:px-8 pb-20 md:pb-8 container min-h-0",
+            "relative flex w-full flex-1 flex-col overflow-y-auto min-h-0",
             "transition-[margin-left] duration-300 ease-out will-change-[margin-left]",
             isCollapsed ? "md:ml-[64px]" : "md:ml-64"
           )}
         >
-          {children}
+          {/* Premium dashboard background: contextual collaboration/community image with gradient overlay */}
+          <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.16] dark:opacity-[0.09]"
+              style={{
+                backgroundImage: `url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=80')`,
+              }}
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background) / 0.96) 12%, hsl(var(--background) / 0.92) 28%, hsl(var(--background)) 100%)",
+              }}
+            />
+          </div>
+          <div className="relative z-10 flex flex-1 flex-col py-8 px-4 md:px-8 pb-20 md:pb-8 container min-h-0">
+            {children}
+          </div>
         </main>
       </div>
       <MobileBottomNav />

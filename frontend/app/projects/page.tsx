@@ -245,7 +245,13 @@ function ProjectsPageContent() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {featuredProjects.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`}>
-                  <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full ring-2 ring-primary/20`}>
+                  <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full ring-2 ring-primary/20 overflow-hidden`}>
+                    {(project.imageUrl ?? null) && (
+                      <div className="aspect-video w-full overflow-hidden bg-muted">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    )}
                     <CardHeader>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 space-y-3">
@@ -453,9 +459,15 @@ function ProjectsPageContent() {
             <div className="grid gap-6 md:grid-cols-2">
               {filteredAndSortedProjects.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`}>
-                  <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full ${
+                  <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full overflow-hidden ${
                     project.isFeatured ? "ring-2 ring-primary/20" : ""
                   }`}>
+                    {(project.imageUrl ?? null) && (
+                      <div className="aspect-video w-full overflow-hidden bg-muted">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    )}
                     <CardHeader>
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 space-y-3">
