@@ -13,11 +13,12 @@ export async function GET(
   try {
     const { id } = params
 
-    const event = await prisma.event.findUnique({
+    // Use findFirst so we can safely filter on deletedAt as well
+    const event = await prisma.event.findFirst({
       where: {
         id,
         deletedAt: null,
-      } as any,
+      },
     })
 
     if (!event) {
