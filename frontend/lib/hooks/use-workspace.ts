@@ -30,6 +30,7 @@ export interface Workspace {
 
 interface WorkspaceApiResponse {
   workspace: Workspace | null
+  error?: string
 }
 
 /**
@@ -49,6 +50,6 @@ export function useWorkspace(workspaceSlug?: string) {
   return {
     workspace: data?.workspace ?? null,
     isLoading,
-    error: error?.message ?? null,
+    error: error?.message ?? data?.error ?? null,
   }
 }

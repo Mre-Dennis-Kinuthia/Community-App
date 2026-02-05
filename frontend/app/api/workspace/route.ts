@@ -9,9 +9,23 @@ export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
 }
 
+/** True if the error indicates DB is missing or unreachable (so we return workspace: null instead of 500). */
+function isDatabaseUnavailableError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error)
+  const code = (error as { code?: string })?.code
+  return (
+    !process.env.DATABASE_URL ||
+    /DATABASE_URL|not set|ECONNREFUSED|connection refused|connect ECONNREFUSED|P1001|P1017|Connection|timeout|getaddrinfo/i.test(msg) ||
+    code === "P1001" ||
+    code === "P1017"
+  )
+}
+
 /**
  * GET /api/workspace
- * Get workspace information from database
+ * Get workspace information from database.
+ * If DATABASE_URL is missing or DB is unreachable, returns 200 with workspace: null
+ * so the booking page can show "No active workspace configured" instead of a 500.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -69,11 +83,17 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ workspace }, { headers: corsHeaders })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[WORKSPACE API] Error:", error)
+
+    // Never 500 the client: return 200 with workspace: null so the booking page
+    // can show "No active workspace configured" or "Database unavailable".
+    const message = isDatabaseUnavailableError(error)
+      ? "Database unavailable"
+      : "Failed to fetch workspace"
     return NextResponse.json(
-      { error: "Failed to fetch workspace" },
-      { status: 500, headers: corsHeaders }
+      { workspace: null, error: message },
+      { status: 200, headers: corsHeaders }
     )
   }
 }
