@@ -146,8 +146,8 @@ export default function DashboardPage() {
       <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
       <Celebration />
       <div className="relative min-h-[85vh] -mx-4 -my-8 md:-mx-8 px-4 py-8 md:px-8 bg-background">
-        {/* Background image – responsive height so it stays aligned with the top stat cards on different screen sizes */}
-        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[260px] sm:h-[320px] lg:h-[405px] rounded-lg overflow-hidden" aria-hidden>
+        {/* Background image – fixed height aligned with top stat cards */}
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[405px] rounded-lg overflow-hidden" aria-hidden>
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.36] dark:opacity-[0.22]"
             style={{
@@ -287,43 +287,17 @@ export default function DashboardPage() {
               <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-bold min-h-[2rem] flex items-center">
-                  {isLoadingStats ? (
-                    <span className="text-muted-foreground animate-pulse">...</span>
-                  ) : (
-                    <span className="transition-opacity duration-150 ease-out opacity-100">
-                      {statsWithDefaults.upcomingEvents}
-                    </span>
-                  )}
-                </div>
-                <span className="inline-flex items-center rounded-full bg-primary/5 px-2 py-0.5 text-[11px] font-medium text-primary">
-                  This week
-                </span>
+            <CardContent>
+              <div className="text-2xl font-bold min-h-[2rem] flex items-center">
+                {isLoadingStats ? (
+                  <span className="text-muted-foreground animate-pulse">...</span>
+                ) : (
+                  <span className="transition-opacity duration-150 ease-out opacity-100">
+                    {statsWithDefaults.upcomingEvents}
+                  </span>
+                )}
               </div>
-              {!isLoadingEvents && recentEvents.length > 0 && (
-                <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2">
-                  {(() => {
-                    const event = recentEvents[0]
-                    const eventDate = new Date(event.startDate)
-                    const formattedDate = eventDate.toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })
-                    return (
-                      <>
-                        <p className="text-xs font-medium line-clamp-1">{event.title}</p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
-                          {formattedDate}
-                          {event.location && ` • ${event.location}`}
-                        </p>
-                      </>
-                    )
-                  })()}
-                </div>
-              )}
+              <p className="text-xs text-muted-foreground">This week</p>
             </CardContent>
           </Card>
           <Card 
