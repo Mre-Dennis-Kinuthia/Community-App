@@ -236,152 +236,155 @@ export default function BookingPage() {
         </div>
 
         {/* Main Booking Content */}
-        <div className="space-y-8">
-          <div className="grid gap-8 lg:grid-cols-3">
-            {/* Left Column - Selection */}
-            <div className="lg:col-span-2 space-y-8">
-                {/* Resource Selection */}
-                <div id="availability-section" className="scroll-mt-24">
-                  <div className="space-y-4">
-                    <div>
-                      <h2 className="text-xl font-semibold mb-1">Select Resource Type</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Choose the workspace that fits your needs
-                      </p>
+        {workspace && (
+          <div className="space-y-8">
+            <div className="grid gap-8 lg:grid-cols-3">
+              {/* Left Column - Selection */}
+              <div className="lg:col-span-2 space-y-8">
+                  {/* Resource Selection */}
+                  <div id="availability-section" className="scroll-mt-24">
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-xl font-semibold mb-1">Select Resource Type</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Choose the workspace that fits your needs
+                        </p>
+                      </div>
+                      <ResourceSelector
+                        selectedResource={selectedResource}
+                        onResourceSelect={(resource) => {
+                          setSelectedResource(resource)
+                          // Reset selections when changing resource type
+                          setSelectedDate(null)
+                          setSelectedTime(null)
+                          setSelectedHalfDay(undefined)
+                          setSelectedDuration("hourly")
+                        }}
+                      />
                     </div>
-                    <ResourceSelector
-                      selectedResource={selectedResource}
-                      onResourceSelect={(resource) => {
-                        setSelectedResource(resource)
-                        // Reset selections when changing resource type
-                        setSelectedDate(null)
-                        setSelectedTime(null)
-                        setSelectedHalfDay(undefined)
-                        setSelectedDuration("hourly")
-                      }}
-                    />
                   </div>
+
+                  {/* Date Selection */}
+                  <AvailabilityCalendar
+                    selectedDate={selectedDate}
+                    onDateSelect={setSelectedDate}
+                    unavailableDates={unavailableDates}
+                    datesWithBookings={datesWithBookings}
+                    nextAvailable={nextAvailable}
+                    resourceType={selectedResource || "hot-desk"}
+                  />
+
+                  {/* Time Selection */}
+                  {selectedResource && (
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-xl font-semibold mb-1">Select Time</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Choose your preferred time slot
+                        </p>
+                      </div>
+                      <TimeSelector
+                        selectedTime={selectedTime}
+                        selectedDuration={selectedDuration}
+                        selectedHalfDay={selectedHalfDay}
+                        onTimeSelect={setSelectedTime}
+                        onDurationChange={(duration) => {
+                          setSelectedDuration(duration)
+                          // Reset half-day selection when changing duration
+                          if (duration !== "half-day") {
+                            setSelectedHalfDay(undefined)
+                          }
+                          // Reset time for full-day
+                          if (duration === "full-day" && selectedResource === "hot-desk") {
+                            setSelectedTime(null)
+                          }
+                        }}
+                        onHalfDaySelect={setSelectedHalfDay}
+                        availableSlots={availableSlots}
+                        date={selectedDate}
+                        resourceType={selectedResource || "hot-desk"}
+                      />
+                    </div>
+                  )}
+
+                  {/* Add-ons */}
+                  {isValidBooking && (
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-xl font-semibold mb-1">Add-ons</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Enhance your workspace experience (optional)
+                        </p>
+                      </div>
+                      <AddOnSelector
+                        addOns={safePricing.addOns}
+                        selectedAddOns={selectedAddOns}
+                        onToggle={handleAddOnToggle}
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {/* Date Selection */}
-                <AvailabilityCalendar
-                  selectedDate={selectedDate}
-                  onDateSelect={setSelectedDate}
-                  unavailableDates={unavailableDates}
-                  datesWithBookings={datesWithBookings}
-                  nextAvailable={nextAvailable}
-                  resourceType={selectedResource || "hot-desk"}
-                />
+                {/* Right Column - Pricing & Summary (Desktop) */}
+                <div className="lg:col-span-1 space-y-6">
+                  {/* Venue Estimate - Always Visible */}
+                  <PricingBreakdown
+                    pricing={safePricing}
+                    selectedDuration={selectedDuration}
+                    selectedAddOns={selectedAddOns}
+                    resourceType={selectedResource || "hot-desk"}
+                  />
 
-                {/* Time Selection */}
-                {selectedResource && (
-                  <div className="space-y-4">
-                    <div>
-                      <h2 className="text-xl font-semibold mb-1">Select Time</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Choose your preferred time slot
-                      </p>
-                    </div>
-                    <TimeSelector
-                      selectedTime={selectedTime}
-                      selectedDuration={selectedDuration}
-                      selectedHalfDay={selectedHalfDay}
-                      onTimeSelect={setSelectedTime}
-                      onDurationChange={(duration) => {
-                        setSelectedDuration(duration)
-                        // Reset half-day selection when changing duration
-                        if (duration !== "half-day") {
-                          setSelectedHalfDay(undefined)
-                        }
-                        // Reset time for full-day
-                        if (duration === "full-day" && selectedResource === "hot-desk") {
-                          setSelectedTime(null)
-                        }
-                      }}
-                      onHalfDaySelect={setSelectedHalfDay}
-                      availableSlots={availableSlots}
-                      date={selectedDate}
-                      resourceType={selectedResource || "hot-desk"}
-                    />
-                  </div>
-                )}
-
-                {/* Add-ons */}
-                {isValidBooking && (
-                  <div className="space-y-4">
-                    <div>
-                      <h2 className="text-xl font-semibold mb-1">Add-ons</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Enhance your workspace experience (optional)
-                      </p>
-                    </div>
-                    <AddOnSelector
-                      addOns={safePricing.addOns}
-                      selectedAddOns={selectedAddOns}
-                      onToggle={handleAddOnToggle}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Right Column - Pricing & Summary (Desktop) */}
-              <div className="lg:col-span-1 space-y-6">
-                {/* Venue Estimate - Always Visible */}
-                <PricingBreakdown
-                  pricing={safePricing}
-                  selectedDuration={selectedDuration}
-                  selectedAddOns={selectedAddOns}
-                  resourceType={selectedResource || "hot-desk"}
-                />
-
-                {/* Confirm Booking Button - Desktop - Always visible when valid */}
-                {isValidBooking && (
-                  <Button
-                    size="lg"
-                    className="w-full button-press"
-                    onClick={handleConfirmBooking}
-                  >
-                    Proceed to payment
-                  </Button>
-                )}
+                  {/* Confirm Booking Button - Desktop - Always visible when valid */}
+                  {isValidBooking && (
+                    <Button
+                      size="lg"
+                      className="w-full button-press"
+                      onClick={handleConfirmBooking}
+                    >
+                      Proceed to payment
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-        {/* Sticky Booking Summary */}
-        <StickyBookingSummary
-          summary={{
-            date: selectedDate,
-            time: selectedTime,
-            duration: selectedDuration,
-            resourceType: selectedResource,
-            addOns: selectedAddOns,
-            totalPrice,
-            currency: safePricing.currency,
-          }}
-          onClear={() => {
-            setSelectedDate(null)
-            setSelectedTime(null)
-            setSelectedAddOns([])
-          }}
-          onConfirm={handleConfirmBooking}
-          isBooking={false}
-          isValid={isValidBooking}
-        />
-
-        {/* WhatsApp Fallback - Mobile */}
-        <div className="lg:hidden fixed bottom-20 right-4 z-40">
-          <Button
-            size="icon"
-            className="rounded-full h-14 w-14 shadow-elevated bg-green-600 hover:bg-green-700"
-            onClick={() => {
-              window.open("https://wa.me/254700000000?text=Hi, I need help with booking", "_blank")
+          {/* Sticky Booking Summary */}
+          <StickyBookingSummary
+            summary={{
+              date: selectedDate,
+              time: selectedTime,
+              duration: selectedDuration,
+              resourceType: selectedResource,
+              addOns: selectedAddOns,
+              totalPrice,
+              currency: safePricing.currency,
             }}
-            aria-label="Chat on WhatsApp"
-          >
-            <MessageCircle className="h-6 w-6" />
-          </Button>
+            onClear={() => {
+              setSelectedDate(null)
+              setSelectedTime(null)
+              setSelectedAddOns([])
+            }}
+            onConfirm={handleConfirmBooking}
+            isBooking={false}
+            isValid={isValidBooking}
+          />
+
+          {/* WhatsApp Fallback - Mobile */}
+          <div className="lg:hidden fixed bottom-20 right-4 z-40">
+            <Button
+              size="icon"
+              className="rounded-full h-14 w-14 shadow-elevated bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                window.open("https://wa.me/254700000000?text=Hi, I need help with booking", "_blank")
+              }}
+              aria-label="Chat on WhatsApp"
+            >
+              <MessageCircle className="h-6 w-6" />
+            </Button>
+          </div>
         </div>
+        )}
       </div>
     </DashboardLayout>
   )
