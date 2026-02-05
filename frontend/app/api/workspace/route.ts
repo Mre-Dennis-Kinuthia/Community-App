@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Map DB workspace to API shape expected by frontend components
+    // Map DB workspace to API shape expected by frontend components.
+    // Where extended fields are not configured yet, we fall back to safe defaults.
     const workspace = {
       id: dbWorkspace.id,
       name: dbWorkspace.name,
@@ -56,14 +57,15 @@ export async function GET(request: NextRequest) {
       rating: 0,
       reviewCount: 0,
       images: dbWorkspace.images ?? [],
-      amenities: [],
-      whoIsThisFor: "",
-      openingHours: "",
-      houseRules: [] as string[],
-      securityInfo: "",
-      coordinates: { lat: 0, lng: 0 },
-      landmarks: [] as string[],
-      companyLogos: [] as string[],
+      amenities: (dbWorkspace.amenities as any[]) ?? [],
+      whoIsThisFor: dbWorkspace.whoIsThisFor ?? "",
+      openingHours: dbWorkspace.openingHours ?? "",
+      houseRules: dbWorkspace.houseRules ?? [],
+      securityInfo: dbWorkspace.securityInfo ?? "",
+      coordinates: (dbWorkspace.coordinates as any) ?? { lat: 0, lng: 0 },
+      landmarks: dbWorkspace.landmarks ?? [],
+      companyLogos: dbWorkspace.companyLogos ?? [],
+      pricing: (dbWorkspace.pricing as any) ?? null,
     }
 
     return NextResponse.json({ workspace }, { headers: corsHeaders })

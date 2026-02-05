@@ -30,9 +30,11 @@ export function useAvailability(workspaceId: string, resourceType?: string) {
         setIsLoading(true)
         // Fetch availability for today to get unavailable dates
         const today = new Date().toISOString().split("T")[0]
-        const response = await fetch(
-          `/api/availability?date=${today}&resourceType=${resourceType || "hot-desk"}`
-        )
+        const params = new URLSearchParams()
+        params.set("date", today)
+        params.set("resourceType", resourceType || "hot-desk")
+        if (workspaceId) params.set("workspaceId", workspaceId)
+        const response = await fetch(`/api/availability?${params.toString()}`)
         
         if (response.ok) {
           const data = await response.json()
@@ -67,9 +69,11 @@ export function useAvailability(workspaceId: string, resourceType?: string) {
       try {
         setIsLoading(true)
         const dateStr = selectedDate.toISOString().split("T")[0]
-        const response = await fetch(
-          `/api/availability?date=${dateStr}&resourceType=${resourceType || "hot-desk"}`
-        )
+        const params = new URLSearchParams()
+        params.set("date", dateStr)
+        params.set("resourceType", resourceType || "hot-desk")
+        if (workspaceId) params.set("workspaceId", workspaceId)
+        const response = await fetch(`/api/availability?${params.toString()}`)
         
         if (response.ok) {
           const data = await response.json()

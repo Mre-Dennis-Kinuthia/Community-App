@@ -1,5 +1,5 @@
 // TODO: Replace with API call to fetch pricing data
-import { useMemo } from "react"
+import useSWR from "swr"
 
 export interface PricingOption {
   type: "hourly" | "half-day" | "full-day" | "weekly" | "monthly"
@@ -25,10 +25,57 @@ export interface PricingData {
 }
 
 export function usePricing(workspaceId: string, resourceType: string, date?: Date, duration?: number) {
-  // TODO: Replace with API call
-  const pricing: PricingData | null = useMemo(() => {
-    // Default pricing for Ikigai Space
-    const basePricing: PricingData = {
+  const key = workspaceId ? `/api/workspace?id=${encodeURIComponent(workspaceId)}` : null
+  const { data, error, isLoading } = useSWR<{ workspace: { pricing?: any; currency: string } }>(key)
+
+  const rawPricing = data?.workspace?.pricing as any | undefined
+  const currency = data?.workspace?.currency || "KES"
+
+  // Build pricing data from workspace.pricing if present, otherwise fall back to previous defaults.
+  let pricing: PricingData | null = null
+
+  if (rawPricing && typeof rawPricing === "object") {
+    const options: PricingOption[] = []
+    const resourceConfig = rawPricing[resourceType] || {}
+    ;(["hourly", "half-day", "full-day", "weekly", "monthly"] as PricingOption["type"][]).forEach((type) => {
+      const price = typeof resourceConfig[type] === "number" ? resourceConfig[type] : undefined
+      if (price !== undefined) {
+        options.push({
+          type,
+          label:
+            type === "hourly"
+              ? "Hourly Rate"
+              : type === "half-day"
+              ? "Half Day (4 Hours)"
+              : type === "full-day"
+              ? "Full Day (8 Hours)"
+              : type === "weekly"
+              ? "Weekly"
+              : "Monthly",
+          price,
+        })
+      }
+    })
+
+    const addOns: AddOn[] = Array.isArray(rawPricing.addOns)
+      ? rawPricing.addOns.map((a: any) => ({
+          id: String(a.id),
+          name: String(a.name),
+          description: String(a.description ?? ""),
+          price: Number(a.price ?? 0),
+          icon: String(a.icon ?? ""),
+        }))
+      : []
+
+    pricing = {
+      basePrice: 0,
+      currency,
+      options,
+      addOns,
+    }
+  } else {
+    // Fallback to existing hard-coded defaults if admin pricing is not configured yet
+    pricing = {
       basePrice: 0,
       currency: "KES",
       options: [
@@ -79,8 +126,7 @@ export function usePricing(workspaceId: string, resourceType: string, date?: Dat
         },
       ],
     }
-    return basePricing
-  }, [workspaceId, resourceType, date, duration])
+  }
 
   const calculateTotal = (selectedOptions: string[], selectedAddOns: string[]) => {
     if (!pricing) return 0
@@ -101,7 +147,8 @@ export function usePricing(workspaceId: string, resourceType: string, date?: Dat
   return {
     pricing,
     calculateTotal,
-    isLoading: false,
+    isLoading,
+    error,
   }
 }
 

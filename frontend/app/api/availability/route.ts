@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const date = searchParams.get("date")
     const resourceType = searchParams.get("resourceType") || "hot-desk"
+    const workspaceId = searchParams.get("workspaceId") || undefined
 
     if (!date) {
       return NextResponse.json(
@@ -24,10 +25,11 @@ export async function GET(request: NextRequest) {
     const endOfDay = new Date(selectedDate)
     endOfDay.setHours(23, 59, 59, 999)
 
-    // Get all bookings for this date and resource type
+    // Get all bookings for this date, resource type and workspace (if provided)
     const bookings = await prisma.workspaceBooking.findMany({
       where: {
         resourceType: resourceType as string,
+        ...(workspaceId && { workspaceId }),
         date: {
           gte: startOfDay,
           lte: endOfDay,
@@ -89,6 +91,7 @@ export async function GET(request: NextRequest) {
       const dateBookings = await prisma.workspaceBooking.count({
         where: {
           resourceType: resourceType as string,
+          ...(workspaceId && { workspaceId }),
           date: {
             gte: dateStart,
             lte: dateEnd,

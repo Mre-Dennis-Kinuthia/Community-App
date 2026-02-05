@@ -428,6 +428,16 @@ model Workspace {
   startingPrice     Int?
   currency          String   @default("KES")
   images            String[] @default([])
+  // Extended configuration used by the member booking experience
+  amenities         Json?
+  whoIsThisFor      String?  @db.Text
+  openingHours      String?  @db.Text
+  houseRules        String[] @default([])
+  securityInfo      String?  @db.Text
+  coordinates       Json?
+  landmarks         String[] @default([])
+  companyLogos      String[] @default([])
+  pricing           Json?
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
