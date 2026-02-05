@@ -260,6 +260,8 @@ export default function BookingPage() {
                           setSelectedHalfDay(undefined)
                           setSelectedDuration("hourly")
                         }}
+                        pricing={workspace?.pricing}
+                        currency={workspace?.currency || "KES"}
                       />
                     </div>
                   </div>

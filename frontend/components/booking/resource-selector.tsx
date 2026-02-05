@@ -19,36 +19,55 @@ interface Resource {
 interface ResourceSelectorProps {
   selectedResource: ResourceType | null
   onResourceSelect: (resource: ResourceType) => void
+  pricing?: any // Pricing data from workspace
+  currency?: string
 }
 
-const resources: Resource[] = [
-  {
-    type: "hot-desk",
-    label: "Hot Desk",
-    description: "Flexible workspace for individuals",
-    icon: <Monitor className="h-5 w-5" />,
-    capacity: "1 person",
-    startingPrice: 500,
-  },
-  {
-    type: "meeting-room",
-    label: "Meeting Room",
-    description: "Private space for teams",
-    icon: <Building2 className="h-5 w-5" />,
-    capacity: "2-20 people",
-    startingPrice: 1500,
-  },
-  {
-    type: "private-office",
-    label: "Private Office",
-    description: "Dedicated office space",
-    icon: <Users className="h-5 w-5" />,
-    capacity: "1-10 people",
-    startingPrice: 5000,
-  },
-]
+export function ResourceSelector({ selectedResource, onResourceSelect, pricing, currency = "KES" }: ResourceSelectorProps) {
+  // Get starting prices from workspace pricing or use defaults
+  const getStartingPrice = (type: ResourceType): number => {
+    if (!pricing || !pricing[type]) {
+      // Default fallback prices
+      return type === "hot-desk" ? 500 : type === "meeting-room" ? 1500 : 5000
+    }
+    // Find the lowest price from hourly, half-day, full-day
+    const resourcePricing = pricing[type]
+    const prices = [
+      resourcePricing.hourly,
+      resourcePricing["half-day"],
+      resourcePricing["full-day"]
+    ].filter(p => typeof p === "number" && p > 0)
+    
+    return prices.length > 0 ? Math.min(...prices) : 500
+  }
 
-export function ResourceSelector({ selectedResource, onResourceSelect }: ResourceSelectorProps) {
+  const resources: Resource[] = [
+    {
+      type: "hot-desk",
+      label: "Hot Desk",
+      description: "Flexible workspace for individuals",
+      icon: <Monitor className="h-5 w-5" />,
+      capacity: "1 person",
+      startingPrice: getStartingPrice("hot-desk"),
+    },
+    {
+      type: "meeting-room",
+      label: "Meeting Room",
+      description: "Private space for teams",
+      icon: <Building2 className="h-5 w-5" />,
+      capacity: "2-20 people",
+      startingPrice: getStartingPrice("meeting-room"),
+    },
+    {
+      type: "private-office",
+      label: "Private Office",
+      description: "Dedicated office space",
+      icon: <Users className="h-5 w-5" />,
+      capacity: "1-10 people",
+      startingPrice: getStartingPrice("private-office"),
+    },
+  ]
+
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       {resources.map((resource) => {
@@ -79,7 +98,7 @@ export function ResourceSelector({ selectedResource, onResourceSelect }: Resourc
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
                 <span className="text-xs text-muted-foreground">{resource.capacity}</span>
                 <span className="text-sm font-semibold text-primary">
-                  From {resource.startingPrice.toLocaleString()} KES
+                  From {resource.startingPrice.toLocaleString()} {currency}
                 </span>
               </div>
             </CardContent>
