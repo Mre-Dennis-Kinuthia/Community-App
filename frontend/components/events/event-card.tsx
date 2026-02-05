@@ -135,8 +135,22 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
   return (
     <Card
       onClick={onClick}
-      className={`relative flex cursor-pointer flex-row gap-4 border-border/50 p-[1.15rem] transition-colors rounded-md ${hoverBorderColor}`}
+      className={`relative flex cursor-pointer flex-col gap-4 border-border/50 p-[1.15rem] transition-colors rounded-md md:flex-row ${hoverBorderColor}`}
     >
+      {/* Thumbnail (if available) */}
+      {event.thumbnail && (
+        <div className="w-full md:w-28 shrink-0 overflow-hidden rounded-md bg-muted">
+          <div className="aspect-[4/3] w-full">
+            <img
+              src={event.thumbnail}
+              alt={event.title}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Event content */}
       <div className="flex-1 space-y-2">
         <div className="flex items-start justify-between gap-2">
