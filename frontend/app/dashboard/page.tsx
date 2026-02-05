@@ -271,7 +271,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <Card 
-            className="cursor-pointer transition-all hover:shadow-card  border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            className="cursor-pointer transition-all hover:shadow-card border-border/50 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/events"}
             role="button"
             tabIndex={0}
@@ -287,15 +287,43 @@ export default function DashboardPage() {
               <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
               <CalendarDays className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold min-h-[2rem] flex items-center">
-                {isLoadingStats ? (
-                  <span className="text-muted-foreground animate-pulse">...</span>
-                ) : (
-                  <span className="transition-opacity duration-150 ease-out opacity-100">{statsWithDefaults.upcomingEvents}</span>
-                )}
+            <CardContent className="space-y-3">
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-bold min-h-[2rem] flex items-center">
+                  {isLoadingStats ? (
+                    <span className="text-muted-foreground animate-pulse">...</span>
+                  ) : (
+                    <span className="transition-opacity duration-150 ease-out opacity-100">
+                      {statsWithDefaults.upcomingEvents}
+                    </span>
+                  )}
+                </div>
+                <span className="inline-flex items-center rounded-full bg-primary/5 px-2 py-0.5 text-[11px] font-medium text-primary">
+                  This week
+                </span>
               </div>
-              <p className="text-xs text-muted-foreground">This week</p>
+              {!isLoadingEvents && recentEvents.length > 0 && (
+                <div className="rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+                  {(() => {
+                    const event = recentEvents[0]
+                    const eventDate = new Date(event.startDate)
+                    const formattedDate = eventDate.toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })
+                    return (
+                      <>
+                        <p className="text-xs font-medium line-clamp-1">{event.title}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {formattedDate}
+                          {event.location && ` • ${event.location}`}
+                        </p>
+                      </>
+                    )
+                  })()}
+                </div>
+              )}
             </CardContent>
           </Card>
           <Card 
