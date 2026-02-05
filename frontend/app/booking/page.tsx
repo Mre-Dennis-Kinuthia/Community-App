@@ -347,7 +347,6 @@ export default function BookingPage() {
                   )}
                 </div>
               </div>
-            </div>
 
           {/* Sticky Booking Summary */}
           <StickyBookingSummary
