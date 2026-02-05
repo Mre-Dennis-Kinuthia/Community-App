@@ -19,14 +19,14 @@ import { Button } from "@/components/ui/button"
 import { MessageCircle, Loader2 } from "lucide-react"
 
 export default function BookingPage() {
-  // This slug is managed from the admin Workspaces screen.
-  // Admins can change the workspace details there without
-  // touching this frontend code.
-  const workspaceSlug = "impact-hub-nairobi"
-  const workspaceId = workspaceSlug
-  
   // Hooks
-  const { workspace, isLoading: isLoadingWorkspace, error: workspaceError } = useWorkspace(workspaceSlug)
+  // By default we load the first active workspace configured
+  // in the admin Workspaces screen.
+  const { workspace, isLoading: isLoadingWorkspace, error: workspaceError } = useWorkspace()
+
+  // Use the real workspace id once loaded so bookings,
+  // availability and pricing are tied to the admin record.
+  const workspaceId = workspace?.id ?? "impact-hub-nairobi"
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
   
   const { 
