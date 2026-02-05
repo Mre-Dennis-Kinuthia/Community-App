@@ -32,8 +32,18 @@ interface WorkspaceApiResponse {
   workspace: Workspace | null
 }
 
-export function useWorkspace(workspaceId: string) {
-  const key = workspaceId ? `/api/workspace?id=${workspaceId}` : null
+/**
+ * Fetch workspace details used by the member booking flow.
+ *
+ * We treat the argument as the workspace *slug* so that
+ * admins can manage workspaces from the Community-app-admin
+ * Workspaces screen. If no slug is provided, the API will
+ * return the first active workspace.
+ */
+export function useWorkspace(workspaceSlug?: string) {
+  const key = workspaceSlug
+    ? `/api/workspace?slug=${encodeURIComponent(workspaceSlug)}`
+    : `/api/workspace`
   const { data, error, isLoading } = useSWR<WorkspaceApiResponse>(key)
 
   return {
