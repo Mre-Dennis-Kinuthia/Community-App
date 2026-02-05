@@ -415,6 +415,29 @@ model WorkspaceBooking {
 }
 
 // ============================================
+// WORKSPACES (LISTINGS)
+// ============================================
+
+model Workspace {
+  id                String   @id @default(cuid())
+  name              String
+  slug              String   @unique
+  location          String?
+  address           String?
+  valueProposition  String?  @db.Text
+  startingPrice     Int?
+  currency          String   @default("KES")
+  images            String[] @default([])
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  @@map("workspaces")
+  @@index([isActive])
+}
+
+// ============================================
 // BILLING & SUBSCRIPTIONS
 // ============================================
 
