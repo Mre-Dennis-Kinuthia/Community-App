@@ -88,9 +88,17 @@ function ProjectsPageContent() {
   if (locationFilter !== "all") projectsParams.set("location", locationFilter)
   if (showFeatured) projectsParams.set("featured", "true")
   const projectsKey = `/api/projects?${projectsParams.toString()}`
-  const { data: projectsResponse, error: projectsError, isLoading: isLoadingProjects } = useSWR<{ projects?: any[] }>(projectsKey)
+  const { data: projectsResponse, error: projectsError, isLoading: isLoadingProjects, mutate: mutateProjects } = useSWR<{ projects?: any[] }>(projectsKey, {
+    onErrorRetry: (err, _key, _config, revalidate, { retryCount }) => {
+      // Don't retry on 503 (Service Unavailable) - avoid hammering a failing service
+      if (err?.status === 503 && retryCount >= 1) return
+      if (retryCount >= 3) return
+      setTimeout(() => revalidate({ retryCount }), 2000)
+    },
+  })
   const projectsData = Array.isArray(projectsResponse?.projects) ? projectsResponse.projects : []
   const projectsErrorMsg = projectsError?.message ?? null
+  const isServiceUnavailable = (projectsError as { status?: number })?.status === 503
 
   // Update URL params when filters change
   useEffect(() => {
@@ -431,8 +439,17 @@ function ProjectsPageContent() {
           <Card className="border-border/50 shadow-card">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground text-center">{projectsErrorMsg}</p>
-              <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+              <p className="text-muted-foreground text-center font-medium mb-1">
+                {isServiceUnavailable
+                  ? "Projects & Initiatives are temporarily unavailable"
+                  : "Unable to load projects"}
+              </p>
+              <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
+                {isServiceUnavailable
+                  ? "Our service is experiencing high demand. Please try again in a few moments."
+                  : projectsErrorMsg}
+              </p>
+              <Button variant="outline" onClick={() => mutateProjects()} className="mt-2">
                 Retry
               </Button>
             </CardContent>
