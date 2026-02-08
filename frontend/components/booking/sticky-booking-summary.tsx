@@ -16,6 +16,8 @@ interface BookingSummary {
   addOns: string[]
   totalPrice: number
   currency: string
+  meetingRoomCapacity?: "1-4" | "1-10" | "1-35"
+  meetingRoomHours?: number
 }
 
 interface StickyBookingSummaryProps {
@@ -77,7 +79,9 @@ export function StickyBookingSummary({
                     <span className="text-muted-foreground">Resource:</span>
                     <Badge variant="outline" className="text-xs">
                       {summary.resourceType === "hot-desk" && "Hot Desk"}
-                      {summary.resourceType === "meeting-room" && "Meeting Room"}
+                      {summary.resourceType === "meeting-room" && (
+                        <>Meeting Room {summary.meetingRoomCapacity && `(${summary.meetingRoomCapacity} pax, ${summary.meetingRoomHours}h)`}</>
+                      )}
                       {summary.resourceType === "private-office" && "Private Office"}
                     </Badge>
                   </div>

@@ -18,6 +18,7 @@ interface TimeSelectorProps {
   availableSlots: { time: string; available: boolean }[]
   date: Date | null
   resourceType?: "hot-desk" | "meeting-room" | "private-office"
+  hideDurationSelector?: boolean // For meeting room (capacity + hours selected elsewhere)
 }
 
 export function TimeSelector({
@@ -30,6 +31,7 @@ export function TimeSelector({
   availableSlots,
   date,
   resourceType = "hot-desk",
+  hideDurationSelector = false,
 }: TimeSelectorProps) {
   if (!date) {
     return (
@@ -40,12 +42,12 @@ export function TimeSelector({
     )
   }
 
-  // Hot desk: full-day only (no time selection). Private office: monthly only (no time selection).
+  // Hot desk: full-day only. Meeting room: time slots only (capacity+hours selected elsewhere).
   const isHotDesk = resourceType === "hot-desk"
-  const isPrivateOffice = resourceType === "private-office"
-  const showTimeSlots = !isHotDesk && !isPrivateOffice && selectedDuration !== "monthly"
+  const isMeetingRoom = resourceType === "meeting-room"
+  const showTimeSlots = (isMeetingRoom || selectedDuration === "hourly") && selectedDuration !== "monthly"
   const showHalfDaySelector = isHotDesk && selectedDuration === "half-day"
-  const hideTimeSelector = (isHotDesk && selectedDuration === "full-day") || (isPrivateOffice && selectedDuration === "monthly")
+  const hideTimeSelector = isHotDesk && selectedDuration === "full-day"
 
   // Calculate start time based on half-day selection
   const getHalfDayStartTime = (period: HalfDayPeriod) => {
@@ -62,26 +64,27 @@ export function TimeSelector({
 
   return (
     <div className="space-y-4">
-      {/* Duration Selector - Hot desk: full-day only; Private office: monthly only; Meeting room: all options */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">Duration:</span>
-        <Select value={selectedDuration} onValueChange={onDurationChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {isHotDesk && <SelectItem value="full-day">Full Day</SelectItem>}
-            {isPrivateOffice && <SelectItem value="monthly">Monthly</SelectItem>}
-            {!isHotDesk && !isPrivateOffice && (
-              <>
-                <SelectItem value="hourly">Hourly</SelectItem>
-                <SelectItem value="half-day">Half Day</SelectItem>
-                <SelectItem value="full-day">Full Day</SelectItem>
-              </>
-            )}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Duration Selector - Hidden for meeting room (capacity + hours elsewhere) */}
+      {!hideDurationSelector && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Duration:</span>
+          <Select value={selectedDuration} onValueChange={onDurationChange}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {isHotDesk && <SelectItem value="full-day">Full Day</SelectItem>}
+              {!isHotDesk && (
+                <>
+                  <SelectItem value="hourly">Hourly</SelectItem>
+                  <SelectItem value="half-day">Half Day</SelectItem>
+                  <SelectItem value="full-day">Full Day</SelectItem>
+                </>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Half Day Selector (for hot desks) */}
       {showHalfDaySelector && (
@@ -115,21 +118,17 @@ export function TimeSelector({
         </div>
       )}
 
-      {/* Full Day / Monthly Message - no time selection needed */}
+      {/* Full Day Message - no time selection needed */}
       {hideTimeSelector && (
         <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-          <p className="text-sm font-medium mb-1">
-            {selectedDuration === "monthly" ? "Monthly Booking" : "Full Day Booking"}
-          </p>
+          <p className="text-sm font-medium mb-1">Full Day Booking</p>
           <p className="text-xs text-muted-foreground">
-            {selectedDuration === "monthly"
-              ? "You've selected a monthly private office. No specific time selection is needed."
-              : "You've selected a full day booking. No specific time selection is needed."}
+            You've selected a full day booking. No specific time selection is needed.
           </p>
         </div>
       )}
 
-      {/* Time Slots (for hourly bookings or meeting rooms) */}
+      {/* Time Slots (for meeting room or hourly bookings) */}
       {showTimeSlots && (
         <div>
           <p className="text-sm font-medium mb-3">Available Times</p>

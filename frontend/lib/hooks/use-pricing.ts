@@ -75,7 +75,7 @@ export function usePricing(workspaceId: string, resourceType: string, date?: Dat
     }
   } else {
     // Fallback to existing hard-coded defaults if admin pricing is not configured yet
-    // Hot desk: full-day only; Private office: monthly only; Meeting room: all options
+    // Hot desk: full-day only; Meeting room: capacity-based (handled in MeetingRoomSelector)
     const options: PricingOption[] = []
     if (resourceType === "hot-desk") {
       options.push({
@@ -83,17 +83,12 @@ export function usePricing(workspaceId: string, resourceType: string, date?: Dat
         label: "Full Day (8 Hours)",
         price: 2500,
       })
-    } else if (resourceType === "private-office") {
-      options.push({
-        type: "monthly",
-        label: "Monthly",
-        price: 80000,
-      })
-    } else {
+    } else if (resourceType === "meeting-room") {
+      // Meeting room uses capacity tiers - fallback options for PricingBreakdown estimate
       options.push(
-        { type: "hourly", label: "Hourly Rate", price: 2000 },
-        { type: "half-day", label: "Half Day (4 Hours)", price: 6000 },
-        { type: "full-day", label: "Full Day (8 Hours)", price: 10000 }
+        { type: "hourly", label: "1-4 pax", price: 5000 },
+        { type: "half-day", label: "1-10 pax", price: 8000 },
+        { type: "full-day", label: "1-35 pax", price: 12000 }
       )
     }
     pricing = {

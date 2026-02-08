@@ -11,6 +11,8 @@ import { BookingHeader } from "@/components/booking/booking-header"
 import { AvailabilityCalendar } from "@/components/booking/availability-calendar"
 import { TimeSelector, type BookingDuration } from "@/components/booking/time-selector"
 import { ResourceSelector, type ResourceType } from "@/components/booking/resource-selector"
+import { MeetingRoomSelector, type MeetingRoomCapacity } from "@/components/booking/meeting-room-selector"
+import { PrivateOfficeInquiryForm } from "@/components/booking/private-office-inquiry-form"
 import { PricingBreakdown } from "@/components/booking/pricing-breakdown"
 import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
@@ -31,8 +33,13 @@ export default function BookingPage() {
   // Hot desk defaults to full-day; private office defaults to monthly
   const getDefaultDuration = (resource: ResourceType | null): BookingDuration => {
     if (resource === "hot-desk") return "full-day"
-    if (resource === "private-office") return "monthly"
     return "hourly"
+  }
+
+  const getMeetingRoomHourlyPrice = (capacity: MeetingRoomCapacity): number => {
+    const mr = workspace?.pricing?.["meeting-room"] as Record<string, number> | undefined
+    const price = mr?.[capacity]
+    return typeof price === "number" && price > 0 ? price : { "1-4": 5000, "1-10": 8000, "1-35": 12000 }[capacity]
   }
   
   const { 
@@ -47,6 +54,8 @@ export default function BookingPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("full-day")
   const [selectedHalfDay, setSelectedHalfDay] = useState<"morning" | "afternoon" | undefined>(undefined)
+  const [selectedMeetingRoomCapacity, setSelectedMeetingRoomCapacity] = useState<MeetingRoomCapacity | null>(null)
+  const [selectedMeetingRoomHours, setSelectedMeetingRoomHours] = useState(1)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
 
   const { pricing, calculateTotal } = usePricing(
@@ -66,67 +75,68 @@ export default function BookingPage() {
 
   // Calculate pricing
   const totalPrice = useMemo(() => {
-    if (!selectedDate || !selectedResource) return 0
+    if (!selectedResource) return 0
     
-    // Check if we have required selections based on resource type and duration
+    // Private office: no booking price (inquiry only)
+    if (selectedResource === "private-office") return 0
+    
+    if (!selectedDate) return 0
+    
     let hasRequiredSelections = false
+    let basePrice = 0
     
     if (selectedResource === "hot-desk") {
       if (selectedDuration === "full-day") {
-        hasRequiredSelections = true // Full day doesn't need time selection
+        hasRequiredSelections = true
+        basePrice = safePricing.options.find(opt => opt.type === "full-day")?.price || 0
       } else if (selectedDuration === "half-day") {
         hasRequiredSelections = !!selectedHalfDay
+        basePrice = safePricing.options.find(opt => opt.type === "half-day")?.price || 0
       } else {
         hasRequiredSelections = !!selectedTime
+        basePrice = safePricing.options.find(opt => opt.type === "hourly")?.price || 0
       }
-    } else if (selectedResource === "private-office") {
-      // Private office: monthly only, no time selection needed
-      hasRequiredSelections = selectedDuration === "monthly"
-    } else {
-      // Meeting rooms always need time selection
-      hasRequiredSelections = !!selectedTime
+    } else if (selectedResource === "meeting-room") {
+      hasRequiredSelections = !!selectedMeetingRoomCapacity && selectedMeetingRoomHours > 0 && !!selectedTime
+      if (selectedMeetingRoomCapacity) {
+        basePrice = getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity) * selectedMeetingRoomHours
+      }
     }
     
     if (!hasRequiredSelections) return 0
     
-    const basePrice = safePricing.options.find(opt => opt.type === selectedDuration)?.price || 0
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
       const addOn = safePricing.addOns.find(a => a.id === id)
       return sum + (addOn?.price || 0)
     }, 0)
     
     return basePrice + addOnsPrice
-  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, selectedAddOns, safePricing])
+  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, selectedMeetingRoomCapacity, selectedMeetingRoomHours, selectedAddOns, safePricing, workspace?.pricing])
 
   // Check if booking is valid
   const isValidBooking = useMemo(() => {
-    if (!selectedDate || !selectedResource || totalPrice <= 0) return false
+    if (!selectedResource) return false
+    // Private office: inquiry flow, not booking
+    if (selectedResource === "private-office") return false
+    if (!selectedDate || totalPrice <= 0) return false
     
     // Hot desk: full-day only
     if (selectedResource === "hot-desk") {
       return selectedDuration === "full-day"
     }
-    // Private office: monthly only, no time needed
-    if (selectedResource === "private-office") {
-      return selectedDuration === "monthly"
+    // Meeting room: capacity + hours + date + time
+    if (selectedResource === "meeting-room") {
+      return !!selectedMeetingRoomCapacity && selectedMeetingRoomHours > 0 && !!selectedTime
     }
-    // Meeting rooms: always need time
-    return !!selectedTime
-  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, totalPrice])
+    return false
+  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedMeetingRoomCapacity, selectedMeetingRoomHours, totalPrice])
 
   // Calculate start time based on duration and selection
-  // This ensures we always have a valid startTime for the API
   const calculateStartTime = useMemo(() => {
-    // Full-day hot desk or monthly private office: use 9 AM
-    if ((selectedResource === "hot-desk" && selectedDuration === "full-day") ||
-        (selectedResource === "private-office" && selectedDuration === "monthly")) {
-      return "09:00"
-    }
-    // Half-day hot desk: morning (9 AM) or afternoon (1 PM)
+    if (selectedResource === "hot-desk" && selectedDuration === "full-day") return "09:00"
     if (selectedResource === "hot-desk" && selectedDuration === "half-day" && selectedHalfDay) {
       return selectedHalfDay === "morning" ? "09:00" : "13:00"
     }
-    // Hourly or meeting rooms: use selected time
     return selectedTime || null
   }, [selectedResource, selectedDuration, selectedHalfDay, selectedTime])
 
@@ -149,22 +159,28 @@ export default function BookingPage() {
       return
     }
 
-    const basePrice = safePricing.options.find(opt => opt.type === selectedDuration)?.price ?? 0
+    const basePrice = selectedResource === "meeting-room" && selectedMeetingRoomCapacity
+      ? getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity) * selectedMeetingRoomHours
+      : (safePricing.options.find(opt => opt.type === selectedDuration)?.price ?? 0)
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
       const addOn = safePricing.addOns.find(a => a.id === id)
       return sum + (addOn?.price || 0)
     }, 0)
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       resourceType: selectedResource,
       date: selectedDate.toISOString(),
       startTime,
-      duration: selectedDuration,
+      duration: selectedResource === "meeting-room" ? "hourly" : selectedDuration,
       basePrice,
       addOnsPrice,
       totalPrice,
       addOns: selectedAddOns,
       workspaceId,
+    }
+    if (selectedResource === "meeting-room" && selectedMeetingRoomCapacity) {
+      payload.meetingRoomHours = selectedMeetingRoomHours
+      payload.meetingRoomCapacity = selectedMeetingRoomCapacity
     }
 
     try {
@@ -264,10 +280,11 @@ export default function BookingPage() {
                         selectedResource={selectedResource}
                         onResourceSelect={(resource) => {
                           setSelectedResource(resource)
-                          // Reset selections when changing resource type
                           setSelectedDate(null)
                           setSelectedTime(null)
                           setSelectedHalfDay(undefined)
+                          setSelectedMeetingRoomCapacity(null)
+                          setSelectedMeetingRoomHours(1)
                           setSelectedDuration(getDefaultDuration(resource))
                         }}
                         pricing={workspace?.pricing}
@@ -276,18 +293,50 @@ export default function BookingPage() {
                     </div>
                   </div>
 
-                  {/* Date Selection */}
-                  <AvailabilityCalendar
-                    selectedDate={selectedDate}
-                    onDateSelect={setSelectedDate}
-                    unavailableDates={unavailableDates}
-                    datesWithBookings={datesWithBookings}
-                    nextAvailable={nextAvailable}
-                    resourceType={selectedResource || "hot-desk"}
-                  />
+                  {/* Private Office: Inquiry form only */}
+                  {selectedResource === "private-office" && (
+                    <div className="space-y-4">
+                      <PrivateOfficeInquiryForm
+                        workspaceId={workspaceId}
+                        workspaceName={workspace?.name}
+                      />
+                    </div>
+                  )}
 
-                  {/* Time Selection */}
-                  {selectedResource && (
+                  {/* Meeting Room: Capacity + Hours selector */}
+                  {selectedResource === "meeting-room" && (
+                    <div className="space-y-4">
+                      <div>
+                        <h2 className="text-xl font-semibold mb-1">Select capacity & hours</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Choose room size and number of hours
+                        </p>
+                      </div>
+                      <MeetingRoomSelector
+                        selectedCapacity={selectedMeetingRoomCapacity}
+                        selectedHours={selectedMeetingRoomHours}
+                        pricing={workspace?.pricing?.["meeting-room"] as Record<string, number> | undefined}
+                        currency={workspace?.currency || "KES"}
+                        onCapacitySelect={setSelectedMeetingRoomCapacity}
+                        onHoursChange={setSelectedMeetingRoomHours}
+                      />
+                    </div>
+                  )}
+
+                  {/* Date Selection - Hot desk & Meeting room */}
+                  {selectedResource && selectedResource !== "private-office" && (
+                    <AvailabilityCalendar
+                      selectedDate={selectedDate}
+                      onDateSelect={setSelectedDate}
+                      unavailableDates={unavailableDates}
+                      datesWithBookings={datesWithBookings}
+                      nextAvailable={nextAvailable}
+                      resourceType={selectedResource || "hot-desk"}
+                    />
+                  )}
+
+                  {/* Time Selection - Hot desk & Meeting room */}
+                  {selectedResource && selectedResource !== "private-office" && (
                     <div className="space-y-4">
                       <div>
                         <h2 className="text-xl font-semibold mb-1">Select Time</h2>
@@ -297,18 +346,17 @@ export default function BookingPage() {
                       </div>
                       <TimeSelector
                         selectedTime={selectedTime}
-                        selectedDuration={selectedDuration}
+                        selectedDuration={
+                          selectedResource === "meeting-room"
+                            ? "hourly"
+                            : selectedDuration
+                        }
                         selectedHalfDay={selectedHalfDay}
                         onTimeSelect={setSelectedTime}
                         onDurationChange={(duration) => {
                           setSelectedDuration(duration)
-                          // Reset half-day selection when changing duration
-                          if (duration !== "half-day") {
-                            setSelectedHalfDay(undefined)
-                          }
-                          // Reset time for full-day or monthly (no time needed)
-                          if ((duration === "full-day" && selectedResource === "hot-desk") ||
-                              (duration === "monthly" && selectedResource === "private-office")) {
+                          if (duration !== "half-day") setSelectedHalfDay(undefined)
+                          if (duration === "full-day" && selectedResource === "hot-desk") {
                             setSelectedTime(null)
                           }
                         }}
@@ -316,6 +364,7 @@ export default function BookingPage() {
                         availableSlots={availableSlots}
                         date={selectedDate}
                         resourceType={selectedResource || "hot-desk"}
+                        hideDurationSelector={selectedResource === "meeting-room"}
                       />
                     </div>
                   )}
@@ -338,49 +387,63 @@ export default function BookingPage() {
                   )}
                 </div>
 
-                {/* Right Column - Pricing & Summary (Desktop) */}
-                <div className="lg:col-span-1 space-y-6">
-                  {/* Venue Estimate - Always Visible */}
-                  <PricingBreakdown
-                    pricing={safePricing}
-                    selectedDuration={selectedDuration}
-                    selectedAddOns={selectedAddOns}
-                    resourceType={selectedResource || "hot-desk"}
-                  />
+                {/* Right Column - Pricing & Summary (Desktop) - Hidden for private office */}
+                {selectedResource !== "private-office" && (
+                  <div className="lg:col-span-1 space-y-6">
+                    <PricingBreakdown
+                      pricing={safePricing}
+                      selectedDuration={selectedDuration}
+                      selectedAddOns={selectedAddOns}
+                      resourceType={selectedResource || "hot-desk"}
+                      meetingRoomCapacity={selectedMeetingRoomCapacity}
+                      meetingRoomHours={selectedMeetingRoomHours}
+                      meetingRoomHourlyPrice={
+                        selectedMeetingRoomCapacity
+                          ? getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity)
+                          : undefined
+                      }
+                      currency={safePricing.currency}
+                    />
 
-                  {/* Confirm Booking Button - Desktop - Always visible when valid */}
-                  {isValidBooking && (
-                    <Button
-                      size="lg"
-                      className="w-full button-press"
-                      onClick={handleConfirmBooking}
-                    >
-                      Proceed to payment
-                    </Button>
-                  )}
-                </div>
+                    {isValidBooking && (
+                      <Button
+                        size="lg"
+                        className="w-full button-press"
+                        onClick={handleConfirmBooking}
+                      >
+                        Proceed to payment
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
 
-          {/* Sticky Booking Summary */}
+          {/* Sticky Booking Summary - Hidden for private office */}
+          {selectedResource !== "private-office" && (
           <StickyBookingSummary
             summary={{
               date: selectedDate,
               time: selectedTime,
-              duration: selectedDuration,
+              duration: selectedResource === "meeting-room" ? "hourly" : selectedDuration,
               resourceType: selectedResource,
               addOns: selectedAddOns,
               totalPrice,
               currency: safePricing.currency,
+              meetingRoomCapacity: selectedMeetingRoomCapacity ?? undefined,
+              meetingRoomHours: selectedMeetingRoomHours,
             }}
             onClear={() => {
               setSelectedDate(null)
               setSelectedTime(null)
+              setSelectedMeetingRoomCapacity(null)
+              setSelectedMeetingRoomHours(1)
               setSelectedAddOns([])
             }}
             onConfirm={handleConfirmBooking}
             isBooking={false}
             isValid={isValidBooking}
           />
+          )}
 
           {/* WhatsApp Fallback - Mobile */}
           <div className="lg:hidden fixed bottom-20 right-4 z-40">

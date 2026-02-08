@@ -30,18 +30,19 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
       // Default fallback prices
       return type === "hot-desk" ? 500 : type === "meeting-room" ? 1500 : 5000
     }
-    // Hot desk: full-day only; Private office: monthly only; Meeting room: lowest of hourly, half-day, full-day
+    // Hot desk: full-day only; Private office: custom (inquiry); Meeting room: lowest capacity hourly rate
     const resourcePricing = pricing[type]
     let prices: (number | undefined)[] = []
     if (type === "hot-desk") {
       prices = [resourcePricing["full-day"]]
     } else if (type === "private-office") {
-      prices = [resourcePricing.monthly]
+      return 0 // Custom pricing - inquiry only
     } else {
+      // Meeting room: capacity tiers 1-4, 1-10, 1-35 (per hour)
       prices = [
-        resourcePricing.hourly,
-        resourcePricing["half-day"],
-        resourcePricing["full-day"]
+        resourcePricing["1-4"],
+        resourcePricing["1-10"],
+        resourcePricing["1-35"]
       ]
     }
     const validPrices = prices.filter(p => typeof p === "number" && p > 0)
@@ -61,18 +62,18 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
     {
       type: "meeting-room",
       label: "Meeting Room",
-      description: "Private space for teams",
+      description: "Capacity-based hourly rates",
       icon: <Building2 className="h-5 w-5" />,
-      capacity: "2-20 people",
+      capacity: "1–4, 1–10, 1–35 pax",
       startingPrice: getStartingPrice("meeting-room"),
     },
     {
       type: "private-office",
       label: "Private Office",
-      description: "Dedicated office space",
+      description: "Custom pricing – inquiry",
       icon: <Users className="h-5 w-5" />,
-      capacity: "1-10 people",
-      startingPrice: getStartingPrice("private-office"),
+      capacity: "Dedicated space",
+      startingPrice: 0,
     },
   ]
 
@@ -107,7 +108,11 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
                 <span className="text-xs text-muted-foreground">{resource.capacity}</span>
                 <span className="text-sm font-semibold text-primary">
                   {resource.type === "private-office"
-                    ? `${resource.startingPrice.toLocaleString()} ${currency}/month`
+                    ? "Custom pricing – contact us"
+                    : resource.type === "meeting-room"
+                    ? resource.startingPrice > 0
+                      ? `From ${resource.startingPrice.toLocaleString()} ${currency}/hr`
+                      : "Capacity-based pricing"
                     : `From ${resource.startingPrice.toLocaleString()} ${currency}`}
                 </span>
               </div>

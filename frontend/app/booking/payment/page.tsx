@@ -25,6 +25,8 @@ export interface PendingBookingPayload {
   totalPrice: number
   addOns: string[]
   workspaceId: string
+  meetingRoomHours?: number
+  meetingRoomCapacity?: "1-4" | "1-10" | "1-35"
 }
 
 function getResourceName(type: string) {
@@ -40,7 +42,10 @@ function getResourceName(type: string) {
   }
 }
 
-function getDurationLabel(duration: string) {
+function getDurationLabel(duration: string, meetingRoomHours?: number) {
+  if (typeof meetingRoomHours === "number" && meetingRoomHours > 0) {
+    return `${meetingRoomHours} ${meetingRoomHours === 1 ? "hour" : "hours"}`
+  }
   switch (duration) {
     case "hourly":
       return "1 Hour"
@@ -120,6 +125,8 @@ export default function BookingPaymentPage() {
           totalPrice: pending.totalPrice,
           addOns: pending.addOns,
           workspaceId: pending.workspaceId,
+          ...(pending.meetingRoomHours && { meetingRoomHours: pending.meetingRoomHours }),
+          ...(pending.meetingRoomCapacity && { meetingRoomCapacity: pending.meetingRoomCapacity }),
         }),
       })
       const bookingData = await bookingRes.json()
@@ -187,7 +194,7 @@ export default function BookingPaymentPage() {
                   <div className="flex items-center gap-3 text-sm">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {pending.startTime} · {getDurationLabel(pending.duration)}
+                      {pending.startTime} · {getDurationLabel(pending.duration, pending.meetingRoomHours)}
                     </span>
                   </div>
                   <div className="pt-3 border-t flex justify-between items-center">

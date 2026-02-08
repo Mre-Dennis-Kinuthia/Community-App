@@ -9,6 +9,8 @@ const bookingSchema = z.object({
   date: z.string().transform((str) => new Date(str)),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/), // HH:MM format
   duration: z.enum(["hourly", "half-day", "full-day", "monthly"]),
+  meetingRoomHours: z.number().min(1).max(8).optional(), // For meeting room capacity-based booking
+  meetingRoomCapacity: z.enum(["1-4", "1-10", "1-35"]).optional(),
   basePrice: z.number().min(0),
   addOnsPrice: z.number().min(0).default(0),
   totalPrice: z.number().min(0),
@@ -18,28 +20,29 @@ const bookingSchema = z.object({
 })
 
 // Calculate end time based on start time and duration
-function calculateEndTime(startTime: string, duration: string, resourceType?: string): string {
+function calculateEndTime(
+  startTime: string,
+  duration: string,
+  resourceType?: string,
+  meetingRoomHours?: number
+): string {
   const [hours, minutes] = startTime.split(":").map(Number)
   let hoursToAdd = 1 // default hourly
 
   if (duration === "monthly") {
-    // Monthly private office: end of day 17:00 (stored as single-day; duration indicates monthly)
     return "17:00"
   }
-  if (duration === "half-day") {
-    hoursToAdd = 4 // Half day is 4 hours
+  if (resourceType === "meeting-room" && typeof meetingRoomHours === "number" && meetingRoomHours >= 1) {
+    hoursToAdd = meetingRoomHours
+  } else if (duration === "half-day") {
+    hoursToAdd = 4
   } else if (duration === "full-day") {
-    hoursToAdd = 8 // Full day is 8 hours
-  }
-
-  // For full-day bookings, ensure end time doesn't exceed 17:00 (5 PM)
-  if (duration === "full-day") {
-    const endHours = Math.min(hours + hoursToAdd, 17) // Cap at 5 PM
-    return `${endHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+    hoursToAdd = 8
   }
 
   const endHours = hours + hoursToAdd
-  const finalHours = endHours >= 24 ? endHours - 24 : endHours
+  const cappedEnd = Math.min(endHours, 17) // Cap at 5 PM for workspace hours
+  const finalHours = cappedEnd >= 24 ? cappedEnd - 24 : cappedEnd
   return `${finalHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
 }
 
@@ -101,7 +104,12 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    const endTime = calculateEndTime(startTime, validatedData.duration, validatedData.resourceType)
+    const endTime = calculateEndTime(
+      startTime,
+      validatedData.duration,
+      validatedData.resourceType,
+      validatedData.meetingRoomHours
+    )
     
     console.log("[BOOKING API] Calculated times:", {
       startTime,

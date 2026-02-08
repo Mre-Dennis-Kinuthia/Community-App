@@ -11,6 +11,10 @@ interface PricingBreakdownProps {
   selectedDuration: "hourly" | "half-day" | "full-day" | "monthly"
   selectedAddOns: string[]
   resourceType: string
+  meetingRoomCapacity?: "1-4" | "1-10" | "1-35"
+  meetingRoomHours?: number
+  meetingRoomHourlyPrice?: number
+  currency?: string
 }
 
 export function PricingBreakdown({
@@ -18,16 +22,25 @@ export function PricingBreakdown({
   selectedDuration,
   selectedAddOns,
   resourceType,
+  meetingRoomCapacity,
+  meetingRoomHours = 1,
+  meetingRoomHourlyPrice,
+  currency: propCurrency,
 }: PricingBreakdownProps) {
-  const selectedOption = pricing.options.find(opt => opt.type === selectedDuration)
+  const isMeetingRoom = resourceType === "meeting-room"
+  const currency = propCurrency || pricing.currency
+
+  const selectedOption = !isMeetingRoom ? pricing.options.find(opt => opt.type === selectedDuration) : null
   const selectedAddOnItems = pricing.addOns.filter(addOn => selectedAddOns.includes(addOn.id))
 
-  const subtotal = selectedOption?.price || 0
+  const subtotal = isMeetingRoom && meetingRoomCapacity && meetingRoomHourlyPrice
+    ? meetingRoomHourlyPrice * meetingRoomHours
+    : (selectedOption?.price || 0)
   const addOnsTotal = selectedAddOnItems.reduce((sum, addOn) => sum + addOn.price, 0)
   const total = subtotal + addOnsTotal
 
-  // Show estimate if no selection made
-  const showEstimate = !selectedOption && pricing.options.length > 0
+  const showMeetingRoomBreakdown = isMeetingRoom && meetingRoomCapacity && meetingRoomHourlyPrice && meetingRoomHours > 0
+  const showEstimate = !showMeetingRoomBreakdown && !selectedOption && pricing.options.length > 0
   const estimateOption = showEstimate ? pricing.options[0] : null
 
   const savings = useMemo(() => {
@@ -49,14 +62,29 @@ export function PricingBreakdown({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Base Price */}
-        {selectedOption && (
+        {showMeetingRoomBreakdown && (
+          <div className="flex flex-col gap-2 py-2 border-b border-border/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Meeting Room ({meetingRoomCapacity} pax)</p>
+                <p className="text-xs text-muted-foreground">
+                  {currency} {meetingRoomHourlyPrice.toLocaleString()}/hr × {meetingRoomHours} {meetingRoomHours === 1 ? "hr" : "hrs"}
+                </p>
+              </div>
+              <p className="text-sm font-semibold">
+                {currency} {subtotal.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        )}
+        {selectedOption && !isMeetingRoom && (
           <div className="flex items-center justify-between py-2 border-b border-border/50">
             <div>
               <p className="text-sm font-medium">{selectedOption.label}</p>
               <p className="text-xs text-muted-foreground">{resourceType}</p>
             </div>
             <p className="text-sm font-semibold">
-              {pricing.currency} {selectedOption.price.toLocaleString()}
+              {currency} {selectedOption.price.toLocaleString()}
             </p>
           </div>
         )}
@@ -110,7 +138,7 @@ export function PricingBreakdown({
             {showEstimate ? "Estimate" : "Total"}
           </p>
           <p className={`text-2xl font-bold ${showEstimate ? "text-muted-foreground" : "text-primary"}`}>
-            {pricing.currency} {(showEstimate && estimateOption) ? estimateOption.price.toLocaleString() : total.toLocaleString()}
+            {currency} {(showEstimate && estimateOption) ? estimateOption.price.toLocaleString() : total.toLocaleString()}
           </p>
         </div>
 
