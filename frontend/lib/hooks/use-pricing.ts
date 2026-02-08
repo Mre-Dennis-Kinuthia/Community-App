@@ -75,26 +75,31 @@ export function usePricing(workspaceId: string, resourceType: string, date?: Dat
     }
   } else {
     // Fallback to existing hard-coded defaults if admin pricing is not configured yet
+    // Hot desk: full-day only; Private office: monthly only; Meeting room: all options
+    const options: PricingOption[] = []
+    if (resourceType === "hot-desk") {
+      options.push({
+        type: "full-day",
+        label: "Full Day (8 Hours)",
+        price: 2500,
+      })
+    } else if (resourceType === "private-office") {
+      options.push({
+        type: "monthly",
+        label: "Monthly",
+        price: 80000,
+      })
+    } else {
+      options.push(
+        { type: "hourly", label: "Hourly Rate", price: 2000 },
+        { type: "half-day", label: "Half Day (4 Hours)", price: 6000 },
+        { type: "full-day", label: "Full Day (8 Hours)", price: 10000 }
+      )
+    }
     pricing = {
       basePrice: 0,
       currency: "KES",
-      options: [
-        {
-          type: "hourly",
-          label: "Hourly Rate",
-          price: resourceType === "hot-desk" ? 500 : resourceType === "meeting-room" ? 2000 : 5000,
-        },
-        {
-          type: "half-day",
-          label: "Half Day (4 Hours)",
-          price: resourceType === "hot-desk" ? 1500 : resourceType === "meeting-room" ? 6000 : 15000,
-        },
-        {
-          type: "full-day",
-          label: "Full Day (8 Hours)",
-          price: resourceType === "hot-desk" ? 2500 : resourceType === "meeting-room" ? 10000 : 25000,
-        },
-      ],
+      options,
       addOns: [
         {
           id: "projector",

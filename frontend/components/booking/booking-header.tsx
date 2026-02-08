@@ -29,13 +29,6 @@ export function BookingHeader({ workspace, onBookNow, onCheckAvailability }: Boo
         </p>
       </div>
 
-      {/* Pricing */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="text-lg font-semibold text-primary">
-          From {workspace.currency} {workspace.startingPrice.toLocaleString()}/day
-        </div>
-      </div>
-
       {/* Company Logos */}
       {workspace.companyLogos && workspace.companyLogos.length > 0 && (
         <div className="flex items-center gap-4 pt-2">

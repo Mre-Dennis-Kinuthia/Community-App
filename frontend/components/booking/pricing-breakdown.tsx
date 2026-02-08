@@ -8,7 +8,7 @@ import { useMemo } from "react"
 
 interface PricingBreakdownProps {
   pricing: PricingData
-  selectedDuration: "hourly" | "half-day" | "full-day"
+  selectedDuration: "hourly" | "half-day" | "full-day" | "monthly"
   selectedAddOns: string[]
   resourceType: string
 }

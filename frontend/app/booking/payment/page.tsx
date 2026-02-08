@@ -48,6 +48,8 @@ function getDurationLabel(duration: string) {
       return "Half Day (4 Hours)"
     case "full-day":
       return "Full Day (8 Hours)"
+    case "monthly":
+      return "Monthly"
     default:
       return duration
   }

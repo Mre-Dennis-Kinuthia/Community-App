@@ -8,7 +8,7 @@ const bookingSchema = z.object({
   resourceType: z.enum(["hot-desk", "meeting-room", "private-office"]),
   date: z.string().transform((str) => new Date(str)),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/), // HH:MM format
-  duration: z.enum(["hourly", "half-day", "full-day"]),
+  duration: z.enum(["hourly", "half-day", "full-day", "monthly"]),
   basePrice: z.number().min(0),
   addOnsPrice: z.number().min(0).default(0),
   totalPrice: z.number().min(0),
@@ -21,21 +21,24 @@ const bookingSchema = z.object({
 function calculateEndTime(startTime: string, duration: string, resourceType?: string): string {
   const [hours, minutes] = startTime.split(":").map(Number)
   let hoursToAdd = 1 // default hourly
-  
-  if (duration === "half-day") {
-    hoursToAdd = 4 // Half day is 4 hours (9 AM - 1 PM or 1 PM - 5 PM)
-  } else if (duration === "full-day") {
-    hoursToAdd = 8 // Full day is 8 hours (9 AM - 5 PM)
+
+  if (duration === "monthly") {
+    // Monthly private office: end of day 17:00 (stored as single-day; duration indicates monthly)
+    return "17:00"
   }
-  
+  if (duration === "half-day") {
+    hoursToAdd = 4 // Half day is 4 hours
+  } else if (duration === "full-day") {
+    hoursToAdd = 8 // Full day is 8 hours
+  }
+
   // For full-day bookings, ensure end time doesn't exceed 17:00 (5 PM)
   if (duration === "full-day") {
     const endHours = Math.min(hours + hoursToAdd, 17) // Cap at 5 PM
     return `${endHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
   }
-  
+
   const endHours = hours + hoursToAdd
-  // Handle overflow to next day (shouldn't happen for our use case, but safety check)
   const finalHours = endHours >= 24 ? endHours - 24 : endHours
   return `${finalHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
 }
@@ -74,9 +77,10 @@ export async function POST(request: NextRequest) {
     let startTime = validatedData.startTime
     
     // Ensure startTime is set correctly based on duration and resource type
-    if (validatedData.resourceType === "hot-desk") {
+    if (validatedData.resourceType === "private-office" && validatedData.duration === "monthly") {
+      startTime = "09:00"
+    } else if (validatedData.resourceType === "hot-desk") {
       if (validatedData.duration === "full-day") {
-        // Full day should start at 9 AM
         startTime = "09:00"
       } else if (validatedData.duration === "half-day") {
         // Half day should be 9 AM (morning) or 1 PM (afternoon)

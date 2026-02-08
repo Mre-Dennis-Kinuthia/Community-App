@@ -28,6 +28,12 @@ export default function BookingPage() {
   // availability and pricing are tied to the admin record.
   const workspaceId = workspace?.id ?? "impact-hub-nairobi"
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
+  // Hot desk defaults to full-day; private office defaults to monthly
+  const getDefaultDuration = (resource: ResourceType | null): BookingDuration => {
+    if (resource === "hot-desk") return "full-day"
+    if (resource === "private-office") return "monthly"
+    return "hourly"
+  }
   
   const { 
     slots, 
@@ -39,7 +45,7 @@ export default function BookingPage() {
   } = useAvailability(workspaceId, selectedResource || undefined)
   
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
-  const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("hourly")
+  const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("full-day")
   const [selectedHalfDay, setSelectedHalfDay] = useState<"morning" | "afternoon" | undefined>(undefined)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
 
@@ -47,7 +53,7 @@ export default function BookingPage() {
     workspaceId,
     selectedResource || "hot-desk",
     selectedDate || undefined,
-    selectedDuration === "hourly" ? 1 : selectedDuration === "half-day" ? 4 : 8
+    selectedDuration === "hourly" ? 1 : selectedDuration === "half-day" ? 4 : selectedDuration === "monthly" ? 1 : 8
   )
   
   // Provide fallback pricing when null
@@ -69,12 +75,15 @@ export default function BookingPage() {
       if (selectedDuration === "full-day") {
         hasRequiredSelections = true // Full day doesn't need time selection
       } else if (selectedDuration === "half-day") {
-        hasRequiredSelections = !!selectedHalfDay // Half day needs morning/afternoon selection
+        hasRequiredSelections = !!selectedHalfDay
       } else {
-        hasRequiredSelections = !!selectedTime // Hourly needs time selection
+        hasRequiredSelections = !!selectedTime
       }
+    } else if (selectedResource === "private-office") {
+      // Private office: monthly only, no time selection needed
+      hasRequiredSelections = selectedDuration === "monthly"
     } else {
-      // Meeting rooms and private offices always need time selection
+      // Meeting rooms always need time selection
       hasRequiredSelections = !!selectedTime
     }
     
@@ -93,22 +102,24 @@ export default function BookingPage() {
   const isValidBooking = useMemo(() => {
     if (!selectedDate || !selectedResource || totalPrice <= 0) return false
     
-    // For hot desks: full-day doesn't need time, half-day needs half-day selection, hourly needs time
+    // Hot desk: full-day only
     if (selectedResource === "hot-desk") {
-      if (selectedDuration === "full-day") return true
-      if (selectedDuration === "half-day") return !!selectedHalfDay
-      return !!selectedTime
+      return selectedDuration === "full-day"
     }
-    
-    // For meeting rooms: always need time
+    // Private office: monthly only, no time needed
+    if (selectedResource === "private-office") {
+      return selectedDuration === "monthly"
+    }
+    // Meeting rooms: always need time
     return !!selectedTime
   }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, totalPrice])
 
   // Calculate start time based on duration and selection
   // This ensures we always have a valid startTime for the API
   const calculateStartTime = useMemo(() => {
-    // Full-day hot desk: always starts at 9 AM
-    if (selectedResource === "hot-desk" && selectedDuration === "full-day") {
+    // Full-day hot desk or monthly private office: use 9 AM
+    if ((selectedResource === "hot-desk" && selectedDuration === "full-day") ||
+        (selectedResource === "private-office" && selectedDuration === "monthly")) {
       return "09:00"
     }
     // Half-day hot desk: morning (9 AM) or afternoon (1 PM)
@@ -126,11 +137,10 @@ export default function BookingPage() {
       return
     }
 
-    if (selectedResource !== "hot-desk" || selectedDuration === "hourly") {
-      if (!selectedTime) {
-        toast.warning("Complete your selection", "Please select a time")
-        return
-      }
+    // Only meeting rooms need explicit time selection
+    if (selectedResource === "meeting-room" && !selectedTime) {
+      toast.warning("Complete your selection", "Please select a time")
+      return
     }
 
     const startTime = calculateStartTime
@@ -258,7 +268,7 @@ export default function BookingPage() {
                           setSelectedDate(null)
                           setSelectedTime(null)
                           setSelectedHalfDay(undefined)
-                          setSelectedDuration("hourly")
+                          setSelectedDuration(getDefaultDuration(resource))
                         }}
                         pricing={workspace?.pricing}
                         currency={workspace?.currency || "KES"}
@@ -296,8 +306,9 @@ export default function BookingPage() {
                           if (duration !== "half-day") {
                             setSelectedHalfDay(undefined)
                           }
-                          // Reset time for full-day
-                          if (duration === "full-day" && selectedResource === "hot-desk") {
+                          // Reset time for full-day or monthly (no time needed)
+                          if ((duration === "full-day" && selectedResource === "hot-desk") ||
+                              (duration === "monthly" && selectedResource === "private-office")) {
                             setSelectedTime(null)
                           }
                         }}

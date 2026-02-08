@@ -30,15 +30,23 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
       // Default fallback prices
       return type === "hot-desk" ? 500 : type === "meeting-room" ? 1500 : 5000
     }
-    // Find the lowest price from hourly, half-day, full-day
+    // Hot desk: full-day only; Private office: monthly only; Meeting room: lowest of hourly, half-day, full-day
     const resourcePricing = pricing[type]
-    const prices = [
-      resourcePricing.hourly,
-      resourcePricing["half-day"],
-      resourcePricing["full-day"]
-    ].filter(p => typeof p === "number" && p > 0)
+    let prices: (number | undefined)[] = []
+    if (type === "hot-desk") {
+      prices = [resourcePricing["full-day"]]
+    } else if (type === "private-office") {
+      prices = [resourcePricing.monthly]
+    } else {
+      prices = [
+        resourcePricing.hourly,
+        resourcePricing["half-day"],
+        resourcePricing["full-day"]
+      ]
+    }
+    const validPrices = prices.filter(p => typeof p === "number" && p > 0)
     
-    return prices.length > 0 ? Math.min(...prices) : 500
+    return validPrices.length > 0 ? Math.min(...validPrices) : 500
   }
 
   const resources: Resource[] = [
@@ -98,7 +106,9 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
                 <span className="text-xs text-muted-foreground">{resource.capacity}</span>
                 <span className="text-sm font-semibold text-primary">
-                  From {resource.startingPrice.toLocaleString()} {currency}
+                  {resource.type === "private-office"
+                    ? `${resource.startingPrice.toLocaleString()} ${currency}/month`
+                    : `From ${resource.startingPrice.toLocaleString()} ${currency}`}
                 </span>
               </div>
             </CardContent>

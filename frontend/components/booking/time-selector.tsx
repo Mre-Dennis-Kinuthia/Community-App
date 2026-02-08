@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Clock, CheckCircle2 } from "lucide-react"
 import { format } from "date-fns"
 
-export type BookingDuration = "hourly" | "half-day" | "full-day"
+export type BookingDuration = "hourly" | "half-day" | "full-day" | "monthly"
 export type HalfDayPeriod = "morning" | "afternoon"
 
 interface TimeSelectorProps {
@@ -40,11 +40,12 @@ export function TimeSelector({
     )
   }
 
-  // For hot desks: full-day doesn't need time selection, half-day needs morning/afternoon selection
+  // Hot desk: full-day only (no time selection). Private office: monthly only (no time selection).
   const isHotDesk = resourceType === "hot-desk"
-  const showTimeSlots = !isHotDesk || selectedDuration === "hourly"
+  const isPrivateOffice = resourceType === "private-office"
+  const showTimeSlots = !isHotDesk && !isPrivateOffice && selectedDuration !== "monthly"
   const showHalfDaySelector = isHotDesk && selectedDuration === "half-day"
-  const hideTimeSelector = isHotDesk && selectedDuration === "full-day"
+  const hideTimeSelector = (isHotDesk && selectedDuration === "full-day") || (isPrivateOffice && selectedDuration === "monthly")
 
   // Calculate start time based on half-day selection
   const getHalfDayStartTime = (period: HalfDayPeriod) => {
@@ -61,7 +62,7 @@ export function TimeSelector({
 
   return (
     <div className="space-y-4">
-      {/* Duration Selector */}
+      {/* Duration Selector - Hot desk: full-day only; Private office: monthly only; Meeting room: all options */}
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">Duration:</span>
         <Select value={selectedDuration} onValueChange={onDurationChange}>
@@ -69,9 +70,15 @@ export function TimeSelector({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="hourly">Hourly</SelectItem>
-            <SelectItem value="half-day">Half Day</SelectItem>
-            <SelectItem value="full-day">Full Day</SelectItem>
+            {isHotDesk && <SelectItem value="full-day">Full Day</SelectItem>}
+            {isPrivateOffice && <SelectItem value="monthly">Monthly</SelectItem>}
+            {!isHotDesk && !isPrivateOffice && (
+              <>
+                <SelectItem value="hourly">Hourly</SelectItem>
+                <SelectItem value="half-day">Half Day</SelectItem>
+                <SelectItem value="full-day">Full Day</SelectItem>
+              </>
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -108,12 +115,16 @@ export function TimeSelector({
         </div>
       )}
 
-      {/* Full Day Message (for hot desks) */}
+      {/* Full Day / Monthly Message - no time selection needed */}
       {hideTimeSelector && (
         <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-          <p className="text-sm font-medium mb-1">Full Day Booking</p>
+          <p className="text-sm font-medium mb-1">
+            {selectedDuration === "monthly" ? "Monthly Booking" : "Full Day Booking"}
+          </p>
           <p className="text-xs text-muted-foreground">
-            You've selected a full day booking. No specific time selection is needed.
+            {selectedDuration === "monthly"
+              ? "You've selected a monthly private office. No specific time selection is needed."
+              : "You've selected a full day booking. No specific time selection is needed."}
           </p>
         </div>
       )}
