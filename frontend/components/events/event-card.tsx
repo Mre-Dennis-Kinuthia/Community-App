@@ -136,12 +136,12 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
   return (
     <Card
       onClick={onClick}
-      className={`relative flex cursor-pointer flex-col gap-4 border-border/50 p-[1.15rem] transition-colors rounded-md md:flex-row ${hoverBorderColor}`}
+      className={`relative flex cursor-pointer flex-col gap-4 border-border/50 p-[1.15rem] transition-colors rounded-lg md:flex-row md:items-stretch ${hoverBorderColor}`}
     >
       {/* Thumbnail (if available) */}
       {event.thumbnail && (
-        <div className="w-full md:w-28 shrink-0 overflow-hidden rounded-md bg-muted">
-          <div className="aspect-[4/3] w-full">
+        <div className="w-full md:w-40 lg:w-44 shrink-0 overflow-hidden rounded-md bg-muted">
+          <div className="aspect-[4/3] w-full h-full">
             <img
               src={event.thumbnail}
               alt={event.title}
@@ -153,9 +153,9 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
       )}
 
       {/* Event content */}
-      <div className="flex-1 space-y-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1">
+      <div className="flex min-w-0 flex-1 flex-col justify-between space-y-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 flex-col">
             <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
               <Badge className={`${typeColors[event.type] || "bg-gray-100 text-gray-700"} text-xs`}>
                 {event.type}
@@ -166,9 +166,13 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
               >
                 {event.status}
               </Badge>
-              {isFull && <Badge variant="destructive" className="text-xs">Full</Badge>}
+              {isFull && (
+                <Badge variant="destructive" className="text-xs">
+                  Full
+                </Badge>
+              )}
             </div>
-            <h3 className="text-sm font-semibold leading-tight text-foreground">
+            <h3 className="line-clamp-2 break-words text-sm font-semibold leading-snug text-foreground">
               {event.title}
             </h3>
           </div>
