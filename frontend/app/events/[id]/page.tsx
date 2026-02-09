@@ -2,12 +2,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, Clock, MapPin, Users, Loader2 } from "lucide-react"
-import { format } from "date-fns"
+import { format, isBefore } from "date-fns"
 import Link from "next/link"
+import { useSession } from "@/lib/use-session"
+import { toast } from "@/lib/toast"
 
 interface EventDetailPageProps {
   params: { id: string }
@@ -26,9 +29,14 @@ interface EventData {
 
 export default function EventDetailPage({ params }: EventDetailPageProps) {
   const { id } = params
+  const router = useRouter()
+  const { user } = useSession()
+
   const [event, setEvent] = useState<EventData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [registering, setRegistering] = useState(false)
+  const [isRegistered, setIsRegistered] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -75,6 +83,54 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     ? "Detailed view for this community event."
     : "We couldn’t find an event with this link. It may have been removed or the link is incorrect."
 
+  const eventStartDate = event ? new Date(event.startDate) : null
+  const isPastEvent = eventStartDate ? isBefore(eventStartDate, new Date()) : false
+
+  const handleRegister = async () => {
+    if (!event || registering || isPastEvent) return
+
+    if (!user?.email) {
+      toast.info("Please log in or create an account to register for this event.")
+      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search)
+      router.push(`/login?callbackUrl=${callbackUrl}`)
+      return
+    }
+
+    try {
+      setRegistering(true)
+      const response = await fetch(`/api/events/${event.id}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: user.email || "",
+          name: user.name || undefined,
+        }),
+      })
+
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        const message = data.error || "Failed to register for event"
+        if (message.toLowerCase().includes("already registered")) {
+          setIsRegistered(true)
+          toast.info("You're already registered for this event.")
+          return
+        }
+        throw new Error(message)
+      }
+
+      setIsRegistered(true)
+      toast.success("You're registered for this event.")
+    } catch (e: any) {
+      console.error("Failed to register for event:", e)
+      toast.error(e?.message || "Failed to register for event. Please try again.")
+    } finally {
+      setRegistering(false)
+    }
+  }
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-4xl space-y-6">
@@ -83,9 +139,31 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
             <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>
-          <Button asChild variant="outline">
-            <Link href="/events">Back to events</Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {!loading && event && !isPastEvent && (
+              <>
+                {isRegistered ? (
+                  <Button variant="outline" size="sm" disabled>
+                    ✓ Registered
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={handleRegister} disabled={registering}>
+                    {registering ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Registering...
+                      </>
+                    ) : (
+                      "Register"
+                    )}
+                  </Button>
+                )}
+              </>
+            )}
+            <Button asChild variant="outline" size="sm">
+              <Link href="/events">Back to events</Link>
+            </Button>
+          </div>
         </div>
 
         {loading ? (

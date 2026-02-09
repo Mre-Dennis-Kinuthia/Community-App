@@ -16,6 +16,7 @@ import { EventsTimeline } from "@/components/events/events-timeline"
 import { EventDetailSheet } from "@/components/events/event-detail-sheet"
 import { format, isToday, isTomorrow, startOfWeek, endOfWeek, isWithinInterval } from "date-fns"
 import { useSession } from "@/lib/use-session"
+import { toast } from "@/lib/toast"
 
 interface Event {
   id: number | string
@@ -176,42 +177,11 @@ export default function EventsPage() {
       return
     }
 
-    // If user is not logged in, prompt for email
+    // If user is not logged in, redirect to login instead of using browser prompts
     if (!user?.email) {
-      const email = prompt("Please enter your email to register for this event:")
-      if (!email) return
-      
-      setRegistering({ ...registering, [eventId]: true })
-      
-      try {
-        const response = await fetch(`/api/events/${eventId}/register`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email,
-            name: prompt("Please enter your name (optional):") || undefined,
-          }),
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Failed to register for event")
-        }
-
-        // Update event status
-        if (event) {
-          event.status = "Registered"
-          event.registered = (event.registered || 0) + 1
-          setAllEvents([...allEvents])
-        }
-      } catch (error: any) {
-        console.error("Failed to register for event:", error)
-        alert(error.message || "Failed to register for event. Please try again.")
-      } finally {
-        setRegistering({ ...registering, [eventId]: false })
-      }
+      toast.info("Please log in to register for events.")
+      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search)
+      router.push(`/login?callbackUrl=${callbackUrl}`)
       return
     }
 
@@ -239,10 +209,11 @@ export default function EventsPage() {
         event.status = "Registered"
         event.registered = (event.registered || 0) + 1
         setAllEvents([...allEvents])
+        toast.success("You're registered for this event.")
       }
     } catch (error: any) {
       console.error("Failed to register for event:", error)
-      alert(error.message || "Failed to register for event. Please try again.")
+      toast.error(error.message || "Failed to register for event. Please try again.")
     } finally {
       setRegistering({ ...registering, [eventId]: false })
     }
@@ -266,7 +237,7 @@ export default function EventsPage() {
     } else {
       // Fallback: copy to clipboard
       await navigator.clipboard.writeText(eventUrl)
-      alert("Event link copied to clipboard!")
+      toast.success("Event link copied to clipboard.")
     }
   }
 

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, MapPin, Users, Video, Loader2, ExternalLink, Mail, Share2, Facebook, Twitter, Linkedin, Copy } from "lucide-react"
 import { format, isToday, isTomorrow } from "date-fns"
 import { useState, useEffect, useRef } from "react"
+import { toast } from "@/lib/toast"
 
 interface EventDetailSheetProps {
   event: {
@@ -107,7 +108,7 @@ export function EventDetailSheet({
 
     if (platform === "copy") {
       await navigator.clipboard.writeText(eventUrl)
-      alert("Event link copied to clipboard!")
+      toast.success("Event link copied to clipboard.")
       setShowShareMenu(false)
       return
     }

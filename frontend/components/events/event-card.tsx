@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Users, Video, MapPin, Clock, Calendar, Loader2, Share2, Facebook, Twitter, Linkedin, Copy } from "lucide-react"
 import { format, isToday, isTomorrow } from "date-fns"
 import { useState, useEffect, useRef } from "react"
+import { toast } from "@/lib/toast"
 
 interface EventCardProps {
   event: {
@@ -115,7 +116,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
 
     if (platform === "copy") {
       await navigator.clipboard.writeText(eventUrl)
-      alert("Event link copied to clipboard!")
+      toast.success("Event link copied to clipboard.")
       setShowShareMenu(false)
       return
     }
@@ -313,19 +314,6 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
           </div>
         )}
       </div>
-
-      {/* Thumbnail */}
-      {event.thumbnail && (
-        <div className="relative w-32 h-32 flex-shrink-0 overflow-hidden rounded-lg border border-border/50">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={event.thumbnail}
-            alt={event.title}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        </div>
-      )}
     </Card>
   )
 }
