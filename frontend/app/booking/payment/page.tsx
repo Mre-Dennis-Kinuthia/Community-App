@@ -162,7 +162,7 @@ export default function BookingPaymentPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 pb-12">
+      <div className="space-y-8 pb-32 md:pb-12">
         <Breadcrumbs items={[{ label: "Book Workspace", href: "/booking" }, { label: "Payment" }]} />
 
         <div className="max-w-2xl mx-auto space-y-6">
@@ -257,6 +257,36 @@ export default function BookingPaymentPage() {
           )}
         </div>
       </div>
+      {/* Mobile sticky CTA */}
+      {pending && !isRedirecting && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-elevated pb-[env(safe-area-inset-bottom)] md:hidden">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs text-muted-foreground">
+                {bookingDate ? format(bookingDate, "EEE, MMM d") : null} · {pending.startTime}
+              </p>
+              <p className="text-base font-semibold">
+                KES {pending.totalPrice.toLocaleString()}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="min-w-[120px]"
+              onClick={handlePayAndConfirm}
+              disabled={isProcessing || isRedirecting}
+            >
+              {isProcessing || isRedirecting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isRedirecting ? "Confirming..." : "Paying..."}
+                </>
+              ) : (
+                "Pay & confirm"
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   )
 }

@@ -103,11 +103,10 @@ export function StickyBookingSummary({
                   </span>
                 </div>
                 <Button
-                  className="w-full"
+                  className="w-full button-press"
                   size="lg"
                   onClick={onConfirm}
                   disabled={isBooking}
-                  className="button-press"
                 >
                   {isBooking ? (
                     <>
@@ -125,7 +124,7 @@ export function StickyBookingSummary({
       </div>
 
       {/* Mobile: Bottom Sticky Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-elevated">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-elevated pb-[env(safe-area-inset-bottom)]">
         <div className="container px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">

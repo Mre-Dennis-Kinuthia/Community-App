@@ -36,13 +36,13 @@ const navItems = [
 export function MobileBottomNav() {
   const pathname = usePathname()
 
-  // Only show on dashboard pages, not on login/register/landing
+  // Only show on authenticated pages, not on login/register/landing
   if (pathname === "/" || pathname === "/login" || pathname === "/register") {
     return null
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden transition-colors duration-200 ease-out">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden transition-colors duration-200 ease-out pb-[env(safe-area-inset-bottom)]">
       <div className="grid grid-cols-5 h-16">
         {navItems.map((item) => {
           const Icon = item.icon
@@ -52,7 +52,7 @@ export function MobileBottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors duration-200 ease-out active:bg-muted/50",
+                "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors duration-200 ease-out active:bg-muted/50 min-h-[44px]",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground"

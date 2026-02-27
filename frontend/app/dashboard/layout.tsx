@@ -114,14 +114,14 @@ function DashboardLayoutContent({
 
   if (showLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
+      <div className="flex min-h-[100svh] w-full items-center justify-center bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
       </div>
     )
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="flex min-h-[100svh] flex-col overflow-hidden">
       <header className="sticky top-0 z-40 overflow-x-hidden border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 flex-shrink-0 transition-colors duration-200 ease-out">
         <div className="container flex h-16 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex min-w-0 shrink items-center gap-4">

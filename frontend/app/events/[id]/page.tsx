@@ -133,7 +133,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6 pb-28 md:pb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
@@ -248,6 +248,36 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
           </Card>
         )}
       </div>
+      {/* Mobile sticky CTA */}
+      {!loading && event && !isPastEvent && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-elevated pb-[env(safe-area-inset-bottom)] md:hidden">
+          <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs text-muted-foreground">
+                {eventStartDate ? format(eventStartDate, "EEE, MMM d · HH:mm") : null}
+              </p>
+              <p className="truncate text-base font-semibold">
+                {event.title}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="min-w-[120px]"
+              onClick={handleRegister}
+              disabled={registering || isRegistered}
+            >
+              {isRegistered ? "Registered" : registering ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Registering...
+                </>
+              ) : (
+                "Register"
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   )
 }
