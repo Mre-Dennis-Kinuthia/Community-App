@@ -120,20 +120,20 @@ export default function NewsPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-[100svh] bg-background">
         {/* Medium-style Header */}
         <div className="border-b border-border/50 bg-background/95 backdrop-blur">
-          <div className="max-w-4xl mx-auto px-6 py-8">
-            <div className="space-y-4">
-              <h1 className="text-5xl font-bold tracking-tight" style={{ fontFamily: "Georgia, serif" }}>
+          <div className="max-w-4xl mx-auto px-4 py-6 md:px-6 md:py-8">
+            <div className="space-y-3">
+              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
                 News & Updates
               </h1>
-              <p className="text-xl text-muted-foreground" style={{ fontFamily: "Georgia, serif" }}>
+              <p className="text-base md:text-lg text-muted-foreground">
                 Stories, announcements, and insights from Impact Hub Nairobi
               </p>
               
               {/* Search */}
-              <div className="flex gap-2 max-w-md mt-6">
+              <div className="flex flex-col gap-2 max-w-md mt-4 sm:flex-row">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                   <Input
@@ -196,15 +196,15 @@ export default function NewsPage() {
         </div>
 
         {/* Content */}
-        <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="max-w-4xl mx-auto px-4 py-8 md:px-6 md:py-12">
           {loading && (
-            <div className="flex items-center justify-center py-20">
+            <div className="flex items-center justify-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           )}
 
           {error && !loading && (
-            <div className="text-center py-20">
+            <div className="text-center py-16">
               <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">{error}</p>
               <Button variant="outline" onClick={() => window.location.reload()}>
@@ -214,7 +214,7 @@ export default function NewsPage() {
           )}
 
           {!loading && !error && news.length === 0 && (
-            <div className="text-center py-20">
+            <div className="text-center py-16">
               <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">
                 {hasActiveFilters ? "No articles match your filters. Try clearing them." : "No articles available yet."}
@@ -229,7 +229,7 @@ export default function NewsPage() {
 
           {/* Article Grid */}
           {!loading && !error && news.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
               {news.map((item) => {
                 const displayDate = getDisplayDate(item)
                 const preview = item.excerpt || stripHtml(item.content)

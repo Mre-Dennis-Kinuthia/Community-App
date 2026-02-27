@@ -154,8 +154,8 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   if (error || !newsItem) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen bg-background">
-          <div className="max-w-4xl mx-auto px-6 py-20">
+        <div className="min-h-[100svh] bg-background">
+          <div className="max-w-4xl mx-auto px-4 py-12 md:px-6 md:py-20">
             <div className="text-center">
               <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4 text-lg">
@@ -187,9 +187,9 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
         />
       </div>
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-[100svh] bg-background">
         {/* Medium-style Article */}
-        <article className="max-w-3xl mx-auto px-6 py-12">
+        <article className="max-w-3xl mx-auto px-4 py-8 md:px-6 md:py-12">
           {/* Back Button */}
           <div className="mb-8">
             <Button
@@ -205,8 +205,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           {/* Article Header */}
           <header className="mb-12">
             <h1 
-              className="text-5xl font-bold mb-6 leading-tight"
-              style={{ fontFamily: "Georgia, serif", lineHeight: "1.2" }}
+              className="text-3xl md:text-4xl font-semibold mb-4 leading-tight"
             >
               {newsItem.title}
             </h1>

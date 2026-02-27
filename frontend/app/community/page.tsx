@@ -246,9 +246,9 @@ function CommunityPageContent() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Star className="h-5 w-5 text-primary" />
-                  <h2 className="text-2xl font-semibold">Featured Members</h2>
+                  <h2 className="text-xl md:text-2xl font-semibold">Featured Members</h2>
                 </div>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {featuredMembers.map((member) => (
                     <Link key={member.id} href={`/community/${member.id}`}>
                       <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 ring-2 ring-primary/20 h-full">
@@ -442,10 +442,10 @@ function CommunityPageContent() {
               <>
                 {!hasActiveFilters && featuredMembers.length > 0 && (
                   <div className="pt-4 border-t">
-                    <h2 className="text-2xl font-semibold mb-4">All Members</h2>
+                    <h2 className="text-xl md:text-2xl font-semibold mb-4">All Members</h2>
                   </div>
                 )}
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {filteredAndSortedMembers.map((member) => {
                     const isConnected = myConnections.includes(member.id)
                     return (
