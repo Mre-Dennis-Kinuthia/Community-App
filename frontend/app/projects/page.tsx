@@ -194,9 +194,9 @@ function ProjectsPageContent() {
     <DashboardLayout>
       <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Projects & Initiatives" }]} />
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">Projects & Initiatives</h1>
-          <p className="text-muted-foreground text-base">
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Projects & Initiatives</h1>
+          <p className="text-muted-foreground text-sm md:text-base">
             Discover member projects creating positive social and environmental impact across Kenya and beyond.
           </p>
         </div>
@@ -248,9 +248,9 @@ function ProjectsPageContent() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Star className="h-5 w-5 text-primary" />
-              <h2 className="text-2xl font-semibold">Featured Projects</h2>
+              <h2 className="text-xl md:text-2xl font-semibold">Featured Projects</h2>
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {featuredProjects.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`}>
                   <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full ring-2 ring-primary/20 overflow-hidden`}>

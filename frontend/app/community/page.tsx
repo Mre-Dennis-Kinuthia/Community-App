@@ -636,7 +636,7 @@ function CommunityPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {filteredAndSortedMembers.map((member) => (
                   <Link key={member.id} href={`/community/${member.id}`}>
                     <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 h-full">
