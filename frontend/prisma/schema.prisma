@@ -10,6 +10,46 @@ datasource db {
 }
 
 // ============================================
+// INVESTMENT & DEALFLOW ENUMS
+// ============================================
+
+enum InvestmentVisibility {
+  public
+  investors_only
+  request_access
+}
+
+enum MediaAssetAccessLevel {
+  public
+  investors_only
+  request_access
+}
+
+enum MediaAssetFileType {
+  pitch_deck
+  financial_model
+  cap_table
+  incorporation
+  impact_metrics
+  contracts
+  other
+}
+
+enum InvestmentInterestStatus {
+  requested
+  approved
+  declined
+}
+
+enum FundingStage {
+  pre_seed
+  seed
+  series_a
+  series_b
+  other
+}
+
+// ============================================
 // AUTH & USERS
 // ============================================
 
@@ -37,6 +77,7 @@ model User {
   projectFollows ProjectFollow[]
   projectVolunteers ProjectVolunteer[]
   projectCollaborations ProjectCollaboration[]
+  investmentInterests ProjectInvestmentInterest[]
 
   @@map("users")
 }
@@ -99,6 +140,17 @@ model MemberProfile {
   isFeatured Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Investor metadata
+  isInvestor  Boolean @default(false)
+  investorType String?
+  ticketSizeMin Float?
+  ticketSizeMax Float?
+  sectorFocus   Json?
+  stageFocus    Json?
+  geoFocus      Json?
+  thesis        String?
+  investmentAlertPreferences Json?
 
   @@map("member_profiles")
 }
@@ -261,6 +313,20 @@ model Project {
   socialLinks Json?     // Object with social links
   launchDate  DateTime?
   isFeatured  Boolean   @default(false)
+  // Investment & funding fields
+  isInvestmentOpen    Boolean              @default(false)
+  investmentApproved  Boolean              @default(false)
+  investmentVisibility InvestmentVisibility @default(investors_only)
+  capitalSought       Float?
+  ticketMin           Float?
+  ticketMax           Float?
+  revenueMonthly      Float?
+  growthRateMonthly   Float?
+  runwayMonths        Int?
+  lastRoundAmount     Float?
+  lastRoundDate       DateTime?
+  fundingStage        FundingStage?
+  readinessScore      Int?
   // Publish workflow: pending = awaiting admin approval, approved = visible on community, rejected = not published
   status      String    @default("approved") // "draft" | "pending" | "approved" | "rejected"
   submittedAt DateTime?
@@ -273,6 +339,8 @@ model Project {
   followers             ProjectFollow[]
   volunteers            ProjectVolunteer[]
   collaborationRequests  ProjectCollaboration[]
+  investmentInterests   ProjectInvestmentInterest[]
+  mediaAssets           MediaAsset[]
 
   @@map("projects")
   @@index([founderId])
@@ -669,12 +737,40 @@ model MediaAsset {
   size        Int?     // file size in bytes
   mimeType    String?
   tags        String[]
+  // Optional link to a project for diligence docs
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  accessLevel MediaAssetAccessLevel @default(public)
+  fileType    MediaAssetFileType    @default(other)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
 
   @@map("media_assets")
   @@index([type])
+  @@index([projectId])
+}
+
+// ============================================
+// INVESTMENT INTEREST
+// ============================================
+
+model ProjectInvestmentInterest {
+  id         String   @id @default(cuid())
+  projectId  String
+  investorId String
+  status     InvestmentInterestStatus @default(requested)
+  message    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  investor User    @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  @@map("project_investment_interests")
+  @@unique([projectId, investorId])
+  @@index([projectId])
+  @@index([investorId])
 }
 
 // ============================================
