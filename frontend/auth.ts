@@ -5,6 +5,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword } from "@/lib/auth-utils"
 import { authConfig } from "./auth.config"
+import { randomBytes } from "crypto"
 
 // Validate required environment variables at runtime
 function validateEnvVars() {
@@ -57,16 +58,28 @@ console.log("[AUTH] Initializing NextAuth with:", {
   envValid,
 })
 
-// Ensure secret is a valid string before passing to NextAuth
+// Ensure we always have some secret to pass to NextAuth
+// In production we STRONGLY recommend setting a proper AUTH_SECRET (32+ chars).
+// However, we avoid throwing at import time so API routes don't 500 due to misconfig.
+let resolvedSecret = authSecret
+
 if (!authSecret || typeof authSecret !== "string" || authSecret.length < 32) {
   const errorMsg = !authSecret
     ? "AUTH_SECRET is not set"
     : typeof authSecret !== "string"
     ? "AUTH_SECRET is not a string"
     : `AUTH_SECRET is too short (${authSecret.length} chars, need 32+)`
-  
-  console.error("[AUTH] CRITICAL ERROR:", errorMsg)
-  throw new Error(`NextAuth configuration error: ${errorMsg}`)
+
+  console.error("[AUTH] WARNING:", errorMsg)
+
+  // Fallback: generate a runtime secret so NextAuth can still initialize.
+  // Note: if AUTH_SECRET is misconfigured in production, sessions may not be stable across instances.
+  resolvedSecret = randomBytes(32).toString("hex")
+
+  console.error(
+    "[AUTH] Using a generated fallback secret. " +
+      "Please set a strong AUTH_SECRET in your environment configuration."
+  )
 }
 
 // Create NextAuth config with explicit secret validation
@@ -74,7 +87,7 @@ const nextAuthConfig = {
   ...authConfig,
   adapter: envValid ? PrismaAdapter(prisma) : undefined,
   trustHost: true,
-  secret: authSecret,
+  secret: resolvedSecret,
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
