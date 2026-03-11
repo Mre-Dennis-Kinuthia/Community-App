@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2, FolderOpen } from "lucide-react"
+import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2, FolderOpen, BarChart3 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useSidebar } from "@/components/sidebar-context"
 import {
@@ -65,6 +65,11 @@ const navGroups: NavGroup[] = [
         title: "Projects & Initiatives",
         href: "/projects",
         icon: Lightbulb,
+      },
+      {
+        title: "Investments & Dealflow",
+        href: "/investments",
+        icon: BarChart3,
       },
       {
         title: "My projects",
