@@ -191,44 +191,85 @@ function CommunityPageContent() {
         </div>
 
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Members</CardTitle>
+        <div className="grid gap-3 md:grid-cols-4">
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/40">
+            <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Members
+              </CardTitle>
+              <Users className="h-4 w-4 text-primary/70" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">
-                {isLoading ? (
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                ) : (
-                  pagination?.total || 0
+            <CardContent className="pt-1 pb-3">
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-semibold tracking-tight">
+                  {isLoading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  ) : (
+                    pagination?.total || 0
+                  )}
+                </div>
+                {!isLoading && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {pagination?.total === 1 ? "member in the hub" : "members in the hub"}
+                  </p>
                 )}
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Featured</CardTitle>
+
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/40">
+            <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Featured Members
+              </CardTitle>
+              <Star className="h-4 w-4 text-primary/70" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{featuredMembers.length}</div>
+            <CardContent className="pt-1 pb-3">
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-semibold tracking-tight">
+                  {featuredMembers.length}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Curated community champions
+                </p>
+              </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">My Connections</CardTitle>
+
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/40">
+            <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                My Connections
+              </CardTitle>
+              <UserPlus className="h-4 w-4 text-primary/70" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{myConnections.length}</div>
+            <CardContent className="pt-1 pb-3">
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-semibold tracking-tight">
+                  {myConnections.length}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  People you&apos;re directly connected to
+                </p>
+              </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Connections</CardTitle>
+
+          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/40">
+            <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Connections
+              </CardTitle>
+              <Users className="h-4 w-4 text-primary/70" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">
-                {members.reduce((sum, m) => sum + (m.connections || 0), 0)}
+            <CardContent className="pt-1 pb-3">
+              <div className="flex items-baseline justify-between">
+                <div className="text-2xl font-semibold tracking-tight">
+                  {members.reduce((sum, m) => sum + (m.connections || 0), 0)}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Relationships across the whole community
+                </p>
               </div>
             </CardContent>
           </Card>
