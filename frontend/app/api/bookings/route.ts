@@ -19,6 +19,36 @@ const bookingSchema = z.object({
   workspaceId: z.string().default("impact-hub-nairobi"),
 })
 
+async function resolveUserIdFromSession(session: Awaited<ReturnType<typeof auth>>) {
+  const sessionUser = session?.user
+  if (!sessionUser) return null
+
+  // Best-effort: try to match by session user id first.
+  if (typeof sessionUser.id === "string") {
+    const existing = await prisma.user.findUnique({ where: { id: sessionUser.id } })
+    if (existing) return existing.id
+  }
+
+  // Fallback: match by email (create the user if it doesn't exist).
+  const email = typeof sessionUser.email === "string" ? sessionUser.email.toLowerCase().trim() : null
+  if (!email) return null
+
+  const upserted = await prisma.user.upsert({
+    where: { email },
+    create: {
+      email,
+      name: typeof sessionUser.name === "string" ? sessionUser.name : null,
+      image: typeof (sessionUser as any).image === "string" ? (sessionUser as any).image : null,
+    },
+    update: {
+      name: typeof sessionUser.name === "string" ? sessionUser.name : undefined,
+      image: typeof (sessionUser as any).image === "string" ? (sessionUser as any).image : undefined,
+    },
+  })
+
+  return upserted.id
+}
+
 // Calculate end time based on start time and duration
 function calculateEndTime(
   startTime: string,
@@ -52,7 +82,7 @@ export async function POST(request: NextRequest) {
     
     // Check authentication
     const session = await auth()
-    if (!session?.user?.id) {
+    if (!session?.user) {
       console.log("[BOOKING API] Unauthorized - no session")
       return NextResponse.json(
         { error: "Unauthorized. Please log in to book a workspace." },
@@ -60,8 +90,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const userId = session.user.id
-    console.log("[BOOKING API] User ID:", userId)
+    const userId = await resolveUserIdFromSession(session)
+    if (!userId) {
+      console.log("[BOOKING API] Unauthorized - unable to resolve user")
+      return NextResponse.json(
+        { error: "Unauthorized. Please log in to book a workspace." },
+        { status: 401 }
+      )
+    }
+    console.log("[BOOKING API] Resolved User ID:", userId)
 
     // Parse and validate request body
     const body = await request.json()
@@ -318,7 +355,14 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
+    }
+    const userId = await resolveUserIdFromSession(session)
+    if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -352,7 +396,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Verify the booking belongs to the user
-      if (booking.userId !== session.user.id) {
+      if (booking.userId !== userId) {
         return NextResponse.json(
           { error: "Unauthorized" },
           { status: 403 }
@@ -364,7 +408,7 @@ export async function GET(request: NextRequest) {
 
     // Otherwise, fetch user's bookings
     const where: any = {
-      userId: session.user.id,
+        userId,
     }
 
     if (status) {

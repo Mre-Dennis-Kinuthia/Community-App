@@ -11,6 +11,36 @@ export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
 }
 
+async function resolveUserIdFromSession(session: Awaited<ReturnType<typeof auth>>) {
+  const sessionUser = session?.user
+  if (!sessionUser) return null
+
+  // Try by session user id first.
+  if (typeof sessionUser.id === "string") {
+    const existing = await prisma.user.findUnique({ where: { id: sessionUser.id } })
+    if (existing) return existing.id
+  }
+
+  // Fallback to email. Create the user if it's missing to satisfy FK constraints.
+  const email = typeof sessionUser.email === "string" ? sessionUser.email.toLowerCase().trim() : null
+  if (!email) return null
+
+  const upserted = await prisma.user.upsert({
+    where: { email },
+    create: {
+      email,
+      name: typeof sessionUser.name === "string" ? sessionUser.name : null,
+      image: typeof (sessionUser as any).image === "string" ? (sessionUser as any).image : null,
+    },
+    update: {
+      name: typeof sessionUser.name === "string" ? sessionUser.name : undefined,
+      image: typeof (sessionUser as any).image === "string" ? (sessionUser as any).image : undefined,
+    },
+  })
+
+  return upserted.id
+}
+
 const profileUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   bio: z.string().optional(),
@@ -30,7 +60,15 @@ const profileUpdateSchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    const userId = await resolveUserIdFromSession(session)
+    if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401, headers: corsHeaders }
@@ -38,7 +76,7 @@ export async function GET(request: NextRequest) {
     }
 
     const profile = await prisma.memberProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
       include: {
         user: {
           select: {
@@ -56,7 +94,7 @@ export async function GET(request: NextRequest) {
       // Create empty profile if it doesn't exist
       const newProfile = await prisma.memberProfile.create({
         data: {
-          userId: session.user.id,
+          userId,
         },
         include: {
           user: {
@@ -92,7 +130,15 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    const userId = await resolveUserIdFromSession(session)
+    if (!userId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401, headers: corsHeaders }
@@ -106,20 +152,20 @@ export async function PUT(request: NextRequest) {
     // Update user name if provided
     if (nameUpdate !== undefined && nameUpdate.trim()) {
       await prisma.user.update({
-        where: { id: session.user.id },
+        where: { id: userId },
         data: { name: nameUpdate.trim() },
       })
     }
 
     // Upsert profile (exclude name from profile model)
     const profile = await prisma.memberProfile.upsert({
-      where: { userId: session.user.id },
+      where: { userId },
       update: {
         ...profileData,
         updatedAt: new Date(),
       },
       create: {
-        userId: session.user.id,
+        userId,
         ...profileData,
       },
       include: {
