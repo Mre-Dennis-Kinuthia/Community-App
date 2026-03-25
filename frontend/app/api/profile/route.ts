@@ -117,7 +117,10 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("[PROFILE API] Error:", error)
     return NextResponse.json(
-      { error: "Failed to fetch profile" },
+      {
+        error: "Failed to fetch profile",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500, headers: corsHeaders }
     )
   }
@@ -199,7 +202,10 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Failed to update profile" },
+      {
+        error: "Failed to update profile",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500, headers: corsHeaders }
     )
   }
