@@ -111,7 +111,9 @@ export default function BookingPaymentPage() {
 
     const bookingData = await bookingRes.json()
     if (!bookingRes.ok) {
-      throw new Error(bookingData.error || "Failed to create booking")
+      const details = typeof bookingData?.details === "string" ? bookingData.details : undefined
+      const msg = bookingData?.error || "Failed to create booking"
+      throw new Error(details ? `${msg}: ${details}` : msg)
     }
 
     return bookingData.booking as { id: string }
