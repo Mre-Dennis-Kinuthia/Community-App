@@ -95,6 +95,11 @@ export async function GET(request: NextRequest) {
       const newProfile = await prisma.memberProfile.create({
         data: {
           userId,
+          // These fields are required in the DB schema (non-null arrays).
+          // Provide safe defaults so new users don't 500 on first load.
+          skills: [],
+          availability: [],
+          interests: [],
         },
         include: {
           user: {
@@ -170,6 +175,10 @@ export async function PUT(request: NextRequest) {
       create: {
         userId,
         ...profileData,
+        // Ensure required array fields are present on create.
+        skills: profileData.skills ?? [],
+        availability: profileData.availability ?? [],
+        interests: profileData.interests ?? [],
       },
       include: {
         user: {

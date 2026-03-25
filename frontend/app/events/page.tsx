@@ -60,7 +60,8 @@ export default function EventsPage() {
 
   const filter = activeTab === "upcoming" ? "upcoming" : "past"
   const eventsKey = `/api/events?filter=${filter}&limit=100&${searchQuery ? `search=${encodeURIComponent(searchQuery)}` : ""}`
-  const { data: eventsData, error: eventsError, isLoading: loading } = useSWR<{ events?: any[] }>(eventsKey)
+  const { data: eventsData, error: eventsError, isLoading: loading, mutate: mutateEvents } =
+    useSWR<{ events?: any[] }>(eventsKey)
 
   const allEvents: Event[] = useMemo(() => {
     const raw = Array.isArray(eventsData?.events) ? eventsData.events : []
@@ -204,13 +205,9 @@ export default function EventsPage() {
         throw new Error(errorData.error || "Failed to register for event")
       }
 
-      // Update event status
-      if (event) {
-        event.status = "Registered"
-        event.registered = (event.registered || 0) + 1
-        setAllEvents([...allEvents])
-        toast.success("You're registered for this event.")
-      }
+      // Refresh events list (server is the source of truth).
+      await mutateEvents()
+      toast.success("You're registered for this event.")
     } catch (error: any) {
       console.error("Failed to register for event:", error)
       toast.error(error.message || "Failed to register for event. Please try again.")
