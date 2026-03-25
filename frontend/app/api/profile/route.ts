@@ -77,7 +77,16 @@ export async function GET(request: NextRequest) {
 
     const profile = await prisma.memberProfile.findUnique({
       where: { userId },
-      include: {
+      select: {
+        bio: true,
+        skills: true,
+        location: true,
+        industry: true,
+        role: true,
+        experienceLevel: true,
+        availability: true,
+        interests: true,
+        updatedAt: true,
         user: {
           select: {
             id: true,
@@ -101,7 +110,16 @@ export async function GET(request: NextRequest) {
           availability: [],
           interests: [],
         },
-        include: {
+        select: {
+          bio: true,
+          skills: true,
+          location: true,
+          industry: true,
+          role: true,
+          experienceLevel: true,
+          availability: true,
+          interests: true,
+          updatedAt: true,
           user: {
             select: {
               id: true,
@@ -170,6 +188,10 @@ export async function PUT(request: NextRequest) {
       where: { userId },
       update: {
         ...profileData,
+        // Ensure required array fields are always present.
+        skills: profileData.skills ?? [],
+        availability: profileData.availability ?? [],
+        interests: profileData.interests ?? [],
         updatedAt: new Date(),
       },
       create: {
@@ -180,7 +202,16 @@ export async function PUT(request: NextRequest) {
         availability: profileData.availability ?? [],
         interests: profileData.interests ?? [],
       },
-      include: {
+      select: {
+        bio: true,
+        skills: true,
+        location: true,
+        industry: true,
+        role: true,
+        experienceLevel: true,
+        availability: true,
+        interests: true,
+        updatedAt: true,
         user: {
           select: {
             id: true,

@@ -142,7 +142,9 @@ model MemberProfile {
   updatedAt DateTime @updatedAt
 
   // Investor metadata
-  isInvestor  Boolean @default(false)
+  // Note: production DB may not yet have this column.
+  // Keep it optional so Prisma doesn't fail queries/creates.
+  isInvestor  Boolean?
   investorType String?
   ticketSizeMin Float?
   ticketSizeMax Float?
