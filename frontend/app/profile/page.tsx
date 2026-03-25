@@ -92,7 +92,18 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to update profile")
+        const details = errorData.details
+          ? typeof errorData.details === "string"
+            ? errorData.details
+            : JSON.stringify(errorData.details)
+          : null
+        throw new Error(
+          errorData.error
+            ? details
+              ? `${errorData.error}: ${details}`
+              : errorData.error
+            : details || "Failed to update profile"
+        )
       }
 
       setIsEditing(false)

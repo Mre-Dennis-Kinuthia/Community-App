@@ -168,7 +168,8 @@ export default function OnboardingPage() {
       })
       if (!res.ok) {
         const err = await res.json()
-        throw new Error(err.error || "Failed to save")
+        const details = err.details ? (typeof err.details === "string" ? err.details : JSON.stringify(err.details)) : null
+        throw new Error(err.error ? (details ? `${err.error}: ${details}` : err.error) : details || "Failed to save")
       }
       toast.success("Profile complete!", "Your profile has been set up.")
       if (typeof window !== "undefined") {
