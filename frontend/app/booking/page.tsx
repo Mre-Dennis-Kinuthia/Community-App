@@ -140,7 +140,7 @@ export default function BookingPage() {
     return selectedTime || null
   }, [selectedResource, selectedDuration, selectedHalfDay, selectedTime])
 
-  // Proceed to payment (booking is confirmed only after payment on /booking/payment)
+  // Proceed to confirmation/payment step. Booking can be created with paymentStatus pending.
   const handleConfirmBooking = () => {
     if (!isValidBooking || !selectedDate || !selectedResource) {
       toast.warning("Complete your selection", "Please complete all required fields")
@@ -411,7 +411,7 @@ export default function BookingPage() {
                         className="w-full button-press"
                         onClick={handleConfirmBooking}
                       >
-                        Proceed to payment
+                        Review & confirm
                       </Button>
                     )}
                   </div>

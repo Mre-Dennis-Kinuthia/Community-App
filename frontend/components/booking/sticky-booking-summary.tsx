@@ -111,10 +111,10 @@ export function StickyBookingSummary({
                   {isBooking ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Payment...
+                      Confirming...
                     </>
                   ) : (
-                    "Proceed to payment"
+                    "Review & confirm"
                   )}
                 </Button>
               </div>
@@ -144,7 +144,7 @@ export function StickyBookingSummary({
               {isBooking ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Pay"
+                "Review & confirm"
               )}
             </Button>
           </div>

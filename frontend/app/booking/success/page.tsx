@@ -20,6 +20,7 @@ interface BookingDetails {
   duration: string
   totalPrice: number
   status: string
+  paymentStatus?: string
   createdAt: string
 }
 
@@ -120,6 +121,7 @@ function SuccessContent() {
   }
 
   const bookingDate = new Date(booking.date)
+  const isPaymentPending = !!booking.paymentStatus && booking.paymentStatus.toLowerCase() !== "paid"
 
   return (
     <DashboardLayout>
@@ -137,15 +139,24 @@ function SuccessContent() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold mb-1">Booking Confirmed!</h1>
+                  <h1 className="text-2xl font-bold mb-1">
+                    {isPaymentPending ? "Booking Confirmed! (Payment Pending)" : "Booking Confirmed!"}
+                  </h1>
                   <p className="text-muted-foreground">
-                    Your workspace booking has been successfully created.
+                    {isPaymentPending
+                      ? "Your workspace booking has been created. Payment status is pending."
+                      : "Your workspace booking has been successfully created."}
                   </p>
                 </div>
               </div>
               <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20">
                 Booking ID: {booking.id.substring(0, 8).toUpperCase()}
               </Badge>
+              {isPaymentPending && booking.paymentStatus && (
+                <Badge variant="outline" className="ml-3">
+                  Payment: {booking.paymentStatus}
+                </Badge>
+              )}
             </CardContent>
           </Card>
 

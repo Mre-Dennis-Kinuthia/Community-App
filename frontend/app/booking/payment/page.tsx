@@ -88,8 +88,59 @@ export default function BookingPaymentPage() {
     }
   }, [router])
 
+  const createBooking = async () => {
+    if (!pending) throw new Error("Missing booking details")
+
+    const bookingRes = await fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        resourceType: pending.resourceType,
+        date: pending.date,
+        startTime: pending.startTime,
+        duration: pending.duration,
+        basePrice: pending.basePrice,
+        addOnsPrice: pending.addOnsPrice,
+        totalPrice: pending.totalPrice,
+        addOns: pending.addOns,
+        workspaceId: pending.workspaceId,
+        ...(pending.meetingRoomHours && { meetingRoomHours: pending.meetingRoomHours }),
+        ...(pending.meetingRoomCapacity && { meetingRoomCapacity: pending.meetingRoomCapacity }),
+      }),
+    })
+
+    const bookingData = await bookingRes.json()
+    if (!bookingRes.ok) {
+      throw new Error(bookingData.error || "Failed to create booking")
+    }
+
+    return bookingData.booking as { id: string }
+  }
+
+  const handleConfirmWithoutPayment = async () => {
+    if (!pending) return
+
+    setIsProcessing(true)
+    try {
+      const booking = await createBooking()
+
+      sessionStorage.removeItem(PENDING_BOOKING_KEY)
+      setIsRedirecting(true)
+      toast.success("Booking confirmed", "Your booking has been created. Payment status is pending.")
+      router.replace(`/booking/success?id=${booking.id}`)
+    } catch (err) {
+      console.error("[BOOKING CONFIRM WITHOUT PAYMENT]", err)
+      toast.error(
+        "Booking failed",
+        err instanceof Error ? err.message : "Please try again or contact support."
+      )
+      setIsProcessing(false)
+    }
+  }
+
   const handlePayAndConfirm = async () => {
     if (!pending) return
+
     const phone = mpesaPhone.trim().replace(/\D/g, "")
     if (phone.length < 10) {
       toast.error("Invalid phone", "Please enter a valid M-Pesa phone number (e.g. 07XX XXX XXX).")
@@ -112,32 +163,12 @@ export default function BookingPaymentPage() {
         throw new Error(mpesaData.error || "Payment initiation failed")
       }
 
-      const bookingRes = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          resourceType: pending.resourceType,
-          date: pending.date,
-          startTime: pending.startTime,
-          duration: pending.duration,
-          basePrice: pending.basePrice,
-          addOnsPrice: pending.addOnsPrice,
-          totalPrice: pending.totalPrice,
-          addOns: pending.addOns,
-          workspaceId: pending.workspaceId,
-          ...(pending.meetingRoomHours && { meetingRoomHours: pending.meetingRoomHours }),
-          ...(pending.meetingRoomCapacity && { meetingRoomCapacity: pending.meetingRoomCapacity }),
-        }),
-      })
-      const bookingData = await bookingRes.json()
-      if (!bookingRes.ok) {
-        throw new Error(bookingData.error || "Failed to create booking")
-      }
+      const booking = await createBooking()
 
       sessionStorage.removeItem(PENDING_BOOKING_KEY)
       setIsRedirecting(true)
       toast.success("Booking confirmed", "Check your phone to complete M-Pesa payment.")
-      router.replace(`/booking/success?id=${bookingData.booking.id}`)
+      router.replace(`/booking/success?id=${booking.id}`)
     } catch (err) {
       console.error("[BOOKING PAYMENT]", err)
       toast.error(
@@ -167,9 +198,9 @@ export default function BookingPaymentPage() {
 
         <div className="max-w-2xl mx-auto space-y-6">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Complete payment</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Confirm your booking</h1>
             <p className="text-muted-foreground mt-1">
-              Pay with M-Pesa to confirm your workspace booking.
+              Confirm now without payment, or pay with M-Pesa (optional).
             </p>
           </div>
 
@@ -178,7 +209,7 @@ export default function BookingPaymentPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Booking summary</CardTitle>
-                  <CardDescription>Review before paying</CardDescription>
+                  <CardDescription>Review before confirming</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-3 text-sm">
@@ -208,40 +239,72 @@ export default function BookingPaymentPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Pay with M-Pesa</CardTitle>
+                  <CardTitle className="text-lg">Confirm & payment</CardTitle>
                   <CardDescription>
-                    Enter your M-Pesa phone number. You will receive an STK push to complete payment.
+                    You can secure your booking now. Payment status will remain pending unless you complete M-Pesa.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="mpesa-phone">M-Pesa phone number</Label>
-                    <Input
-                      id="mpesa-phone"
-                      placeholder="07XX XXX XXX"
-                      value={mpesaPhone}
-                      onChange={(e) => setMpesaPhone(e.target.value)}
-                      disabled={isProcessing || isRedirecting}
-                    />
-                  </div>
                   <Button
                     className="w-full"
                     size="lg"
-                    onClick={handlePayAndConfirm}
+                    onClick={handleConfirmWithoutPayment}
                     disabled={isProcessing || isRedirecting}
                   >
                     {isProcessing || isRedirecting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {isRedirecting ? "Confirming booking..." : "Sending STK push..."}
+                        Confirming booking...
                       </>
                     ) : (
                       <>
-                        <Phone className="mr-2 h-4 w-4" />
-                        Pay KES {pending.totalPrice.toLocaleString()} and confirm booking
+                        Confirm booking (no payment)
                       </>
                     )}
                   </Button>
+
+                  <div className="pt-4 border-t space-y-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <h3 className="text-sm font-medium">Optional: Pay with M-Pesa</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Enter your number to receive an STK push to complete payment.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="mpesa-phone">M-Pesa phone number</Label>
+                      <Input
+                        id="mpesa-phone"
+                        placeholder="07XX XXX XXX"
+                        value={mpesaPhone}
+                        onChange={(e) => setMpesaPhone(e.target.value)}
+                        disabled={isProcessing || isRedirecting}
+                      />
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      size="lg"
+                      onClick={handlePayAndConfirm}
+                      disabled={isProcessing || isRedirecting}
+                    >
+                      {isProcessing || isRedirecting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {isRedirecting ? "Confirming booking..." : "Sending STK push..."}
+                        </>
+                      ) : (
+                        <>
+                          <Phone className="mr-2 h-4 w-4" />
+                          Pay KES {pending.totalPrice.toLocaleString()}
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -272,16 +335,16 @@ export default function BookingPaymentPage() {
             <Button
               size="lg"
               className="min-w-[120px]"
-              onClick={handlePayAndConfirm}
+              onClick={handleConfirmWithoutPayment}
               disabled={isProcessing || isRedirecting}
             >
               {isProcessing || isRedirecting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isRedirecting ? "Confirming..." : "Paying..."}
+                  Confirming...
                 </>
               ) : (
-                "Pay & confirm"
+                "Confirm"
               )}
             </Button>
           </div>
