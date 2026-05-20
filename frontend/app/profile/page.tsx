@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Edit, Save, X, Plus, Upload } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { toast } from "@/lib/toast"
+import { getInitials } from "@/lib/utils"
 import { useSession } from "@/lib/use-session"
 
 export default function ProfilePage() {
@@ -24,21 +25,6 @@ export default function ProfilePage() {
   const [website, setWebsite] = useState("")
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [memberSince, setMemberSince] = useState<string>("")
-
-  // Get user initials for avatar fallback
-  const getInitials = (name?: string | null, email?: string | null) => {
-    if (name) {
-      const parts = name.trim().split(" ")
-      if (parts.length >= 2) {
-        return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-      }
-      return name.substring(0, 2).toUpperCase()
-    }
-    if (email) {
-      return email.substring(0, 2).toUpperCase()
-    }
-    return "U"
-  }
 
   const userInitials = getInitials(user?.name, user?.email)
   const displayName = user?.name || "User"

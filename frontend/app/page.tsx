@@ -1,30 +1,27 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/lib/toast"
-import { 
-  Calendar, 
-  Users, 
-  BookOpen, 
-  Clock, 
-  CheckCircle2, 
+import { getInitials } from "@/lib/utils"
+import {
+  Calendar,
+  Users,
+  BookOpen,
+  CheckCircle2,
   ArrowRight,
   Building2,
-  Sparkles,
   Zap,
   TrendingUp,
   Star,
   Quote,
   ChevronDown,
   Mail,
-  Phone,
   MapPin,
   Twitter,
   Linkedin,
@@ -32,148 +29,263 @@ import {
   Shield,
   Award,
   Globe,
-  Lightbulb
+  Menu,
+  X,
 } from "lucide-react"
 import { Logo } from "@/components/logo"
 
-// Accordion component for FAQ
+// ─── Static data (module-level so it's never recreated on render) ─────────────
+
+const NAV_LINKS = [
+  { href: "#how-it-works", label: "How it Works" },
+  { href: "#testimonials", label: "Testimonials" },
+  { href: "#features", label: "Features" },
+  { href: "#faq", label: "FAQs" },
+  { href: "https://nairobi.impacthub.net/", label: "About Us", external: true },
+] as const
+
+const TESTIMONIALS = [
+  {
+    name: "Sarah Kimani",
+    role: "Founder, GreenTech Solutions",
+    quote:
+      "Impact Hub Nairobi connected me with mentors and investors who believed in my vision. The community support is incredible.",
+    rating: 5,
+  },
+  {
+    name: "David Ochieng",
+    role: "Social Entrepreneur",
+    quote:
+      "The programs and resources here have been game-changing. I've scaled my impact from 100 to 5,000 beneficiaries.",
+    rating: 4,
+  },
+  {
+    name: "Grace Wanjiru",
+    role: "Impact Investor",
+    quote:
+      "As an investor, I've found some of my best deals through the Impact Hub network. The quality of entrepreneurs here is outstanding.",
+    rating: 5,
+  },
+]
+
+const FAQS = [
+  {
+    question: "How much does it cost to join Impact Hub Nairobi?",
+    answer:
+      "Membership is free to join! We offer various membership tiers based on your needs. Basic community membership is free, while premium programs have flexible pricing. Contact us to learn more about our membership options.",
+  },
+  {
+    question: "Do I need to be a member to attend events?",
+    answer:
+      "Many of our events are open to the public, while some exclusive programs and workshops are reserved for members. Check individual event listings for details. Members get priority access and discounted rates.",
+  },
+  {
+    question: "What's the difference between Impact Hub and other innovation spaces?",
+    answer:
+      "Impact Hub Nairobi is specifically focused on social impact and innovation. We're a community of changemakers. We offer programs, mentorship, access to investors, and a global network of 100+ Impact Hubs. Our mission is to support ventures that create positive social and environmental change.",
+  },
+  {
+    question: "How do I book workspace?",
+    answer:
+      "Once you're a member, you can book workspace through our platform. Simply log in, go to the 'Book Workspace' section, select your preferred space and time slot, and confirm your booking. You'll receive a confirmation with all the details.",
+  },
+  {
+    question: "What programs and resources are available?",
+    answer:
+      "We offer a wide range of programs including acceleration programs, incubation support, mentorship sessions, workshops on fundraising and scaling, networking events, and access to our resource library. Check our Events & Programs page for upcoming opportunities.",
+  },
+  {
+    question: "Can I connect with other members?",
+    answer:
+      "Absolutely! Our community directory allows you to browse member profiles, see their projects and expertise, and connect with them. You can also attend our networking events and join our online community forums.",
+  },
+  {
+    question: "Is Impact Hub Nairobi part of a larger network?",
+    answer:
+      "Yes! Impact Hub Nairobi is part of the global Impact Hub network with 100+ locations worldwide. This gives you access to a global community of social entrepreneurs, the ability to use other Impact Hub spaces when traveling, and opportunities for international collaboration.",
+  },
+]
+
+const HOW_IT_WORKS = [
+  {
+    step: "1",
+    title: "Join the Community",
+    description:
+      "Create your profile and connect with 500+ social entrepreneurs, startups, and changemakers.",
+    icon: Users,
+  },
+  {
+    step: "2",
+    title: "Book Workspace",
+    description:
+      "Reserve meeting rooms, collaboration zones, and wellness studios at our Ikigai partnership space.",
+    icon: Calendar,
+  },
+  {
+    step: "3",
+    title: "Access Programs",
+    description:
+      "Join acceleration programs, access mentorship, and get tools to scale your social impact venture.",
+    icon: BookOpen,
+  },
+  {
+    step: "4",
+    title: "Create Impact",
+    description:
+      "Connect with partners, investors, and the public sector to build a just and sustainable society.",
+    icon: TrendingUp,
+  },
+]
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
 interface AccordionItemProps {
   question: string
   answer: string
   isOpen: boolean
   onToggle: () => void
-  key?: number | string // React's special key prop
 }
 
-function AccordionItem({ 
-  question, 
-  answer, 
-  isOpen, 
-  onToggle 
-}: AccordionItemProps) {
+function AccordionItem({ question, answer, isOpen, onToggle }: AccordionItemProps) {
   return (
     <div className="border-b border-border/50">
       <button
         onClick={onToggle}
-        className="w-full py-4 flex items-center justify-between text-left  group"
+        className="w-full py-4 flex items-center justify-between text-left group"
       >
         <span className="font-medium text-base">{question}</span>
-        <ChevronDown className={`h-4 w-4 transition-transform text-muted-foreground ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`h-4 w-4 transition-transform text-muted-foreground ${isOpen ? "rotate-180" : ""}`}
+        />
       </button>
       {isOpen && (
-        <div className="pb-4 text-muted-foreground leading-relaxed">
-          {answer}
-        </div>
+        <div className="pb-4 text-muted-foreground leading-relaxed">{answer}</div>
       )}
     </div>
   )
 }
 
+interface NavLinkProps {
+  href: string
+  label: string
+  external?: boolean
+  className: string
+  onClick?: () => void
+}
+
+function NavLink({ href, label, external, className, onClick }: NavLinkProps) {
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className} onClick={onClick}>
+        {label}
+      </a>
+    )
+  }
+  return (
+    <a href={href} className={className} onClick={onClick}>
+      {label}
+    </a>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function HomePage() {
-  const router = useRouter()
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
-  const [weeklyJoiners, setWeeklyJoiners] = useState(12)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [newsletterEmail, setNewsletterEmail] = useState("")
+  const [newsletterLoading, setNewsletterLoading] = useState(false)
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index)
   }
 
-  // Animated counter effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWeeklyJoiners((prev: number) => {
-        const newValue = prev + Math.floor(Math.random() * 3)
-        return newValue > 20 ? 12 : newValue
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setNewsletterLoading(true)
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newsletterEmail }),
       })
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const testimonials = [
-    {
-      name: "Sarah Kimani",
-      role: "Founder, GreenTech Solutions",
-      avatar: "/placeholder-user.jpg",
-      quote: "Impact Hub Nairobi connected me with mentors and investors who believed in my vision. The community support is incredible.",
-      rating: 5,
-    },
-    {
-      name: "David Ochieng",
-      role: "Social Entrepreneur",
-      avatar: "/placeholder-user.jpg",
-      quote: "The programs and resources here have been game-changing. I've scaled my impact from 100 to 5,000 beneficiaries.",
-      rating: 5,
-    },
-    {
-      name: "Grace Wanjiru",
-      role: "Impact Investor",
-      avatar: "/placeholder-user.jpg",
-      quote: "As an investor, I've found some of my best deals through the Impact Hub network. The quality of entrepreneurs here is outstanding.",
-      rating: 5,
-    },
-  ]
-
-  const faqs = [
-    {
-      question: "How much does it cost to join Impact Hub Nairobi?",
-      answer: "Membership is free to join! We offer various membership tiers based on your needs. Basic community membership is free, while premium programs have flexible pricing. Contact us to learn more about our membership options.",
-    },
-    {
-      question: "Do I need to be a member to attend events?",
-      answer: "Many of our events are open to the public, while some exclusive programs and workshops are reserved for members. Check individual event listings for details. Members get priority access and discounted rates.",
-    },
-    {
-      question: "What's the difference between Impact Hub and other innovation spaces?",
-      answer: "Impact Hub Nairobi is specifically focused on social impact and innovation. We're a community of changemakers. We offer programs, mentorship, access to investors, and a global network of 100+ Impact Hubs. Our mission is to support ventures that create positive social and environmental change.",
-    },
-    {
-      question: "How do I book workspace?",
-      answer: "Once you're a member, you can book workspace through our platform. Simply log in, go to the 'Book Workspace' section, select your preferred space and time slot, and confirm your booking. You'll receive a confirmation email with all the details.",
-    },
-    {
-      question: "What programs and resources are available?",
-      answer: "We offer a wide range of programs including acceleration programs, incubation support, mentorship sessions, workshops on fundraising and scaling, networking events, and access to our resource library. Check our Events & Programs page for upcoming opportunities.",
-    },
-    {
-      question: "Can I connect with other members?",
-      answer: "Absolutely! Our community directory allows you to browse member profiles, see their projects and expertise, and connect with them. You can also attend our networking events and join our online community forums.",
-    },
-    {
-      question: "Is Impact Hub Nairobi part of a larger network?",
-      answer: "Yes! Impact Hub Nairobi is part of the global Impact Hub network with 100+ locations worldwide. This gives you access to a global community of social entrepreneurs, the ability to use other Impact Hub spaces when traveling, and opportunities for international collaboration.",
-    },
-  ]
+      if (!res.ok) throw new Error("Failed")
+      toast.success("Subscribed!", "You'll receive our weekly impact insights")
+      setNewsletterEmail("")
+    } catch {
+      toast.error("Something went wrong. Please try again.")
+    } finally {
+      setNewsletterLoading(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header - Apple Style */}
+      {/* Header */}
       <header className="sticky top-0 z-50 overflow-x-hidden border-b border-border/30 glass">
         <div className="container flex h-16 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
           <Logo href="/" />
+
+          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8 text-sm">
-            <a href="#how-it-works" className="text-foreground/70 ">How it Works</a>
-            <a href="#testimonials" className="text-foreground/70 ">Testimonials</a>
-            <a href="#features" className="text-foreground/70 ">Features</a>
-            <a href="#faq" className="text-foreground/70 ">FAQs</a>
-            <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="text-foreground/70 ">About Us</Link>
+            {NAV_LINKS.map((link) => (
+              <NavLink
+                key={link.href}
+                {...link}
+                className="text-foreground/70 hover:text-foreground transition-colors"
+              />
+            ))}
           </nav>
+
           <div className="flex items-center gap-3">
             <Link href="/login">
-              <Button variant="ghost" className="hidden sm:flex text-foreground/70 hover:text-foreground">Login</Button>
+              <Button variant="ghost" className="hidden sm:flex text-foreground/70 hover:text-foreground">
+                Login
+              </Button>
             </Link>
             <Link href="/register">
-              <Button className="bg-primary text-primary-foreground ">Join Now</Button>
+              <Button className="bg-primary text-primary-foreground">Join Now</Button>
             </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
           </div>
         </div>
+
+        {/* Mobile nav drawer */}
+        {mobileNavOpen && (
+          <div className="md:hidden border-t border-border/30 bg-background/95 backdrop-blur-sm">
+            <nav className="container px-4 py-4 flex flex-col gap-1">
+              {NAV_LINKS.map((link) => (
+                <NavLink
+                  key={link.href}
+                  {...link}
+                  className="px-3 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-accent rounded-md transition-colors"
+                  onClick={() => setMobileNavOpen(false)}
+                />
+              ))}
+              <div className="pt-2 mt-2 border-t border-border/30">
+                <Link href="/login" onClick={() => setMobileNavOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start">
+                    Login
+                  </Button>
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
       </header>
 
-      {/* Hero Section - Apple Style Clean & Minimal */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden bg-background">
-        {/* Background Image with Overlay - Innovation & Community Theme */}
         <div className="absolute inset-0 bg-background">
-          {/* Animated base gradient - seamless and uniform */}
-          <div 
+          <div
             className="absolute inset-0 motion-gradient"
             style={{
               background: `radial-gradient(
@@ -184,11 +296,10 @@ export default function HomePage() {
                 oklch(0.55 0.15 150 / 0.06) 70%,
                 oklch(0.38 0.18 10 / 0.08) 100%
               )`,
-              backgroundSize: '300% 300%',
+              backgroundSize: "300% 300%",
             }}
           />
-          {/* Secondary gradient layer for depth - very subtle */}
-          <div 
+          <div
             className="absolute inset-0 motion-gradient-float"
             style={{
               background: `radial-gradient(
@@ -206,24 +317,22 @@ export default function HomePage() {
                 oklch(0.55 0.15 150 / 0.04) 0%,
                 transparent 60%
               )`,
-              backgroundSize: '200% 200%',
-              mixBlendMode: 'multiply',
+              backgroundSize: "200% 200%",
+              mixBlendMode: "multiply",
               opacity: 0.6,
             }}
           />
-          {/* Subtle network/connection pattern */}
-          <div 
+          <div
             className="absolute inset-0 opacity-[0.03]"
             style={{
               backgroundImage: `
                 linear-gradient(oklch(0.15 0 0) 1px, transparent 1px),
                 linear-gradient(90deg, oklch(0.15 0 0) 1px, transparent 1px)
               `,
-              backgroundSize: '60px 60px',
+              backgroundSize: "60px 60px",
             }}
           />
-          {/* Additional depth with subtle circles - animated */}
-          <div 
+          <div
             className="absolute inset-0 opacity-28 motion-gradient-pulse"
             style={{
               backgroundImage: `
@@ -234,61 +343,26 @@ export default function HomePage() {
             }}
           />
         </div>
-        
+
         <div className="container relative px-4 py-24 md:py-40 z-10">
-          <div className="max-w-5xl mx-auto bg-transparent">
-            {/* Floating Startup Cards - Apple Style Subtle */}
-            <div className="absolute top-10 right-10 hidden lg:block animate-in fade-in duration-700 delay-300">
-              <Card className="shadow-card border border-border/50 p-4 w-52 bg-card">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Lightbulb className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">New Startup</p>
-                    <p className="text-xs text-muted-foreground">Just launched</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            <div className="absolute top-40 left-10 hidden lg:block animate-in fade-in duration-700 delay-500">
-              <Card className="shadow-card border border-border/50 p-4 w-52 bg-card">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Growing Venture</p>
-                    <p className="text-xs text-muted-foreground">Scaling up</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Main Hero Content - Apple Style */}
+          <div className="max-w-5xl mx-auto">
             <div className="text-center space-y-10 pt-12 animate-in fade-in duration-700">
               <div className="space-y-6">
+                <Badge variant="outline" className="px-3 py-1 text-xs">
+                  <Zap className="h-3 w-3 mr-1.5" />
+                  Powered by Impact Hub Nairobi
+                </Badge>
                 <h1 className="text-5xl md:text-7xl font-semibold tracking-tight leading-tight">
-                  Social Entrepreneurs.
+                  Kenya's Platform for
                   <br />
-                  Innovators.
-                  <br />
-                  Empowered.
+                  <span className="text-primary">Social Entrepreneurs</span>
                 </h1>
                 <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                  Impact Hub Nairobi's digital platform connecting Kenya's innovation community. 
-                  Access programs, resources, and opportunities distributed through our network.
+                  Book workspace, access programs, and connect with Nairobi's community of
+                  innovators and changemakers.
                 </p>
-                <div className="flex items-center justify-center gap-2 pt-2">
-                  <Badge variant="outline" className="px-3 py-1 text-xs">
-                    <Zap className="h-3 w-3 mr-1.5" />
-                    Powered by Impact Hub Nairobi
-                  </Badge>
-                </div>
               </div>
 
-              {/* Trust Badges - Apple Style */}
               <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
@@ -308,82 +382,12 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Urgency Elements - Apple Style */}
-              <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-                <Badge variant="secondary" className="px-4 py-1.5">
-                  <Sparkles className="h-3 w-3 mr-1.5" />
-                  Limited spots in upcoming programs
-                </Badge>
-                <Badge variant="secondary" className="px-4 py-1.5">
-                  <Users className="h-3 w-3 mr-1.5" />
-                  Join {weeklyJoiners} others this week
-                </Badge>
-              </div>
-
-              {/* CTA Buttons - Apple Style */}
-              <div className="flex flex-col gap-4 justify-center items-center pt-8">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
                 <Link href="/register">
-                  <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground  button-press">
-                    JOIN NOW <ArrowRight className="ml-2 h-5 w-5" />
+                  <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground button-press">
+                    Join Now <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
-                
-                {/* Social Login Options */}
-                <div className="flex flex-col gap-3 w-full max-w-sm">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-border/50" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="flex-1 border-border/50 hover:bg-accent/50"
-                      onClick={() => {
-                        // TODO: Implement Google OAuth
-                        toast.success("Google login coming soon")
-                      }}
-                    >
-                      <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        />
-                      </svg>
-                      Google
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="flex-1 border-border/50 hover:bg-accent/50"
-                      onClick={() => {
-                        // TODO: Implement LinkedIn OAuth
-                        toast.success("LinkedIn login coming soon")
-                      }}
-                    >
-                      <Linkedin className="h-5 w-5 mr-2" />
-                      LinkedIn
-                    </Button>
-                  </div>
-                </div>
-                
                 <Link href="/login">
                   <Button size="lg" variant="outline" className="text-base px-8 py-6 button-press">
                     Already a member? Login
@@ -391,20 +395,18 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <p className="text-sm text-foreground pt-4">
-                Official distribution channel for Impact Hub Nairobi programs and resources • 
-                Part of the global Impact Hub network • 100+ hubs worldwide
+              <p className="text-sm text-foreground/60 pt-2">
+                Official platform for Impact Hub Nairobi · Part of the global Impact Hub network · 100+ hubs worldwide
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Three Feature Cards - Bottom Section */}
-      <section className="bg-accent/30 py-16 md:py-24">
+      {/* Three Feature Cards */}
+      <section id="features" className="bg-accent/30 py-16 md:py-24">
         <div className="container px-4">
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* Card 1: Community Growth - Apple Style */}
             <Card className="border border-border/50 shadow-card bg-card hover:shadow-elevated transition-all">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-3">
@@ -423,15 +425,14 @@ export default function HomePage() {
                     <Building2 className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">New Startup</p>
-                    <p className="text-xs text-muted-foreground">Recently launched</p>
+                    <p className="text-sm font-medium">Community Directory</p>
+                    <p className="text-xs text-muted-foreground">Browse &amp; connect with members</p>
                   </div>
-                  <Badge variant="secondary" className="text-xs">+5 this week</Badge>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Card 2: Programs & Resources - Apple Style */}
             <Card className="border border-border/50 shadow-card bg-card hover:shadow-elevated transition-all">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-3">
@@ -441,27 +442,28 @@ export default function HomePage() {
                   <CardTitle className="text-lg font-semibold">Access Programs</CardTitle>
                 </div>
                 <CardDescription className="text-muted-foreground">
-                  Access Impact Hub Nairobi's acceleration programs, workshops, and mentorship sessions distributed through this platform
+                  Acceleration programs, workshops, and mentorship sessions — distributed directly through this platform
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <span className="text-sm font-medium">Upcoming Events</span>
-                    <Badge className="bg-primary text-primary-foreground">12</Badge>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <span className="text-sm font-medium">Active Programs</span>
-                    <Badge className="bg-primary text-primary-foreground">5</Badge>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <Button variant="outline" size="sm" className="w-full mt-2" asChild>
-                    <Link href="/events">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                    <Link href="/events">
+                      View All <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Card 3: Impact Metrics - Apple Style */}
             <Card className="border border-border/50 shadow-card bg-card hover:shadow-elevated transition-all">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-3">
@@ -471,7 +473,7 @@ export default function HomePage() {
                   <CardTitle className="text-lg font-semibold">Track Your Impact</CardTitle>
                 </div>
                 <CardDescription className="text-muted-foreground">
-                  Monitor your progress and engagement with Impact Hub Nairobi's programs and community
+                  Monitor your progress and engagement with programs and the community
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -491,87 +493,80 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Partner Logos Section */}
+      {/* Ecosystem / Partners */}
       <section className="container px-4 py-16 md:py-24 bg-muted/20">
         <div className="text-center space-y-4 mb-12">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Platform Partners</p>
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Our Ecosystem</p>
           <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Powered by <span className="text-primary">Impact Hub Nairobi</span>
+            Part of a <span className="text-primary">Global Network</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            This platform is Impact Hub Nairobi's official distribution channel for programs, resources, and community connections.
+            Connected with Kenya's leading organizations driving social innovation and entrepreneurship.
           </p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 opacity-80 hover:opacity-100 transition-opacity">
-          {/* Partner Logos - each logo is a separate link */}
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
           <Link
             href="https://ikigai.co.ke"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/40 shadow-sm hover:border-primary/60 hover:bg-background/80 transition-colors"
+            className="px-6 py-3 rounded-lg bg-card border border-border/40 hover:border-primary/40 hover:bg-background transition-colors"
           >
-            <Building2 className="h-7 w-7 text-muted-foreground" />
-            <span className="text-sm md:text-base font-semibold text-muted-foreground">Ikigai</span>
+            <span className="text-base font-semibold text-muted-foreground hover:text-foreground">Ikigai</span>
           </Link>
-
           <Link
             href="https://acumen.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/40 shadow-sm hover:border-primary/60 hover:bg-background/80 transition-colors"
+            className="px-6 py-3 rounded-lg bg-card border border-border/40 hover:border-primary/40 hover:bg-background transition-colors"
           >
-            <TrendingUp className="h-7 w-7 text-muted-foreground" />
-            <span className="text-sm md:text-base font-semibold text-muted-foreground">Acumen Fund</span>
+            <span className="text-base font-semibold text-muted-foreground hover:text-foreground">Acumen Fund</span>
           </Link>
-
           <Link
             href="https://impacthub.net"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/40 shadow-sm hover:border-primary/60 hover:bg-background/80 transition-colors"
+            className="px-6 py-3 rounded-lg bg-card border border-border/40 hover:border-primary/40 hover:bg-background transition-colors"
           >
-            <Globe className="h-7 w-7 text-muted-foreground" />
-            <span className="text-sm md:text-base font-semibold text-muted-foreground">Impact Hub Global</span>
+            <span className="text-base font-semibold text-muted-foreground hover:text-foreground">Impact Hub Global</span>
           </Link>
-
           <Link
             href="/partners"
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/80 border border-border/40 shadow-sm hover:border-primary/60 hover:bg-background/80 transition-colors"
+            className="px-6 py-3 rounded-lg bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors"
           >
-            <Award className="h-7 w-7 text-muted-foreground" />
-            <span className="text-sm md:text-base font-semibold text-muted-foreground">View All Partners</span>
+            <span className="text-base font-semibold text-primary">View All Partners →</span>
           </Link>
         </div>
       </section>
 
-      {/* Social Proof - Testimonials */}
+      {/* Testimonials */}
       <section id="testimonials" className="container px-4 py-20 md:py-32">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Loved by{" "}
-            <span className="text-primary">Changemakers</span>
+            Loved by <span className="text-primary">Changemakers</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Join hundreds of social entrepreneurs building sustainable impact
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {testimonials.map((testimonial, index) => (
+          {TESTIMONIALS.map((testimonial, index) => (
             <Card key={index} className="border border-border/50 shadow-card bg-card hover:shadow-elevated transition-all">
               <CardContent className="pt-6">
                 <div className="flex items-center gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-4 w-4 ${
+                        i < testimonial.rating ? "fill-primary text-primary" : "text-muted-foreground/20"
+                      }`}
+                    />
                   ))}
                 </div>
                 <Quote className="h-8 w-8 text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground mb-6 leading-relaxed italic">
-                  "{testimonial.quote}"
-                </p>
+                <p className="text-muted-foreground mb-6 leading-relaxed italic">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-3">
                   <Avatar>
-                    <AvatarImage src={testimonial.avatar} />
-                    <AvatarFallback>{(testimonial.name ?? "").split(" ").filter(Boolean).map((n) => n[0]).join("") || "?"}</AvatarFallback>
+                    <AvatarFallback>{getInitials(testimonial.name)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-semibold text-sm">{testimonial.name}</p>
@@ -589,48 +584,19 @@ export default function HomePage() {
         <div className="container px-4">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Access Impact Hub Nairobi{" "}
-              <span className="text-primary">Resources</span>
+              How It <span className="text-primary">Works</span>
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our platform distributes Impact Hub Nairobi's programs, connections, and opportunities directly to you.
+              From sign-up to impact — four simple steps to get the most from the platform.
             </p>
           </div>
           <div className="relative max-w-6xl mx-auto">
-            {/* Premium Connecting Line (hidden on mobile) */}
             <div className="hidden md:block absolute top-20 left-0 right-0 h-px bg-border/50" />
-            
             <div className="grid md:grid-cols-4 gap-8 relative">
-              {[
-                {
-                  step: "1",
-                  title: "Join the Community",
-                  description: "Create your profile and connect with 500+ social entrepreneurs, startups, and changemakers.",
-                  icon: Users,
-                },
-                {
-                  step: "2",
-                  title: "Book Workspace",
-                  description: "Reserve meeting rooms, collaboration zones, and wellness studios at our Ikigai partnership space.",
-                  icon: Calendar,
-                },
-                {
-                  step: "3",
-                  title: "Access Programs",
-                  description: "Join acceleration programs, access mentorship, and get tools to scale your social impact venture.",
-                  icon: BookOpen,
-                },
-                {
-                  step: "4",
-                  title: "Create Impact",
-                  description: "Connect with partners, investors, and the public sector to build a just and sustainable society.",
-                  icon: TrendingUp,
-                },
-              ].map((item, index) => {
+              {HOW_IT_WORKS.map((item, index) => {
                 const Icon = item.icon
                 return (
                   <div key={index} className="text-center space-y-4 relative group">
-                    {/* Step Number Badge */}
                     <div className="flex items-center justify-center">
                       <div className="relative">
                         <div className="relative bg-muted rounded-full p-4 transition-all border border-border/50 shadow-card">
@@ -641,14 +607,11 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Arrow (hidden on mobile, shown between steps) */}
-                    {index < 3 && (
+                    {index < HOW_IT_WORKS.length - 1 && (
                       <div className="hidden md:block absolute top-10 -right-4 z-10">
                         <ArrowRight className="h-5 w-5 text-muted-foreground/40" />
                       </div>
                     )}
-                    
                     <div className="space-y-2">
                       <h3 className="text-lg font-semibold">{item.title}</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed group-hover:text-foreground/80 transition-colors">
@@ -671,19 +634,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FAQ Section */}
+      {/* FAQ */}
       <section id="faq" className="container px-4 py-20 md:py-32">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-            Frequently Asked{" "}
-            <span className="text-primary">Questions</span>
+            Frequently Asked <span className="text-primary">Questions</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Everything you need to know about Impact Hub Nairobi
           </p>
         </div>
         <div className="max-w-3xl mx-auto space-y-2">
-          {faqs.map((faq, index) => (
+          {FAQS.map((faq, index) => (
             <AccordionItem
               key={index}
               question={faq.question}
@@ -695,50 +657,49 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter Signup Section */}
+      {/* Newsletter */}
       <section className="container px-4 py-16 md:py-24">
         <Card className="border border-border/50 shadow-card bg-card max-w-2xl mx-auto">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl md:text-3xl font-semibold">
-              Get Weekly Impact Insights
-            </CardTitle>
+            <CardTitle className="text-2xl md:text-3xl font-semibold">Stay in the Loop</CardTitle>
             <CardDescription className="text-base">
-              Get updates on Impact Hub Nairobi's events, programs, and success stories distributed through our platform
+              Weekly updates on events, programs, and success stories from the Impact Hub Nairobi community.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="flex flex-col sm:flex-row gap-3" onSubmit={(e) => {
-              e.preventDefault()
-              toast.success("Subscribed!", "You'll receive our weekly impact insights")
-            }}>
+            <form className="flex flex-col sm:flex-row gap-3" onSubmit={handleNewsletterSubmit}>
               <Input
                 type="email"
                 placeholder="Enter your email"
                 className="flex-1"
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
                 required
+                disabled={newsletterLoading}
               />
-              <Button type="submit" className="bg-primary text-primary-foreground  button-press">
-                Subscribe
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <Button
+                type="submit"
+                className="bg-primary text-primary-foreground button-press"
+                disabled={newsletterLoading}
+              >
+                {newsletterLoading ? "Subscribing…" : "Subscribe"}
+                {!newsletterLoading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </form>
-            <p className="text-xs text-muted-foreground text-center mt-3">
-              No spam. Unsubscribe anytime. We respect your privacy.
-            </p>
+            <p className="text-xs text-muted-foreground text-center mt-3">No spam. Unsubscribe anytime.</p>
           </CardContent>
         </Card>
       </section>
 
-      {/* Final CTA - Apple Style */}
+      {/* Final CTA */}
       <section className="py-20 md:py-32 bg-muted/30">
         <div className="container px-4 text-center space-y-8">
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Access Impact Hub Nairobi's{" "}
-            <span className="text-primary">Innovation Ecosystem</span>
+            Your Community Is <span className="text-primary">Waiting</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join our platform to access Impact Hub Nairobi's programs, connect with the community, 
-            and leverage resources distributed through our network.
+            Join Kenya's leading innovation community and start building ventures that create real
+            social and environmental change.
           </p>
           <div className="flex items-center justify-center gap-2 pt-2">
             <Badge variant="outline" className="px-4 py-1.5">
@@ -748,7 +709,7 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
-              <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground  button-press">
+              <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground button-press">
                 Join the Community
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -770,100 +731,65 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2">
               <Award className="h-4 w-4" />
-              <span>Cancel Anytime</span>
+              <span>No Subscription Required</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Enhanced Footer */}
+      {/* Footer */}
       <footer className="border-t border-border/50 bg-muted/30 py-12">
         <div className="container px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
-            {/* Brand */}
             <div className="space-y-4">
               <Logo />
               <p className="text-sm text-muted-foreground">
                 Kenya's leading innovation community for social entrepreneurs and changemakers.
               </p>
               <div className="flex gap-4">
-                <Link href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
+                {/* TODO: Replace # with Impact Hub Nairobi's actual social media profile URLs */}
+                <a href="#" aria-label="Twitter" className="text-muted-foreground hover:text-foreground transition-colors">
                   <Twitter className="h-5 w-5" />
-                </Link>
-                <Link href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
+                </a>
+                <a href="#" aria-label="LinkedIn" className="text-muted-foreground hover:text-foreground transition-colors">
                   <Linkedin className="h-5 w-5" />
-                </Link>
-                <Link href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
+                </a>
+                <a href="#" aria-label="Instagram" className="text-muted-foreground hover:text-foreground transition-colors">
                   <Instagram className="h-5 w-5" />
-                </Link>
+                </a>
               </div>
             </div>
 
-            {/* Quick Links */}
             <div>
               <h3 className="font-semibold mb-4">Quick Links</h3>
               <ul className="space-y-2 text-sm">
-                <li>
-                  <Link href="/community" className="text-muted-foreground ">
-                    Community
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/events" className="text-muted-foreground ">
-                    Events & Programs
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/partners" className="text-muted-foreground ">
-                    Partners & Network
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/projects" className="text-muted-foreground ">
-                    Projects & Initiatives
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/news" className="text-muted-foreground ">
-                    News & Updates
-                  </Link>
-                </li>
+                <li><Link href="/community" className="text-muted-foreground hover:text-foreground transition-colors">Community</Link></li>
+                <li><Link href="/events" className="text-muted-foreground hover:text-foreground transition-colors">Events &amp; Programs</Link></li>
+                <li><Link href="/partners" className="text-muted-foreground hover:text-foreground transition-colors">Partners &amp; Network</Link></li>
+                <li><Link href="/projects" className="text-muted-foreground hover:text-foreground transition-colors">Projects &amp; Initiatives</Link></li>
+                <li><Link href="/news" className="text-muted-foreground hover:text-foreground transition-colors">News &amp; Updates</Link></li>
               </ul>
             </div>
 
-            {/* Resources */}
             <div>
               <h3 className="font-semibold mb-4">Resources</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
+                  <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
                     About Impact Hub
                   </Link>
                 </li>
+                <li><a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQs</a></li>
+                <li><Link href="/resources" className="text-muted-foreground hover:text-foreground transition-colors">Resource Library</Link></li>
                 <li>
-                  <Link href="#faq" className="text-muted-foreground ">
-                    FAQs
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/resources" className="text-muted-foreground ">
-                    Resource Library
-                  </Link>
-                </li>
-                <li>
-                  <Link href="https://nairobi.impacthub.net/contact" target="_blank" rel="noopener noreferrer" className="text-muted-foreground ">
+                  <Link href="https://nairobi.impacthub.net/contact" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
                     Contact Us
                   </Link>
                 </li>
-                <li>
-                  <Link href="/login" className="text-muted-foreground ">
-                    Login
-                  </Link>
-                </li>
+                <li><Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">Login</Link></li>
               </ul>
             </div>
 
-            {/* Contact */}
             <div>
               <h3 className="font-semibold mb-4">Contact</h3>
               <ul className="space-y-3 text-sm text-muted-foreground">
@@ -873,13 +799,13 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <a href="mailto:info@nairobi.impacthub.net" className="">
+                  <a href="mailto:info@nairobi.impacthub.net" className="hover:text-foreground transition-colors">
                     info@nairobi.impacthub.net
                   </a>
                 </li>
                 <li className="flex items-start gap-2">
                   <Globe className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="">
+                  <Link href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
                     nairobi.impacthub.net
                   </Link>
                 </li>
@@ -889,27 +815,19 @@ export default function HomePage() {
 
           <div className="border-t border-border/50 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex flex-col items-center md:items-start">
-                <p>© 2026 Impact Hub Nairobi. All rights reserved.</p>
-                <p className="text-xs mt-1">This platform is powered by and distributed by Impact Hub Nairobi.</p>
-              </div>
+              <p>© 2026 Impact Hub Nairobi. All rights reserved.</p>
               <div className="flex gap-6">
-                <Link href="#" className="">Privacy Policy</Link>
-                <Link href="#" className="">Terms of Service</Link>
+                <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+                <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
               </div>
             </div>
             <div className="text-center mt-4 text-xs text-muted-foreground">
               <p>
                 Part of the global{" "}
-                <Link 
-                  href="https://impacthub.net" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:opacity-80 hover:underline"
-                >
+                <Link href="https://impacthub.net" target="_blank" rel="noopener noreferrer" className="text-primary hover:opacity-80 hover:underline">
                   Impact Hub network
-                </Link>
-                {" "}• 100+ hubs worldwide
+                </Link>{" "}
+                · 100+ hubs worldwide
               </p>
             </div>
           </div>

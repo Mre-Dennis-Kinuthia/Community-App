@@ -23,7 +23,7 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { NotificationCenter } from "@/components/notification-center"
 import { GlobalSearch } from "@/components/global-search"
 import { SidebarProvider, useSidebar } from "@/components/sidebar-context"
-import { cn } from "@/lib/utils"
+import { cn, getInitials } from "@/lib/utils"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
 
@@ -91,21 +91,6 @@ function DashboardLayoutContent({
       toast.error("Logout failed", "There was an error signing you out. Please try again.")
       setIsLoggingOut(false)
     }
-  }
-
-  // Get user initials for avatar fallback
-  const getInitials = (name?: string | null, email?: string | null) => {
-    if (name) {
-      const parts = name.trim().split(" ")
-      if (parts.length >= 2) {
-        return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
-      }
-      return name.substring(0, 2).toUpperCase()
-    }
-    if (email) {
-      return email.substring(0, 2).toUpperCase()
-    }
-    return "U"
   }
 
   const userInitials = getInitials(user?.name, user?.email)
