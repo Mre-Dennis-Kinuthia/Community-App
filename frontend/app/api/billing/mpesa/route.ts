@@ -15,10 +15,19 @@ export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
 }
 
+/** True when Safaricom Daraja credentials are configured for live STK push */
+function isDarajaConfigured(): boolean {
+  return Boolean(
+    process.env.MPESA_CONSUMER_KEY &&
+      process.env.MPESA_CONSUMER_SECRET &&
+      process.env.MPESA_SHORTCODE &&
+      process.env.MPESA_PASSKEY
+  )
+}
+
 /**
  * POST /api/billing/mpesa
- * Initiate M-Pesa STK Push payment. Creates a Payment record (pending).
- * TODO: Integrate Safaricom Daraja API for real STK push and callback.
+ * Launch: records a pending payment; STK push is stubbed until Daraja is wired.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -48,11 +57,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // TODO: Call Safaricom Daraja API STK Push, store transactionId, handle callback
+    const darajaLive = isDarajaConfigured()
 
     return NextResponse.json(
       {
-        message: "M-Pesa payment initiated. Please check your phone to complete the payment.",
+        message: darajaLive
+          ? "M-Pesa payment initiated. Please check your phone to complete the payment."
+          : "Payment recorded as pending. M-Pesa STK push is not live yet — use “Confirm booking (no payment)” on the booking page.",
+        launchMode: darajaLive ? "daraja" : "stub",
         paymentId: payment.id,
         payment: {
           id: payment.id,

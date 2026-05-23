@@ -5,6 +5,9 @@ import { NextResponse } from "next/server"
  * This helps diagnose why Auth.js might be throwing Configuration errors
  */
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
   const authSecret = process.env.AUTH_SECRET
   const databaseUrl = process.env.DATABASE_URL
   

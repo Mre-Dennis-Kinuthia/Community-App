@@ -5,7 +5,15 @@ import { authConfig } from "@/auth.config"
 // Create auth function for middleware (Edge runtime) - no Prisma
 const { auth } = NextAuth(authConfig)
 
-const publicRoutes = ["/", "/login", "/register", "/api", "/setup-check"]
+const publicRoutes = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/api",
+  "/setup-check",
+]
 const protectedRoutes = [
   "/dashboard",
   "/community",
@@ -28,11 +36,16 @@ export default auth((request) => {
   }
 
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
-  const isAuthPage = pathname === "/login" || pathname === "/register"
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password"
   const isLoggedIn = !!request.auth
 
+  // Send authenticated users through onboarding first (page redirects to dashboard when complete)
   if (isAuthPage && isLoggedIn) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+    return NextResponse.redirect(new URL("/onboarding", request.url))
   }
 
   if (isAuthPage) {

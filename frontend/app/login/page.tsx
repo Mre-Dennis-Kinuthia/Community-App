@@ -16,7 +16,7 @@ import { Logo } from "@/components/logo"
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") ?? "/dashboard"
+  const redirect = searchParams.get("redirect") ?? "/onboarding"
   const registeredEmail = searchParams.get("email")
   const isRegistered = searchParams.get("registered") === "true"
   const [email, setEmail] = useState(registeredEmail || "")
@@ -195,7 +195,7 @@ function LoginForm() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link href="#" className="text-sm text-primary hover:underline">
+                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>

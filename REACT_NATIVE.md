@@ -1,13 +1,61 @@
-# React Native Implementation Guide
-## Quick Start & Code Examples
+# React Native Migration
 
-This guide provides practical code examples and setup instructions for implementing the React Native migration strategy.
+**Platform:** Impact Hub Nairobi Community Platform
+**Status:** Planning Phase
 
 ---
 
-## 1. Project Setup
+## Strategy & Architecture
 
-### 1.1 Monorepo Initialization (Turborepo)
+### Current State
+- **Frontend:** Next.js 16 with TypeScript, Tailwind CSS, Radix UI
+- **Backend:** RESTful API with Next.js API routes
+- **Database:** PostgreSQL with Prisma ORM
+- **Authentication:** NextAuth.js with Google OAuth
+- **Key Features:** Community directory, workspace booking, events, news, notifications, profile management
+
+### Target State
+- **Mobile:** React Native app (iOS & Android)
+- **Code Sharing:** Shared business logic, types, and API clients
+- **UI:** Native mobile components with platform-specific optimizations
+- **Authentication:** Mobile-optimized auth flow
+- **Feature Parity:** All core features available on mobile
+
+---
+
+## Monorepo Setup
+
+### Architecture: Monorepo Approach (Recommended)
+
+```
+Community-App/
+├── packages/
+│   ├── shared/              # Shared code
+│   │   ├── types/          # TypeScript types
+│   │   ├── api/            # API client & hooks
+│   │   ├── utils/          # Utility functions
+│   │   └── constants/      # Constants & config
+│   ├── web/                # Next.js web app
+│   │   └── (existing frontend code)
+│   └── mobile/             # React Native app
+│       ├── src/
+│       │   ├── screens/    # Screen components
+│       │   ├── components/ # Mobile-specific components
+│       │   ├── navigation/ # Navigation setup
+│       │   ├── services/   # Mobile services (push, deep links)
+│       │   └── hooks/     # Mobile-specific hooks
+│       └── app.json
+├── backend/                # Existing backend
+└── package.json           # Root workspace config
+```
+
+**Benefits:** Maximum code reuse, shared TypeScript types, single source of truth for API integration, unified dependency management.
+
+**Tools:** Turborepo or Nx for monorepo management; Yarn Workspaces or pnpm workspaces.
+
+**Alternative:** Separate repository — simpler initial setup but less ideal for ongoing maintenance.
+
+### Initialization
 
 ```bash
 # Install Turborepo
@@ -17,16 +65,11 @@ npm install -g turbo
 mkdir Community-App
 cd Community-App
 npm init -y
-
-# Install Turborepo
 npm install --save-dev turbo
-
-# Create packages directory
 mkdir packages
 ```
 
-### 1.2 Root package.json
-
+**Root package.json:**
 ```json
 {
   "name": "community-app-monorepo",
@@ -45,12 +88,10 @@ mkdir packages
 }
 ```
 
-### 1.3 Create Shared Package
-
+**Create shared package:**
 ```bash
 cd packages
-mkdir shared
-cd shared
+mkdir shared && cd shared
 npm init -y
 ```
 
@@ -74,8 +115,7 @@ npm init -y
 }
 ```
 
-### 1.4 Create Mobile Package (Expo)
-
+**Create mobile package (Expo):**
 ```bash
 cd packages
 npx create-expo-app mobile --template blank-typescript
@@ -101,13 +141,101 @@ cd mobile
 
 ---
 
-## 2. Shared Code Structure
+## Technology Stack
 
-### 2.1 Types (packages/shared/src/types/)
+### Core Framework
+- **React Native:** Latest stable (0.74+) with TypeScript
+- **Expo SDK 51+** — recommended for faster development and easier deployment
+- **Expo Router** — file-based routing (mirrors Next.js conventions)
+
+### State Management
+- **TanStack Query (React Query v5)** — server state, caching, synchronization; replaces custom hooks pattern
+- **Zustand** or **Jotai** — client-side state if needed
+
+### Navigation
+- **Expo Router** (if using Expo) — file-based routing with built-in deep linking
+- **React Navigation** (if bare React Native) — industry standard, more control
+
+### UI Components
+- **React Native Paper** or **NativeBase** — pre-built accessible components with theme support
+- **React Native Reusables** — shadcn/ui for React Native; similar API to current Radix UI components
+
+### Styling
+- **NativeWind** — Tailwind CSS for React Native; reuse existing Tailwind classes
+- **StyleSheet API** — native styling fallback
+
+### Authentication
+- **Expo AuthSession** for OAuth flows
+- **SecureStore** for token storage
+- Adapt existing NextAuth flow using same backend endpoints
+
+### Additional Libraries
+- **React Hook Form** + **Zod** — already used in web app
+- **date-fns** — already used in web app
+- **React Native Reanimated** — animations
+- **React Native Gesture Handler** — advanced gestures
+- **Axios** or **Fetch API** — HTTP client
+
+### Component Mapping
+
+| Web Component | Mobile Component |
+|--------------|------------------|
+| Page layout | Screen component |
+| Card | Card (React Native Paper) |
+| Button | Button (native) |
+| Input | TextInput |
+| Select | Picker/Select |
+| Dialog | Modal |
+| Toast | react-native-toast-message |
+| Table | FlatList/ScrollView |
+| Calendar | Calendar picker library |
+
+---
+
+## Feature Migration Plan
+
+### Phase 1: Foundation (Weeks 1–3)
+- Project setup (monorepo), shared code extraction, API client setup
+- Authentication flow, navigation structure, basic UI component library, theme/styling system
+- **Deliverables:** Working app with login/register, basic navigation, API integration
+
+### Phase 2: Core Features (Weeks 4–8)
+- Login/Register screens, profile view/edit, session management, Google OAuth
+- Dashboard screen with stats, upcoming bookings widget, quick actions
+- Community directory: member list, search/filters, member profile view, connection requests
+- **Deliverables:** Complete auth flow, functional dashboard, community directory
+
+### Phase 3: Booking & Events (Weeks 9–12)
+- Workspace selection, availability calendar, booking form, booking confirmation, history
+- Events list, event details, event registration, event filters
+- **Deliverables:** Full booking flow, event management
+
+### Phase 4: Content & Engagement (Weeks 13–16)
+- News feed, article view, comments system, categories and tags
+- Push notifications setup, notification center, real-time updates, notification preferences
+- **Deliverables:** News system, push notifications
+
+### Phase 5: Enhanced Features (Weeks 17–20)
+- Resources section, partners directory, projects showcase
+- Billing/payments (if needed), offline support, deep linking
+
+### Phase 6: Polish & Optimization (Weeks 21–24)
+- Performance optimization, animations/transitions, error handling
+- Loading states, accessibility improvements
+- Testing (unit, integration, E2E), app store preparation
+
+**Total estimated timeline: ~24 weeks (6 months)**
+
+**Team requirements:** 1–2 React Native developers, 1 UI/UX designer (part-time), 1 backend developer (support, part-time), 1 QA engineer (part-time)
+
+---
+
+## Implementation Guide
+
+### Shared Code Structure
 
 **packages/shared/src/types/community.ts:**
 ```typescript
-// Copy existing types from frontend/types/community.ts
 export interface CommunityMember {
   id: string
   name: string
@@ -135,8 +263,6 @@ export interface CommunityMembersResponse {
 }
 ```
 
-### 2.2 API Client (packages/shared/src/api/)
-
 **packages/shared/src/api/client.ts:**
 ```typescript
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 
@@ -149,14 +275,11 @@ interface RequestOptions extends RequestInit {
 
 class ApiClient {
   private async getAuthToken(): Promise<string | null> {
-    // Implementation depends on platform
-    // For mobile: SecureStore
-    // For web: localStorage or cookies
     if (typeof window !== 'undefined') {
       // Web
       return localStorage.getItem('auth_token')
     } else {
-      // Mobile - will be implemented in mobile package
+      // Mobile — implemented in mobile package via SecureStore
       return null
     }
   }
@@ -171,10 +294,7 @@ class ApiClient {
     return url.toString()
   }
 
-  async request<T>(
-    endpoint: string,
-    options: RequestOptions = {}
-  ): Promise<T> {
+  async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const token = await this.getAuthToken()
     const url = this.buildUrl(endpoint, options.params)
     
@@ -200,17 +320,11 @@ class ApiClient {
   }
 
   post<T>(endpoint: string, data?: unknown): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
+    return this.request<T>(endpoint, { method: 'POST', body: JSON.stringify(data) })
   }
 
   put<T>(endpoint: string, data?: unknown): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    })
+    return this.request<T>(endpoint, { method: 'PUT', body: JSON.stringify(data) })
   }
 
   delete<T>(endpoint: string): Promise<T> {
@@ -264,8 +378,6 @@ export const communityApi = {
 }
 ```
 
-### 2.3 React Query Hooks (packages/shared/src/hooks/)
-
 **packages/shared/src/hooks/use-community.ts:**
 ```typescript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -294,7 +406,6 @@ export function useSendConnectionRequest() {
     mutationFn: (userId: string) => 
       apiClient.post('/api/connections', { userId }),
     onSuccess: () => {
-      // Invalidate community queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['community'] })
     },
   })
@@ -303,19 +414,24 @@ export function useSendConnectionRequest() {
 
 **packages/shared/src/index.ts:**
 ```typescript
-// Export all shared code
 export * from './types'
 export * from './api'
 export * from './hooks'
 export * from './utils'
 ```
 
----
+### Code Sharing Migration Path
 
-## 3. Mobile App Structure
+1. Extract shared code from `frontend/lib/` to `packages/shared/`
+2. Refactor hooks to use React Query
+3. Create mobile-specific implementations in `packages/mobile/src/`
+4. Update web app to import from shared packages
 
-### 3.1 App Entry Point (packages/mobile/App.tsx)
+All existing API endpoints are mobile-ready: RESTful design, JSON responses, authentication via headers, error handling.
 
+### Mobile App Entry Point
+
+**packages/mobile/App.tsx:**
 ```typescript
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PaperProvider } from 'react-native-paper'
@@ -348,7 +464,7 @@ export default function App() {
 }
 ```
 
-### 3.2 Navigation Setup
+### Navigation Setup
 
 **packages/mobile/src/navigation/AppNavigator.tsx:**
 ```typescript
@@ -360,7 +476,6 @@ import { CommunityMemberScreen } from '../screens/CommunityMemberScreen'
 import { EventsScreen } from '../screens/EventsScreen'
 import { NewsScreen } from '../screens/NewsScreen'
 import { ProfileScreen } from '../screens/ProfileScreen'
-import { BookingScreen } from '../screens/BookingScreen'
 import { Icon } from '../components/Icon'
 
 const Tab = createBottomTabNavigator()
@@ -394,61 +509,48 @@ export function AppNavigator() {
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Icon name="home" color={color} />,
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="home" color={color} /> }}
       />
       <Tab.Screen
         name="Community"
         component={CommunityStack}
-        options={{
-          tabBarIcon: ({ color }) => <Icon name="users" color={color} />,
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="users" color={color} /> }}
       />
       <Tab.Screen
         name="Events"
         component={EventsScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Icon name="calendar" color={color} />,
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="calendar" color={color} /> }}
       />
       <Tab.Screen
         name="News"
         component={NewsScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Icon name="newspaper" color={color} />,
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="newspaper" color={color} /> }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Icon name="user" color={color} />,
-        }}
+        options={{ tabBarIcon: ({ color }) => <Icon name="user" color={color} /> }}
       />
     </Tab.Navigator>
   )
 }
 ```
 
-### 3.3 Screen Example: Community List
+### Screen Example: Community List
 
 **packages/mobile/src/screens/CommunityScreen.tsx:**
 ```typescript
 import React, { useState } from 'react'
-import { View, StyleSheet, FlatList, TextInput } from 'react-native'
+import { View, StyleSheet, FlatList } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { useCommunityMembers } from '@community-app/shared'
-import { Card, ActivityIndicator, Text, Searchbar } from 'react-native-paper'
+import { ActivityIndicator, Text, Searchbar } from 'react-native-paper'
 import { CommunityMemberCard } from '../components/CommunityMemberCard'
 
 export function CommunityScreen() {
   const navigation = useNavigation()
   const [search, setSearch] = useState('')
-  const [filters, setFilters] = useState({
-    page: 1,
-    limit: 20,
-  })
+  const [filters, setFilters] = useState({ page: 1, limit: 20 })
 
   const { data, isLoading, error, refetch } = useCommunityMembers({
     ...filters,
@@ -483,7 +585,6 @@ export function CommunityScreen() {
         value={search}
         style={styles.searchbar}
       />
-      
       <FlatList
         data={data?.members || []}
         keyExtractor={(item) => item.id}
@@ -502,25 +603,14 @@ export function CommunityScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchbar: {
-    margin: 16,
-  },
-  list: {
-    padding: 16,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  searchbar: { margin: 16 },
+  list: { padding: 16 },
 })
 ```
 
-### 3.4 Component Example: Member Card
+### Component Example: Member Card
 
 **packages/mobile/src/components/CommunityMemberCard.tsx:**
 ```typescript
@@ -547,14 +637,10 @@ export function CommunityMemberCard({ member, onPress }: Props) {
           <View style={styles.info}>
             <Text variant="titleMedium">{member.name}</Text>
             {member.role && (
-              <Text variant="bodyMedium" style={styles.role}>
-                {member.role}
-              </Text>
+              <Text variant="bodyMedium" style={styles.role}>{member.role}</Text>
             )}
             {member.industry && (
-              <Text variant="bodySmall" style={styles.industry}>
-                {member.industry}
-              </Text>
+              <Text variant="bodySmall" style={styles.industry}>{member.industry}</Text>
             )}
           </View>
         </Card.Content>
@@ -564,31 +650,16 @@ export function CommunityMemberCard({ member, onPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    marginBottom: 12,
-  },
-  content: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    marginRight: 16,
-  },
-  info: {
-    flex: 1,
-  },
-  role: {
-    marginTop: 4,
-    color: '#666',
-  },
-  industry: {
-    marginTop: 2,
-    color: '#999',
-  },
+  card: { marginBottom: 12 },
+  content: { flexDirection: 'row', alignItems: 'center' },
+  avatar: { marginRight: 16 },
+  info: { flex: 1 },
+  role: { marginTop: 4, color: '#666' },
+  industry: { marginTop: 2, color: '#999' },
 })
 ```
 
-### 3.5 Authentication Service
+### Authentication Service
 
 **packages/mobile/src/services/auth.ts:**
 ```typescript
@@ -622,13 +693,11 @@ export async function signInWithGoogle() {
   const result = await request.promptAsync(discovery)
 
   if (result.type === 'success') {
-    // Exchange code for token via your backend
     const response = await fetch(`${apiClient.baseUrl}/api/auth/google/callback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: result.params.code }),
     })
-
     const tokens: AuthTokens = await response.json()
     await storeTokens(tokens)
     return tokens
@@ -644,9 +713,7 @@ export async function signInWithEmail(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   })
 
-  if (!response.ok) {
-    throw new Error('Invalid credentials')
-  }
+  if (!response.ok) throw new Error('Invalid credentials')
 
   const tokens: AuthTokens = await response.json()
   await storeTokens(tokens)
@@ -670,13 +737,9 @@ export async function clearTokens() {
 export async function isAuthenticated(): Promise<boolean> {
   const tokens = await getStoredTokens()
   if (!tokens) return false
-  
-  // Check if token is expired
   if (tokens.expiresAt && tokens.expiresAt < Date.now()) {
-    // Try to refresh token
     return await refreshToken()
   }
-  
   return true
 }
 
@@ -686,13 +749,12 @@ async function refreshToken(): Promise<boolean> {
 }
 ```
 
-### 3.6 Theme Configuration
+### Theme Configuration
 
 **packages/mobile/src/theme.ts:**
 ```typescript
 import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper'
 
-// Impact Hub Nairobi brand colors
 const brandColors = {
   primary: '#C41E3A', // Deep red
   secondary: '#2C3E50', // Dark gray
@@ -730,11 +792,7 @@ export const darkTheme = {
 export const theme = lightTheme
 ```
 
----
-
-## 4. Environment Configuration
-
-### 4.1 Environment Variables
+### Environment Configuration
 
 **packages/mobile/.env:**
 ```env
@@ -776,11 +834,7 @@ EXPO_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id
 }
 ```
 
----
-
-## 5. Testing Setup
-
-### 5.1 Jest Configuration
+### Testing Setup
 
 **packages/mobile/jest.config.js:**
 ```javascript
@@ -797,9 +851,9 @@ module.exports = {
 }
 ```
 
-### 5.2 Example Test
+**Test coverage goals:** Critical paths 90%+, components 80%+, utilities 90%+, overall 75%+
 
-**packages/mobile/src/screens/__tests__/CommunityScreen.test.tsx:**
+**Example test — packages/mobile/src/screens/__tests__/CommunityScreen.test.tsx:**
 ```typescript
 import React from 'react'
 import { render, screen } from '@testing-library/react-native'
@@ -818,16 +872,11 @@ const wrapper = ({ children }) => (
 
 test('renders community members', async () => {
   render(<CommunityScreen />, { wrapper })
-  
   // Add your test assertions
 })
 ```
 
----
-
-## 6. Build & Deployment
-
-### 6.1 EAS Build Configuration
+### Build & Deployment
 
 **eas.json:**
 ```json
@@ -842,9 +891,7 @@ test('renders community members', async () => {
     },
     "preview": {
       "distribution": "internal",
-      "ios": {
-        "simulator": true
-      }
+      "ios": { "simulator": true }
     },
     "production": {
       "autoIncrement": true
@@ -866,8 +913,7 @@ test('renders community members', async () => {
 }
 ```
 
-### 6.2 Build Commands
-
+**Build commands:**
 ```bash
 # Development build
 eas build --profile development --platform ios
@@ -880,28 +926,68 @@ eas submit --platform ios
 eas submit --platform android
 ```
 
+**Deployment pipeline:**
+- Development: Expo Go for rapid iteration; development builds for native features
+- Staging: EAS Build → TestFlight (iOS) / Google Play Internal Testing (Android)
+- Production: App Store + Google Play; Expo Updates for OTA JS changes
+- CI/CD: Automated builds and tests on git push; automated deployment to TestFlight/Play Console
+
 ---
 
-## 7. Next Steps
+## Platform-Specific Features
 
-1. **Set up monorepo structure**
-2. **Extract shared code** from web app
-3. **Create mobile app structure**
-4. **Implement authentication**
-5. **Build first screen** (Dashboard or Community)
-6. **Set up CI/CD pipeline**
-7. **Begin feature migration** following the strategy document
+### iOS
+- Face ID / Touch ID authentication
+- Apple Sign In
+- Haptic feedback, iOS-style navigation
+- Share sheet integration
+
+### Android
+- Fingerprint authentication
+- Google Sign In
+- Material Design components, Android-style navigation
+- Share intent
+
+### Cross-Platform
+- Push notifications (Expo Notifications)
+- Deep linking (Expo Linking)
+- Camera access (profile photos)
+- File picker (document uploads)
+- Biometric authentication
+
+---
+
+## Performance Targets
+
+| Metric | Target |
+|--------|--------|
+| App load time | < 3 seconds |
+| API response time | < 500ms |
+| Crash rate | < 0.1% |
+| App size | < 50MB |
+
+**Optimization strategies:** Lazy-load screens, React.memo for expensive components, FlatList with `getItemLayout`/`keyExtractor`, React Query caching and deduplication, image caching, optimistic updates.
+
+---
+
+## Risk Mitigation
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| API incompatibility | High | Test all endpoints early in Phase 1 |
+| Performance issues | Medium | Performance testing throughout development |
+| Native module issues | Medium | Use Expo managed workflow where possible |
+| Platform-specific bugs | Medium | Regular testing on both iOS and Android |
+| Timeline delays | High | Phased approach, deliver MVP first |
+| Learning curve | Medium | Training, documentation |
 
 ---
 
 ## Resources
 
+- [React Native Documentation](https://reactnative.dev/)
 - [Expo Documentation](https://docs.expo.dev/)
-- [React Navigation](https://reactnavigation.org/)
+- [React Query Documentation](https://tanstack.com/query/latest)
 - [React Native Paper](https://callstack.github.io/react-native-paper/)
-- [TanStack Query](https://tanstack.com/query/latest)
-- [NativeWind](https://www.nativewind.dev/)
-
----
-
-**Note:** This is a starting guide. Adapt code examples to your specific needs and architecture decisions.
+- [NativeWind Documentation](https://www.nativewind.dev/)
+- [React Navigation](https://reactnavigation.org/)

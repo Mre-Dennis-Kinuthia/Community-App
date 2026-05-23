@@ -6,6 +6,9 @@ import { auth } from "@/auth"
  * This will attempt to call auth() and see if it throws a Configuration error
  */
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
   try {
     // Try to call auth() - this will throw if there's a Configuration error
     const session = await auth()

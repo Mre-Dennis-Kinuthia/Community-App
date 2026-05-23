@@ -169,7 +169,11 @@ export default function BookingPaymentPage() {
 
       sessionStorage.removeItem(PENDING_BOOKING_KEY)
       setIsRedirecting(true)
-      toast.success("Booking confirmed", "Check your phone to complete M-Pesa payment.")
+      const stubNote =
+        mpesaData.launchMode === "stub"
+          ? "Payment is pending — M-Pesa STK is not live yet."
+          : "Check your phone to complete M-Pesa payment."
+      toast.success("Booking confirmed", stubNote)
       router.replace(`/booking/success?id=${booking.id}`)
     } catch (err) {
       console.error("[BOOKING PAYMENT]", err)
@@ -202,7 +206,7 @@ export default function BookingPaymentPage() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Confirm your booking</h1>
             <p className="text-muted-foreground mt-1">
-              Confirm now without payment, or pay with M-Pesa (optional).
+              Confirm now without payment (recommended at launch). M-Pesa STK push is coming soon — optional fields below record intent only.
             </p>
           </div>
 
@@ -272,7 +276,7 @@ export default function BookingPaymentPage() {
                         <h3 className="text-sm font-medium">Optional: Pay with M-Pesa</h3>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Enter your number to receive an STK push to complete payment.
+                        At launch, this does not send a live STK push. Your booking is still created; payment stays pending until Daraja is enabled.
                       </p>
                     </div>
 

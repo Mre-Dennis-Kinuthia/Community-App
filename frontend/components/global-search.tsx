@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { startNavigation } from "@/lib/navigation"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -85,24 +86,38 @@ export function GlobalSearch() {
     }
   }, [open])
 
-  // TODO: Implement API search when endpoint is available
-  // useEffect(() => {
-  //   if (query.length > 0) {
-  //     setIsSearching(true)
-  //     fetch(`/api/search?q=${encodeURIComponent(query)}`)
-  //       .then(res => res.json())
-  //       .then(data => {
-  //         setSearchResults(data.results || [])
-  //       })
-  //       .catch(err => {
-  //         console.error("Search error:", err)
-  //         setSearchResults([])
-  //       })
-  //       .finally(() => setIsSearching(false))
-  //   } else {
-  //     setSearchResults([])
-  //   }
-  // }, [query])
+  useEffect(() => {
+    if (query.trim().length < 2) {
+      setSearchResults([])
+      setIsSearching(false)
+      return
+    }
+
+    const controller = new AbortController()
+    setIsSearching(true)
+    const timer = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(query.trim())}`, {
+        credentials: "include",
+        signal: controller.signal,
+      })
+        .then((res) => (res.ok ? res.json() : { results: [] }))
+        .then((data) => {
+          setSearchResults(data.results || [])
+        })
+        .catch((err) => {
+          if (err?.name !== "AbortError") {
+            console.error("Search error:", err)
+          }
+          setSearchResults([])
+        })
+        .finally(() => setIsSearching(false))
+    }, 300)
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [query])
 
   const filteredResults = searchResults
 

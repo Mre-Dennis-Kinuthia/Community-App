@@ -5,6 +5,9 @@ import { NextResponse } from "next/server"
  * This helps diagnose if the secret is available when NextAuth actually needs it
  */
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
   const authSecret = process.env.AUTH_SECRET
   
   // Try to import auth to see if it throws

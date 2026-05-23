@@ -70,15 +70,16 @@ if (!authSecret || typeof authSecret !== "string" || authSecret.length < 32) {
     ? "AUTH_SECRET is not a string"
     : `AUTH_SECRET is too short (${authSecret.length} chars, need 32+)`
 
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      `[AUTH] ${errorMsg}. Set AUTH_SECRET in Vercel (openssl rand -base64 32).`
+    )
+  }
+
   console.error("[AUTH] WARNING:", errorMsg)
-
-  // Fallback: generate a runtime secret so NextAuth can still initialize.
-  // Note: if AUTH_SECRET is misconfigured in production, sessions may not be stable across instances.
   resolvedSecret = randomBytes(32).toString("hex")
-
   console.error(
-    "[AUTH] Using a generated fallback secret. " +
-      "Please set a strong AUTH_SECRET in your environment configuration."
+    "[AUTH] Using a generated fallback secret for local development only."
   )
 }
 

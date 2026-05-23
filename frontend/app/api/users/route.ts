@@ -47,7 +47,6 @@ export async function GET(request: NextRequest) {
         take: limit,
         select: {
           id: true,
-          email: true,
           name: true,
           image: true,
           createdAt: true,

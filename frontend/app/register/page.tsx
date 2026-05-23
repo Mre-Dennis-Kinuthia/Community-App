@@ -15,7 +15,7 @@ import { Logo } from "@/components/logo"
 function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") || "/dashboard"
+  const redirect = searchParams.get("redirect") || "/onboarding"
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
