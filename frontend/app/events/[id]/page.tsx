@@ -91,8 +91,10 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
 
     if (!user?.email) {
       toast.info("Please log in or create an account to register for this event.")
-      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search)
-      router.push(`/login?callbackUrl=${callbackUrl}`)
+      const returnTo = encodeURIComponent(
+        window.location.pathname + window.location.search
+      )
+      router.push(`/login?redirect=${returnTo}`)
       return
     }
 

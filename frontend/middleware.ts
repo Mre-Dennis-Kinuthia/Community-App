@@ -11,6 +11,8 @@ const publicRoutes = [
   "/register",
   "/forgot-password",
   "/reset-password",
+  "/privacy",
+  "/terms",
   "/api",
   "/setup-check",
 ]
@@ -25,6 +27,7 @@ const protectedRoutes = [
   "/partners",
   "/projects",
   "/news",
+  "/investments",
   "/onboarding",
 ]
 

@@ -87,7 +87,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (status === "loading") return
     if (status === "unauthenticated") {
-      router.replace("/login?callbackUrl=/onboarding")
+      router.replace("/login?redirect=/onboarding")
       return
     }
     if (session?.user?.id) {

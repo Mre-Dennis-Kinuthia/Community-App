@@ -131,7 +131,7 @@ export const NotificationTemplates = {
     message: `Payment of KES ${amount.toFixed(2)} is required for your booking.`,
     type: "warning" as const,
     category: "payment",
-    actionUrl: `/dashboard/bookings/${bookingId}/payment`,
+    actionUrl: `/dashboard/bookings/${bookingId}`,
     relatedId: bookingId,
     relatedType: "booking",
   }),

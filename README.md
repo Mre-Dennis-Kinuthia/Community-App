@@ -55,6 +55,13 @@ bun run build
 - `frontend/`: Frontend (Next.js app)
 - `backend/`: Standalone backend service (placeholder)
 
+## Documentation
+- [SETUP.md](./SETUP.md) — local dev, Vercel, env vars, staging
+- [BACKEND.md](./BACKEND.md) — API routes and backend architecture
+- [BACKEND_TODO.md](./BACKEND_TODO.md) — remaining API work
+- [UX.md](./UX.md) — UX notes and improvements
+- [REACT_NATIVE.md](./REACT_NATIVE.md) — mobile app plan
+
 ## Tech Stack
 
 - **Framework:** Next.js 16

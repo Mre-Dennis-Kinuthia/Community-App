@@ -23,9 +23,6 @@ interface SearchResult {
   description?: string
 }
 
-// Search results will be fetched from API
-// TODO: Implement API endpoint for search functionality
-
 const typeLabels: Record<string, string> = {
   event: "Event",
   member: "Member",

@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
         id: r.id,
         title: r.title,
         type: "resource" as const,
-        href: `/resources/${r.id}`,
+        href: `/resources?tab=resources&search=${encodeURIComponent(r.title)}`,
         description: r.description?.slice(0, 120) || undefined,
       })),
       ...members

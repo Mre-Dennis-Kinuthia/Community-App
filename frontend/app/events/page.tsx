@@ -181,8 +181,10 @@ export default function EventsPage() {
     // If user is not logged in, redirect to login instead of using browser prompts
     if (!user?.email) {
       toast.info("Please log in to register for events.")
-      const callbackUrl = encodeURIComponent(window.location.pathname + window.location.search)
-      router.push(`/login?callbackUrl=${callbackUrl}`)
+      const returnTo = encodeURIComponent(
+        window.location.pathname + window.location.search
+      )
+      router.push(`/login?redirect=${returnTo}`)
       return
     }
 

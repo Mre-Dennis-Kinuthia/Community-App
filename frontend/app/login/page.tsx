@@ -16,7 +16,10 @@ import { Logo } from "@/components/logo"
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") ?? "/onboarding"
+  const redirect =
+    searchParams.get("redirect") ??
+    searchParams.get("callbackUrl") ??
+    "/onboarding"
   const registeredEmail = searchParams.get("email")
   const isRegistered = searchParams.get("registered") === "true"
   const [email, setEmail] = useState(registeredEmail || "")

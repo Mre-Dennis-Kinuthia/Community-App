@@ -166,8 +166,8 @@ model Notification {
 
 ### Global Search
 
-- `components/global-search.tsx` has a TODO; no `/api/search` endpoint.
-- Options: new route querying events, members, projects, partners, resources, news — or aggregate existing list APIs.
+- `components/global-search.tsx` is wired to `GET /api/search` (implemented in `frontend/app/api/search/route.ts`).
+- If you expand search later, keep results privacy-safe (no member emails) and consider caching/popularity.
 
 ### Data Still Static / Placeholder
 
@@ -181,7 +181,8 @@ model Notification {
 ### Auth Gaps
 
 - `POST /api/auth/logout` — not implemented
-- `POST /api/auth/forgot-password` / `reset-password` / `verify-email` — not implemented
+- `POST /api/auth/forgot-password` and `POST /api/auth/reset-password` are implemented.
+- `POST /api/auth/verify-email` — not implemented (if required, add the route + email flow)
 - **LinkedIn OAuth** — UI shows "coming soon"; provider not added to NextAuth
 - **Google OAuth** — code exists; confirm env vars set in production
 
@@ -200,7 +201,7 @@ model Notification {
 
 ### Programs & Applications (not started)
 
-All of Phase 5 from BACKEND_TODO is unimplemented:
+All of Phase 5 from `BACKEND_TODO.md` is unimplemented:
 - `GET/POST /api/programs`, `/api/programs/[id]`, `/api/programs/[id]/cohorts`, `/api/programs/[id]/apply`
 - Full cohort and application CRUD (admin)
 - Application status workflow: draft → submitted → under-review → approved / rejected / waitlisted
@@ -217,7 +218,7 @@ All of Phase 5 from BACKEND_TODO is unimplemented:
 - **Rate limiting:** Not implemented on auth or public endpoints.
 - **RBAC middleware:** Admin role checking is not fully enforced in route handlers.
 - **Audit logging:** `AuditLog` model not in schema; no admin mutation logging.
-- **Health check endpoints:** `GET /api/health` not implemented.
+- **Health check endpoints:** `GET /api/health` is implemented (see `frontend/app/api/health/route.ts`).
 - **Seed script:** No dev seed data for test users, events, etc.
 
 ### Suggested Order
