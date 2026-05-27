@@ -496,11 +496,8 @@ export default function BookingPage() {
                       )}
                       {isValidBooking && (
                         <div className="pt-2 lg:hidden">
-                          <Button size="lg" className="w-full" onClick={handleConfirmBooking}>
-                            Review & confirm
-                          </Button>
-                          <p className="text-xs text-center text-muted-foreground mt-2">
-                            Or use the bar at the bottom of the screen.
+                          <p className="text-xs text-center text-muted-foreground">
+                            Review & confirm is available in the bar at the bottom of the screen.
                           </p>
                         </div>
                       )}
@@ -528,13 +525,11 @@ export default function BookingPage() {
                     />
 
                     {isValidBooking && (
-                      <Button
-                        size="lg"
-                        className="w-full"
-                        onClick={handleConfirmBooking}
-                      >
-                        Review & confirm
-                      </Button>
+                      <div className="hidden lg:block">
+                        <Button size="lg" className="w-full" onClick={handleConfirmBooking}>
+                          Review & confirm
+                        </Button>
+                      </div>
                     )}
                   </div>
                 )}
