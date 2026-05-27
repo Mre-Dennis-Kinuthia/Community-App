@@ -29,6 +29,7 @@ import {
   AlertCircle
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import {
   Select,
   SelectContent,
@@ -525,7 +526,9 @@ function CommunityPageContent() {
                                 <Heart className="h-3 w-3" />
                                 <span>{member.followers || 0}</span>
                               </div>
-                              {member.projectsInvolved && member.projectsInvolved.length > 0 && (
+                              {FEATURE_FLAGS.projectsAndInitiatives &&
+                                member.projectsInvolved &&
+                                member.projectsInvolved.length > 0 && (
                                 <div className="flex items-center gap-1">
                                   <Briefcase className="h-3 w-3" />
                                   <span>{member.projectsInvolved.length}</span>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import NextAuth from "next-auth"
 import { authConfig } from "@/auth.config"
+import { isDeactivatedRoute } from "@/lib/feature-flags"
 
 // Create auth function for middleware (Edge runtime) - no Prisma
 const { auth } = NextAuth(authConfig)
@@ -64,6 +65,10 @@ export default auth((request) => {
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("redirect", pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  if (isDeactivatedRoute(pathname)) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
   return NextResponse.next()

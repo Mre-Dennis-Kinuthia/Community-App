@@ -44,6 +44,7 @@ import {
 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { LandingPartnerLogo, type LandingPartner } from "@/components/landing-partner-logo"
+import { FEATURE_FLAGS } from "@/lib/feature-flags"
 
 const NAV_LINKS = [
   { href: "#services", label: "What We Do" },
@@ -971,7 +972,9 @@ export default function HomePage() {
                 <li><Link href="/community" className="text-muted-foreground hover:text-foreground transition-colors">Community</Link></li>
                 <li><Link href="/events" className="text-muted-foreground hover:text-foreground transition-colors">Events &amp; Programs</Link></li>
                 <li><Link href="/booking" className="text-muted-foreground hover:text-foreground transition-colors">Book Workspace</Link></li>
-                <li><Link href="/resources" className="text-muted-foreground hover:text-foreground transition-colors">Resources</Link></li>
+                {FEATURE_FLAGS.programsAndResources && (
+                  <li><Link href="/resources" className="text-muted-foreground hover:text-foreground transition-colors">Resources</Link></li>
+                )}
                 <li><Link href="/partners" className="text-muted-foreground hover:text-foreground transition-colors">Partners</Link></li>
               </ul>
             </div>

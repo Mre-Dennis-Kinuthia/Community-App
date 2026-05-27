@@ -14,6 +14,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  FEATURE_FLAGS,
+  isSearchHrefEnabled,
+  isSearchTypeEnabled,
+} from "@/lib/feature-flags"
 
 interface SearchResult {
   id: string
@@ -116,7 +121,9 @@ export function GlobalSearch() {
     }
   }, [query])
 
-  const filteredResults = searchResults
+  const filteredResults = searchResults.filter(
+    (r) => isSearchTypeEnabled(r.type) && isSearchHrefEnabled(r.href)
+  )
 
   const handleSelect = (href: string, searchTerm?: string) => {
     if (searchTerm) {
@@ -153,7 +160,7 @@ export function GlobalSearch() {
           <DialogHeader>
             <DialogTitle>Search</DialogTitle>
             <DialogDescription>
-              Search for events, members, projects, and more
+              Search for events, members, partners, and more
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -161,7 +168,7 @@ export function GlobalSearch() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 data-search-input
-                placeholder="Search events, members, projects..."
+                placeholder="Search events, members, news..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-9"
@@ -250,15 +257,17 @@ export function GlobalSearch() {
                         <span>Explore Community</span>
                       </div>
                     </button>
-                    <button
-                      onClick={() => handleSelect("/projects")}
-                      className="w-full text-left rounded-lg border p-3 hover:bg-accent/50 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Search className="h-4 w-4" />
-                        <span>View Projects</span>
-                      </div>
-                    </button>
+                    {FEATURE_FLAGS.projectsAndInitiatives && (
+                      <button
+                        onClick={() => handleSelect("/projects")}
+                        className="w-full text-left rounded-lg border p-3 hover:bg-accent/50 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Search className="h-4 w-4" />
+                          <span>View Projects</span>
+                        </div>
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

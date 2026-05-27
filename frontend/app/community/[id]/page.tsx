@@ -31,6 +31,7 @@ import {
   ExternalLink
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import { format } from "date-fns"
 import { useCommunityMember } from "@/lib/hooks/use-community"
 import { Loader2, AlertCircle } from "lucide-react"
@@ -296,7 +297,9 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                   </>
                 )}
 
-                {member.projectsInvolved && member.projectsInvolved.length > 0 && (
+                {FEATURE_FLAGS.projectsAndInitiatives &&
+                  member.projectsInvolved &&
+                  member.projectsInvolved.length > 0 && (
                   <>
                     <div>
                       <h3 className="font-semibold mb-3 flex items-center gap-2">

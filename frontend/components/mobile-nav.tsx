@@ -14,6 +14,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { isNavHrefEnabled } from "@/lib/feature-flags"
 
 const items = [
   {
@@ -61,7 +62,7 @@ const items = [
     href: "/news",
     icon: Newspaper,
   },
-]
+].filter((item) => isNavHrefEnabled(item.href))
 
 export function MobileNav() {
   const pathname = usePathname()

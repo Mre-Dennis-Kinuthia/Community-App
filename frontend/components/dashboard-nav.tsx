@@ -13,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { isNavHrefEnabled } from "@/lib/feature-flags"
 
 interface NavItem {
   title: string
@@ -115,6 +116,13 @@ const navGroups: NavGroup[] = [
   },
 ]
 
+const visibleNavGroups = navGroups
+  .map((group) => ({
+    ...group,
+    items: group.items.filter((item) => isNavHrefEnabled(item.href)),
+  }))
+  .filter((group) => group.items.length > 0)
+
 export function DashboardNav() {
   const pathname = usePathname()
   const { isCollapsed } = useSidebar()
@@ -142,13 +150,13 @@ export function DashboardNav() {
     return (
       <TooltipProvider>
         <nav className="grid items-start gap-2 py-5 px-2">
-          {navGroups.map((group, groupIndex) => {
+          {visibleNavGroups.map((group, groupIndex) => {
             return (
               <div
                 key={group.title}
                 className={cn(
                   "space-y-0.5",
-                  groupIndex === navGroups.length - 1 ? "pb-0" : "pb-4 mb-1 border-b border-border/40"
+                  groupIndex === visibleNavGroups.length - 1 ? "pb-0" : "pb-4 mb-1 border-b border-border/40"
                 )}
               >
                 {group.items.map((item) => {
@@ -199,7 +207,7 @@ export function DashboardNav() {
   // Expanded view - show full navigation
   return (
     <nav className="grid items-start gap-1 py-5 px-3">
-      {navGroups.map((group, groupIndex) => {
+      {visibleNavGroups.map((group, groupIndex) => {
         const isOpen = openGroups[group.title]
         const hasActiveItem = group.items.some((item) => isItemActive(item.href))
 
@@ -208,7 +216,7 @@ export function DashboardNav() {
             key={group.title}
             className={cn(
               "space-y-0.5",
-              groupIndex === navGroups.length - 1 ? "pb-0" : "pb-4 mb-2 border-b border-border/40"
+              groupIndex === visibleNavGroups.length - 1 ? "pb-0" : "pb-4 mb-2 border-b border-border/40"
             )}
           >
             <button
