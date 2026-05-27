@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Monitor, Video, Coffee, Users } from "lucide-react"
+import { Monitor, Video, Coffee, Users, Presentation, Car } from "lucide-react"
 import type { AddOn } from "@/lib/hooks/use-pricing"
 
 interface AddOnSelectorProps {
@@ -14,8 +14,13 @@ interface AddOnSelectorProps {
 const iconMap: Record<string, React.ReactNode> = {
   monitor: <Monitor className="h-5 w-5" />,
   projector: <Video className="h-5 w-5" />,
+  video: <Video className="h-5 w-5" />,
   coffee: <Coffee className="h-5 w-5" />,
+  catering: <Coffee className="h-5 w-5" />,
   meeting: <Users className="h-5 w-5" />,
+  whiteboard: <Presentation className="h-5 w-5" />,
+  parking: <Car className="h-5 w-5" />,
+  pastries: <Coffee className="h-5 w-5" />,
 }
 
 export function AddOnSelector({ addOns, selectedAddOns, onToggle }: AddOnSelectorProps) {
@@ -60,7 +65,7 @@ export function AddOnSelector({ addOns, selectedAddOns, onToggle }: AddOnSelecto
                       {addOn.description}
                     </p>
                     <p className="text-sm font-semibold text-primary">
-                      {addOn.price.toLocaleString()} KES
+                      {addOn.price === 0 ? "Free" : `${addOn.price.toLocaleString()} KES`}
                     </p>
                   </div>
                 </div>

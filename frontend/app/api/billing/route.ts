@@ -23,10 +23,11 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id
 
-    // Get user's subscription/plan
+    // Get user's subscription/plan (not soft-deleted)
     const subscription = await prisma.subscription.findFirst({
       where: {
         userId,
+        deletedAt: null,
         status: { in: ["active", "trialing"] },
       },
       orderBy: {
@@ -36,6 +37,25 @@ export async function GET(request: NextRequest) {
         plan: true,
       },
     })
+
+    const subscriptionJson = subscription
+      ? {
+          id: subscription.id,
+          userId: subscription.userId,
+          planId: subscription.planId,
+          status: subscription.status,
+          currentPeriodStart: subscription.currentPeriodStart.toISOString(),
+          currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
+          cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+          createdAt: subscription.createdAt.toISOString(),
+          updatedAt: subscription.updatedAt.toISOString(),
+          deletedAt: subscription.deletedAt?.toISOString() ?? null,
+          plan: {
+            ...subscription.plan,
+            price: Number(subscription.plan.price),
+          },
+        }
+      : null
 
     // Get payment methods
     const paymentMethods = await prisma.paymentMethod.findMany({
@@ -61,7 +81,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       {
-        subscription,
+        subscription: subscriptionJson,
         paymentMethods,
         invoices,
       },

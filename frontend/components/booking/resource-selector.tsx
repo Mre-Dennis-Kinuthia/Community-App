@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Users, Building2, Monitor } from "lucide-react"
 import { CheckCircle2 } from "lucide-react"
 
-export type ResourceType = "hot-desk" | "meeting-room" | "private-office"
+export type ResourceType = "hot-desk" | "meeting-room" | "private-office" | "event-space"
 
 interface Resource {
   type: ResourceType
@@ -26,6 +26,7 @@ interface ResourceSelectorProps {
 export function ResourceSelector({ selectedResource, onResourceSelect, pricing, currency = "KES" }: ResourceSelectorProps) {
   // Get starting prices from workspace pricing or use defaults
   const getStartingPrice = (type: ResourceType): number => {
+    if (type === "event-space") return 0
     if (!pricing || !pricing[type]) {
       // Default fallback prices
       return type === "hot-desk" ? 500 : type === "meeting-room" ? 1500 : 5000
@@ -75,6 +76,14 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
       capacity: "Dedicated space",
       startingPrice: 0,
     },
+    {
+      type: "event-space",
+      label: "Event Space",
+      description: "Up to 70 guests – request information",
+      icon: <Users className="h-5 w-5" />,
+      capacity: "Up to 70 PAX",
+      startingPrice: 0,
+    },
   ]
 
   return (
@@ -107,7 +116,7 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                 <span className="text-xs text-muted-foreground">{resource.capacity}</span>
                 <span className="text-sm font-semibold text-primary">
-                  {resource.type === "private-office"
+                  {resource.type === "private-office" || resource.type === "event-space"
                     ? "Custom pricing – contact us"
                     : resource.type === "meeting-room"
                     ? resource.startingPrice > 0

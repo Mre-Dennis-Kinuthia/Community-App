@@ -1,5 +1,7 @@
 // Hook for availability data - fetches from API
 import { useState, useMemo, useEffect } from "react"
+import { formatLocalYMD } from "@/lib/date-booking"
+import { defaultBusinessHourSlots } from "@/lib/booking-time-slots"
 
 export interface AvailabilitySlot {
   date: Date
@@ -21,29 +23,28 @@ export function useAvailability(workspaceId: string, resourceType?: string) {
   const [datesWithBookings, setDatesWithBookings] = useState<Date[]>([])
   const [nextAvailable, setNextAvailable] = useState<Date | null>(null)
   const [availableSlots, setAvailableSlots] = useState<{ time: string; available: boolean }[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingCalendar, setIsLoadingCalendar] = useState(false)
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
 
-  // Fetch unavailable dates on mount
+  // Fetch unavailable dates when resource or workspace changes
   useEffect(() => {
+    let cancelled = false
+
     async function fetchUnavailableDates() {
       try {
-        setIsLoading(true)
-        // Fetch availability for today to get unavailable dates
-        const today = new Date().toISOString().split("T")[0]
+        setIsLoadingCalendar(true)
+        const today = formatLocalYMD(new Date())
+        const resource = resourceType || "hot-desk"
         const params = new URLSearchParams()
         params.set("date", today)
-        params.set("resourceType", resourceType || "hot-desk")
+        params.set("resourceType", resource)
         if (workspaceId) params.set("workspaceId", workspaceId)
         const response = await fetch(`/api/availability?${params.toString()}`)
-        
-        if (response.ok) {
+
+        if (!cancelled && response.ok) {
           const data = await response.json()
-          setUnavailableDates(
-            data.unavailableDates.map((d: string) => new Date(d))
-          )
-          setDatesWithBookings(
-            (data.datesWithBookings || []).map((d: string) => new Date(d))
-          )
+          setUnavailableDates(data.unavailableDates.map((d: string) => new Date(d)))
+          setDatesWithBookings((data.datesWithBookings || []).map((d: string) => new Date(d)))
           if (data.nextAvailable) {
             setNextAvailable(new Date(data.nextAvailable))
           }
@@ -51,53 +52,69 @@ export function useAvailability(workspaceId: string, resourceType?: string) {
       } catch (error) {
         console.error("[useAvailability] Error fetching unavailable dates:", error)
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoadingCalendar(false)
       }
     }
 
-    fetchUnavailableDates()
-  }, [resourceType])
+    void fetchUnavailableDates()
+    return () => {
+      cancelled = true
+    }
+  }, [resourceType, workspaceId])
 
-  // Fetch available slots when date is selected
+  // Fetch slot-level availability when a day is selected
   useEffect(() => {
     if (!selectedDate) {
       setAvailableSlots([])
       return
     }
 
-    async function fetchSlots() {
-      try {
-        setIsLoading(true)
-        const dateStr = selectedDate.toISOString().split("T")[0]
-        const params = new URLSearchParams()
-        params.set("date", dateStr)
-        params.set("resourceType", resourceType || "hot-desk")
-        if (workspaceId) params.set("workspaceId", workspaceId)
-        const response = await fetch(`/api/availability?${params.toString()}`)
-        
-        if (response.ok) {
-          const data = await response.json()
-          setAvailableSlots(data.availableSlots || [])
-        }
-      } catch (error) {
-        console.error("[useAvailability] Error fetching slots:", error)
-      } finally {
-        setIsLoading(false)
-      }
+    const resource = resourceType || "hot-desk"
+
+    // Meeting rooms: show default grid immediately so the UI never feels "empty" while fetching.
+    if (resource === "meeting-room") {
+      setAvailableSlots(defaultBusinessHourSlots())
+    } else {
+      setAvailableSlots([])
     }
 
-    fetchSlots()
-  }, [selectedDate, resourceType])
+    const ac = new AbortController()
 
-  // Format slots for compatibility
+    ;(async () => {
+      try {
+        setIsLoadingSlots(true)
+        const dateStr = formatLocalYMD(selectedDate)
+        const params = new URLSearchParams()
+        params.set("date", dateStr)
+        params.set("resourceType", resource)
+        if (workspaceId) params.set("workspaceId", workspaceId)
+        const response = await fetch(`/api/availability?${params.toString()}`, { signal: ac.signal })
+
+        if (!ac.signal.aborted && response.ok) {
+          const data = await response.json()
+          setAvailableSlots(Array.isArray(data.availableSlots) ? data.availableSlots : [])
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error && error.name === "AbortError") return
+        console.error("[useAvailability] Error fetching slots:", error)
+      } finally {
+        if (!ac.signal.aborted) setIsLoadingSlots(false)
+      }
+    })()
+
+    return () => ac.abort()
+  }, [selectedDate, resourceType, workspaceId])
+
   const slots = useMemo(() => {
     if (!selectedDate) return []
-    
-    return availableSlots.map(slot => ({
+
+    const resource = resourceType || "hot-desk"
+
+    return availableSlots.map((slot) => ({
       date: selectedDate,
       time: slot.time,
       available: slot.available,
-      resourceType: (resourceType || "hot-desk") as AvailabilitySlot["resourceType"]
+      resourceType: resource as AvailabilitySlot["resourceType"],
     }))
   }, [selectedDate, availableSlots, resourceType])
 
@@ -108,7 +125,8 @@ export function useAvailability(workspaceId: string, resourceType?: string) {
     nextAvailable,
     selectedDate,
     setSelectedDate,
-    isLoading,
+    isLoading: isLoadingCalendar || isLoadingSlots,
+    isLoadingSlots,
+    isLoadingCalendar,
   }
 }
-

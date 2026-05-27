@@ -45,6 +45,7 @@ export function PrivateOfficeInquiryForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           workspaceId,
+          inquiryType: "private-office",
           name: form.name.trim(),
           email: form.email.trim(),
           phone: form.phone.trim(),

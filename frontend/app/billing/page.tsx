@@ -1,22 +1,64 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { PageHeader } from "@/components/page-header"
 import { toast } from "@/lib/toast"
-import { CreditCard, Download, ExternalLink, Phone, ShieldCheck, Loader2 } from "lucide-react"
+import { badgeClassForLabel, badgeNeutral, badgePrimary } from "@/lib/badge-styles"
+import { cn } from "@/lib/utils"
+import {
+  CreditCard,
+  Download,
+  ExternalLink,
+  Phone,
+  Loader2,
+  CalendarClock,
+  Receipt,
+  HelpCircle,
+  Mail,
+  ArrowRight,
+} from "lucide-react"
 import { format } from "date-fns"
+
+const MEMBERSHIP_EMAIL = "mailto:nairobi@impacthub.net?subject=Impact%20Hub%20Nairobi%20%E2%80%94%20Billing"
+
+interface BillingPlan {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  currency: string
+  interval: string
+}
 
 interface Subscription {
   id: string
   status: string
+  cancelAtPeriodEnd: boolean
   plan: {
+    id: string
     name: string
     price: number
     currency: string
@@ -44,44 +86,151 @@ interface Invoice {
   pdfUrl: string | null
 }
 
+function invoiceStatusClass(status: string) {
+  const s = status.toLowerCase()
+  if (s === "paid" || s === "succeeded") return badgePrimary
+  if (s === "open" || s === "pending" || s === "draft") return badgeNeutral
+  return badgeClassForLabel(status)
+}
+
+function normalizeSubscription(raw: unknown): Subscription | null {
+  if (!raw || typeof raw !== "object") return null
+  const s = raw as Record<string, unknown>
+  const plan = s.plan
+  if (!plan || typeof plan !== "object") return null
+  const p = plan as Record<string, unknown>
+  const priceRaw = p.price
+  const price =
+    typeof priceRaw === "number"
+      ? priceRaw
+      : typeof priceRaw === "string"
+        ? Number(priceRaw)
+        : NaN
+  if (!s.id || typeof s.id !== "string") return null
+  if (!s.status || typeof s.status !== "string") return null
+  if (typeof s.cancelAtPeriodEnd !== "boolean") return null
+  if (!p.id || typeof p.id !== "string") return null
+  if (!p.name || typeof p.name !== "string") return null
+  if (!p.currency || typeof p.currency !== "string") return null
+  if (!p.interval || typeof p.interval !== "string") return null
+  if (!s.currentPeriodEnd || typeof s.currentPeriodEnd !== "string") return null
+
+  return {
+    id: s.id,
+    status: s.status,
+    cancelAtPeriodEnd: s.cancelAtPeriodEnd,
+    plan: {
+      id: p.id,
+      name: p.name,
+      price: Number.isFinite(price) ? price : 0,
+      currency: p.currency,
+      interval: p.interval,
+    },
+    currentPeriodEnd: s.currentPeriodEnd,
+  }
+}
+
 export default function BillingPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [mpesaPhone, setMpesaPhone] = useState("")
-  const [mpesaAmount, setMpesaAmount] = useState("25000")
+  const [mpesaAmount, setMpesaAmount] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
 
-  useEffect(() => {
-    async function fetchBillingData() {
-      try {
-        setIsLoading(true)
-        const response = await fetch("/api/billing")
-        if (response.ok) {
-          const data = await response.json()
-          setSubscription(data.subscription)
-          setPaymentMethod(data.paymentMethods?.[0] || null)
-          setInvoices(data.invoices || [])
-        }
-      } catch (error) {
-        console.error("Failed to fetch billing data:", error)
-        toast.error("Error", "Failed to load billing information")
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  const [changePlanOpen, setChangePlanOpen] = useState(false)
+  const [scheduleCancelOpen, setScheduleCancelOpen] = useState(false)
+  const [resumeOpen, setResumeOpen] = useState(false)
+  const [immediateCancelOpen, setImmediateCancelOpen] = useState(false)
+  const [plans, setPlans] = useState<BillingPlan[]>([])
+  const [plansLoading, setPlansLoading] = useState(false)
+  const [selectedPlanId, setSelectedPlanId] = useState("")
+  const [subscriptionActionLoading, setSubscriptionActionLoading] = useState(false)
 
-    fetchBillingData()
+  async function loadBilling(options?: { silent?: boolean }) {
+    const silent = Boolean(options?.silent)
+    try {
+      if (!silent) setIsLoading(true)
+      const response = await fetch("/api/billing", { credentials: "include" })
+      if (response.ok) {
+        const data = await response.json()
+        setSubscription(normalizeSubscription(data.subscription))
+        setPaymentMethod(data.paymentMethods?.[0] || null)
+        setInvoices(data.invoices || [])
+      }
+    } catch (error) {
+      console.error("Failed to fetch billing data:", error)
+      toast.error("Could not load billing", "Refresh the page or try again in a moment.")
+    } finally {
+      if (!silent) setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadBilling()
   }, [])
+
+  async function loadPlansForChange() {
+    setPlansLoading(true)
+    try {
+      const response = await fetch("/api/billing/plans", { credentials: "include" })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        toast.error("Could not load plans", data.error || "Try again later.")
+        setPlans([])
+        return
+      }
+      const list = Array.isArray(data.plans) ? (data.plans as BillingPlan[]) : []
+      setPlans(list)
+      const currentId = subscription?.plan.id
+      const preferred = list.find((pl) => pl.id !== currentId) ?? list[0]
+      setSelectedPlanId(preferred?.id ?? "")
+    } catch (e) {
+      console.error(e)
+      toast.error("Could not load plans", "Network error.")
+      setPlans([])
+    } finally {
+      setPlansLoading(false)
+    }
+  }
+
+  async function patchSubscription(body: Record<string, unknown>) {
+    setSubscriptionActionLoading(true)
+    try {
+      const response = await fetch("/api/billing/subscription", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body),
+      })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        toast.error("Update failed", typeof data.error === "string" ? data.error : "Please try again.")
+        return
+      }
+      toast.success("Subscription updated", typeof data.message === "string" ? data.message : "")
+      setChangePlanOpen(false)
+      setScheduleCancelOpen(false)
+      setResumeOpen(false)
+      setImmediateCancelOpen(false)
+      await loadBilling({ silent: true })
+    } catch (error) {
+      console.error(error)
+      toast.error("Update failed", "Network error — try again.")
+    } finally {
+      setSubscriptionActionLoading(false)
+    }
+  }
 
   const handleMpesaPayment = async () => {
     if (!mpesaPhone.trim()) {
-      toast.error("Enter a phone number", "Please provide an M-Pesa phone number.")
+      toast.error("Phone required", "Enter the M-Pesa number that should receive the STK prompt.")
       return
     }
-    if (!mpesaAmount || Number(mpesaAmount) <= 0) {
-      toast.error("Enter a valid amount", "Amount must be greater than 0.")
+    const amount = Number(mpesaAmount)
+    if (!mpesaAmount || Number.isNaN(amount) || amount <= 0) {
+      toast.error("Amount required", "Enter an amount in KES greater than zero.")
       return
     }
 
@@ -89,174 +238,459 @@ export default function BillingPage() {
       setIsProcessingPayment(true)
       const response = await fetch("/api/billing/mpesa", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           phoneNumber: mpesaPhone,
-          amount: Number(mpesaAmount),
-          description: "Subscription payment",
+          amount,
+          description: "Membership payment",
         }),
       })
 
       if (response.ok) {
-        toast.success("STK push sent", "Check your phone to complete the payment.")
+        const data = await response.json().catch(() => ({}))
+        const isStub = data.launchMode === "stub"
+        toast.success(
+          isStub ? "Payment recorded" : "Check your phone",
+          data.message ||
+            (isStub
+              ? "M-Pesa STK may still be rolling out — your request was saved."
+              : "Complete the prompt on your handset to finish.")
+        )
         setMpesaPhone("")
       } else {
-        const errorData = await response.json()
-        toast.error("Payment failed", errorData.error || "Please try again.")
+        const errorData = await response.json().catch(() => ({}))
+        toast.error("Payment not started", errorData.error || "Please try again.")
       }
     } catch (error) {
       console.error("M-Pesa payment error:", error)
-      toast.error("Payment failed", "Please try again.")
+      toast.error("Payment failed", "Network error — try again.")
     } finally {
       setIsProcessingPayment(false)
     }
   }
 
-  // Default values if no subscription
-  const plan = subscription
-    ? {
-        name: subscription.plan.name,
-        price: `${subscription.plan.currency} ${subscription.plan.price.toLocaleString()} / ${subscription.plan.interval}`,
-        status: subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1),
-        renewsOn: format(new Date(subscription.currentPeriodEnd), "MMM d, yyyy"),
-      }
-    : {
-        name: "No active plan",
-        price: "N/A",
-        status: "Inactive",
-        renewsOn: "N/A",
-      }
+  const hasPlan = Boolean(subscription)
+  const planStatus = subscription
+    ? subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)
+    : "No active subscription"
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="mx-auto max-w-5xl space-y-8">
         <Breadcrumbs items={[{ label: "Profile", href: "/profile" }, { label: "Billing" }]} />
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight">Manage Billing</h1>
-            <p className="text-muted-foreground text-base">
-              View your membership plan, update payment details, and access invoices.
-            </p>
+        <PageHeader
+          title="Billing & payments"
+          description="Membership, saved payment methods, and invoices for your Impact Hub Nairobi account."
+        >
+          <Button variant="outline" size="sm" asChild>
+            <a href={MEMBERSHIP_EMAIL}>
+              <Mail className="mr-2 h-4 w-4" />
+              Email membership
+            </a>
+          </Button>
+        </PageHeader>
+
+        {/* Plan summary */}
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="border-b border-border bg-muted/30 px-6 py-5 md:px-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1 min-w-0">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Current plan
+                </p>
+                {isLoading ? (
+                  <div className="flex items-center gap-2 py-1">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Loading…</span>
+                  </div>
+                ) : hasPlan ? (
+                  <>
+                    <h2 className="text-xl font-semibold tracking-tight md:text-2xl">
+                      {subscription!.plan.name}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      {subscription!.plan.currency}{" "}
+                      {subscription!.plan.price.toLocaleString()} per {subscription!.plan.interval}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-semibold tracking-tight">No subscription on file</h2>
+                    <p className="text-sm text-muted-foreground max-w-xl">
+                      Workspace and programmes may be billed separately. Book space from the hub or contact
+                      membership to align a plan.
+                    </p>
+                  </>
+                )}
+              </div>
+              {!isLoading && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "shrink-0 self-start",
+                    hasPlan ? badgePrimary : badgeNeutral
+                  )}
+                >
+                  {planStatus}
+                </Badge>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="bg-transparent">
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              Billing Help
+          <div className="grid gap-4 px-6 py-5 md:grid-cols-2 md:px-8 md:py-6">
+            <div className="flex gap-3 rounded-md border border-border bg-background px-4 py-3">
+              <CalendarClock className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Next period ends</p>
+                <p className="text-sm font-medium">
+                  {hasPlan
+                    ? format(new Date(subscription!.currentPeriodEnd), "MMMM d, yyyy")
+                    : "—"}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 rounded-md border border-border bg-background px-4 py-3">
+              <Receipt className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Recent invoices</p>
+                <p className="text-sm font-medium">
+                  {isLoading ? "…" : `${invoices.length} on file`}
+                </p>
+              </div>
+            </div>
+          </div>
+          {hasPlan && subscription!.cancelAtPeriodEnd ? (
+            <div className="border-t border-border bg-muted/40 px-6 py-3 md:px-8">
+              <p className="text-sm text-foreground">
+                Renewal is turned off. You keep access until{" "}
+                <span className="font-medium">
+                  {format(new Date(subscription!.currentPeriodEnd), "MMMM d, yyyy")}
+                </span>
+                . Use &quot;Keep subscription&quot; below if you want the plan to continue after that date.
+              </p>
+            </div>
+          ) : null}
+          <div className="flex flex-col gap-3 border-t border-border px-6 py-4 md:flex-row md:flex-wrap md:items-start md:justify-between md:px-8">
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              {hasPlan ? (
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={subscriptionActionLoading}
+                    onClick={() => setChangePlanOpen(true)}
+                  >
+                    Change plan
+                  </Button>
+                  {subscription!.cancelAtPeriodEnd ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={subscriptionActionLoading}
+                      onClick={() => setResumeOpen(true)}
+                    >
+                      Keep subscription
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={subscriptionActionLoading}
+                      onClick={() => setScheduleCancelOpen(true)}
+                    >
+                      Cancel at end of period
+                    </Button>
+                  )}
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={subscriptionActionLoading}
+                    onClick={() => setImmediateCancelOpen(true)}
+                  >
+                    Cancel immediately
+                  </Button>
+                </div>
+              ) : null}
+              {!isLoading && !hasPlan ? (
+                <Button variant="outline" size="sm" className="w-fit" asChild>
+                  <a href={MEMBERSHIP_EMAIL}>Membership questions</a>
+                </Button>
+              ) : null}
+              {hasPlan ? (
+                <p className="text-xs text-muted-foreground max-w-xl">
+                  For refunds, tax receipts, or unusual billing,{" "}
+                  <a href={MEMBERSHIP_EMAIL} className="font-medium underline underline-offset-2">
+                    email membership
+                  </a>
+                  .
+                </p>
+              ) : null}
+            </div>
+            <Button variant="ghost" size="sm" asChild className="shrink-0 md:mt-0">
+              <Link href="/booking">
+                Book workspace
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
-        </div>
+        </section>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Current plan */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Current Membership</CardTitle>
-              <CardDescription>Your active Impact Hub Nairobi membership plan.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">{plan.name}</p>
-                  <p className="text-xs text-muted-foreground">{plan.price}</p>
+        <Dialog
+          open={changePlanOpen}
+          onOpenChange={(open) => {
+            setChangePlanOpen(open)
+            if (open) void loadPlansForChange()
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Change plan</DialogTitle>
+              <DialogDescription>
+                Choose an active membership plan. Your current period dates stay the same; membership may contact
+                you about any price difference.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-1">
+              {plansLoading ? (
+                <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span className="text-sm">Loading plans…</span>
                 </div>
-                <Badge variant="default">{plan.status}</Badge>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Next billing date</span>
-                <span>{plan.renewsOn}</span>
-              </div>
-              <div className="flex flex-wrap gap-3 pt-2">
-                <Button size="sm" variant="outline" className="bg-transparent">
-                  Update Plan
-                </Button>
-                <Button size="sm" variant="outline" className="bg-transparent">
-                  Cancel Membership
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              ) : plans.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No active plans are available to switch to online. Please email membership for help.
+                </p>
+              ) : (
+                <>
+                  <Label htmlFor="billing-plan-select">New plan</Label>
+                  <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                    <SelectTrigger id="billing-plan-select" className="w-full min-w-0">
+                      <SelectValue placeholder="Choose a plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {plans.map((pl) => (
+                        <SelectItem key={pl.id} value={pl.id}>
+                          {pl.name} — {pl.currency} {pl.price.toLocaleString()} / {pl.interval}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              )}
+            </div>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="outline" onClick={() => setChangePlanOpen(false)}>
+                Close
+              </Button>
+              <Button
+                type="button"
+                disabled={
+                  plansLoading ||
+                  plans.length === 0 ||
+                  !selectedPlanId ||
+                  subscriptionActionLoading
+                }
+                onClick={() => void patchSubscription({ action: "change_plan", planId: selectedPlanId })}
+              >
+                {subscriptionActionLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Confirm change"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          {/* Payment method */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Method</CardTitle>
-              <CardDescription>Securely stored via your payment provider.</CardDescription>
+        <Dialog open={scheduleCancelOpen} onOpenChange={setScheduleCancelOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Cancel at end of period?</DialogTitle>
+              <DialogDescription>
+                {subscription
+                  ? `You will keep access until ${format(new Date(subscription.currentPeriodEnd), "MMMM d, yyyy")}. The subscription will not renew after that. You can turn renewal back on any time before then.`
+                  : "You will keep access until the end of the current period. The subscription will not renew after that."}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="outline" onClick={() => setScheduleCancelOpen(false)}>
+                Back
+              </Button>
+              <Button
+                type="button"
+                disabled={subscriptionActionLoading}
+                onClick={() => void patchSubscription({ action: "schedule_cancel" })}
+              >
+                {subscriptionActionLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Schedule cancellation"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={resumeOpen} onOpenChange={setResumeOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Keep your subscription?</DialogTitle>
+              <DialogDescription>
+                Turn renewal back on. Your plan will continue after{" "}
+                {subscription
+                  ? format(new Date(subscription.currentPeriodEnd), "MMMM d, yyyy")
+                  : "the current period"}
+                .
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="outline" onClick={() => setResumeOpen(false)}>
+                Back
+              </Button>
+              <Button
+                type="button"
+                disabled={subscriptionActionLoading}
+                onClick={() => void patchSubscription({ action: "resume" })}
+              >
+                {subscriptionActionLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Resume renewal"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={immediateCancelOpen} onOpenChange={setImmediateCancelOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Cancel immediately?</DialogTitle>
+              <DialogDescription>
+                This marks your subscription as cancelled right away. You may lose member access depending on
+                hub rules. For refunds or partial periods, contact membership.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button type="button" variant="outline" onClick={() => setImmediateCancelOpen(false)}>
+                Back
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={subscriptionActionLoading}
+                onClick={() => void patchSubscription({ action: "cancel_immediately" })}
+              >
+                {subscriptionActionLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Cancel subscription now"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <div className="grid gap-6 lg:grid-cols-5">
+          <Card className="border-border lg:col-span-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Payment method</CardTitle>
+              <CardDescription>Card or wallet we have stored for you.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                {isLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
               ) : paymentMethod ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                    <CreditCard className="h-5 w-5 text-primary" />
+                <div className="flex items-start gap-3 rounded-md border border-border p-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted">
+                    <CreditCard className="h-5 w-5 text-foreground" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-medium">
-                      {paymentMethod.brand || "Card"} •••• {paymentMethod.last4 || "****"}
+                      {(paymentMethod.brand || "Card").toUpperCase()} ending {paymentMethod.last4 || "••••"}
                     </p>
-                    {paymentMethod.expiryMonth && paymentMethod.expiryYear && (
-                      <p className="text-xs text-muted-foreground">
-                        Expires {String(paymentMethod.expiryMonth).padStart(2, "0")} / {paymentMethod.expiryYear}
+                    {paymentMethod.expiryMonth != null && paymentMethod.expiryYear != null && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Expires {String(paymentMethod.expiryMonth).padStart(2, "0")} /{" "}
+                        {paymentMethod.expiryYear}
                       </p>
                     )}
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No payment method on file</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  No card on file. M-Pesa or membership team can help you add one when billing is enabled for
+                  your account.
+                </p>
               )}
-              </div>
-              <Button variant="outline" className="w-full bg-transparent">
-                Update Payment Method
+              <Button variant="outline" className="w-full" asChild>
+                <a href={MEMBERSHIP_EMAIL}>Update payment details</a>
               </Button>
             </CardContent>
           </Card>
 
-          {/* M-Pesa STK Push */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Pay with M-Pesa</CardTitle>
-              <CardDescription>Initiate an STK Push to complete your payment.</CardDescription>
+          <Card className="border-border lg:col-span-3">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">M-Pesa payment</CardTitle>
+              <CardDescription>
+                Optional STK push for amounts you have agreed with membership. If live checkout is not enabled,
+                you will see a message from the server instead of a phone prompt.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="mpesa-phone">M-Pesa Phone Number</Label>
-                <Input
-                  id="mpesa-phone"
-                  placeholder="07XX XXX XXX"
-                  value={mpesaPhone}
-                  onChange={(e) => setMpesaPhone(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="mpesa-amount">Amount (KES)</Label>
-                <Input
-                  id="mpesa-amount"
-                  type="number"
-                  min="1"
-                  value={mpesaAmount}
-                  onChange={(e) => setMpesaAmount(e.target.value)}
-                />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="mpesa-phone">Safaricom number</Label>
+                  <Input
+                    id="mpesa-phone"
+                    placeholder="07XX XXX XXX"
+                    value={mpesaPhone}
+                    onChange={(e) => setMpesaPhone(e.target.value)}
+                    autoComplete="tel"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mpesa-amount">Amount (KES)</Label>
+                  <Input
+                    id="mpesa-amount"
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 25000"
+                    value={mpesaAmount}
+                    onChange={(e) => setMpesaAmount(e.target.value)}
+                  />
+                </div>
               </div>
               <Button
-                className="w-full"
+                className="w-full sm:w-auto"
+                variant="default"
                 onClick={handleMpesaPayment}
                 disabled={isProcessingPayment}
               >
                 {isProcessingPayment ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
+                    Processing…
                   </>
                 ) : (
                   <>
                     <Phone className="mr-2 h-4 w-4" />
-                    Pay with M-Pesa (STK Push)
+                    Request STK push
                   </>
                 )}
               </Button>
@@ -265,84 +699,97 @@ export default function BillingPage() {
         </div>
 
         {/* Invoices */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing History</CardTitle>
-            <CardDescription>Download receipts and view previous invoices.</CardDescription>
+        <Card className="border-border">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="text-base">Invoice history</CardTitle>
+                <CardDescription>Last ten invoices tied to your account.</CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                    </TableCell>
-                  </TableRow>
-                ) : invoices.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                      No invoices found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  invoices.map((invoice) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
-                      <TableCell>{format(new Date(invoice.createdAt), "MMM d, yyyy")}</TableCell>
-                      <TableCell>{invoice.currency} {invoice.amount.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{invoice.status}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {invoice.pdfUrl && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                aria-label="View invoice"
-                                onClick={() => window.open(invoice.pdfUrl!, "_blank")}
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                aria-label="Download invoice"
-                                onClick={() => {
-                                  const link = document.createElement("a")
-                                  link.href = invoice.pdfUrl!
-                                  link.download = `${invoice.invoiceNumber}.pdf`
-                                  link.click()
-                                }}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
+          <CardContent className="px-0 sm:px-6">
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : invoices.length === 0 ? (
+              <div className="px-6 py-12 text-center sm:px-0">
+                <Receipt className="mx-auto h-10 w-10 text-muted-foreground/60 mb-3" />
+                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                  No invoices yet. When membership generates a bill, it will appear here with a receipt link
+                  when available.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border border-t border-border">
+                {invoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-sm font-medium truncate">{invoice.invoiceNumber}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(invoice.createdAt), "MMM d, yyyy")}
+                        {invoice.paidAt
+                          ? ` · Paid ${format(new Date(invoice.paidAt), "MMM d, yyyy")}`
+                          : null}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                      <span className="text-sm font-medium tabular-nums">
+                        {invoice.currency} {invoice.amount.toLocaleString()}
+                      </span>
+                      <Badge variant="outline" className={invoiceStatusClass(invoice.status)}>
+                        {invoice.status}
+                      </Badge>
+                      {invoice.pdfUrl ? (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => window.open(invoice.pdfUrl!, "_blank")}
+                          >
+                            <ExternalLink className="mr-1.5 h-4 w-4" />
+                            Open
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => {
+                              const link = document.createElement("a")
+                              link.href = invoice.pdfUrl!
+                              link.download = `${invoice.invoiceNumber}.pdf`
+                              link.click()
+                            }}
+                          >
+                            <Download className="mr-1.5 h-4 w-4" />
+                            PDF
+                          </Button>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        <div className="rounded-md border border-dashed border-border bg-muted/20 px-4 py-3 flex gap-3 text-sm text-muted-foreground">
+          <HelpCircle className="h-5 w-5 shrink-0 text-foreground/70" />
+          <p>
+            Questions about charges, tax receipts, or corporate billing?{" "}
+            <a href={MEMBERSHIP_EMAIL} className="font-medium text-foreground underline underline-offset-2">
+              Contact the membership team
+            </a>
+            .
+          </p>
+        </div>
       </div>
     </DashboardLayout>
   )
 }
-

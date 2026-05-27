@@ -15,6 +15,8 @@ interface PricingBreakdownProps {
   meetingRoomHours?: number
   meetingRoomHourlyPrice?: number
   currency?: string
+  /** Headcount for per-PAX add-ons (e.g. pastries). */
+  pastriesPax?: number
 }
 
 export function PricingBreakdown({
@@ -26,6 +28,7 @@ export function PricingBreakdown({
   meetingRoomHours = 1,
   meetingRoomHourlyPrice,
   currency: propCurrency,
+  pastriesPax = 1,
 }: PricingBreakdownProps) {
   const isMeetingRoom = resourceType === "meeting-room"
   const currency = propCurrency || pricing.currency
@@ -36,7 +39,13 @@ export function PricingBreakdown({
   const subtotal = isMeetingRoom && meetingRoomCapacity && meetingRoomHourlyPrice
     ? meetingRoomHourlyPrice * meetingRoomHours
     : (selectedOption?.price || 0)
-  const addOnsTotal = selectedAddOnItems.reduce((sum, addOn) => sum + addOn.price, 0)
+  const addOnsTotal = selectedAddOnItems.reduce((sum, addOn) => {
+    if (addOn.id === "pastries" && addOn.price > 0) {
+      const n = Math.max(1, Math.floor(Number(pastriesPax) || 1))
+      return sum + addOn.price * n
+    }
+    return sum + addOn.price
+  }, 0)
   const total = subtotal + addOnsTotal
 
   const showMeetingRoomBreakdown = isMeetingRoom && meetingRoomCapacity && meetingRoomHourlyPrice && meetingRoomHours > 0
@@ -106,14 +115,22 @@ export function PricingBreakdown({
         {selectedAddOnItems.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground">Add-ons</p>
-            {selectedAddOnItems.map((addOn) => (
-              <div key={addOn.id} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{addOn.name}</span>
-                <span className="font-medium">
-                  {pricing.currency} {addOn.price.toLocaleString()}
-                </span>
-              </div>
-            ))}
+            {selectedAddOnItems.map((addOn) => {
+              const isPastriesPerPax = addOn.id === "pastries" && addOn.price > 0
+              const pax = Math.max(1, Math.floor(Number(pastriesPax) || 1))
+              const lineTotal = isPastriesPerPax ? addOn.price * pax : addOn.price
+              return (
+                <div key={addOn.id} className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {addOn.name}
+                    {isPastriesPerPax ? ` × ${pax} PAX` : addOn.price === 0 ? " (free)" : ""}
+                  </span>
+                  <span className="font-medium">
+                    {lineTotal === 0 ? "Free" : `${pricing.currency} ${lineTotal.toLocaleString()}`}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         )}
 

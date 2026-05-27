@@ -43,12 +43,12 @@ async function resolveUserIdFromSession(session: Awaited<ReturnType<typeof auth>
 
 const profileUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
-  bio: z.string().optional(),
+  bio: z.union([z.string(), z.null()]).optional(),
   skills: z.array(z.string()).optional(),
-  location: z.string().optional(),
-  industry: z.string().optional(),
-  role: z.string().optional(),
-  experienceLevel: z.string().optional(),
+  location: z.union([z.string(), z.null()]).optional(),
+  industry: z.union([z.string(), z.null()]).optional(),
+  role: z.union([z.string(), z.null()]).optional(),
+  experienceLevel: z.union([z.string(), z.null()]).optional(),
   availability: z.array(z.string()).optional(),
   interests: z.array(z.string()).optional(),
 })
@@ -131,12 +131,55 @@ export async function GET(request: NextRequest) {
           },
         },
       })
+      const [connections, events, projects] = await Promise.all([
+        prisma.connection.count({
+          where: {
+            status: "accepted",
+            OR: [{ fromUserId: userId }, { toUserId: userId }],
+          },
+        }),
+        prisma.eventRegistration.count({
+          where: { userId, status: { not: "cancelled" } },
+        }),
+        prisma.project.count({
+          where: { founderId: userId, deletedAt: null },
+        }),
+      ])
       const needsOnboarding = !newProfile.bio && !newProfile.industry && !newProfile.role
-      return NextResponse.json({ profile: newProfile, needsOnboarding }, { headers: corsHeaders })
+      return NextResponse.json(
+        {
+          profile: newProfile,
+          needsOnboarding,
+          stats: { connections, events, projects },
+        },
+        { headers: corsHeaders }
+      )
     }
 
+    const [connections, events, projects] = await Promise.all([
+      prisma.connection.count({
+        where: {
+          status: "accepted",
+          OR: [{ fromUserId: userId }, { toUserId: userId }],
+        },
+      }),
+      prisma.eventRegistration.count({
+        where: { userId, status: { not: "cancelled" } },
+      }),
+      prisma.project.count({
+        where: { founderId: userId, deletedAt: null },
+      }),
+    ])
+
     const needsOnboarding = !profile.bio && !profile.industry && !profile.role
-    return NextResponse.json({ profile, needsOnboarding }, { headers: corsHeaders })
+    return NextResponse.json(
+      {
+        profile,
+        needsOnboarding,
+        stats: { connections, events, projects },
+      },
+      { headers: corsHeaders }
+    )
   } catch (error: any) {
     console.error("[PROFILE API] Error:", error)
     return NextResponse.json(

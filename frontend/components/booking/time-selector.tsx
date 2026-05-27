@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Clock, CheckCircle2 } from "lucide-react"
+import { Clock, CheckCircle2, Loader2 } from "lucide-react"
 import { format } from "date-fns"
 
 export type BookingDuration = "hourly" | "half-day" | "full-day" | "monthly"
@@ -19,6 +19,8 @@ interface TimeSelectorProps {
   date: Date | null
   resourceType?: "hot-desk" | "meeting-room" | "private-office"
   hideDurationSelector?: boolean // For meeting room (capacity + hours selected elsewhere)
+  /** When true, slots may still be updating from the server (optimistic grid is shown first). */
+  slotsLoading?: boolean
 }
 
 export function TimeSelector({
@@ -32,6 +34,7 @@ export function TimeSelector({
   date,
   resourceType = "hot-desk",
   hideDurationSelector = false,
+  slotsLoading = false,
 }: TimeSelectorProps) {
   if (!date) {
     return (
@@ -131,7 +134,15 @@ export function TimeSelector({
       {/* Time Slots (for meeting room or hourly bookings) */}
       {showTimeSlots && (
         <div>
-          <p className="text-sm font-medium mb-3">Available Times</p>
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <p className="text-sm font-medium">Available times</p>
+            {slotsLoading && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+                Updating availability…
+              </span>
+            )}
+          </div>
           <div className="flex flex-wrap gap-2">
             {availableSlots.map((slot) => {
               const isSelected = selectedTime === slot.time

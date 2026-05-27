@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { formatLocalYMD, parseLocalCalendarDay } from "@/lib/date-booking"
 
 /**
  * Get availability for a specific date and resource type
@@ -19,11 +20,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const selectedDate = new Date(date)
-    const startOfDay = new Date(selectedDate)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(selectedDate)
-    endOfDay.setHours(23, 59, 59, 999)
+    const bounds = parseLocalCalendarDay(date)
+    if (!bounds) {
+      return NextResponse.json({ error: "Invalid date format (expected YYYY-MM-DD)" }, { status: 400 })
+    }
+    const { start: startOfDay, end: endOfDay } = bounds
 
     // Get all bookings for this date, resource type and workspace (if provided)
     const bookings = await prisma.workspaceBooking.findMany({
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
       
       // Block weekends
       if (checkDate.getDay() === 0 || checkDate.getDay() === 6) {
-        unavailableDates.push(checkDate.toISOString().split("T")[0])
+        unavailableDates.push(formatLocalYMD(checkDate))
         continue
       }
 
@@ -106,17 +107,17 @@ export async function GET(request: NextRequest) {
       // For hot desks: mark as having bookings but don't block
       if (resourceType === "meeting-room") {
         if (dateBookings >= 8) {
-          unavailableDates.push(checkDate.toISOString().split("T")[0])
+          unavailableDates.push(formatLocalYMD(checkDate))
         }
       } else if (resourceType === "hot-desk") {
         // Hot desks don't get blocked, but we track dates with bookings
         if (dateBookings > 0) {
-          datesWithBookings.push(checkDate.toISOString().split("T")[0])
+          datesWithBookings.push(formatLocalYMD(checkDate))
         }
       } else {
         // For other resource types (private-office), use same logic as meeting rooms
         if (dateBookings >= 8) {
-          unavailableDates.push(checkDate.toISOString().split("T")[0])
+          unavailableDates.push(formatLocalYMD(checkDate))
         }
       }
     }
@@ -126,7 +127,7 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < 30; i++) {
       const checkDate = new Date(today)
       checkDate.setDate(today.getDate() + i)
-      const dateStr = checkDate.toISOString().split("T")[0]
+      const dateStr = formatLocalYMD(checkDate)
       
       if (!unavailableDates.includes(dateStr) && checkDate.getDay() !== 0 && checkDate.getDay() !== 6) {
         nextAvailable = dateStr

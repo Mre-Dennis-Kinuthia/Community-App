@@ -26,6 +26,7 @@ interface StickyBookingSummaryProps {
   onConfirm: () => void
   isBooking: boolean
   isValid: boolean
+  showDesktop?: boolean
 }
 
 export function StickyBookingSummary({
@@ -34,13 +35,14 @@ export function StickyBookingSummary({
   onConfirm,
   isBooking,
   isValid,
+  showDesktop = true,
 }: StickyBookingSummaryProps) {
   if (!isValid) return null
 
   return (
     <>
       {/* Desktop: Right Side Sticky */}
-      <div className="hidden lg:block">
+      <div className={showDesktop ? "hidden lg:block" : "hidden"}>
         <div className="sticky top-24">
           <Card className="border border-border ">
             <CardContent className="p-6 space-y-4">
@@ -65,11 +67,17 @@ export function StickyBookingSummary({
                   </div>
                 )}
 
-                {summary.time && (
+                {(summary.time ||
+                  (summary.resourceType === "hot-desk" && summary.duration === "full-day")) && (
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span className="text-muted-foreground">Time:</span>
-                    <span className="font-medium">{summary.time}</span>
+                    <span className="font-medium">
+                      {summary.time ||
+                        (summary.resourceType === "hot-desk" && summary.duration === "full-day"
+                          ? "09:00 (full day)"
+                          : "—")}
+                    </span>
                   </div>
                 )}
 
@@ -129,7 +137,14 @@ export function StickyBookingSummary({
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground truncate">
-                {summary.date && format(summary.date, "MMM d")} • {summary.time}
+                {summary.date && format(summary.date, "MMM d")}
+                {summary.date ? " · " : ""}
+                {summary.time ||
+                  (summary.resourceType === "hot-desk" && summary.duration === "full-day"
+                    ? "Full day · 09:00"
+                    : summary.resourceType === "hot-desk"
+                      ? "Full day"
+                      : "—")}
               </p>
               <p className="text-base font-bold text-primary">
                 {summary.currency} {summary.totalPrice.toLocaleString()}

@@ -5,12 +5,13 @@ import { z } from "zod"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
 
 const bookingSchema = z.object({
-  resourceType: z.enum(["hot-desk", "meeting-room", "private-office"]),
+  resourceType: z.enum(["hot-desk", "meeting-room", "private-office", "event-space"]),
   date: z.string().transform((str) => new Date(str)),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/), // HH:MM format
   duration: z.enum(["hourly", "half-day", "full-day", "monthly"]),
   meetingRoomHours: z.number().min(1).max(8).optional(), // For meeting room capacity-based booking
   meetingRoomCapacity: z.enum(["1-4", "1-10", "1-35"]).optional(),
+  pastriesPax: z.number().int().min(1).max(200).optional(),
   basePrice: z.number().min(0),
   addOnsPrice: z.number().min(0).default(0),
   totalPrice: z.number().min(0),
@@ -112,6 +113,16 @@ export async function POST(request: NextRequest) {
 
     const validatedData = bookingSchema.parse(body)
     
+    if (validatedData.addOns.includes("pastries")) {
+      const pax = validatedData.pastriesPax
+      if (typeof pax !== "number" || !Number.isFinite(pax) || pax < 1) {
+        return NextResponse.json(
+          { error: "Please provide the number of people (PAX) for pastries." },
+          { status: 400 }
+        )
+      }
+    }
+
     // Validate and set startTime
     // For full-day hot desk bookings, frontend should send "09:00", but we validate it
     let startTime = validatedData.startTime

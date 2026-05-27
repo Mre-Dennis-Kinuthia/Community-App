@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { toast } from "@/lib/toast"
+import { localCalendarDayToISO } from "@/lib/date-booking"
 import { useWorkspace } from "@/lib/hooks/use-workspace"
 import { useAvailability } from "@/lib/hooks/use-availability"
 import { usePricing } from "@/lib/hooks/use-pricing"
@@ -13,11 +14,14 @@ import { TimeSelector, type BookingDuration } from "@/components/booking/time-se
 import { ResourceSelector, type ResourceType } from "@/components/booking/resource-selector"
 import { MeetingRoomSelector, type MeetingRoomCapacity } from "@/components/booking/meeting-room-selector"
 import { PrivateOfficeInquiryForm } from "@/components/booking/private-office-inquiry-form"
+import { EventSpaceInquiryForm } from "@/components/booking/event-space-inquiry-form"
 import { PricingBreakdown } from "@/components/booking/pricing-breakdown"
 import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 
 export default function BookingPage() {
@@ -42,14 +46,18 @@ export default function BookingPage() {
     return typeof price === "number" && price > 0 ? price : { "1-4": 5000, "1-10": 8000, "1-35": 12000 }[capacity]
   }
   
+  const availabilityResourceType =
+    selectedResource === "event-space" ? undefined : (selectedResource || undefined)
+
   const { 
     slots, 
     unavailableDates,
     datesWithBookings,
     nextAvailable, 
     selectedDate, 
-    setSelectedDate 
-  } = useAvailability(workspaceId, selectedResource || undefined)
+    setSelectedDate,
+    isLoadingSlots,
+  } = useAvailability(workspaceId, availabilityResourceType)
   
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("full-day")
@@ -57,6 +65,7 @@ export default function BookingPage() {
   const [selectedMeetingRoomCapacity, setSelectedMeetingRoomCapacity] = useState<MeetingRoomCapacity | null>(null)
   const [selectedMeetingRoomHours, setSelectedMeetingRoomHours] = useState(1)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
+  const [pastriesPax, setPastriesPax] = useState(1)
 
   const { pricing, calculateTotal } = usePricing(
     workspaceId,
@@ -78,7 +87,7 @@ export default function BookingPage() {
     if (!selectedResource) return 0
     
     // Private office: no booking price (inquiry only)
-    if (selectedResource === "private-office") return 0
+    if (selectedResource === "private-office" || selectedResource === "event-space") return 0
     
     if (!selectedDate) return 0
     
@@ -107,18 +116,32 @@ export default function BookingPage() {
     
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
       const addOn = safePricing.addOns.find(a => a.id === id)
-      return sum + (addOn?.price || 0)
+      if (!addOn) return sum
+      if (id === "pastries") return sum + (addOn.price || 0) * Math.max(1, pastriesPax)
+      return sum + (addOn.price || 0)
     }, 0)
     
     return basePrice + addOnsPrice
-  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedHalfDay, selectedMeetingRoomCapacity, selectedMeetingRoomHours, selectedAddOns, safePricing, workspace?.pricing])
+  }, [
+    selectedDate,
+    selectedTime,
+    selectedResource,
+    selectedDuration,
+    selectedHalfDay,
+    selectedMeetingRoomCapacity,
+    selectedMeetingRoomHours,
+    selectedAddOns,
+    safePricing,
+    workspace?.pricing,
+    pastriesPax,
+  ])
 
   // Check if booking is valid
   const isValidBooking = useMemo(() => {
     if (!selectedResource) return false
     // Private office: inquiry flow, not booking
-    if (selectedResource === "private-office") return false
-    if (!selectedDate || totalPrice <= 0) return false
+    if (selectedResource === "private-office" || selectedResource === "event-space") return false
+    if (!selectedDate || !Number.isFinite(totalPrice) || totalPrice <= 0) return false
     
     // Hot desk: full-day only
     if (selectedResource === "hot-desk") {
@@ -164,12 +187,14 @@ export default function BookingPage() {
       : (safePricing.options.find(opt => opt.type === selectedDuration)?.price ?? 0)
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
       const addOn = safePricing.addOns.find(a => a.id === id)
-      return sum + (addOn?.price || 0)
+      if (!addOn) return sum
+      if (id === "pastries") return sum + (addOn.price || 0) * Math.max(1, pastriesPax)
+      return sum + (addOn.price || 0)
     }, 0)
 
     const payload: Record<string, unknown> = {
       resourceType: selectedResource,
-      date: selectedDate.toISOString(),
+      date: localCalendarDayToISO(selectedDate),
       startTime,
       duration: selectedResource === "meeting-room" ? "hourly" : selectedDuration,
       basePrice,
@@ -177,6 +202,9 @@ export default function BookingPage() {
       totalPrice,
       addOns: selectedAddOns,
       workspaceId,
+    }
+    if (selectedAddOns.includes("pastries")) {
+      payload.pastriesPax = Math.max(1, pastriesPax)
     }
     if (selectedResource === "meeting-room" && selectedMeetingRoomCapacity) {
       payload.meetingRoomHours = selectedMeetingRoomHours
@@ -208,19 +236,20 @@ export default function BookingPage() {
   // Available time slots for selected date
   const availableSlots = useMemo(() => {
     if (!selectedDate) return []
-    return slots.filter(slot => {
-      const slotDate = new Date(slot.date)
-      return (
-        slotDate.getDate() === selectedDate.getDate() &&
-        slotDate.getMonth() === selectedDate.getMonth() &&
-        slotDate.getFullYear() === selectedDate.getFullYear() &&
-        slot.resourceType === selectedResource
-      )
-    }).map(slot => ({
-      time: slot.time,
-      available: slot.available
-    }))
-  }, [slots, selectedDate, selectedResource])
+    return slots
+      .filter((slot) => {
+        const slotDate = new Date(slot.date)
+        return (
+          slotDate.getDate() === selectedDate.getDate() &&
+          slotDate.getMonth() === selectedDate.getMonth() &&
+          slotDate.getFullYear() === selectedDate.getFullYear()
+        )
+      })
+      .map((slot) => ({
+        time: slot.time,
+        available: slot.available,
+      }))
+  }, [slots, selectedDate])
 
   return (
     <DashboardLayout>
@@ -265,33 +294,38 @@ export default function BookingPage() {
         {workspace && (
           <div className="space-y-8">
             <div className="grid gap-8 lg:grid-cols-3">
-              {/* Left Column - Selection */}
+              {/* Left Column - Steps */}
               <div className="lg:col-span-2 space-y-8">
-                  {/* Resource Selection */}
-                  <div id="availability-section" className="scroll-mt-24">
-                    <div className="space-y-4">
-                      <div>
-                        <h2 className="text-xl font-semibold mb-1">Select Resource Type</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Choose the workspace that fits your needs
-                        </p>
-                      </div>
-                      <ResourceSelector
-                        selectedResource={selectedResource}
-                        onResourceSelect={(resource) => {
-                          setSelectedResource(resource)
-                          setSelectedDate(null)
-                          setSelectedTime(null)
-                          setSelectedHalfDay(undefined)
-                          setSelectedMeetingRoomCapacity(null)
-                          setSelectedMeetingRoomHours(1)
-                          setSelectedDuration(getDefaultDuration(resource))
-                        }}
-                        pricing={workspace?.pricing}
-                        currency={workspace?.currency || "KES"}
-                      />
+                {/* Step 1: Resource */}
+                <div id="availability-section" className="scroll-mt-24 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Step 1
+                      </p>
+                      <h2 className="text-xl font-semibold tracking-tight">Choose your space</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Pick a resource type to see availability and pricing.
+                      </p>
                     </div>
                   </div>
+                  <ResourceSelector
+                    selectedResource={selectedResource}
+                    onResourceSelect={(resource) => {
+                      setSelectedResource(resource)
+                      setSelectedDate(null)
+                      setSelectedTime(null)
+                      setSelectedHalfDay(undefined)
+                      setSelectedMeetingRoomCapacity(null)
+                      setSelectedMeetingRoomHours(1)
+                      setSelectedAddOns([])
+                      setPastriesPax(1)
+                      setSelectedDuration(getDefaultDuration(resource))
+                    }}
+                    pricing={workspace?.pricing}
+                    currency={workspace?.currency || "KES"}
+                  />
+                </div>
 
                   {/* Private Office: Inquiry form only */}
                   {selectedResource === "private-office" && (
@@ -303,11 +337,24 @@ export default function BookingPage() {
                     </div>
                   )}
 
+                  {/* Event space: inquiry (up to 70 PAX) */}
+                  {selectedResource === "event-space" && (
+                    <div className="space-y-4">
+                      <EventSpaceInquiryForm
+                        workspaceId={workspaceId}
+                        workspaceName={workspace?.name}
+                      />
+                    </div>
+                  )}
+
                   {/* Meeting Room: Capacity + Hours selector */}
                   {selectedResource === "meeting-room" && (
                     <div className="space-y-4">
                       <div>
-                        <h2 className="text-xl font-semibold mb-1">Select capacity & hours</h2>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          Step 2
+                        </p>
+                        <h2 className="text-xl font-semibold tracking-tight mb-1">Room size & duration</h2>
                         <p className="text-sm text-muted-foreground">
                           Choose room size and number of hours
                         </p>
@@ -317,31 +364,66 @@ export default function BookingPage() {
                         selectedHours={selectedMeetingRoomHours}
                         pricing={workspace?.pricing?.["meeting-room"] as Record<string, number> | undefined}
                         currency={workspace?.currency || "KES"}
-                        onCapacitySelect={setSelectedMeetingRoomCapacity}
-                        onHoursChange={setSelectedMeetingRoomHours}
+                        onCapacitySelect={(c) => {
+                          setSelectedMeetingRoomCapacity(c)
+                          setSelectedDate(null)
+                          setSelectedTime(null)
+                        }}
+                        onHoursChange={(h) => {
+                          setSelectedMeetingRoomHours(h)
+                          setSelectedTime(null)
+                        }}
                       />
                     </div>
                   )}
 
                   {/* Date Selection - Hot desk & Meeting room */}
-                  {selectedResource && selectedResource !== "private-office" && (
-                    <AvailabilityCalendar
-                      selectedDate={selectedDate}
-                      onDateSelect={setSelectedDate}
-                      unavailableDates={unavailableDates}
-                      datesWithBookings={datesWithBookings}
-                      nextAvailable={nextAvailable}
-                      resourceType={selectedResource || "hot-desk"}
-                    />
-                  )}
-
-                  {/* Time Selection - Hot desk & Meeting room */}
-                  {selectedResource && selectedResource !== "private-office" && (
+                  {selectedResource &&
+                    selectedResource !== "private-office" &&
+                    selectedResource !== "event-space" && (
                     <div className="space-y-4">
                       <div>
-                        <h2 className="text-xl font-semibold mb-1">Select Time</h2>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {selectedResource === "meeting-room" ? "Step 3" : "Step 2"}
+                        </p>
+                        <h2 className="text-xl font-semibold tracking-tight mb-1">Pick a date</h2>
                         <p className="text-sm text-muted-foreground">
-                          Choose your preferred time slot
+                          {selectedResource === "meeting-room"
+                            ? "Select room size first, then choose an available day."
+                            : "Select an available day. Fully booked days are disabled."}
+                        </p>
+                      </div>
+                      {selectedResource === "meeting-room" && !selectedMeetingRoomCapacity ? (
+                        <div className="rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+                          Choose a room capacity above (Step 2) before picking a date — that keeps availability and
+                          pricing aligned.
+                        </div>
+                      ) : (
+                        <AvailabilityCalendar
+                          selectedDate={selectedDate}
+                          onDateSelect={(d) => {
+                            setSelectedDate(d)
+                            setSelectedTime(null)
+                          }}
+                          unavailableDates={unavailableDates}
+                          datesWithBookings={datesWithBookings}
+                          nextAvailable={nextAvailable}
+                          resourceType={selectedResource || "hot-desk"}
+                        />
+                      )}
+                    </div>
+                  )}
+
+                  {/* Time Selection - Meeting room (after capacity + date) */}
+                  {selectedResource === "meeting-room" && selectedMeetingRoomCapacity && (
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          Step 4
+                        </p>
+                        <h2 className="text-xl font-semibold tracking-tight mb-1">Choose a start time</h2>
+                        <p className="text-sm text-muted-foreground">
+                          Pick an available slot for your meeting room booking.
                         </p>
                       </div>
                       <TimeSelector
@@ -365,7 +447,16 @@ export default function BookingPage() {
                         date={selectedDate}
                         resourceType={selectedResource || "hot-desk"}
                         hideDurationSelector={selectedResource === "meeting-room"}
+                        slotsLoading={isLoadingSlots}
                       />
+                    </div>
+                  )}
+
+                  {/* Hot desk: make it explicit this is full-day (no time pick) */}
+                  {selectedResource === "hot-desk" && selectedDate && (
+                    <div className="rounded-md border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                      Hot desk bookings are <span className="font-medium text-foreground">full-day</span> (starts at
+                      09:00). You’ll confirm details on the next step.
                     </div>
                   )}
 
@@ -373,7 +464,10 @@ export default function BookingPage() {
                   {isValidBooking && (
                     <div className="space-y-4">
                       <div>
-                        <h2 className="text-xl font-semibold mb-1">Add-ons</h2>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {selectedResource === "meeting-room" ? "Step 5" : "Step 3"}
+                        </p>
+                        <h2 className="text-xl font-semibold tracking-tight mb-1">Add-ons (optional)</h2>
                         <p className="text-sm text-muted-foreground">
                           Enhance your workspace experience (optional)
                         </p>
@@ -383,12 +477,39 @@ export default function BookingPage() {
                         selectedAddOns={selectedAddOns}
                         onToggle={handleAddOnToggle}
                       />
+                      {selectedAddOns.includes("pastries") && (
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <Label htmlFor="pastries-pax">How many people (PAX)?</Label>
+                            <Input
+                              id="pastries-pax"
+                              type="number"
+                              min={1}
+                              value={pastriesPax}
+                              onChange={(e) => setPastriesPax(Number(e.target.value) || 1)}
+                            />
+                          </div>
+                          <div className="rounded-md border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                            You can request a customized menu in the notes on the next step.
+                          </div>
+                        </div>
+                      )}
+                      {isValidBooking && (
+                        <div className="pt-2 lg:hidden">
+                          <Button size="lg" className="w-full" onClick={handleConfirmBooking}>
+                            Review & confirm
+                          </Button>
+                          <p className="text-xs text-center text-muted-foreground mt-2">
+                            Or use the bar at the bottom of the screen.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
 
                 {/* Right Column - Pricing & Summary (Desktop) - Hidden for private office */}
-                {selectedResource !== "private-office" && (
+                {selectedResource !== "private-office" && selectedResource !== "event-space" && (
                   <div className="lg:col-span-1 space-y-6">
                     <PricingBreakdown
                       pricing={safePricing}
@@ -403,6 +524,7 @@ export default function BookingPage() {
                           : undefined
                       }
                       currency={safePricing.currency}
+                      pastriesPax={pastriesPax}
                     />
 
                     {isValidBooking && (
@@ -419,7 +541,7 @@ export default function BookingPage() {
               </div>
 
           {/* Sticky Booking Summary - Hidden for private office */}
-          {selectedResource !== "private-office" && (
+          {selectedResource !== "private-office" && selectedResource !== "event-space" && (
           <StickyBookingSummary
             summary={{
               date: selectedDate,
@@ -442,6 +564,7 @@ export default function BookingPage() {
             onConfirm={handleConfirmBooking}
             isBooking={false}
             isValid={isValidBooking}
+            showDesktop={false}
           />
           )}
 
