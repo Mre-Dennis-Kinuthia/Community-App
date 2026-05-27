@@ -22,6 +22,7 @@ import {
 import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { PageHeader } from "@/components/page-header"
 
 interface NewsTag {
@@ -121,79 +122,75 @@ export default function NewsPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-[100svh] bg-background">
-        {/* Medium-style Header */}
-        <div className="border-b border-border bg-background">
-          <div className="max-w-4xl mx-auto px-4 py-6 md:px-6 md:py-8">
+      <div className="space-y-6">
+        <div className="mx-auto w-full max-w-5xl space-y-6">
+          <Breadcrumbs items={[{ label: "News & Updates" }]} />
+
+          <div className="space-y-6">
             <PageHeader
               title="News & updates"
               description="Stories, announcements, and insights from Impact Hub Nairobi."
             />
 
-              {/* Search */}
-              <div className="flex flex-col gap-2 max-w-md mt-4 sm:flex-row">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                  <Input
-                    placeholder="Search articles..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && applySearch()}
-                    className="pl-9 pr-9 border-border bg-background transition-colors duration-200 ease-out focus:ring-2 focus:ring-primary/20"
-                  />
-                  {hasActiveFilters && (
-                    <button
-                      type="button"
-                      onClick={clearFilters}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground"
-                      aria-label="Clear filters"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
+            <div className="flex max-w-md flex-col gap-2 sm:flex-row">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search articles..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && applySearch()}
+                  className="border-border bg-background pl-9 pr-9"
+                />
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label="Clear filters"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="shrink-0"
+                onClick={applySearch}
+                aria-label="Search"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {hasActiveFilters && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">Filters:</span>
+                {searchQuery && (
+                  <Badge variant="secondary" className="font-normal">
+                    Search: &quot;{searchQuery}&quot;
+                  </Badge>
+                )}
+                {activeCategoryName && (
+                  <Badge variant="outline">{activeCategoryName}</Badge>
+                )}
+                {activeTagName && (
+                  <Badge variant="outline">{activeTagName}</Badge>
+                )}
                 <Button
-                  type="button"
-                  variant="secondary"
-                  size="icon"
-                  className="shrink-0 transition-colors duration-200 ease-out"
-                  onClick={applySearch}
-                  aria-label="Search"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={clearFilters}
                 >
-                  <Search className="h-4 w-4" />
+                  Clear all
                 </Button>
               </div>
-
-              {/* Active filters */}
-              {hasActiveFilters && (
-                <div className="flex flex-wrap items-center gap-2 mt-4">
-                  <span className="text-sm text-muted-foreground">Filters:</span>
-                  {searchQuery && (
-                    <Badge variant="secondary" className="font-normal">
-                      Search: &quot;{searchQuery}&quot;
-                    </Badge>
-                  )}
-                  {activeCategoryName && (
-                    <Badge variant="outline">{activeCategoryName}</Badge>
-                  )}
-                  {activeTagName && (
-                    <Badge variant="outline">{activeTagName}</Badge>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground"
-                    onClick={clearFilters}
-                  >
-                    Clear all
-                  </Button>
-                </div>
-              )}
+            )}
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="max-w-4xl mx-auto px-4 py-8 md:px-6 md:py-12">
           {loading && (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
