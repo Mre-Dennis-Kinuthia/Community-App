@@ -2,6 +2,34 @@
  * Community member types and interfaces
  */
 
+export type MemberConnectionStatus =
+  | "none"
+  | "connected"
+  | "pending_sent"
+  | "pending_received"
+
+export interface MemberProjectSummary {
+  id: string
+  title: string
+  category: string | null
+  stage: string | null
+  imageUrl: string | null
+}
+
+export interface MemberEventSummary {
+  id: string
+  title: string
+  startDate: string
+  location: string | null
+}
+
+export interface MutualConnectionSummary {
+  id: string
+  name: string
+  avatar: string | null
+  role: string | null
+}
+
 export interface CommunityMember {
   id: string
   name: string
@@ -20,13 +48,19 @@ export interface CommunityMember {
   connections: number
   followers: number
   projectsInvolved: number[]
+  projects?: MemberProjectSummary[]
+  recentEvents?: MemberEventSummary[]
   featured: boolean
   joinedDate: Date | string
+  profileUpdatedAt?: string | null
   achievements: string[]
   experience?: MemberExperience[]
   education?: MemberEducation[]
   isConnected?: boolean
-  mutualConnections?: CommunityMember[]
+  connectionStatus?: MemberConnectionStatus
+  isFollowing?: boolean
+  isSelf?: boolean
+  mutualConnections?: MutualConnectionSummary[]
 }
 
 export interface MemberExperience {

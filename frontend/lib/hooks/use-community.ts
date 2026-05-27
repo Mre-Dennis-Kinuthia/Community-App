@@ -61,11 +61,12 @@ export function useCommunityMembers(options: UseCommunityMembersOptions = {}) {
 
 export function useCommunityMember(memberId: string | null) {
   const key = memberId ? `/api/community/${memberId}` : null
-  const { data, error, isLoading } = useSWR<CommunityMemberResponse>(key)
+  const { data, error, isLoading, mutate } = useSWR<CommunityMemberResponse>(key)
 
   return {
     member: data?.member ?? null,
     isLoading,
     error: error?.message ?? null,
+    refetch: () => mutate(),
   }
 }

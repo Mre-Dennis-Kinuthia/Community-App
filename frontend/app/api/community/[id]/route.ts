@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import type { MemberConnectionStatus } from "@/types/community"
 
-/**
- * Handle OPTIONS preflight for CORS
- */
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
+}
+
+function connectionStatusFor(
+  viewerId: string | undefined,
+  memberId: string,
+  row: { fromUserId: string; toUserId: string; status: string } | null
+): MemberConnectionStatus {
+  if (!viewerId || !row) return "none"
+  if (row.status === "accepted") return "connected"
+  if (row.status !== "pending") return "none"
+  if (row.fromUserId === viewerId) return "pending_sent"
+  return "pending_received"
 }
 
 /**
@@ -21,6 +31,7 @@ export async function GET(
   try {
     const { id } = await params
     const session = await auth()
+    const viewerId = session?.user?.id
 
     const member = await prisma.user.findUnique({
       where: { id },
@@ -41,133 +52,206 @@ export async function GET(
             availability: true,
             interests: true,
             isFeatured: true,
+            updatedAt: true,
           },
         },
       },
     })
 
-    if (!member || !member.profile) {
+    if (!member) {
       return NextResponse.json(
         { error: "Member not found" },
         { status: 404, headers: corsHeaders }
       )
     }
 
-    // Get user's connections if logged in
-    let userConnections: string[] = []
-    let isConnected = false
-    if (session?.user?.id) {
-      const connections = await prisma.connection.findMany({
+    const profile = member.profile
+    const isSelf = viewerId === member.id
+
+    let connectionRow: { fromUserId: string; toUserId: string; status: string } | null =
+      null
+    let viewerConnectionIds: string[] = []
+
+    if (viewerId && !isSelf) {
+      connectionRow = await prisma.connection.findFirst({
         where: {
           OR: [
-            { fromUserId: session.user.id, status: "accepted" },
-            { toUserId: session.user.id, status: "accepted" },
+            { fromUserId: viewerId, toUserId: member.id },
+            { fromUserId: member.id, toUserId: viewerId },
           ],
         },
-        select: {
-          fromUserId: true,
-          toUserId: true,
+        select: { fromUserId: true, toUserId: true, status: true },
+      })
+
+      const viewerConnections = await prisma.connection.findMany({
+        where: {
+          status: "accepted",
+          OR: [{ fromUserId: viewerId }, { toUserId: viewerId }],
         },
+        select: { fromUserId: true, toUserId: true },
       })
-      
-      connections.forEach((conn) => {
-        if (conn.fromUserId === session.user.id) {
-          userConnections.push(conn.toUserId)
-        } else {
-          userConnections.push(conn.fromUserId)
-        }
-      })
-      
-      isConnected = userConnections.includes(member.id)
+      viewerConnectionIds = viewerConnections.map((c) =>
+        c.fromUserId === viewerId ? c.toUserId : c.fromUserId
+      )
     }
 
-    // Get connection and follower counts
-    const [connectionCount, followerCount] = await Promise.all([
-      prisma.connection.count({
-        where: {
-          OR: [
-            { fromUserId: member.id, status: "accepted" },
-            { toUserId: member.id, status: "accepted" },
-          ],
-        },
-      }),
-      prisma.follow.count({
-        where: { followingId: member.id },
-      }),
-    ])
+    const connectionStatus = connectionStatusFor(viewerId, member.id, connectionRow)
+    const isConnected = connectionStatus === "connected"
 
-    // Get mutual connections
-    let mutualConnections: any[] = []
-    if (session?.user?.id && isConnected) {
-      const userConnectionsSet = new Set(userConnections)
-      const memberConnections = await prisma.connection.findMany({
+    let isFollowing = false
+    if (viewerId && !isSelf) {
+      const follow = await prisma.follow.findUnique({
         where: {
-          OR: [
-            { fromUserId: member.id, status: "accepted" },
-            { toUserId: member.id, status: "accepted" },
-          ],
-        },
-        select: {
-          fromUserId: true,
-          toUserId: true,
+          followerId_followingId: {
+            followerId: viewerId,
+            followingId: member.id,
+          },
         },
       })
-      
-      const memberConnectionsSet = new Set(
+      isFollowing = !!follow
+    }
+
+    const [connectionCount, followerCount, projects, eventRegistrations] =
+      await Promise.all([
+        prisma.connection.count({
+          where: {
+            status: "accepted",
+            OR: [{ fromUserId: member.id }, { toUserId: member.id }],
+          },
+        }),
+        prisma.follow.count({
+          where: { followingId: member.id },
+        }),
+        prisma.project.findMany({
+          where: {
+            founderId: member.id,
+            status: "approved",
+            deletedAt: null,
+          },
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            stage: true,
+            imageUrl: true,
+          },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+        }),
+        prisma.eventRegistration.findMany({
+          where: {
+            userId: member.id,
+            status: { not: "cancelled" },
+            event: { deletedAt: null },
+          },
+          select: {
+            event: {
+              select: {
+                id: true,
+                title: true,
+                startDate: true,
+                location: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        }),
+      ])
+
+    let mutualConnections: {
+      id: string
+      name: string
+      avatar: string | null
+      role: string | null
+    }[] = []
+
+    if (viewerId && !isSelf && viewerConnectionIds.length > 0) {
+      const memberConnections = await prisma.connection.findMany({
+        where: {
+          status: "accepted",
+          OR: [{ fromUserId: member.id }, { toUserId: member.id }],
+        },
+        select: { fromUserId: true, toUserId: true },
+      })
+      const memberConnectionIds = new Set(
         memberConnections.map((c) =>
           c.fromUserId === member.id ? c.toUserId : c.fromUserId
         )
       )
-      
-      const mutual = Array.from(userConnectionsSet).filter((id) =>
-        memberConnectionsSet.has(id)
+      const mutualIds = viewerConnectionIds.filter(
+        (uid) => uid !== member.id && memberConnectionIds.has(uid)
       )
-      
-      if (mutual.length > 0) {
+
+      if (mutualIds.length > 0) {
         const mutualUsers = await prisma.user.findMany({
-          where: { id: { in: mutual } },
+          where: { id: { in: mutualIds.slice(0, 8) } },
           select: {
             id: true,
             name: true,
             image: true,
+            profile: { select: { role: true } },
           },
         })
-        mutualConnections = mutualUsers
+        mutualConnections = mutualUsers.map((u) => ({
+          id: u.id,
+          name: u.name || "Member",
+          avatar: u.image,
+          role: u.profile?.role ?? null,
+        }))
       }
     }
 
-    // Format response
     const formattedMember = {
       id: member.id,
-      name: member.name || "Anonymous",
-      email: member.email,
+      name: member.name || "Community member",
+      email: isSelf || isConnected ? member.email : "",
       avatar: member.image || null,
-      bio: member.profile.bio || "",
-      fullBio: member.profile.bio || "",
-      skills: member.profile.skills || [],
-      location: member.profile.location || null,
-      industry: member.profile.industry || null,
-      role: member.profile.role || null,
-      experienceLevel: member.profile.experienceLevel || null,
-      availability: member.profile.availability || [],
-      interests: member.profile.interests || [],
+      bio: profile?.bio?.trim() || "",
+      fullBio: profile?.bio?.trim() || "",
+      skills: profile?.skills ?? [],
+      location: profile?.location ?? null,
+      industry: profile?.industry ?? null,
+      role: profile?.role ?? null,
+      experienceLevel: profile?.experienceLevel ?? null,
+      availability: profile?.availability ?? [],
+      interests: profile?.interests ?? [],
       connections: connectionCount,
       followers: followerCount,
-      projectsInvolved: [], // Can be added later with Project model
-      featured: member.profile.isFeatured || false,
+      projectsInvolved: projects.map((p) => p.id),
+      projects,
+      recentEvents: eventRegistrations
+        .map((r) => r.event)
+        .filter(Boolean)
+        .map((e) => ({
+          id: e.id,
+          title: e.title,
+          startDate: e.startDate.toISOString(),
+          location: e.location,
+        })),
+      featured: profile?.isFeatured ?? false,
       joinedDate: member.createdAt,
-      achievements: [], // Can be added later
-      experience: [], // Can be added later
-      education: [], // Can be added later
+      profileUpdatedAt: profile?.updatedAt?.toISOString() ?? null,
+      achievements: [],
+      experience: [],
+      education: [],
       isConnected,
+      connectionStatus,
+      isFollowing,
+      isSelf,
       mutualConnections,
     }
 
     return NextResponse.json({ member: formattedMember }, { headers: corsHeaders })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[COMMUNITY API] Error fetching member:", error)
+    const message = error instanceof Error ? error.message : "Unknown error"
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? String((error as { code: string }).code)
+        : ""
 
-    if (error?.code === "P1001" || error?.message?.includes("Can't reach database")) {
+    if (code === "P1001" || message.includes("Can't reach database")) {
       return NextResponse.json(
         {
           error: "Database connection failed",
@@ -178,10 +262,7 @@ export async function GET(
     }
 
     return NextResponse.json(
-      {
-        error: "Failed to fetch member",
-        details: error?.message || "Unknown error",
-      },
+      { error: "Failed to fetch member", details: message },
       { status: 500, headers: corsHeaders }
     )
   }
