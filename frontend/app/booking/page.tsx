@@ -18,7 +18,7 @@ import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
 import { Button } from "@/components/ui/button"
-import { MessageCircle, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 export default function BookingPage() {
   // Hooks
@@ -408,7 +408,7 @@ export default function BookingPage() {
                     {isValidBooking && (
                       <Button
                         size="lg"
-                        className="w-full button-press"
+                        className="w-full"
                         onClick={handleConfirmBooking}
                       >
                         Review & confirm
@@ -445,19 +445,15 @@ export default function BookingPage() {
           />
           )}
 
-          {/* WhatsApp Fallback - Mobile */}
-          <div className="lg:hidden fixed bottom-20 right-4 z-40">
-            <Button
-              size="icon"
-              className="rounded-full h-14 w-14 shadow-elevated bg-green-600 hover:bg-green-700"
-              onClick={() => {
-                window.open("https://wa.me/254700000000?text=Hi, I need help with booking", "_blank")
-              }}
-              aria-label="Chat on WhatsApp"
+          <p className="text-center text-xs text-muted-foreground lg:hidden pb-4">
+            Need help with booking?{" "}
+            <a
+              href="mailto:nairobi@impacthub.net?subject=Workspace%20booking%20support"
+              className="text-foreground underline underline-offset-2"
             >
-              <MessageCircle className="h-6 w-6" />
-            </Button>
-          </div>
+              Email the team
+            </a>
+          </p>
         </div>
         )}
       </div>

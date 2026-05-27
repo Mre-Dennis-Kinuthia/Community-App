@@ -134,7 +134,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
 
   if (events.length === 0) {
     return (
-      <Card className="border-border/50">
+      <Card className="border-border">
         <CardContent className="flex flex-col items-center justify-center py-16 text-center">
           <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
           <p className="text-lg font-medium text-muted-foreground">No events found</p>
@@ -154,7 +154,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
         // Past events grouped by month
         groupedByMonth.map((monthGroup, monthIndex) => (
           <div key={monthGroup.month} className="space-y-4">
-            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background/95 backdrop-blur-sm py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50">
+            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border">
               {monthGroup.month}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -177,7 +177,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
         // Upcoming events grouped by date
         groupedUpcomingByDate.map((dateGroup) => (
           <div key={dateGroup.label} className="space-y-4">
-            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background/95 backdrop-blur-sm py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50">
+            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border">
               {dateGroup.label}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

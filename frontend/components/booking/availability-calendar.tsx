@@ -67,7 +67,7 @@ export function AvailabilityCalendar({
         </div>
         
         {selectedDate && (
-          <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
+          <div className="p-3 rounded-lg bg-muted/30 border border-border">
             <p className="text-sm font-medium mb-1">Selected Date</p>
             <p className="text-sm text-muted-foreground">
               {format(selectedDate, "EEEE, MMM d, yyyy")}

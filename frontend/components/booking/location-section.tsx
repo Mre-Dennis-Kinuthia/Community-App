@@ -27,7 +27,7 @@ export function LocationSection({ workspace }: LocationSectionProps) {
         </div>
 
         {/* Map Placeholder */}
-        <div className="aspect-video rounded-lg bg-muted border border-border/50 flex items-center justify-center">
+        <div className="aspect-video rounded-lg bg-muted border border-border flex items-center justify-center">
           <div className="text-center">
             <MapPin className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">Map view</p>

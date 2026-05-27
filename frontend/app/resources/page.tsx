@@ -46,20 +46,20 @@ const resourceCategories: any[] = []
 
 const typeColors: Record<string, string> = {
   PDF: "bg-primary/10 text-primary",
-  DOCX: "bg-chart-2/20 text-chart-2",
-  Link: "bg-chart-3/20 text-chart-3",
-  Video: "bg-chart-5/20 text-chart-5",
+  DOCX: "bg-muted text-muted-foreground border border-border",
+  Link: "bg-muted text-muted-foreground border border-border",
+  Video: "bg-muted text-muted-foreground border border-border",
 }
 
 const programTypeColors: Record<string, string> = {
-  Mentorship: "bg-chart-2/20 text-chart-2",
-  Incubation: "bg-chart-3/20 text-chart-3",
+  Mentorship: "bg-muted text-muted-foreground border border-border",
+  Incubation: "bg-muted text-muted-foreground border border-border",
   Acceleration: "bg-primary/10 text-primary",
-  Fellowship: "bg-chart-5/20 text-chart-5",
+  Fellowship: "bg-muted text-muted-foreground border border-border",
 }
 
 const statusColors: Record<string, string> = {
-  "Open for Applications": "bg-chart-3/20 text-chart-3",
+  "Open for Applications": "bg-muted text-muted-foreground border border-border",
   "Applications Closed": "bg-muted text-muted-foreground",
   "Ongoing": "bg-primary/10 text-primary",
 }
@@ -221,7 +221,7 @@ function ResourcesPageContent() {
         </Tabs>
 
         {/* Search and Filters */}
-        <Card className="border-border/50 w-full overflow-x-hidden">
+        <Card className="border-border w-full overflow-x-hidden">
           <CardContent className="pt-4 w-full">
             <div className="space-y-3 w-full min-w-0">
               {/* Search */}
@@ -361,7 +361,7 @@ function ResourcesPageContent() {
           aria-hidden={activeTab !== "programs"}
         >
             {filteredPrograms.length === 0 ? (
-              <Card className="border-border/50 shadow-card">
+              <Card className="border-border ">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">
@@ -376,7 +376,7 @@ function ResourcesPageContent() {
               <div className="grid gap-6 md:grid-cols-2 w-full min-w-0">
                 {filteredPrograms.map((program) => (
                   <Link key={program.id} href={program.applicationLink}>
-                    <Card className="border-border/50 shadow-card transition-all hover:shadow-card  cursor-pointer">
+                    <Card className="border-border  transition-all hover:bg-muted/30  cursor-pointer">
                       <CardHeader>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 space-y-3">
@@ -399,7 +399,7 @@ function ResourcesPageContent() {
                             </CardDescription>
                           </div>
                           {program.thumbnail && (
-                            <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl border border-border/50">
+                            <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-border">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
                               <img
                                 src={program.thumbnail}
@@ -472,14 +472,14 @@ function ResourcesPageContent() {
           aria-hidden={activeTab !== "resources"}
         >
             {isLoadingResources ? (
-              <Card className="border-border/50 shadow-card">
+              <Card className="border-border ">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
                   <p className="text-muted-foreground text-center">Loading resources...</p>
                 </CardContent>
               </Card>
             ) : resourcesErrorMsg ? (
-              <Card className="border-border/50 shadow-card">
+              <Card className="border-border ">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">{resourcesErrorMsg}</p>
@@ -489,7 +489,7 @@ function ResourcesPageContent() {
                 </CardContent>
               </Card>
             ) : filteredResources.length === 0 ? (
-              <Card className="border-border/50 shadow-card">
+              <Card className="border-border ">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">
@@ -503,7 +503,7 @@ function ResourcesPageContent() {
             ) : (
               <div className="grid gap-6 md:grid-cols-3 w-full min-w-0">
                 {filteredResources.map((resource) => (
-                  <Card key={resource.id} className="flex flex-col border-border/50 shadow-card">
+                  <Card key={resource.id} className="flex flex-col border-border ">
                     <CardHeader>
                       <CardTitle className="text-lg">{resource.title}</CardTitle>
                       {resource.description && (
@@ -566,7 +566,7 @@ function ResourcesPageContent() {
               </div>
             )}
 
-            <Card className="bg-primary/5 border-border/50">
+            <Card className="bg-primary/5 border-border">
               <CardHeader>
                 <CardTitle>Can't find what you're looking for?</CardTitle>
                 <CardDescription>Suggest a resource or template for the community library.</CardDescription>

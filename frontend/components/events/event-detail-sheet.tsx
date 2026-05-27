@@ -7,6 +7,8 @@ import { Calendar, Clock, MapPin, Users, Video, Loader2, ExternalLink, Mail, Sha
 import { format, isToday, isTomorrow } from "date-fns"
 import { useState, useEffect, useRef } from "react"
 import { toast } from "@/lib/toast"
+import { badgeClassForLabel } from "@/lib/badge-styles"
+import { cn } from "@/lib/utils"
 
 interface EventDetailSheetProps {
   event: {
@@ -32,14 +34,6 @@ interface EventDetailSheetProps {
   onOpenChange: (open: boolean) => void
   onRegister?: (eventId: number) => void
   isRegistering?: boolean
-}
-
-const typeColors: Record<string, string> = {
-  Webinar: "bg-chart-2/20 text-chart-2",
-  Workshop: "bg-chart-3/20 text-chart-3",
-  Program: "bg-primary/10 text-primary",
-  Networking: "bg-chart-4/20 text-chart-4",
-  Hackathon: "bg-chart-5/20 text-chart-5",
 }
 
 export function EventDetailSheet({
@@ -143,7 +137,7 @@ export function EventDetailSheet({
 
         <SheetHeader className={event.thumbnail ? "pt-4" : ""}>
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            <Badge className={typeColors[event.type] || "bg-gray-100 text-gray-700"}>
+            <Badge className={cn(badgeClassForLabel(event.type), "border")}>
               {event.type}
             </Badge>
             <Badge variant="secondary" className="text-xs">{event.category}</Badge>
@@ -167,7 +161,7 @@ export function EventDetailSheet({
 
         <div className="mt-4 space-y-4">
           {/* Quick Info Grid */}
-          <div className="grid grid-cols-2 gap-3 rounded-lg border border-border/50 bg-muted/30 p-3">
+          <div className="grid grid-cols-2 gap-3 rounded-lg border border-border bg-muted/30 p-3">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
               <div className="min-w-0">
@@ -248,7 +242,7 @@ export function EventDetailSheet({
 
           {/* Registration Deadline */}
           {event.registrationDeadline && (
-            <div className="rounded-lg border border-border/50 bg-amber-50 dark:bg-amber-950/20 p-3">
+            <div className="rounded-lg border border-border bg-amber-50 dark:bg-amber-950/20 p-3">
               <p className="text-xs font-medium text-amber-900 dark:text-amber-200 mb-0.5">Registration Deadline</p>
               <p className="text-sm text-amber-700 dark:text-amber-300">
                 {format(event.registrationDeadline, "MMM d, yyyy 'at' h:mm a")}
@@ -262,7 +256,7 @@ export function EventDetailSheet({
               <Button
                 onClick={() => onRegister(event.id)}
                 disabled={isRegistering}
-                className="w-full button-press"
+                className="w-full"
                 size="lg"
               >
                 {isRegistering ? (

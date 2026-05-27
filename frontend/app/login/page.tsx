@@ -148,7 +148,7 @@ function LoginForm() {
 
       if (result?.ok) {
         console.log("[LOGIN FORM] Google sign in successful, redirecting to:", result?.url || redirect)
-        toast.success("Welcome!", "You've been successfully logged in with Google")
+        toast.success("Signed in", "You are now logged in with Google")
         startNavigation()
         router.push(result?.url || redirect)
       }
@@ -167,7 +167,7 @@ function LoginForm() {
       <Logo href="/" className="mb-6" />
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+          <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
           <CardDescription>Enter your credentials to access your Impact Hub account</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>

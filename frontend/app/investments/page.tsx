@@ -223,7 +223,7 @@ function InvestmentsPageContent() {
 
         {/* Metrics bar */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
                 Active opportunities
@@ -235,7 +235,7 @@ function InvestmentsPageContent() {
               </p>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
                 Total capital sought
@@ -254,7 +254,7 @@ function InvestmentsPageContent() {
               </p>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1">
                 <Shield className="h-3 w-3 text-primary" />
@@ -269,7 +269,7 @@ function InvestmentsPageContent() {
               </p>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-primary" />
@@ -404,7 +404,7 @@ function InvestmentsPageContent() {
 
         {/* Dealflow grid */}
         {isLoading ? (
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardContent className="flex flex-col items-center justify-center py-12 gap-3">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
@@ -413,7 +413,7 @@ function InvestmentsPageContent() {
             </CardContent>
           </Card>
         ) : error ? (
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardContent className="flex flex-col items-center justify-center py-12 gap-3">
               <BarChart3 className="h-6 w-6 text-muted-foreground" />
               <p className="text-sm text-muted-foreground text-center max-w-md">
@@ -425,7 +425,7 @@ function InvestmentsPageContent() {
             </CardContent>
           </Card>
         ) : filteredProjects.length === 0 ? (
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardContent className="flex flex-col items-center justify-center py-12 gap-3">
               <LineChart className="h-6 w-6 text-muted-foreground" />
               <p className="text-sm text-muted-foreground text-center max-w-md">
@@ -445,7 +445,7 @@ function InvestmentsPageContent() {
               const isInvestorsOnly = p.investmentVisibility === "investors_only"
               return (
                 <Link key={p.id} href={`/projects/${p.id}?mode=investment`}>
-                  <Card className="border-border/60 shadow-card hover:shadow-card-lg transition-all hover:border-primary/50 cursor-pointer h-full overflow-hidden">
+                  <Card className="border-border/60  hover:bg-muted/30-lg transition-all hover:border-primary/50 cursor-pointer h-full overflow-hidden">
                     {p.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden bg-muted">
                         {/* eslint-disable-next-line @next/next/no-img-element */}

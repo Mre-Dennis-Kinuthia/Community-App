@@ -46,7 +46,7 @@ export function ReviewsSection({ reviews, filter, onFilterChange }: ReviewsSecti
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className="p-4 rounded-lg border border-border/50 bg-muted/30"
+                className="p-4 rounded-lg border border-border bg-muted/30"
               >
                 <div className="flex items-start gap-3 mb-3">
                   <Avatar className="h-10 w-10">

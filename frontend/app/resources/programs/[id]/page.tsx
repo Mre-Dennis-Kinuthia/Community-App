@@ -228,14 +228,14 @@ const programOpportunities = [
 ]
 
 const programTypeColors: Record<string, string> = {
-  Mentorship: "bg-chart-2/20 text-chart-2",
-  Incubation: "bg-chart-3/20 text-chart-3",
+  Mentorship: "bg-muted text-muted-foreground border border-border",
+  Incubation: "bg-muted text-muted-foreground border border-border",
   Acceleration: "bg-primary/10 text-primary",
-  Fellowship: "bg-chart-5/20 text-chart-5",
+  Fellowship: "bg-muted text-muted-foreground border border-border",
 }
 
 const statusColors: Record<string, string> = {
-  "Open for Applications": "bg-chart-3/20 text-chart-3",
+  "Open for Applications": "bg-muted text-muted-foreground border border-border",
   "Applications Closed": "bg-muted text-muted-foreground",
   "Ongoing": "bg-primary/10 text-primary",
 }
@@ -287,7 +287,7 @@ export default function ProgramDetailPage({ params }: { params: Promise<{ id: st
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-border/50">
+            <Card className="border-border">
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
@@ -317,7 +317,7 @@ export default function ProgramDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                   </div>
                   {program.thumbnail && (
-                    <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden rounded-xl border border-border/50">
+                    <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden rounded-md border border-border">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={program.thumbnail}
@@ -411,7 +411,7 @@ export default function ProgramDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Apply Now</CardTitle>
               </CardHeader>
@@ -438,7 +438,7 @@ export default function ProgramDetailPage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-border">
               <CardHeader>
                 <CardTitle className="text-lg">Program Info</CardTitle>
               </CardHeader>

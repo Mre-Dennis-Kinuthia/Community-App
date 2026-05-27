@@ -38,7 +38,7 @@ export function AddOnSelector({ addOns, selectedAddOns, onToggle }: AddOnSelecto
               className={`cursor-pointer transition-all border-2 ${
                 isSelected
                   ? "border-primary bg-primary/5"
-                  : "border-border/50 hover:border-border"
+                  : "border-border hover:border-border"
               }`}
               onClick={() => onToggle(addOn.id)}
             >

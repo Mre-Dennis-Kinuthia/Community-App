@@ -22,6 +22,7 @@ import {
 import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { PageHeader } from "@/components/page-header"
 
 interface NewsTag {
   id: string
@@ -122,16 +123,13 @@ export default function NewsPage() {
     <DashboardLayout>
       <div className="min-h-[100svh] bg-background">
         {/* Medium-style Header */}
-        <div className="border-b border-border/50 bg-background/95 backdrop-blur">
+        <div className="border-b border-border bg-background">
           <div className="max-w-4xl mx-auto px-4 py-6 md:px-6 md:py-8">
-            <div className="space-y-3">
-              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-                News & Updates
-              </h1>
-              <p className="text-base md:text-lg text-muted-foreground">
-                Stories, announcements, and insights from Impact Hub Nairobi
-              </p>
-              
+            <PageHeader
+              title="News & updates"
+              description="Stories, announcements, and insights from Impact Hub Nairobi."
+            />
+
               {/* Search */}
               <div className="flex flex-col gap-2 max-w-md mt-4 sm:flex-row">
                 <div className="relative flex-1">
@@ -141,7 +139,7 @@ export default function NewsPage() {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && applySearch()}
-                    className="pl-9 pr-9 border-border/50 bg-background transition-colors duration-200 ease-out focus:ring-2 focus:ring-primary/20"
+                    className="pl-9 pr-9 border-border bg-background transition-colors duration-200 ease-out focus:ring-2 focus:ring-primary/20"
                   />
                   {hasActiveFilters && (
                     <button
@@ -191,7 +189,6 @@ export default function NewsPage() {
                   </Button>
                 </div>
               )}
-            </div>
           </div>
         </div>
 
@@ -237,7 +234,7 @@ export default function NewsPage() {
                 return (
                   <article
                     key={item.id}
-                    className={`group flex flex-col rounded-xl border border-border/50 bg-card overflow-hidden transition-all duration-200 ease-out hover:shadow-md hover:border-border ${
+                    className={`group flex flex-col rounded-md border border-border bg-card overflow-hidden transition-all duration-200 ease-out hover:shadow-md hover:border-border ${
                       item.isPinned ? "ring-2 ring-primary ring-offset-2" : ""
                     }`}
                   >
@@ -329,7 +326,7 @@ export default function NewsPage() {
                           </p>
                         )}
 
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-auto pt-3 border-t border-border/50">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-auto pt-3 border-t border-border">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3.5 w-3.5 shrink-0" />
                             <span>{format(displayDate, "MMM d, yyyy")}</span>

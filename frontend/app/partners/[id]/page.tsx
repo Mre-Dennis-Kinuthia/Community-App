@@ -43,25 +43,25 @@ const typeIcons: Record<string, any> = {
 }
 
 const typeColors: Record<string, string> = {
-  "Workspace Partner": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
-  "Investor": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Workspace Partner": "bg-muted text-muted-foreground border border-border",
+  "Investor": "bg-muted text-muted-foreground border border-border",
   "Partner": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Funder": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-  "Government": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Network": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "Funder": "bg-muted text-muted-foreground border border-border",
+  "Government": "bg-muted text-muted-foreground border border-border",
+  "Network": "bg-muted text-muted-foreground border border-border",
 }
 
 const categoryColors: Record<string, string> = {
   "Infrastructure": "bg-slate-100 text-slate-700 dark:bg-slate-900/20 dark:text-slate-400",
-  "Funding": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
-  "Ecosystem": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Public Sector": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
+  "Funding": "bg-muted text-muted-foreground border border-border",
+  "Ecosystem": "bg-muted text-muted-foreground border border-border",
+  "Public Sector": "bg-muted text-muted-foreground border border-border",
 }
 
 const opportunityCategoryColors: Record<string, string> = {
-  "Funding": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Funding": "bg-muted text-muted-foreground border border-border",
   "Program": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Resource": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
+  "Resource": "bg-muted text-muted-foreground border border-border",
 }
 
 export default function PartnerDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -139,7 +139,7 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-border/50">
+            <Card className="border-border">
               <CardHeader>
                 <div className="flex items-center gap-2 flex-wrap mb-4">
                   <Badge className={typeColors[partner.type]}>
@@ -241,7 +241,7 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
                     </h3>
                     <div className="space-y-3">
                       {partnerOpportunities.map((opp) => (
-                        <Card key={opp.id} className="border-border/50">
+                        <Card key={opp.id} className="border-border">
                           <CardHeader className="pb-3">
                             <div className="flex items-center gap-2 flex-wrap mb-2">
                               <Badge className={opportunityCategoryColors[opp.category]}>
@@ -302,7 +302,7 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Connect with Partner</CardTitle>
               </CardHeader>
@@ -338,7 +338,7 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
 
-            <Card className="border-border/50">
+            <Card className="border-border">
               <CardHeader>
                 <CardTitle className="text-lg">Partner Information</CardTitle>
               </CardHeader>

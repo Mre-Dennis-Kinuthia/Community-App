@@ -63,8 +63,8 @@ export function MeetingRoomSelector({
                 key={opt.capacity}
                 className={`cursor-pointer transition-all border-2 ${
                   isSelected
-                    ? "border-primary bg-primary/5 shadow-card"
-                    : "border-border/50 hover:border-border"
+                    ? "border-primary bg-primary/5 "
+                    : "border-border hover:border-border"
                 }`}
                 onClick={() => onCapacitySelect(opt.capacity)}
               >

@@ -36,7 +36,7 @@ export function AmenitiesGrid({ amenities, whoIsThisFor }: AmenitiesGridProps) {
           {amenities.map((amenity, i) => (
             <div
               key={i}
-              className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border/50 bg-muted/30"
+              className="flex flex-col items-center gap-2 p-4 rounded-lg border border-border bg-muted/30"
             >
               <div className="text-primary">
                 {iconMap[amenity.icon] || <Zap className="h-5 w-5" />}
@@ -50,7 +50,7 @@ export function AmenitiesGrid({ amenities, whoIsThisFor }: AmenitiesGridProps) {
         </div>
 
         {/* Who This Is For */}
-        <div className="pt-4 border-t border-border/50">
+        <div className="pt-4 border-t border-border">
           <h3 className="text-sm font-semibold mb-2">Who this space is for</h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
             {whoIsThisFor}

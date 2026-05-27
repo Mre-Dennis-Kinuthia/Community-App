@@ -15,7 +15,7 @@ export default async function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)",
+          background: "#fafafa",
           fontFamily: "system-ui, sans-serif",
         }}
       >
@@ -24,43 +24,35 @@ export default async function Image() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 120,
-            height: 120,
-            borderRadius: 24,
+            width: 96,
+            height: 96,
+            borderRadius: 8,
             background: "#A6192E",
-            marginBottom: 32,
+            marginBottom: 28,
           }}
         >
-          <span
-            style={{
-              fontSize: 72,
-              fontWeight: 700,
-              color: "white",
-            }}
-          >
-            I
-          </span>
+          <span style={{ fontSize: 56, fontWeight: 700, color: "white" }}>IH</span>
         </div>
         <div
           style={{
-            fontSize: 56,
+            fontSize: 52,
             fontWeight: 700,
-            color: "white",
+            color: "#171717",
             textAlign: "center",
-            marginBottom: 16,
+            marginBottom: 12,
           }}
         >
           Impact Hub Nairobi
         </div>
         <div
           style={{
-            fontSize: 28,
-            color: "rgba(255,255,255,0.8)",
+            fontSize: 26,
+            color: "#525252",
             textAlign: "center",
-            maxWidth: 800,
+            maxWidth: 720,
           }}
         >
-          Community Platform — Programs, resources & connections
+          Member platform — workspace, events, and community
         </div>
       </div>
     ),

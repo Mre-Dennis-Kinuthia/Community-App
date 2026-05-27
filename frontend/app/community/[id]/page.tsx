@@ -37,18 +37,18 @@ import { useCommunityMember } from "@/lib/hooks/use-community"
 import { Loader2, AlertCircle } from "lucide-react"
 
 const experienceColors: Record<string, string> = {
-  "Early Career": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "Early Career": "bg-muted text-muted-foreground border border-border",
   "Mid-Level": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Senior": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
-  "Expert": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Senior": "bg-muted text-muted-foreground border border-border",
+  "Expert": "bg-muted text-muted-foreground border border-border",
 }
 
 const availabilityColors: Record<string, string> = {
-  "Open to Collaboration": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Seeking Mentorship": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-  "Offering Mentorship": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
-  "Open to Partnerships": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
-  "Looking for Volunteers": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
+  "Open to Collaboration": "bg-muted text-muted-foreground border border-border",
+  "Seeking Mentorship": "bg-muted text-muted-foreground border border-border",
+  "Offering Mentorship": "bg-muted text-muted-foreground border border-border",
+  "Open to Partnerships": "bg-muted text-muted-foreground border border-border",
+  "Looking for Volunteers": "bg-muted text-muted-foreground border border-border",
 }
 
 export default function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -110,7 +110,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-border/50">
+            <Card className="border-border">
               <CardHeader>
                 <div className="flex items-start gap-4">
                   <Avatar className="h-24 w-24">
@@ -139,7 +139,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                     </div>
                     <CardTitle className="text-3xl">{member.name}</CardTitle>
                     {member.role && (
-                    <p className="text-lg font-medium text-primary">{member.role}</p>
+                    <p className="text-lg font-medium text-muted-foreground">{member.role}</p>
                     )}
                     {member.industry && (
                     <p className="text-sm text-muted-foreground">{member.industry}</p>
@@ -177,7 +177,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                       </h3>
                       <div className="space-y-4">
                         {member.experience.map((exp, idx) => (
-                          <div key={idx} className="p-4 rounded-lg border border-border/50">
+                          <div key={idx} className="p-4 rounded-lg border border-border">
                             <div className="flex items-start justify-between mb-2">
                               <div>
                                 <p className="font-medium">{exp.role}</p>
@@ -205,7 +205,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                       </h3>
                       <div className="space-y-3">
                         {member.education.map((edu, idx) => (
-                          <div key={idx} className="p-4 rounded-lg border border-border/50">
+                          <div key={idx} className="p-4 rounded-lg border border-border">
                             <div className="flex items-start justify-between mb-1">
                               <div>
                                 <p className="font-medium">{edu.degree}</p>
@@ -286,7 +286,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                       </h3>
                       <div className="space-y-2">
                         {member.achievements.map((achievement, idx) => (
-                          <div key={idx} className="flex items-center gap-2 p-3 rounded-lg border border-border/50">
+                          <div key={idx} className="flex items-center gap-2 p-3 rounded-lg border border-border">
                             <Award className="h-4 w-4 text-primary" />
                             <span className="text-sm">{achievement}</span>
                           </div>
@@ -311,7 +311,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                           // TODO: Fetch project name from API
                           return (
                             <Link key={projectId} href={`/projects/${projectId}`}>
-                              <div className="flex items-center gap-2 p-3 rounded-lg border border-border/50 hover:border-primary/50 transition-colors cursor-pointer">
+                              <div className="flex items-center gap-2 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors cursor-pointer">
                                 <Briefcase className="h-4 w-4 text-primary" />
                                 <span className="text-sm flex-1">Project {projectId}</span>
                                 <ExternalLink className="h-4 w-4 text-muted-foreground" />
@@ -329,7 +329,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Connect</CardTitle>
               </CardHeader>
@@ -360,7 +360,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Network Stats</CardTitle>
               </CardHeader>
@@ -381,7 +381,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
             </Card>
 
             {mutualConnections.length > 0 && (
-              <Card className="border-border/50 sticky top-6">
+              <Card className="border-border sticky top-6">
                 <CardHeader>
                   <CardTitle className="text-lg">Mutual Connections ({mutualConnections.length})</CardTitle>
                 </CardHeader>
@@ -404,7 +404,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
               </Card>
             )}
 
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Contact & Links</CardTitle>
               </CardHeader>
@@ -440,7 +440,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Profile Info</CardTitle>
               </CardHeader>

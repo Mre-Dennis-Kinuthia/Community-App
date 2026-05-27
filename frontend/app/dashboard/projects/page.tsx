@@ -161,7 +161,7 @@ export default function MyProjectsPage() {
         </div>
 
         {showForm ? (
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -183,7 +183,7 @@ export default function MyProjectsPage() {
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="e.g. Sustainable Energy Initiative"
                     required
-                    className="border-border/50"
+                    className="border-border"
                   />
                 </div>
                 <div className="space-y-2">
@@ -194,7 +194,7 @@ export default function MyProjectsPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Describe your project and goals..."
                     rows={4}
-                    className="border-border/50 resize-none"
+                    className="border-border resize-none"
                   />
                 </div>
                 <div className="space-y-2">
@@ -205,7 +205,7 @@ export default function MyProjectsPage() {
                     value={formData.imageUrl}
                     onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                     placeholder="https://example.com/your-project-image.jpg"
-                    className="border-border/50"
+                    className="border-border"
                   />
                   <p className="text-xs text-muted-foreground">Optional. Link to a cover image for your project.</p>
                 </div>
@@ -213,7 +213,7 @@ export default function MyProjectsPage() {
                   <div className="space-y-2">
                     <Label>Category</Label>
                     <Select value={formData.category || undefined} onValueChange={(v) => setFormData({ ...formData, category: v })}>
-                      <SelectTrigger className="border-border/50"><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectTrigger className="border-border"><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
                         {CATEGORIES.map((c) => (
                           <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -224,7 +224,7 @@ export default function MyProjectsPage() {
                   <div className="space-y-2">
                     <Label>Stage</Label>
                     <Select value={formData.stage || undefined} onValueChange={(v) => setFormData({ ...formData, stage: v })}>
-                      <SelectTrigger className="border-border/50"><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectTrigger className="border-border"><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
                         {STAGES.map((s) => (
                           <SelectItem key={s} value={s}>{s}</SelectItem>
@@ -241,7 +241,7 @@ export default function MyProjectsPage() {
                     onChange={(e) => setFormData({ ...formData, impact: e.target.value })}
                     placeholder="Social or environmental impact..."
                     rows={2}
-                    className="border-border/50 resize-none"
+                    className="border-border resize-none"
                   />
                 </div>
                 <div className="space-y-2">
@@ -251,7 +251,7 @@ export default function MyProjectsPage() {
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder="e.g. Nairobi, Kenya"
-                    className="border-border/50"
+                    className="border-border"
                   />
                 </div>
                 <div className="space-y-2">
@@ -275,7 +275,7 @@ export default function MyProjectsPage() {
                     value={formData.tags}
                     onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                     placeholder="e.g. sustainability, cleantech"
-                    className="border-border/50"
+                    className="border-border"
                   />
                 </div>
                 <div className="space-y-2">
@@ -286,7 +286,7 @@ export default function MyProjectsPage() {
                     value={formData.website}
                     onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                     placeholder="https://..."
-                    className="border-border/50"
+                    className="border-border"
                   />
                 </div>
                 <div className="flex gap-3 pt-2">
@@ -302,7 +302,7 @@ export default function MyProjectsPage() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardContent className="pt-6">
               {loading ? (
                 <div className="flex items-center justify-center py-12">

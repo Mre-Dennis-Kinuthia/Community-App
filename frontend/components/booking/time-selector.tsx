@@ -120,7 +120,7 @@ export function TimeSelector({
 
       {/* Full Day Message - no time selection needed */}
       {hideTimeSelector && (
-        <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+        <div className="p-4 rounded-lg bg-muted/30 border border-border">
           <p className="text-sm font-medium mb-1">Full Day Booking</p>
           <p className="text-xs text-muted-foreground">
             You've selected a full day booking. No specific time selection is needed.
@@ -147,7 +147,7 @@ export function TimeSelector({
                   variant={isSelected ? "default" : "outline"}
                   onClick={() => slot.available && onTimeSelect(slot.time)}
                   disabled={!slot.available}
-                  className="h-9 text-xs button-press"
+                  className="h-9 text-xs"
                 >
                   {isSelected && <CheckCircle2 className="mr-1 h-3 w-3" />}
                   {displayTime}

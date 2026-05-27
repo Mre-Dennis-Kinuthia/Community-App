@@ -220,7 +220,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
             )}
 
             {/* Meta Information */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-t border-b border-border/50 py-4">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-t border-b border-border py-4">
               {newsItem.author && (
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
@@ -309,7 +309,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* Article Footer */}
-          <footer className="mt-16 pt-8 border-t border-border/50">
+          <footer className="mt-16 pt-8 border-t border-border">
             <div className="flex items-center justify-between">
               <Button
                 variant="outline"
@@ -323,14 +323,14 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </footer>
 
           {/* Comments Section */}
-          <section className="mt-16 pt-8 border-t border-border/50">
+          <section className="mt-16 pt-8 border-t border-border">
             <h2 className="text-3xl font-bold mb-8 flex items-center gap-2" style={{ fontFamily: "Georgia, serif" }}>
               <MessageSquare className="h-6 w-6" />
               Comments {comments.length > 0 && `(${comments.length})`}
             </h2>
 
             {/* Comment Form */}
-            <div className="mb-12 p-6 border border-border/50 rounded-lg bg-background/50">
+            <div className="mb-12 p-6 border border-border rounded-lg bg-background/50">
               <h3 className="text-lg font-semibold mb-4">Leave a Comment</h3>
               <form
                 onSubmit={async (e) => {
@@ -391,7 +391,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
             ) : (
               <div className="space-y-8">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="border-b border-border/50 pb-6 last:border-0">
+                  <div key={comment.id} className="border-b border-border pb-6 last:border-0">
                     <div className="flex items-start gap-4">
                       <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <User className="h-5 w-5 text-primary" />

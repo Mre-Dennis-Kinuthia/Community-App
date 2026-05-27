@@ -86,8 +86,8 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
             key={resource.type}
             className={`cursor-pointer transition-all border-2 ${
               isSelected
-                ? "border-primary bg-primary/5 shadow-card"
-                : "border-border/50 hover:border-border hover:shadow-card"
+                ? "border-primary bg-primary/5 "
+                : "border-border hover:border-border hover:bg-muted/30"
             }`}
             onClick={() => onResourceSelect(resource.type)}
           >
@@ -104,7 +104,7 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
               <p className="text-xs text-muted-foreground mb-2">
                 {resource.description}
               </p>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                 <span className="text-xs text-muted-foreground">{resource.capacity}</span>
                 <span className="text-sm font-semibold text-primary">
                   {resource.type === "private-office"

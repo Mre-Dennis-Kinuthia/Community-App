@@ -63,7 +63,7 @@ export function PricingBreakdown({
       <CardContent className="space-y-4">
         {/* Base Price */}
         {showMeetingRoomBreakdown && (
-          <div className="flex flex-col gap-2 py-2 border-b border-border/50">
+          <div className="flex flex-col gap-2 py-2 border-b border-border">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Meeting Room ({meetingRoomCapacity} pax)</p>
@@ -78,7 +78,7 @@ export function PricingBreakdown({
           </div>
         )}
         {selectedOption && !isMeetingRoom && (
-          <div className="flex items-center justify-between py-2 border-b border-border/50">
+          <div className="flex items-center justify-between py-2 border-b border-border">
             <div>
               <p className="text-sm font-medium">{selectedOption.label}</p>
               <p className="text-xs text-muted-foreground">{resourceType}</p>
@@ -91,7 +91,7 @@ export function PricingBreakdown({
 
         {/* Estimate when no selection */}
         {showEstimate && estimateOption && (
-          <div className="flex items-center justify-between py-2 border-b border-border/50">
+          <div className="flex items-center justify-between py-2 border-b border-border">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Starting from</p>
               <p className="text-xs text-muted-foreground">{estimateOption.label}</p>
@@ -133,7 +133,7 @@ export function PricingBreakdown({
         )}
 
         {/* Total */}
-        <div className="flex items-center justify-between pt-4 border-t border-border/50">
+        <div className="flex items-center justify-between pt-4 border-t border-border">
           <p className="text-base font-semibold">
             {showEstimate ? "Estimate" : "Total"}
           </p>
@@ -143,7 +143,7 @@ export function PricingBreakdown({
         </div>
 
         {/* Info */}
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-border/50">
+        <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-border">
           <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
           <p className="text-xs text-muted-foreground">
             All prices include taxes. No hidden fees. Cancel anytime.

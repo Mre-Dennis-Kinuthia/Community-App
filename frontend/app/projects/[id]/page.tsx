@@ -53,21 +53,21 @@ const categoryColors: Record<string, string> = {
   "Agriculture": "bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   "Circular Economy": "bg-teal-100 text-teal-700 dark:bg-teal-900/20 dark:text-teal-400",
   "Healthcare": "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400",
-  "FinTech": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Water & Sanitation": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "FinTech": "bg-muted text-muted-foreground border border-border",
+  "Water & Sanitation": "bg-muted text-muted-foreground border border-border",
 }
 
 const stageColors: Record<string, string> = {
-  "Early Stage": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
+  "Early Stage": "bg-muted text-muted-foreground border border-border",
   "Growth": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Scaling": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Scaling": "bg-muted text-muted-foreground border border-border",
 }
 
 const needsColors: Record<string, string> = {
-  "Seeking Funding": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
-  "Seeking Collaborators": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Looking for Volunteers": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
-  "Open to Partnerships": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Seeking Funding": "bg-muted text-muted-foreground border border-border",
+  "Seeking Collaborators": "bg-muted text-muted-foreground border border-border",
+  "Looking for Volunteers": "bg-muted text-muted-foreground border border-border",
+  "Open to Partnerships": "bg-muted text-muted-foreground border border-border",
 }
 
 const needsIcons: Record<string, any> = {
@@ -283,7 +283,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card className="border-border/50 overflow-hidden">
+            <Card className="border-border overflow-hidden">
               {(project.imageUrl ?? null) && (
                 <div className="aspect-[21/9] w-full max-h-[320px] overflow-hidden bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -426,7 +426,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         {(project.team ?? []).map((member: any, idx: number) => (
                           <div
                             key={idx}
-                            className="flex items-center gap-3 p-3 rounded-lg border border-border/50"
+                            className="flex items-center gap-3 p-3 rounded-lg border border-border"
                           >
                             <Avatar className="h-10 w-10">
                               <AvatarImage src={member.avatar} alt={member.name} />
@@ -456,7 +456,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                               return (
                                 <div
                                   key={idx}
-                                  className="p-4 rounded-lg border border-border/50"
+                                  className="p-4 rounded-lg border border-border"
                                 >
                                   <div className="flex items-center gap-2 mb-2">
                                     <NeedIcon className="h-4 w-4 text-primary" />
@@ -587,7 +587,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                           <div className="grid gap-4 md:grid-cols-2">
                             {relatedProjects.map((related) => (
                               <Link key={related.id} href={`/projects/${related.id}`}>
-                                <Card className="border-border/50 hover:border-primary/50 transition-colors cursor-pointer">
+                                <Card className="border-border hover:border-primary/50 transition-colors cursor-pointer">
                                   <CardHeader className="pb-3">
                                     <div className="flex items-center gap-2 flex-wrap mb-2">
                                       <Badge
@@ -792,7 +792,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                       {group.map((doc) => (
                                         <div
                                           key={doc.id}
-                                          className="flex items-center justify-between text-sm rounded-md border border-border/50 px-3 py-2"
+                                          className="flex items-center justify-between text-sm rounded-md border border-border px-3 py-2"
                                         >
                                           <div className="flex items-center gap-2">
                                             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -853,7 +853,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Get Involved</CardTitle>
               </CardHeader>
@@ -897,7 +897,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Support Metrics</CardTitle>
               </CardHeader>
@@ -917,7 +917,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Contact & Links</CardTitle>
               </CardHeader>
@@ -965,7 +965,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
 
-            <Card className="border-border/50 sticky top-6">
+            <Card className="border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">Project Info</CardTitle>
               </CardHeader>

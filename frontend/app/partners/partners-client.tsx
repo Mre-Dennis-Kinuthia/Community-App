@@ -25,6 +25,7 @@ import {
   Loader2
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { PageHeader } from "@/components/page-header"
 import Link from "next/link"
 
 const typeIcons: Record<string, any> = {
@@ -37,19 +38,19 @@ const typeIcons: Record<string, any> = {
 }
 
 const typeColors: Record<string, string> = {
-  "Workspace Partner": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
-  "Investor": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Workspace Partner": "bg-muted text-muted-foreground border border-border",
+  "Investor": "bg-muted text-muted-foreground border border-border",
   "Partner": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Funder": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-  "Government": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Network": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "Funder": "bg-muted text-muted-foreground border border-border",
+  "Government": "bg-muted text-muted-foreground border border-border",
+  "Network": "bg-muted text-muted-foreground border border-border",
 }
 
 const categoryColors: Record<string, string> = {
-  "Infrastructure": "bg-slate-100 text-slate-700 dark:bg-slate-900/20 dark:text-slate-400",
-  "Funding": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
-  "Ecosystem": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Public Sector": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
+  "Infrastructure": "bg-muted text-muted-foreground border border-border",
+  "Funding": "bg-muted text-muted-foreground border border-border",
+  "Ecosystem": "bg-muted text-muted-foreground border border-border",
+  "Public Sector": "bg-muted text-muted-foreground border border-border",
 }
 
 export default function PartnersPageClient() {
@@ -134,16 +135,14 @@ export default function PartnersPageClient() {
     <DashboardLayout>
       <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Partners & Network" }]} />
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">Partners & Network</h1>
-          <p className="text-muted-foreground text-base">
-            Connect with investors, partners, and organizations supporting social innovation in Kenya and beyond.
-          </p>
-        </div>
+        <PageHeader
+          title="Partners & network"
+          description="Connect with investors, partners, and organizations supporting social innovation in Kenya and beyond."
+        />
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
+          <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Partners</CardTitle>
             </CardHeader>
@@ -151,7 +150,7 @@ export default function PartnersPageClient() {
               <div className="text-2xl font-semibold">{partnersData.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
+          <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Investors</CardTitle>
             </CardHeader>
@@ -161,7 +160,7 @@ export default function PartnersPageClient() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
+          <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Active Opportunities</CardTitle>
             </CardHeader>
@@ -171,7 +170,7 @@ export default function PartnersPageClient() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
+          <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Member Connections</CardTitle>
             </CardHeader>
@@ -248,14 +247,14 @@ export default function PartnersPageClient() {
 
             {/* Partners Grid */}
             {isLoadingPartners ? (
-              <Card className="border-border/50 shadow-card">
+              <Card className="border-border ">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
                   <p className="text-muted-foreground text-center">Loading partners...</p>
                 </CardContent>
               </Card>
             ) : partnersErrorMsg ? (
-              <Card className="border-border/50 shadow-card">
+              <Card className="border-border ">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">{partnersErrorMsg}</p>
@@ -265,7 +264,7 @@ export default function PartnersPageClient() {
                 </CardContent>
               </Card>
             ) : filteredPartners.length === 0 ? (
-              <Card className="border-border/50 shadow-card">
+              <Card className="border-border ">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">
@@ -282,7 +281,7 @@ export default function PartnersPageClient() {
                   const TypeIcon = typeIcons[partner.type] || Building2
                   return (
                     <Link key={partner.id} href={`/partners/${partner.id}`}>
-                      <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full">
+                      <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/50 cursor-pointer h-full">
                         <CardHeader>
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 space-y-2">

@@ -37,21 +37,21 @@ const categoryColors: Record<string, string> = {
   "Agriculture": "bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400",
   "Circular Economy": "bg-teal-100 text-teal-700 dark:bg-teal-900/20 dark:text-teal-400",
   "Healthcare": "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400",
-  "FinTech": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Water & Sanitation": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
+  "FinTech": "bg-muted text-muted-foreground border border-border",
+  "Water & Sanitation": "bg-muted text-muted-foreground border border-border",
 }
 
 const stageColors: Record<string, string> = {
-  "Early Stage": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
+  "Early Stage": "bg-muted text-muted-foreground border border-border",
   "Growth": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Scaling": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Scaling": "bg-muted text-muted-foreground border border-border",
 }
 
 const needsColors: Record<string, string> = {
-  "Seeking Funding": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
-  "Seeking Collaborators": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-  "Looking for Volunteers": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
-  "Open to Partnerships": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
+  "Seeking Funding": "bg-muted text-muted-foreground border border-border",
+  "Seeking Collaborators": "bg-muted text-muted-foreground border border-border",
+  "Looking for Volunteers": "bg-muted text-muted-foreground border border-border",
+  "Open to Partnerships": "bg-muted text-muted-foreground border border-border",
 }
 
 const needsIcons: Record<string, any> = {
@@ -203,7 +203,7 @@ function ProjectsPageContent() {
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
+          <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Projects</CardTitle>
             </CardHeader>
@@ -211,7 +211,7 @@ function ProjectsPageContent() {
               <div className="text-2xl font-semibold">{projectsData.length}</div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
+          <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Featured</CardTitle>
             </CardHeader>
@@ -221,7 +221,7 @@ function ProjectsPageContent() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
+          <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Seeking Support</CardTitle>
             </CardHeader>
@@ -231,7 +231,7 @@ function ProjectsPageContent() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card ">
+          <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Followers</CardTitle>
             </CardHeader>
@@ -253,7 +253,7 @@ function ProjectsPageContent() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {featuredProjects.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`}>
-                  <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full ring-2 ring-primary/20 overflow-hidden`}>
+                  <Card className={`border-border  transition-all hover:bg-muted/30 hover:border-primary/50 cursor-pointer h-full ring-2 ring-primary/20 overflow-hidden`}>
                     {(project.imageUrl ?? null) && (
                       <div className="aspect-video w-full overflow-hidden bg-muted">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -429,14 +429,14 @@ function ProjectsPageContent() {
 
         {/* Projects Grid */}
         {isLoadingProjects ? (
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
               <p className="text-muted-foreground text-center">Loading projects...</p>
             </CardContent>
           </Card>
         ) : projectsErrorMsg ? (
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground text-center font-medium mb-1">
@@ -455,7 +455,7 @@ function ProjectsPageContent() {
             </CardContent>
           </Card>
         ) : filteredAndSortedProjects.length === 0 ? (
-          <Card className="border-border/50 shadow-card">
+          <Card className="border-border ">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
               <p className="text-muted-foreground text-center">
@@ -476,7 +476,7 @@ function ProjectsPageContent() {
             <div className="grid gap-6 md:grid-cols-2">
               {filteredAndSortedProjects.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`}>
-                  <Card className={`border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/50 cursor-pointer h-full overflow-hidden ${
+                  <Card className={`border-border  transition-all hover:bg-muted/30 hover:border-primary/50 cursor-pointer h-full overflow-hidden ${
                     project.isFeatured ? "ring-2 ring-primary/20" : ""
                   }`}>
                     {(project.imageUrl ?? null) && (

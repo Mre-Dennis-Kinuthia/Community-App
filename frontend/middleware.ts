@@ -68,7 +68,9 @@ export default auth((request) => {
   }
 
   if (isDeactivatedRoute(pathname)) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+    const url = new URL("/dashboard", request.url)
+    url.searchParams.set("notice", "feature-unavailable")
+    return NextResponse.redirect(url)
   }
 
   return NextResponse.next()

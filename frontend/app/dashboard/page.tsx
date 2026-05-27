@@ -15,8 +15,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { WelcomeModal } from "@/components/welcome-modal"
-import { Celebration } from "@/components/celebration"
 import { useSession } from "@/lib/use-session"
+import { toast } from "@/lib/toast"
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -113,6 +113,18 @@ export default function DashboardPage() {
     setGreeting(getGreeting())
   }, [])
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("notice") === "feature-unavailable") {
+      toast.info(
+        "Section unavailable",
+        "That area is not open on the platform yet. Use the menu for available features."
+      )
+      window.history.replaceState({}, "", "/dashboard")
+    }
+  }, [])
+
   // Format booking display
   const formatBookingDisplay = (booking: Booking) => {
     const date = new Date(booking.date)
@@ -144,24 +156,7 @@ export default function DashboardPage() {
   return (
     <TooltipProvider>
       <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
-      <Celebration />
-      <div className="relative min-h-[85vh] -mx-4 -my-8 md:-mx-8 px-4 py-8 md:px-8 bg-background">
-        {/* Background image – fixed height aligned with top stat cards */}
-        <div className="pointer-events-none absolute top-0 left-0 right-0 h-[405px] rounded-lg overflow-hidden" aria-hidden>
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.36] dark:opacity-[0.22]"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&q=90')`,
-            }}
-          />
-          <div
-            className="absolute inset-0 rounded-lg"
-            style={{
-              background: "linear-gradient(180deg, transparent 0%, hsl(var(--background) / 0.25) 50%, hsl(var(--background) / 0.88) 85%, hsl(var(--background)) 100%)",
-            }}
-          />
-        </div>
-        <div className="relative z-10 space-y-10">
+      <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Dashboard" }]} />
         <div className="flex items-center justify-between">
           <div className="space-y-2">
@@ -170,7 +165,7 @@ export default function DashboardPage() {
               Welcome back to Impact Hub Nairobi. Continue building your impact.
             </p>
           </div>
-          <Button asChild className="shadow-sm">
+          <Button asChild>
             <Link href="/booking">
               <Plus className="mr-2 h-4 w-4" />
               Book Workspace
@@ -180,16 +175,16 @@ export default function DashboardPage() {
 
         {/* Getting Started Card for New Users */}
         {showGettingStarted && (
-          <Card className="border-primary/20 bg-primary/5">
+          <Card className="border border-border bg-muted/40">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
+                  <div className="rounded-md bg-primary/10 p-2">
                     <Sparkles className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle>Getting Started</CardTitle>
-                    <CardDescription>Welcome to Impact Hub Nairobi! Here's how to get the most out of the platform.</CardDescription>
+                    <CardDescription>Three steps to get started on the member platform.</CardDescription>
                   </div>
                 </div>
                 <Button
@@ -206,7 +201,7 @@ export default function DashboardPage() {
             <CardContent>
               <div className="grid gap-4 md:grid-cols-3">
                 <Link href="/booking" className="group">
-                  <div className="rounded-lg border p-4 transition-all hover:border-primary/50 hover:bg-accent/50">
+                  <div className="rounded-md border border-border p-4 transition-colors hover:bg-muted/50">
                     <div className="mb-2 flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-primary" />
                       <span className="font-medium">Book Your First Workspace</span>
@@ -215,7 +210,7 @@ export default function DashboardPage() {
                   </div>
                 </Link>
                 <Link href="/community" className="group">
-                  <div className="rounded-lg border p-4 transition-all hover:border-primary/50 hover:bg-accent/50">
+                  <div className="rounded-md border border-border p-4 transition-colors hover:bg-muted/50">
                     <div className="mb-2 flex items-center gap-2">
                       <Users2 className="h-4 w-4 text-primary" />
                       <span className="font-medium">Explore the Community</span>
@@ -224,7 +219,7 @@ export default function DashboardPage() {
                   </div>
                 </Link>
                 <Link href="/events" className="group">
-                  <div className="rounded-lg border p-4 transition-all hover:border-primary/50 hover:bg-accent/50">
+                  <div className="rounded-md border border-border p-4 transition-colors hover:bg-muted/50">
                     <div className="mb-2 flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary" />
                       <span className="font-medium">Join an Event</span>
@@ -239,7 +234,7 @@ export default function DashboardPage() {
 
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           <Card 
-            className="cursor-pointer transition-all hover:shadow-card  border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            className="cursor-pointer transition-colors hover:bg-muted/30 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/profile"}
             role="button"
             tabIndex={0}
@@ -271,7 +266,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <Card 
-            className="cursor-pointer transition-all hover:shadow-card border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            className="cursor-pointer transition-colors hover:bg-muted/30 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/events"}
             role="button"
             tabIndex={0}
@@ -301,7 +296,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <Card 
-            className="cursor-pointer transition-all hover:shadow-card  border-border/50 focus-within:ring-2 focus-within:ring-ring" 
+            className="cursor-pointer transition-colors hover:bg-muted/30 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/community"}
             role="button"
             tabIndex={0}
@@ -415,7 +410,7 @@ export default function DashboardPage() {
                     return (
                       <Link key={event.id} href={`/events/${event.id}`} className="block">
                         <div className="flex gap-4 hover:opacity-80 transition-opacity duration-150">
-                          <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-primary">
                             <CalendarDays className="h-5 w-5" />
                           </div>
                           <div className="space-y-1 flex-1">
@@ -441,7 +436,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-        </div>
       </div>
     </TooltipProvider>
   )

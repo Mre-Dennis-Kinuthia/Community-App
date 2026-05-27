@@ -17,8 +17,8 @@ export function LandingPartnerLogo({ partner, className }: LandingPartnerLogoPro
   const content = (
     <div
       className={cn(
-        "group flex h-24 flex-col items-center justify-center gap-2 rounded-xl border border-border/40 bg-card/50 px-4 py-5 transition-all",
-        "hover:border-border/70 hover:bg-card hover:shadow-sm",
+        "group flex h-24 flex-col items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-5 transition-colors",
+        "hover:border-foreground/20",
         className
       )}
     >
@@ -50,7 +50,7 @@ export function LandingPartnerLogo({ partner, className }: LandingPartnerLogoPro
         href={partner.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
         aria-label={`${partner.name} (opens in new tab)`}
       >
         {content}

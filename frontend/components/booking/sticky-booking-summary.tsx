@@ -42,7 +42,7 @@ export function StickyBookingSummary({
       {/* Desktop: Right Side Sticky */}
       <div className="hidden lg:block">
         <div className="sticky top-24">
-          <Card className="border border-border/50 shadow-card">
+          <Card className="border border-border ">
             <CardContent className="p-6 space-y-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">Booking Summary</h3>
@@ -95,7 +95,7 @@ export function StickyBookingSummary({
                 )}
               </div>
 
-              <div className="pt-4 border-t border-border/50">
+              <div className="pt-4 border-t border-border">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-base font-semibold">Total</span>
                   <span className="text-2xl font-bold text-primary">
@@ -103,7 +103,7 @@ export function StickyBookingSummary({
                   </span>
                 </div>
                 <Button
-                  className="w-full button-press"
+                  className="w-full"
                   size="lg"
                   onClick={onConfirm}
                   disabled={isBooking}
@@ -124,7 +124,7 @@ export function StickyBookingSummary({
       </div>
 
       {/* Mobile: Bottom Sticky Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-elevated pb-[env(safe-area-inset-bottom)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background border-t border-border shadow-sm pb-[env(safe-area-inset-bottom)]">
         <div className="container px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
@@ -139,7 +139,7 @@ export function StickyBookingSummary({
               size="lg"
               onClick={onConfirm}
               disabled={isBooking}
-              className="button-press flex-shrink-0"
+              className=" flex-shrink-0"
             >
               {isBooking ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

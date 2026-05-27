@@ -48,7 +48,7 @@ export function BookingHeader({ workspace, onBookNow, onCheckAvailability }: Boo
         <Button 
           size="lg" 
           onClick={onBookNow}
-          className="flex-1 sm:flex-initial sm:min-w-[160px] button-press"
+          className="flex-1 sm:flex-initial sm:min-w-[160px]"
         >
           Book Now
         </Button>

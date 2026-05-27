@@ -92,7 +92,7 @@ export function ImageGallery({ images, spaceName }: ImageGalleryProps) {
                 className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
                   selectedIndex === index
                     ? "border-primary"
-                    : "border-border/50 hover:border-border"
+                    : "border-border hover:border-border"
                 }`}
               >
                 {image ? (

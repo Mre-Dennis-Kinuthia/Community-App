@@ -168,9 +168,9 @@ export function DashboardNav() {
                         <Link
                           href={item.href}
                           className={cn(
-                            "relative flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
+                            "relative flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
                             isActive
-                              ? "bg-primary/15 text-primary shadow-sm"
+                              ? "bg-primary/10 text-primary"
                               : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                           )}
                         >
@@ -222,8 +222,8 @@ export function DashboardNav() {
             <button
               onClick={() => toggleGroup(group.title)}
               className={cn(
-                "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-[11px] font-semibold uppercase tracking-wider transition-colors duration-200 ease-out hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                hasActiveItem ? "text-foreground/90" : "text-muted-foreground/80"
+                "flex w-full items-center justify-between rounded-sm px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                hasActiveItem && "text-foreground"
               )}
             >
               <span>{group.title}</span>
@@ -241,7 +241,7 @@ export function DashboardNav() {
               )}
             >
               <div className="overflow-hidden">
-                <div className="mt-1 space-y-0.5 border-l border-border/50 pl-2 ml-1">
+                <div className="mt-1 space-y-0.5 border-l border-border pl-2 ml-1">
                   {group.items.map((item) => {
                     const Icon = item.icon
                     const isActive = isItemActive(item.href)
@@ -250,9 +250,9 @@ export function DashboardNav() {
                         key={item.href}
                         href={item.href}
                         className={cn(
-                          "group relative flex min-h-10 items-center justify-between rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
+                          "group relative flex min-h-9 items-center justify-between rounded-sm px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
                           isActive
-                            ? "border-l-2 border-primary -ml-[3px] bg-primary/10 pl-[13px] text-primary"
+                            ? "bg-sidebar-accent text-foreground before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-primary"
                             : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                         )}
                       >

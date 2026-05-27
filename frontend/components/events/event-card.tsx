@@ -7,6 +7,8 @@ import { Users, Video, MapPin, Clock, Calendar, Loader2, Share2, Facebook, Twitt
 import { format, isToday, isTomorrow } from "date-fns"
 import { useState, useEffect, useRef } from "react"
 import { toast } from "@/lib/toast"
+import { badgeClassForLabel, badgePrimary, badgeNeutral, badgeDestructive } from "@/lib/badge-styles"
+import { cn } from "@/lib/utils"
 
 interface EventCardProps {
   event: {
@@ -31,28 +33,12 @@ interface EventCardProps {
   activeTab: "upcoming" | "past"
 }
 
-const typeColors: Record<string, string> = {
-  Webinar: "bg-chart-2/20 text-chart-2",
-  Workshop: "bg-chart-3/20 text-chart-3",
-  Program: "bg-primary/10 text-primary",
-  Networking: "bg-chart-4/20 text-chart-4",
-  Hackathon: "bg-chart-5/20 text-chart-5",
-}
-
 const statusColors: Record<string, string> = {
-  Open: "bg-primary/10 text-primary border-primary/20",
-  Registered: "bg-chart-3/20 text-chart-3 border-chart-3/30",
-  Invited: "bg-chart-2/20 text-chart-2 border-chart-2/30",
-  Attended: "bg-muted text-muted-foreground border-border",
-  Full: "bg-destructive/10 text-destructive border-destructive/20",
-}
-
-const statusBorderHoverColors: Record<string, string> = {
-  Open: "hover:border-primary",
-  Registered: "hover:border-green-500",
-  Invited: "hover:border-blue-500",
-  Attended: "hover:border-gray-500",
-  Full: "hover:border-red-500",
+  Open: badgePrimary,
+  Registered: badgeNeutral,
+  Invited: badgeNeutral,
+  Attended: badgeNeutral,
+  Full: badgeDestructive,
 }
 
 export function EventCard({ event, onClick, onRegister, isRegistering = false, activeTab }: EventCardProps) {
@@ -94,8 +80,6 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
 
   const canRegister = activeTab === "upcoming" && event.status === "Open" && event.capacity && (event.registered || 0) < event.capacity
   const isFull = event.capacity && event.registered && event.registered >= event.capacity
-  const hoverBorderColor = statusBorderHoverColors[event.status] || "hover:border-primary"
-
   const eventUrl = typeof window !== "undefined" ? `${window.location.origin}/events/${event.id}` : ""
   const shareText = `Check out this event: ${event.title}`
 
@@ -136,7 +120,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
   return (
     <Card
       onClick={onClick}
-      className={`relative flex cursor-pointer flex-col gap-4 border-border/50 p-[1.15rem] transition-colors rounded-lg md:flex-row md:items-stretch ${hoverBorderColor}`}
+      className="relative flex cursor-pointer flex-col gap-4 border-border p-[1.15rem] transition-colors rounded-lg md:flex-row md:items-stretch hover:border-foreground/20"
     >
       {/* Thumbnail (if available) */}
       {event.thumbnail && (
@@ -157,12 +141,12 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 flex-col">
             <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <Badge className={`${typeColors[event.type] || "bg-gray-100 text-gray-700"} text-xs`}>
+              <Badge className={cn(badgeClassForLabel(event.type), "text-xs")}>
                 {event.type}
               </Badge>
               <Badge
                 variant="secondary"
-                className={`${statusColors[event.status] || "bg-primary/10 text-primary border-primary/20"} text-xs`}
+                className={cn(statusColors[event.status] || badgePrimary, "text-xs border")}
               >
                 {event.status}
               </Badge>
@@ -225,7 +209,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
                   onRegister(event.id)
                 }}
                 disabled={isRegistering}
-                className="button-press"
+                className=""
               >
                 {isRegistering ? (
                   <>
@@ -238,7 +222,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
               </Button>
             )}
             {event.status === "Registered" && (
-              <Badge variant="secondary" className="bg-green-100 text-green-700">
+              <Badge variant="secondary" className={cn(badgePrimary, "border")}>
                 ✓ Registered
               </Badge>
             )}

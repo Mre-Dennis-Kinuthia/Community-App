@@ -5,10 +5,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/lib/toast"
-import { getInitials } from "@/lib/utils"
 import {
   Calendar,
   Users,
@@ -16,10 +14,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Building2,
-  Zap,
   TrendingUp,
-  Star,
-  Quote,
   ChevronDown,
   Mail,
   MapPin,
@@ -31,27 +26,18 @@ import {
   Globe,
   Menu,
   X,
-  Leaf,
-  Recycle,
-  CloudSun,
-  BatteryCharging,
-  Monitor,
-  Heart,
   Briefcase,
   Lightbulb,
-  Handshake,
-  Target,
 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { LandingPartnerLogo, type LandingPartner } from "@/components/landing-partner-logo"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 
 const NAV_LINKS = [
-  { href: "#services", label: "What We Do" },
-  { href: "#programs", label: "Programs" },
+  { href: "#services", label: "What we do" },
   { href: "#membership", label: "Membership" },
-  { href: "#impact", label: "Impact" },
-  { href: "https://nairobi.impacthub.net/", label: "About Us", external: true },
+  { href: "#faq", label: "FAQ" },
+  { href: "https://nairobi.impacthub.net/", label: "About IHN", external: true },
 ] as const
 
 const IMPACT_STATS = [
@@ -100,39 +86,6 @@ const SERVICES = [
   },
 ]
 
-const THEMATIC_AREAS = [
-  {
-    title: "Agriculture",
-    description: "Climate-smart practices, market access, and resilient food systems for farmers and agri-innovators.",
-    icon: Leaf,
-  },
-  {
-    title: "Circular Economy",
-    description: "Designing and scaling business models that reduce waste and unlock new value chains.",
-    icon: Recycle,
-  },
-  {
-    title: "Climate Action",
-    description: "Piloting solutions and convening ecosystems that accelerate measurable climate innovation.",
-    icon: CloudSun,
-  },
-  {
-    title: "E-Mobility",
-    description: "Accelerating the transition to electric mobility with green jobs and sustainable transportation.",
-    icon: BatteryCharging,
-  },
-  {
-    title: "Digitization",
-    description: "Equipping ventures with tools and technology to digitize operations and unlock growth.",
-    icon: Monitor,
-  },
-  {
-    title: "Gender Equity",
-    description: "Championing women-led enterprises with tailored resources, networks, and mentorship.",
-    icon: Heart,
-  },
-]
-
 const MEMBERSHIP_TIERS = [
   {
     name: "Community",
@@ -178,48 +131,6 @@ const MEMBERSHIP_TIERS = [
     ],
     cta: "Contact Us",
     popular: false,
-  },
-]
-
-const PROGRAMS = [
-  {
-    name: "Inclusive Climate Entrepreneurship",
-    tag: "Climate",
-    description: "Flagship climate venture support delivering training, mentorship, and market linkages to 30+ entrepreneurs per cohort.",
-  },
-  {
-    name: "AI for Sustainable Agriculture",
-    tag: "AI & AgriTech",
-    description: "Nairobi's largest community-led AI initiative — connecting innovators with real-world climate and agriculture challenges.",
-  },
-  {
-    name: "Circular Economy Program",
-    tag: "Circularity",
-    description: "Advancing circularity in Kenya's food ecosystem through design-thinking, piloting, and value chain innovation.",
-  },
-]
-
-const TESTIMONIALS = [
-  {
-    name: "Sarah Kimani",
-    role: "Founder, GreenTech Solutions",
-    quote:
-      "Impact Hub Nairobi connected me with mentors and investors who believed in my vision. The community support is incredible.",
-    rating: 5,
-  },
-  {
-    name: "David Ochieng",
-    role: "Social Entrepreneur",
-    quote:
-      "The programs and resources here have been game-changing. I've scaled my impact from 100 to 5,000 beneficiaries.",
-    rating: 4,
-  },
-  {
-    name: "Grace Wanjiru",
-    role: "Impact Investor",
-    quote:
-      "As an investor, I've found some of my best deals through the Impact Hub network. The quality of entrepreneurs here is outstanding.",
-    rating: 5,
   },
 ]
 
@@ -281,7 +192,7 @@ interface AccordionItemProps {
 
 function AccordionItem({ question, answer, isOpen, onToggle }: AccordionItemProps) {
   return (
-    <div className="border-b border-border/50">
+    <div className="border-b border-border">
       <button
         onClick={onToggle}
         className="w-full py-4 flex items-center justify-between text-left group"
@@ -353,7 +264,7 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 overflow-x-hidden border-b border-border/30 glass">
+      <header className="sticky top-0 z-50 overflow-x-hidden border-b border-border/30 surface-header">
         <div className="container flex h-16 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
           <Logo href="/" />
 
@@ -389,7 +300,7 @@ export default function HomePage() {
         </div>
 
         {mobileNavOpen && (
-          <div className="md:hidden border-t border-border/30 bg-background/95 backdrop-blur-sm">
+          <div className="md:hidden border-t border-border/30 bg-background">
             <nav className="container px-4 py-4 flex flex-col gap-1">
               {NAV_LINKS.map((link) => (
                 <NavLink
@@ -412,142 +323,71 @@ export default function HomePage() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-background">
-        <div className="absolute inset-0 bg-background">
-          <div
-            className="absolute inset-0 motion-gradient"
-            style={{
-              background: `radial-gradient(
-                ellipse 120% 120% at 50% 50%,
-                oklch(0.38 0.18 10 / 0.08) 0%,
-                oklch(0.50 0.15 200 / 0.06) 30%,
-                oklch(1 0 0) 50%,
-                oklch(0.55 0.15 150 / 0.06) 70%,
-                oklch(0.38 0.18 10 / 0.08) 100%
-              )`,
-              backgroundSize: "300% 300%",
-            }}
-          />
-          <div
-            className="absolute inset-0 motion-gradient-float"
-            style={{
-              background: `radial-gradient(
-                ellipse 100% 100% at 20% 30%,
-                oklch(0.38 0.18 10 / 0.06) 0%,
-                transparent 50%
-              ),
-              radial-gradient(
-                ellipse 100% 100% at 80% 70%,
-                oklch(0.50 0.15 200 / 0.05) 0%,
-                transparent 50%
-              ),
-              radial-gradient(
-                ellipse 80% 80% at 50% 50%,
-                oklch(0.55 0.15 150 / 0.04) 0%,
-                transparent 60%
-              )`,
-              backgroundSize: "200% 200%",
-              mixBlendMode: "multiply",
-              opacity: 0.6,
-            }}
-          />
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: `
-                linear-gradient(oklch(0.15 0 0) 1px, transparent 1px),
-                linear-gradient(90deg, oklch(0.15 0 0) 1px, transparent 1px)
-              `,
-              backgroundSize: "60px 60px",
-            }}
-          />
-          <div
-            className="absolute inset-0 opacity-28 motion-gradient-pulse"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle 300px at 15% 25%, oklch(0.55 0.20 250 / 0.10) 0%, transparent 100%),
-                radial-gradient(circle 250px at 85% 75%, oklch(0.60 0.18 150 / 0.10) 0%, transparent 100%),
-                radial-gradient(circle 200px at 50% 50%, oklch(0.65 0.15 300 / 0.08) 0%, transparent 100%)
-              `,
-            }}
-          />
-        </div>
-
-        <div className="container relative px-4 py-24 md:py-40 z-10">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center space-y-10 pt-12 animate-in fade-in duration-700">
-              <div className="space-y-6">
-                <Badge variant="outline" className="px-3 py-1 text-xs">
-                  <Zap className="h-3 w-3 mr-1.5" />
-                  Part of the Global Impact Hub Network
-                </Badge>
-                <h1 className="text-5xl md:text-7xl font-semibold tracking-tight leading-tight">
-                  Scaling Sustainable
-                  <br />
-                  <span className="text-primary">Innovation in Kenya</span>
-                </h1>
-                <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  We build thriving ecosystems for impact-driven innovators — delivering programs, advisory,
-                  community, and resources that create pathways to sustainable growth.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>24,000+ Entrepreneurs Globally</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>100+ Hubs Worldwide</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
-                  <span>Free to Join</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-                <Link href="/register">
-                  <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground button-press">
-                    Join the Community <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button size="lg" variant="outline" className="text-base px-8 py-6 button-press">
-                    Already a member? Login
-                  </Button>
-                </Link>
-              </div>
-
-              <p className="text-sm text-foreground/60 pt-2">
-                Kenya&apos;s launchpad for sustainable innovation · Where ventures scale and communities thrive
-              </p>
+      <section className="hero-wash border-b border-border">
+        <div className="container px-4 py-16 md:py-24">
+          <div className="mx-auto max-w-3xl">
+            <p className="section-label mb-4">Impact Hub Nairobi · Member platform</p>
+            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+              Scaling sustainable innovation in Kenya
+            </h1>
+            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+              Connect with changemakers, book workspace, join events, and access the programs that
+              support impact-driven ventures.
+            </p>
+            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                24,000+ entrepreneurs globally
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                100+ hubs worldwide
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                Free to join
+              </li>
+            </ul>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link href="/register">
+                <Button size="lg">
+                  Join the community
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button size="lg" variant="outline">
+                  Sign in
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
       {/* Impact Stats Banner */}
-      <section className="bg-primary/5 border-y border-border/30 py-12">
+      <section className="border-b border-border bg-muted/30 py-10">
         <div className="container px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto text-center">
             {IMPACT_STATS.map((stat) => (
               <div key={stat.label} className="space-y-1">
-                <p className="text-3xl md:text-4xl font-bold text-primary">{stat.value}</p>
+                <p className="text-2xl font-semibold tabular-nums text-foreground md:text-3xl">{stat.value}</p>
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
               </div>
             ))}
           </div>
+          <p className="mt-6 text-center text-xs text-muted-foreground max-w-2xl mx-auto">
+            Network-wide figures from Impact Hub Global. Nairobi-specific metrics are shared in programs and annual reporting.
+          </p>
         </div>
       </section>
 
       {/* Services */}
-      <section id="services" className="container px-4 py-20 md:py-32">
+      <section id="services" className="container px-4 py-16 md:py-24">
         <div className="text-center space-y-4 mb-16">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">What We Do</p>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Building Pathways to <span className="text-primary">Impact at Scale</span>
+          <p className="section-label">What We Do</p>
+          <h2 className="section-title">
+            Building pathways to impact at scale
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             A unique blend of services connecting and enabling changemakers to collaborate, learn,
@@ -558,7 +398,7 @@ export default function HomePage() {
           {SERVICES.map((service) => {
             const Icon = service.icon
             return (
-              <Card key={service.title} className="border border-border/50 shadow-card bg-card hover:shadow-elevated transition-all group">
+              <Card key={service.title} className="surface-card transition-colors hover:border-foreground/20 group">
                 <CardHeader>
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-primary/10 rounded-lg p-2.5 group-hover:bg-primary/15 transition-colors">
@@ -576,48 +416,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Thematic Focus Areas */}
-      <section className="bg-muted/30 py-20 md:py-32">
-        <div className="container px-4">
-          <div className="text-center space-y-4 mb-16">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Focus Areas</p>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Six Themes Driving <span className="text-primary">Change</span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Our programs and events are organized around the challenges that matter most to Kenya and beyond.
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {THEMATIC_AREAS.map((area) => {
-              const Icon = area.icon
-              return (
-                <div
-                  key={area.title}
-                  className="p-6 rounded-xl border border-border/50 bg-card hover:shadow-card transition-all group"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="bg-primary/10 rounded-lg p-3 group-hover:bg-primary/15 transition-colors shrink-0">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <h3 className="font-semibold text-base">{area.title}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{area.description}</p>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* Membership Tiers */}
-      <section id="membership" className="container px-4 py-20 md:py-32">
+      <section id="membership" className="container px-4 py-16 md:py-24">
         <div className="text-center space-y-4 mb-16">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Membership</p>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Choose Your <span className="text-primary">Path</span>
+          <p className="section-label">Membership</p>
+          <h2 className="section-title">
+            Choose your membership
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Whether you&apos;re just getting started or ready to scale — there&apos;s a tier designed for you.
@@ -627,8 +431,8 @@ export default function HomePage() {
           {MEMBERSHIP_TIERS.map((tier) => (
             <Card
               key={tier.name}
-              className={`border shadow-card bg-card relative ${
-                tier.popular ? "border-primary shadow-elevated scale-[1.02]" : "border-border/50"
+              className={`border  bg-card relative ${
+                tier.popular ? "border-primary ring-1 ring-primary/20" : "border-border"
               }`}
             >
               {tier.popular && (
@@ -639,9 +443,9 @@ export default function HomePage() {
                 </div>
               )}
               <CardHeader className="text-center pb-4">
-                <CardTitle className="text-xl font-bold">{tier.name}</CardTitle>
+                <CardTitle className="text-xl font-semibold">{tier.name}</CardTitle>
                 <div className="pt-2">
-                  <span className="text-3xl font-bold">{tier.price}</span>
+                  <span className="text-3xl font-semibold">{tier.price}</span>
                   {tier.period && <span className="text-muted-foreground text-sm">{tier.period}</span>}
                 </div>
                 <CardDescription className="pt-2">{tier.description}</CardDescription>
@@ -669,130 +473,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Programs */}
-      <section id="programs" className="bg-accent/30 py-20 md:py-32">
-        <div className="container px-4">
-          <div className="text-center space-y-4 mb-16">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Flagship Programs</p>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Where Innovation <span className="text-primary">Takes Shape</span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Structured support that moves ventures from promise to proof — across climate, agriculture, AI, and circularity.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {PROGRAMS.map((program) => (
-              <Card key={program.name} className="border border-border/50 shadow-card bg-card hover:shadow-elevated transition-all">
-                <CardHeader>
-                  <Badge variant="secondary" className="w-fit mb-2 text-xs">{program.tag}</Badge>
-                  <CardTitle className="text-lg font-semibold">{program.name}</CardTitle>
-                  <CardDescription className="leading-relaxed">{program.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Link href="/events">
-              <Button variant="outline" size="lg">
-                Explore All Programs & Events <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Impact Results */}
-      <section id="impact" className="container px-4 py-20 md:py-32">
-        <div className="text-center space-y-4 mb-16">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Our Impact</p>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Results That <span className="text-primary">Speak</span>
-          </h2>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-          <div className="text-center p-6 rounded-xl border border-border/50 bg-card">
-            <p className="text-3xl font-bold text-foreground">2,500+</p>
-            <p className="text-sm text-muted-foreground mt-1">Participants Engaged</p>
-          </div>
-          <div className="text-center p-6 rounded-xl border border-border/50 bg-card">
-            <p className="text-3xl font-bold text-foreground">1,460</p>
-            <p className="text-sm text-muted-foreground mt-1">New Ventures Created</p>
-          </div>
-          <div className="text-center p-6 rounded-xl border border-border/50 bg-card">
-            <p className="text-3xl font-bold text-foreground">4,000+</p>
-            <p className="text-sm text-muted-foreground mt-1">Jobs Generated</p>
-          </div>
-          <div className="text-center p-6 rounded-xl border border-border/50 bg-card">
-            <p className="text-3xl font-bold text-foreground">4.8/5</p>
-            <p className="text-sm text-muted-foreground mt-1">Average Satisfaction Score</p>
-          </div>
-        </div>
-        <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto mt-8">
-          <div className="text-center p-5 rounded-xl bg-muted/50">
-            <p className="text-xl font-semibold">85%</p>
-            <p className="text-xs text-muted-foreground mt-1">Members Collaborate with Peers</p>
-          </div>
-          <div className="text-center p-5 rounded-xl bg-muted/50">
-            <p className="text-xl font-semibold">50%</p>
-            <p className="text-xs text-muted-foreground mt-1">Achieved Double-Digit Revenue Growth</p>
-          </div>
-          <div className="text-center p-5 rounded-xl bg-muted/50">
-            <p className="text-xl font-semibold">400K+</p>
-            <p className="text-xs text-muted-foreground mt-1">Hours of Peer Support</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="bg-muted/30 py-20 md:py-32">
-        <div className="container px-4">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-              Voices from the <span className="text-primary">Community</span>
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Hear from the changemakers building impact through our ecosystem
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {TESTIMONIALS.map((testimonial, index) => (
-              <Card key={index} className="border border-border/50 shadow-card bg-card hover:shadow-elevated transition-all">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-4 w-4 ${
-                          i < testimonial.rating ? "fill-primary text-primary" : "text-muted-foreground/20"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <Quote className="h-8 w-8 text-muted-foreground/30 mb-4" />
-                  <p className="text-muted-foreground mb-6 leading-relaxed italic">&ldquo;{testimonial.quote}&rdquo;</p>
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>{getInitials(testimonial.name)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold text-sm">{testimonial.name}</p>
-                      <p className="text-xs text-muted-foreground">{testimonial.role}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Partners */}
       <section className="container px-4 py-16 md:py-24">
         <div className="text-center space-y-4 mb-12">
-          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Our Ecosystem</p>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-            Strategic <span className="text-primary">Partners</span>
+          <p className="section-label">Our Ecosystem</p>
+          <h2 className="section-title">
+            Strategic partners
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Collaborating with organizations across sectors to build entrepreneurial communities for impact at scale.
@@ -813,39 +499,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Collaboration CTA */}
-      <section className="bg-primary/5 py-16 md:py-20">
-        <div className="container px-4">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <Handshake className="h-10 w-10 text-primary mx-auto" />
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Partner With Us
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Co-host events, sponsor programs, co-design initiatives, or explore strategic partnerships
-              that align with your mission and amplify your reach.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-              <Link href="/partners">
-                <Button size="lg" className="bg-primary text-primary-foreground">
-                  Explore Partnerships <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <a href="mailto:nairobi@impacthub.net">
-                <Button size="lg" variant="outline">
-                  Get In Touch
-                </Button>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
-      <section id="faq" className="container px-4 py-20 md:py-32">
+      <section id="faq" className="container px-4 py-16 md:py-24">
         <div className="text-center space-y-4 mb-16">
-          <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-            Frequently Asked <span className="text-primary">Questions</span>
+          <h2 className="section-title">
+            Frequently asked questions
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Everything you need to know about joining and engaging with Impact Hub Nairobi
@@ -866,7 +524,7 @@ export default function HomePage() {
 
       {/* Newsletter */}
       <section className="container px-4 py-16 md:py-24">
-        <Card className="border border-border/50 shadow-card bg-card max-w-2xl mx-auto">
+        <Card className="border border-border  bg-card max-w-2xl mx-auto">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl md:text-3xl font-semibold">Stay in the Loop</CardTitle>
             <CardDescription className="text-base">
@@ -886,7 +544,7 @@ export default function HomePage() {
               />
               <Button
                 type="submit"
-                className="bg-primary text-primary-foreground button-press"
+                className="bg-primary text-primary-foreground "
                 disabled={newsletterLoading}
               >
                 {newsletterLoading ? "Subscribing…" : "Subscribe"}
@@ -899,10 +557,10 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 md:py-32 bg-muted/30">
+      <section className="py-16 md:py-24 bg-muted/30">
         <div className="container px-4 text-center space-y-8">
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Ready to Build Something <span className="text-primary">Meaningful</span>?
+          <h2 className="section-title">
+            Ready to get started?
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Join a community where business and profit are used to serve people and the planet —
@@ -916,13 +574,13 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/register">
-              <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground button-press">
+              <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground ">
                 Join the Community
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Link href="/login">
-              <Button size="lg" variant="outline" className="text-base px-8 py-6 button-press">
+              <Button size="lg" variant="outline" className="text-base px-8 py-6 ">
                 Login
               </Button>
             </Link>
@@ -945,7 +603,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 bg-muted/30 py-12">
+      <footer className="border-t border-border bg-muted/30 py-12">
         <div className="container px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="space-y-4">
@@ -1021,7 +679,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="border-t border-border/50 pt-8">
+          <div className="border-t border-border pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
               <p>&copy; 2026 Impact Hub Nairobi. All rights reserved.</p>
               <div className="flex gap-6">

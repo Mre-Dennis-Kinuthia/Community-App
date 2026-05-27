@@ -29,6 +29,8 @@ import {
   AlertCircle
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { PageHeader } from "@/components/page-header"
+import { badgeClassForLabel } from "@/lib/badge-styles"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import {
   Select,
@@ -163,37 +165,20 @@ function CommunityPageContent() {
     searchQuery.length > 0,
   ].filter(Boolean).length
 
-  const experienceColors: Record<string, string> = {
-    "Early Career": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-    "Mid-Level": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-    "Senior": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
-    "Expert": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
-  }
-
-  const availabilityColors: Record<string, string> = {
-    "Open to Collaboration": "bg-chart-2/20 text-chart-2 dark:bg-chart-2/20 dark:text-chart-2/80",
-    "Seeking Mentorship": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-    "Offering Mentorship": "bg-chart-3/20 text-chart-3 dark:bg-chart-3/20 dark:text-chart-3/80",
-    "Open to Partnerships": "bg-chart-5/20 text-chart-5 dark:bg-chart-5/20 dark:text-chart-5/80",
-    "Looking for Volunteers": "bg-chart-4/20 text-chart-4 dark:bg-chart-4/20 dark:text-chart-4/80",
-  }
+  const badgeFor = (label: string) => badgeClassForLabel(label)
 
   return (
     <DashboardLayout>
       <div className="space-y-10">
         <Breadcrumbs items={[{ label: "Community" }]} />
-        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight">Innovation Community</h1>
-            <p className="text-muted-foreground text-base">
-              Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions.
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Community directory"
+          description="Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions."
+        />
 
         {/* Stats */}
         <div className="grid gap-3 md:grid-cols-4">
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/40">
+          <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
             <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Members
@@ -218,7 +203,7 @@ function CommunityPageContent() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/40">
+          <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
             <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Featured Members
@@ -237,7 +222,7 @@ function CommunityPageContent() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/40">
+          <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
             <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 My Connections
@@ -256,7 +241,7 @@ function CommunityPageContent() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/50 shadow-card transition-all hover:shadow-card hover:border-primary/40">
+          <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
             <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Connections
@@ -293,7 +278,7 @@ function CommunityPageContent() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {featuredMembers.map((member) => (
                     <Link key={member.id} href={`/community/${member.id}`}>
-                      <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 ring-2 ring-primary/20 h-full">
+                      <Card className="flex flex-col cursor-pointer transition-all hover:bg-muted/30 hover:border-primary/50 border-border ring-2 ring-primary/20 h-full">
                         <CardHeader className="text-center">
                           <div className="flex justify-center mb-2">
                             <Badge className="bg-primary/10 text-primary border-primary/20">
@@ -307,7 +292,7 @@ function CommunityPageContent() {
                             </Avatar>
                           <div className="space-y-1 mt-3">
                             <CardTitle className="text-lg">{member.name}</CardTitle>
-                            <p className="text-sm font-medium text-primary">{member.role}</p>
+                            <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
                             <p className="text-xs text-muted-foreground">{member.industry}</p>
                           </div>
                         </CardHeader>
@@ -339,7 +324,7 @@ function CommunityPageContent() {
                           {(member.availability ?? []).length > 0 && (
                             <div className="flex flex-wrap justify-center gap-1">
                               {(member.availability ?? []).slice(0, 1).map((avail, idx) => (
-                                <Badge key={idx} className={`${availabilityColors[avail]} text-[9px]`} variant="outline">
+                                <Badge key={idx} className={`${badgeFor(avail)} text-[9px]`} variant="outline">
                                   {avail}
                                 </Badge>
                               ))}
@@ -492,7 +477,7 @@ function CommunityPageContent() {
                     const isConnected = myConnections.includes(member.id)
                     return (
                       <Link key={member.id} href={`/community/${member.id}`}>
-                        <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 h-full">
+                        <Card className="flex flex-col cursor-pointer transition-all hover:bg-muted/30 hover:border-primary/50 border-border h-full">
                           <CardHeader className="text-center">
                             {member.featured && (
                               <div className="flex justify-center mb-2">
@@ -509,7 +494,7 @@ function CommunityPageContent() {
                           <div className="space-y-1 mt-3">
                             <CardTitle className="text-lg">{member.name || "Anonymous"}</CardTitle>
                             {member.role && (
-                              <p className="text-sm font-medium text-primary">{member.role}</p>
+                              <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
                             )}
                             {member.industry && (
                               <p className="text-xs text-muted-foreground">{member.industry}</p>
@@ -536,7 +521,7 @@ function CommunityPageContent() {
                               )}
                             </div>
                             {member.experienceLevel && (
-                            <Badge className={`${experienceColors[member.experienceLevel]} text-xs`} variant="outline">
+                            <Badge className={`${badgeFor(member.experienceLevel)} text-xs`} variant="outline">
                               {member.experienceLevel}
                             </Badge>
                             )}
@@ -557,7 +542,7 @@ function CommunityPageContent() {
                             {(member.availability ?? []).length > 0 && (
                               <div className="flex flex-wrap justify-center gap-1">
                                 {(member.availability ?? []).slice(0, 1).map((avail, idx) => (
-                                  <Badge key={idx} className={`${availabilityColors[avail]} text-[9px]`} variant="outline">
+                                  <Badge key={idx} className={`${badgeFor(avail)} text-[9px]`} variant="outline">
                                     {avail}
                                   </Badge>
                                 ))}
@@ -683,7 +668,7 @@ function CommunityPageContent() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {filteredAndSortedMembers.map((member) => (
                   <Link key={member.id} href={`/community/${member.id}`}>
-                    <Card className="flex flex-col cursor-pointer transition-all hover:shadow-card hover:border-primary/50 border-border/50 h-full">
+                    <Card className="flex flex-col cursor-pointer transition-all hover:bg-muted/30 hover:border-primary/50 border-border h-full">
                       <CardHeader className="text-center">
                             <Avatar className="mx-auto h-20 w-20">
                               <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name || "Member"} />
@@ -692,7 +677,7 @@ function CommunityPageContent() {
                           <div className="space-y-1 mt-3">
                             <CardTitle className="text-lg">{member.name || "Anonymous"}</CardTitle>
                             {member.role && (
-                              <p className="text-sm font-medium text-primary">{member.role}</p>
+                              <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
                             )}
                             {member.industry && (
                               <p className="text-xs text-muted-foreground">{member.industry}</p>

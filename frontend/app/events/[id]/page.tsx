@@ -252,7 +252,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       </div>
       {/* Mobile sticky CTA */}
       {!loading && event && !isPastEvent && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-elevated pb-[env(safe-area-inset-bottom)] md:hidden">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background border-t border-border shadow-sm pb-[env(safe-area-inset-bottom)] md:hidden">
           <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs text-muted-foreground">

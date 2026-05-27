@@ -337,7 +337,7 @@ export default function EventsPage() {
           </div>
 
           {/* Search and Filters */}
-          <Card className="border-border/50">
+          <Card className="border-border">
             <CardContent className="pt-4">
               <div className="space-y-3">
                 {/* Search */}
