@@ -43,6 +43,7 @@ import {
   Target,
 } from "lucide-react"
 import { Logo } from "@/components/logo"
+import { LandingPartnerLogo, type LandingPartner } from "@/components/landing-partner-logo"
 
 const NAV_LINKS = [
   { href: "#services", label: "What We Do" },
@@ -221,15 +222,15 @@ const TESTIMONIALS = [
   },
 ]
 
-const PARTNERS = [
-  "Digital Africa",
-  "Ikigai",
-  "Stichting DOEN",
-  "ILRI",
-  "CGIAR",
-  "Amani Institute",
-  "SNDBX Capital",
-  "Circular Innovation Hub",
+const PARTNERS: LandingPartner[] = [
+  { name: "Digital Africa", logo: "/partners/digital-africa.svg", href: "https://digitalafrica.co" },
+  { name: "Ikigai", logo: "/partners/ikigai.svg", href: "https://ikigai.co.ke" },
+  { name: "Stichting DOEN", logo: "/partners/doen.svg", href: "https://www.doen.nl" },
+  { name: "ILRI", logo: "/partners/ilri.svg", href: "https://www.ilri.org" },
+  { name: "CGIAR", logo: "/partners/cgiar.svg", href: "https://www.cgiar.org" },
+  { name: "Amani Institute", logo: "/partners/amani-institute.svg", href: "https://www.amaninstitute.org" },
+  { name: "SNDBX Capital", logo: "/partners/sndbx-capital.svg", href: "https://sndbx.capital" },
+  { name: "Circular Innovation Hub", logo: "/partners/circular-innovation-hub.svg" },
 ]
 
 const FAQS = [
@@ -796,20 +797,17 @@ export default function HomePage() {
             Collaborating with organizations across sectors to build entrepreneurial communities for impact at scale.
           </p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-5 max-w-4xl mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
           {PARTNERS.map((partner) => (
-            <div
-              key={partner}
-              className="px-5 py-3 rounded-lg bg-card border border-border/40 hover:border-primary/40 hover:bg-background transition-colors"
-            >
-              <span className="text-sm font-medium text-muted-foreground">{partner}</span>
-            </div>
+            <LandingPartnerLogo key={partner.name} partner={partner} />
           ))}
+        </div>
+        <div className="text-center mt-8">
           <Link
             href="/partners"
-            className="px-5 py-3 rounded-lg bg-primary/5 border border-primary/20 hover:bg-primary/10 transition-colors"
+            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80 transition-opacity"
           >
-            <span className="text-sm font-medium text-primary">View All Partners →</span>
+            View all partners <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
