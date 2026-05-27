@@ -7,12 +7,8 @@ import { cn } from "@/lib/utils"
 import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2, FolderOpen, BarChart3 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useSidebar } from "@/components/sidebar-context"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { SidebarNavTooltip } from "@/components/sidebar-nav-tooltip"
 import { isNavHrefEnabled } from "@/lib/feature-flags"
 
 interface NavItem {
@@ -148,52 +144,51 @@ export function DashboardNav() {
   // Collapsed view - show only icons
   if (isCollapsed) {
     return (
-      <TooltipProvider>
-        <nav className="grid items-start gap-2 py-5 px-2">
+      <TooltipProvider delayDuration={200} skipDelayDuration={80}>
+        <nav className="flex flex-col items-center gap-1 py-5 px-1.5">
           {visibleNavGroups.map((group, groupIndex) => {
             return (
               <div
                 key={group.title}
                 className={cn(
-                  "space-y-0.5",
-                  groupIndex === visibleNavGroups.length - 1 ? "pb-0" : "pb-4 mb-1 border-b border-border/40"
+                  "flex w-full flex-col items-center gap-0.5",
+                  groupIndex === visibleNavGroups.length - 1 ? "pb-0" : "pb-3 mb-1 border-b border-border/40"
                 )}
               >
                 {group.items.map((item) => {
                   const Icon = item.icon
                   const isActive = isItemActive(item.href)
                   return (
-                    <Tooltip key={item.href} delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <Link
-                          href={item.href}
+                    <SidebarNavTooltip
+                      key={item.href}
+                      label={item.title}
+                      group={group.title}
+                    >
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "relative flex h-10 w-10 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                        )}
+                      >
+                        {isActive && (
+                          <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full bg-primary" />
+                        )}
+                        <Icon
                           className={cn(
-                            "relative flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer",
-                            isActive
-                              ? "bg-primary/10 text-primary"
-                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                            "h-5 w-5 shrink-0",
+                            isActive ? "text-primary" : "text-muted-foreground"
                           )}
-                        >
-                          {isActive && (
-                            <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r-full bg-primary transition-opacity duration-200 ease-out" />
-                          )}
-                          <Icon
-                            className={cn(
-                              "h-5 w-5 shrink-0 transition-colors duration-200 ease-out",
-                              isActive ? "text-primary" : "text-muted-foreground"
-                            )}
-                          />
-                          {item.badge && (
-                            <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
-                              {item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="ml-2 font-medium">
-                        {item.title}
-                      </TooltipContent>
-                    </Tooltip>
+                        />
+                        {item.badge ? (
+                          <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-0.5 text-[10px] font-medium text-primary-foreground">
+                            {item.badge}
+                          </span>
+                        ) : null}
+                      </Link>
+                    </SidebarNavTooltip>
                   )
                 })}
               </div>

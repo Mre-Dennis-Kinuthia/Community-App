@@ -106,9 +106,9 @@ function DashboardLayoutContent({
   }
 
   return (
-    <div className="flex min-h-[100svh] flex-col overflow-hidden">
-      <header className="surface-header sticky top-0 z-40 overflow-x-hidden flex-shrink-0">
-        <div className="container flex h-16 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-background">
+      <header className="surface-header z-50 flex h-16 shrink-0 overflow-x-hidden border-b border-border">
+        <div className="container flex h-full min-w-0 items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex min-w-0 shrink items-center gap-4">
             <MobileNav />
             <Logo href="/dashboard" />
@@ -166,12 +166,12 @@ function DashboardLayoutContent({
           </div>
         </div>
       </header>
-      <div className="flex flex-1 relative min-h-0">
+      <div className="flex min-h-0 flex-1">
         <aside
           className={cn(
-            "hidden fixed left-0 top-16 bottom-0 flex-col border-r border-border bg-sidebar md:flex z-30 overflow-y-auto scrollbar-thin",
+            "relative hidden shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar md:flex",
             "transition-[width] duration-300 ease-out",
-            isCollapsed ? "w-[64px]" : "w-64 min-w-64"
+            isCollapsed ? "w-16" : "w-64 min-w-64"
           )}
         >
           <Button
@@ -190,15 +190,13 @@ function DashboardLayoutContent({
               <ChevronLeft className="h-4 w-4 transition-transform duration-200 ease-out" />
             )}
           </Button>
-          <DashboardNav />
+          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
+            <DashboardNav />
+          </div>
         </aside>
         <main
           id="main-content"
-          className={cn(
-            "flex w-full flex-1 flex-col overflow-y-auto py-8 px-4 md:px-8 pb-20 md:pb-8 container min-h-0",
-            "transition-[margin-left] duration-300 ease-out will-change-[margin-left]",
-            isCollapsed ? "md:ml-[64px]" : "md:ml-64"
-          )}
+          className="container flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto px-4 py-8 pb-20 md:px-8 md:pb-8"
         >
           {children}
         </main>

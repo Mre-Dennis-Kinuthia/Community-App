@@ -8,6 +8,7 @@ const TooltipProvider = TooltipPrimitive.Provider
 const Tooltip = TooltipPrimitive.Root
 const TooltipTrigger = TooltipPrimitive.Trigger
 const TooltipContent = TooltipPrimitive.Content
+const TooltipArrow = TooltipPrimitive.Arrow
 
 const TooltipComponent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
@@ -25,5 +26,12 @@ const TooltipComponent = React.forwardRef<
 ))
 TooltipComponent.displayName = TooltipPrimitive.Content.displayName
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, TooltipComponent }
+export {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+  TooltipComponent,
+  TooltipArrow,
+}
 
