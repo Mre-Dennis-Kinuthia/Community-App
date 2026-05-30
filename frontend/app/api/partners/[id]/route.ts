@@ -12,12 +12,13 @@ export async function OPTIONS(request: NextRequest) {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
-    const row = await prisma.partner.findUnique({
+    // findFirst: deletedAt is not part of a unique constraint (findUnique cannot filter on it)
+    const row = await prisma.partner.findFirst({
       where: {
         id,
         deletedAt: null,
