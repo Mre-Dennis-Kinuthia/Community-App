@@ -28,7 +28,9 @@ interface EventDetailSheetProps {
     tags: string[]
     capacity?: number
     registered?: number
+    waitlistEnabled?: boolean
     registrationDeadline?: Date
+    priceLabel?: string | null
   }
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -79,8 +81,13 @@ export function EventDetailSheet({
       ? "Tomorrow"
       : format(event.date, "EEEE, MMM d, yyyy")
 
-  const canRegister = event.status === "Open" && event.capacity && (event.registered || 0) < event.capacity
-  const isFull = event.capacity && event.registered && event.registered >= event.capacity
+  const isFull =
+    event.capacity != null && (event.registered ?? 0) >= event.capacity
+  const canRegister =
+    (event.status === "Open" || (isFull && event.waitlistEnabled)) &&
+    event.status !== "Registered" &&
+    event.status !== "Waitlisted" &&
+    event.status !== "Attended"
 
   const eventUrl = typeof window !== "undefined" ? `${window.location.origin}/events/${event.id}` : ""
   const shareText = `Check out this event: ${event.title}`
@@ -156,7 +163,12 @@ export function EventDetailSheet({
             {isFull && <Badge variant="destructive" className="text-xs">Full</Badge>}
           </div>
           <SheetTitle className="text-xl leading-tight">{event.title}</SheetTitle>
-          <SheetDescription className="text-sm mt-1">{event.organizer}</SheetDescription>
+          <SheetDescription className="text-sm mt-1">
+            {event.organizer}
+            {event.priceLabel && (
+              <span className="block font-semibold text-foreground mt-1">{event.priceLabel}</span>
+            )}
+          </SheetDescription>
         </SheetHeader>
 
         <div className="mt-4 space-y-4">
@@ -264,6 +276,11 @@ export function EventDetailSheet({
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Registering...
                   </>
+                ) : isFull && event.waitlistEnabled ? (
+                  <>
+                    Join waitlist
+                    <Users className="ml-2 h-4 w-4" />
+                  </>
                 ) : (
                   <>
                     Register Now
@@ -277,9 +294,14 @@ export function EventDetailSheet({
                 ✓ Registered
               </Button>
             )}
-            {isFull && event.status !== "Registered" && (
+            {event.status === "Waitlisted" && (
               <Button variant="outline" className="w-full" disabled size="lg">
-                Waitlist
+                On waitlist
+              </Button>
+            )}
+            {isFull && event.status !== "Registered" && event.status !== "Waitlisted" && !event.waitlistEnabled && (
+              <Button variant="outline" className="w-full" disabled size="lg">
+                Event full
               </Button>
             )}
             <div className="grid grid-cols-2 gap-2">

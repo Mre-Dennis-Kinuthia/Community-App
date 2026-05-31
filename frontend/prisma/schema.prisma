@@ -249,34 +249,70 @@ model NewsPost {
 }
 
 model Event {
-  id          String   @id @default(cuid())
-  title       String
-  description String   @db.Text
-  startDate   DateTime
-  endDate     DateTime?
-  location    String?
-  imageUrl    String?
-  capacity    Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  id                   String   @id @default(cuid())
+  title                String
+  description          String   @db.Text
+  startDate            DateTime
+  endDate              DateTime?
+  location             String?
+  locationType         String   @default("in-person") // in-person, online, hybrid
+  onlineUrl            String?
+  imageUrl             String?
+  capacity             Int?
+  eventType            String   @default("other") // workshop, meetup, conference, etc.
+  timezone             String   @default("Africa/Nairobi")
+  visibility           String   @default("public") // public, private, members
+  waitlistEnabled      Boolean  @default(false)
+  registrationRequired Boolean  @default(true)
+  organizerName        String?
+  organizerEmail       String?
+  tags                 String[]
+  price                Float?
+  currency             String   @default("KES")
+  registrationQuestions Json?
+  reminderHoursBefore  Int?
+  reminderSentAt       DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  deletedAt            DateTime?
 
-  registrations EventRegistration[]
+  registrations   EventRegistration[]
+  communications  EventCommunication[]
 
+  @@index([startDate])
+  @@index([eventType])
+  @@index([visibility])
   @@map("events")
 }
 
 model EventRegistration {
-  id        String   @id @default(cuid())
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  userId    String?  // nullable for guest registrations
-  email     String
-  name      String?
-  status    String   @default("registered") // registered, cancelled, attended
-  createdAt DateTime @default(now())
+  id            String   @id @default(cuid())
+  eventId       String
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId        String?  // nullable for guest registrations
+  email         String
+  name          String?
+  status        String   @default("registered") // registered, waitlisted, cancelled, attended
+  checkInCode   String?  @unique
+  answers       Json?
+  paymentStatus String   @default("not_required") // not_required, pending, paid
+  createdAt     DateTime @default(now())
 
   @@map("event_registrations")
+}
+
+model EventCommunication {
+  id             String   @id @default(cuid())
+  eventId        String
+  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  title          String
+  message        String   @db.Text
+  audience       String   // registered, waitlisted, all_active, attended
+  recipientCount Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([eventId])
+  @@map("event_communications")
 }
 
 model Resource {

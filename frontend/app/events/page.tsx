@@ -17,6 +17,13 @@ import { EventDetailSheet } from "@/components/events/event-detail-sheet"
 import { format, isToday, isTomorrow, startOfWeek, endOfWeek, isWithinInterval } from "date-fns"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
+import {
+  displayLocation,
+  eventTypeLabel,
+  formatLocationType,
+} from "@/lib/event-constants"
+import { formatEventPrice, isPaidEvent, parseRegistrationQuestions } from "@/lib/event-questions"
+import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 
 interface Event {
   id: number | string
@@ -32,10 +39,16 @@ interface Event {
   date: Date
   capacity?: number
   registered?: number
+  waitlistCount?: number
+  waitlistEnabled?: boolean
   registrationDeadline?: Date
   description?: string
   location?: string
   tags?: string[]
+  price?: number | null
+  currency?: string | null
+  priceLabel?: string | null
+  registrationQuestions?: unknown
 }
 
 export default function EventsPage() {
@@ -57,6 +70,8 @@ export default function EventsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [registering, setRegistering] = useState<Record<string | number, boolean>>({})
   const [isFiltering, setIsFiltering] = useState(false)
+  const [regDialogOpen, setRegDialogOpen] = useState(false)
+  const [pendingRegistration, setPendingRegistration] = useState<Event | null>(null)
 
   const filter = activeTab === "upcoming" ? "upcoming" : "past"
   const eventsKey = `/api/events?filter=${filter}&limit=100&${searchQuery ? `search=${encodeURIComponent(searchQuery)}` : ""}`
@@ -68,25 +83,42 @@ export default function EventsPage() {
     return raw.map((event: any) => {
       const startDate = new Date(event.startDate)
       const endDate = event.endDate ? new Date(event.endDate) : null
-      const registeredCount = event._count?.registrations || 0
-      const isFull = event.capacity && registeredCount >= event.capacity
+      const registeredCount = event.confirmedCount ?? event._count?.registrations ?? 0
+      const waitlistCount = event.waitlistCount ?? 0
+      const isFull = event.capacity != null && registeredCount >= event.capacity
+      const priceLabel = formatEventPrice(event.price, event.currency)
+
+      const userStatus = event.userRegistrationStatus as string | undefined
+
+      let status = "Open"
+      if (userStatus === "registered" || userStatus === "attended") status = "Registered"
+      else if (userStatus === "waitlisted") status = "Waitlisted"
+      else if (isFull && !event.waitlistEnabled) status = "Full"
+
       return {
         id: event.id,
         title: event.title,
-        type: "event",
-        category: "general",
+        type: event.eventType || "other",
+        category: event.eventType || "general",
         time: format(startDate, "HH:mm"),
         endTime: endDate ? format(endDate, "HH:mm") : undefined,
-        organizer: "Impact Hub Nairobi",
-        platform: event.location ? "In-Person" : "Online",
-        status: isFull ? "Full" : "Open",
+        organizer: event.organizerName || "Impact Hub Nairobi",
+        platform: formatLocationType(event.locationType),
+        status,
         thumbnail: event.imageUrl,
         date: startDate,
         capacity: event.capacity,
         registered: registeredCount,
+        waitlistCount,
         description: event.description,
-        location: event.location,
-        tags: [],
+        location: displayLocation(event),
+        tags: event.tags || [],
+        registrationRequired: event.registrationRequired !== false,
+        waitlistEnabled: Boolean(event.waitlistEnabled),
+        price: event.price,
+        currency: event.currency,
+        priceLabel,
+        registrationQuestions: event.registrationQuestions,
       }
     })
   }, [eventsData])
@@ -172,33 +204,22 @@ export default function EventsPage() {
     setIsSheetOpen(true)
   }
 
-  const handleRegister = async (eventId: number | string) => {
-    const event = allEvents.find((e) => e.id === eventId)
-    if (!event || event.status === "Full" || event.status === "Registered" || event.status === "Attended") {
-      return
-    }
+  const submitRegistration = async (
+    eventId: number | string,
+    answers: Record<string, string>
+  ) => {
+    if (!user?.email) return
 
-    // If user is not logged in, redirect to login instead of using browser prompts
-    if (!user?.email) {
-      toast.info("Please log in to register for events.")
-      const returnTo = encodeURIComponent(
-        window.location.pathname + window.location.search
-      )
-      router.push(`/login?redirect=${returnTo}`)
-      return
-    }
+    setRegistering((prev) => ({ ...prev, [eventId]: true }))
 
-    setRegistering({ ...registering, [eventId]: true })
-    
     try {
       const response = await fetch(`/api/events/${eventId}/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: user.email || "",
+          email: user.email,
           name: user.name || undefined,
+          answers,
         }),
       })
 
@@ -207,15 +228,54 @@ export default function EventsPage() {
         throw new Error(errorData.error || "Failed to register for event")
       }
 
-      // Refresh events list (server is the source of truth).
+      const data = await response.json()
+      setRegDialogOpen(false)
+      setPendingRegistration(null)
       await mutateEvents()
-      toast.success("You're registered for this event.")
-    } catch (error: any) {
+      if (data.registration?.status === "waitlisted") {
+        toast.success("You're on the waitlist — we'll notify you if a spot opens up.")
+      } else {
+        toast.success("You're registered for this event.")
+      }
+    } catch (error: unknown) {
       console.error("Failed to register for event:", error)
-      toast.error(error.message || "Failed to register for event. Please try again.")
+      toast.error(error instanceof Error ? error.message : "Failed to register for event.")
     } finally {
-      setRegistering({ ...registering, [eventId]: false })
+      setRegistering((prev) => ({ ...prev, [eventId]: false }))
     }
+  }
+
+  const handleRegister = async (eventId: number | string) => {
+    const event = allEvents.find((e) => e.id === eventId)
+    if (
+      !event ||
+      event.status === "Registered" ||
+      event.status === "Attended" ||
+      event.status === "Waitlisted" ||
+      (event.status === "Full" && !event.waitlistEnabled)
+    ) {
+      return
+    }
+
+    if (!user?.email) {
+      toast.info("Please log in to register for events.")
+      router.push(
+        `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+      )
+      return
+    }
+
+    const questions = parseRegistrationQuestions(event.registrationQuestions)
+    const isFull =
+      event.capacity != null && (event.registered ?? 0) >= event.capacity
+
+    if (questions.length > 0 || isPaidEvent(event.price)) {
+      setPendingRegistration(event)
+      setRegDialogOpen(true)
+      return
+    }
+
+    await submitRegistration(eventId, {})
   }
 
   const handleShareEvent = async (event: Event) => {
@@ -361,7 +421,7 @@ export default function EventsPage() {
                       <SelectItem value="all">All Types</SelectItem>
                       {uniqueTypes.map((type) => (
                         <SelectItem key={type} value={type}>
-                          {type}
+                          {eventTypeLabel(type)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -477,6 +537,27 @@ export default function EventsPage() {
             onOpenChange={setIsSheetOpen}
             onRegister={handleRegister}
             isRegistering={registering[selectedEvent.id] || false}
+          />
+        )}
+
+        {pendingRegistration && (
+          <EventRegistrationDialog
+            open={regDialogOpen}
+            onOpenChange={(open) => {
+              setRegDialogOpen(open)
+              if (!open) setPendingRegistration(null)
+            }}
+            eventTitle={pendingRegistration.title}
+            questions={parseRegistrationQuestions(pendingRegistration.registrationQuestions)}
+            isWaitlist={Boolean(
+              pendingRegistration.capacity != null &&
+                (pendingRegistration.registered ?? 0) >= pendingRegistration.capacity &&
+                pendingRegistration.waitlistEnabled
+            )}
+            isPaid={isPaidEvent(pendingRegistration.price)}
+            priceLabel={pendingRegistration.priceLabel ?? null}
+            loading={Boolean(registering[pendingRegistration.id])}
+            onSubmit={(answers) => submitRegistration(pendingRegistration.id, answers)}
           />
         )}
       </div>

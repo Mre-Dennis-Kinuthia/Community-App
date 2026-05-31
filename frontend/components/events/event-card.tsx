@@ -25,7 +25,9 @@ interface EventCardProps {
     date: Date
     capacity?: number
     registered?: number
+    waitlistEnabled?: boolean
     registrationDeadline?: Date
+    priceLabel?: string | null
   }
   onClick?: () => void
   onRegister?: (eventId: number) => void
@@ -159,6 +161,9 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
             <h3 className="line-clamp-2 break-words text-sm font-semibold leading-snug text-foreground">
               {event.title}
             </h3>
+            {event.priceLabel && (
+              <p className="text-xs font-medium text-foreground mt-0.5">{event.priceLabel}</p>
+            )}
           </div>
         </div>
 
