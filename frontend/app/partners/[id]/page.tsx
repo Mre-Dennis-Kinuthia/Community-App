@@ -17,7 +17,6 @@ import {
   Award,
   ExternalLink,
   MapPin,
-  Users,
   Target,
   CheckCircle2,
   Mail,
@@ -122,7 +121,12 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
     )
   }
   
-  const partnerOpportunities = partner.opportunities || []
+  const partnerOpportunities = partner.opportunities ?? []
+  const focusAreas = partner.focus ?? []
+  const benefits = partner.benefits ?? []
+  const successStories = partner.successStories ?? []
+  const opportunitiesCount =
+    partner.opportunitiesCount ?? partnerOpportunities.length
 
   const TypeIcon = typeIcons[partner.type] || Building2
 
@@ -149,89 +153,104 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
                   <Badge className={categoryColors[partner.category]}>
                     {partner.category}
                   </Badge>
-                  <Badge variant="outline">
-                    {partner.partnershipTier}
-                  </Badge>
+                  {partner.locationType && (
+                    <Badge variant="outline">{partner.locationType}</Badge>
+                  )}
+                  {partner.isFeatured && (
+                    <Badge variant="secondary">Featured</Badge>
+                  )}
                 </div>
                 <CardTitle className="text-3xl">{partner.name}</CardTitle>
                 <CardDescription className="text-base mt-2">
                   {partner.description}
                 </CardDescription>
-                <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>{partner.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>{partner.memberConnections} member connections</span>
-                  </div>
+                <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
+                  {partner.location && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{partner.location}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <Target className="h-4 w-4" />
-                    <span>{partner.opportunitiesCount} opportunities</span>
+                    <span>
+                      {opportunitiesCount} {opportunitiesCount === 1 ? "opportunity" : "opportunities"}
+                    </span>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-primary" />
-                    Impact
-                  </h3>
-                  <p className="text-muted-foreground text-lg">{partner.impact}</p>
-                </div>
+                {partner.impact && (
+                  <>
+                    <div>
+                      <h3 className="font-semibold mb-2 flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                        Impact
+                      </h3>
+                      <p className="text-muted-foreground text-lg">{partner.impact}</p>
+                    </div>
+                    <Separator />
+                  </>
+                )}
 
-                <Separator />
+                {benefits.length > 0 && (
+                  <>
+                    <div>
+                      <h3 className="font-semibold mb-3 flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                        Partnership Benefits
+                      </h3>
+                      <p className="text-muted-foreground mb-3">
+                        As an Impact Hub member, you have access to the following benefits from this partner:
+                      </p>
+                      <ul className="space-y-2">
+                        {benefits.map((benefit: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
+                            <span>{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Separator />
+                  </>
+                )}
 
-                <div>
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                    Partnership Benefits
-                  </h3>
-                  <p className="text-muted-foreground mb-3">
-                    As an Impact Hub member, you have access to the following benefits from this partner:
-                  </p>
-                  <ul className="space-y-2">
-                    {partner.benefits.map((benefit, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
-                        <span>{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                {successStories.length > 0 && (
+                  <>
+                    <div>
+                      <h3 className="font-semibold mb-3 flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        Success Stories
+                      </h3>
+                      <ul className="space-y-2">
+                        {successStories.map((story: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                            <span>{story}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Separator />
+                  </>
+                )}
 
-                <Separator />
-
-                <div>
-                  <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    Success Stories
-                  </h3>
-                  <ul className="space-y-2">
-                    {partner.successStories.map((story, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                        <span>{story}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <h3 className="font-semibold mb-3">Focus Areas</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {partner.focus.map((area, idx) => (
-                      <Badge key={idx} variant="outline" className="text-sm">
-                        {area}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <Separator />
+                {focusAreas.length > 0 && (
+                  <>
+                    <div>
+                      <h3 className="font-semibold mb-3">Focus Areas</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {focusAreas.map((area: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="text-sm">
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <Separator />
+                  </>
+                )}
 
                 {partnerOpportunities.length > 0 && (
                   <div>
@@ -273,17 +292,19 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
                                 </div>
                               )}
                             </div>
-                            <div>
-                              <p className="text-sm font-medium mb-2">Eligibility:</p>
-                              <ul className="space-y-1">
-                                {opp.eligibility.map((req, idx) => (
-                                  <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                                    <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                    <span>{req}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
+                            {(opp.eligibility ?? []).length > 0 && (
+                              <div>
+                                <p className="text-sm font-medium mb-2">Eligibility:</p>
+                                <ul className="space-y-1">
+                                  {(opp.eligibility ?? []).map((req: string, idx: number) => (
+                                    <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                      <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                      <span>{req}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                             <Button className="w-full" onClick={() => {
                               // In a real app, this would navigate to application form
                               alert("Application form would open here")
@@ -307,23 +328,27 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
                 <CardTitle className="text-lg">Connect with Partner</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button 
-                  className="w-full" 
-                  onClick={() => window.open(partner.website, "_blank")}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Visit Website
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => {
-                    window.location.href = `mailto:${partner.contactEmail}`
-                  }}
-                >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Contact Partner
-                </Button>
+                {partner.website && (
+                  <Button
+                    className="w-full"
+                    onClick={() => window.open(partner.website, "_blank")}
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Visit Website
+                  </Button>
+                )}
+                {partner.contactEmail && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      window.location.href = `mailto:${partner.contactEmail}`
+                    }}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    Contact Partner
+                  </Button>
+                )}
                 <Button 
                   variant="outline" 
                   className="w-full"
@@ -343,14 +368,18 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
                 <CardTitle className="text-lg">Partner Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Partnership Tier</p>
-                  <Badge variant="outline">{partner.partnershipTier}</Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Location</p>
-                  <p className="font-medium">{partner.location}</p>
-                </div>
+                {partner.location && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Location</p>
+                    <p className="font-medium">{partner.location}</p>
+                  </div>
+                )}
+                {partner.locationType && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Reach</p>
+                    <Badge variant="outline">{partner.locationType}</Badge>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Category</p>
                   <Badge className={categoryColors[partner.category]}>
@@ -358,8 +387,8 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Member Connections</p>
-                  <p className="font-medium">{partner.memberConnections} members</p>
+                  <p className="text-sm text-muted-foreground mb-1">Opportunities</p>
+                  <p className="font-medium">{opportunitiesCount}</p>
                 </div>
               </CardContent>
             </Card>
