@@ -3,12 +3,12 @@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Users, Video, Loader2, ExternalLink, Mail, Share2, Facebook, Twitter, Linkedin, Copy } from "lucide-react"
+import { Calendar, Clock, MapPin, Users, Video, Loader2, ExternalLink, Mail } from "lucide-react"
 import { format, isToday, isTomorrow } from "date-fns"
-import { useState, useEffect, useRef } from "react"
-import { toast } from "@/lib/toast"
+import Link from "next/link"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 import { cn } from "@/lib/utils"
+import { EventSharePanel } from "@/components/events/event-share-panel"
 
 interface EventDetailSheetProps {
   event: {
@@ -45,25 +45,8 @@ export function EventDetailSheet({
   onRegister,
   isRegistering = false,
 }: EventDetailSheetProps) {
-  const [showShareMenu, setShowShareMenu] = useState(false)
-  const shareMenuRef = useRef<HTMLDivElement>(null)
-  
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
-        setShowShareMenu(false)
-      }
-    }
+  const eventPageUrl = `/events/${event.id}`
 
-    if (showShareMenu) {
-      document.addEventListener("mousedown", handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [showShareMenu])
-  
   const timeString = format(
     new Date().setHours(parseInt(event.time.split(":")[0]), parseInt(event.time.split(":")[1])),
     "h:mm a"
@@ -88,43 +71,6 @@ export function EventDetailSheet({
     event.status !== "Registered" &&
     event.status !== "Waitlisted" &&
     event.status !== "Attended"
-
-  const eventUrl = typeof window !== "undefined" ? `${window.location.origin}/events/${event.id}` : ""
-  const shareText = `Check out this event: ${event.title}`
-
-  const handleShare = async (platform: string) => {
-    if (platform === "native" && navigator.share) {
-      try {
-        await navigator.share({
-          title: event.title,
-          text: shareText,
-          url: eventUrl,
-        })
-        setShowShareMenu(false)
-        return
-      } catch (error) {
-        // User cancelled
-      }
-    }
-
-    if (platform === "copy") {
-      await navigator.clipboard.writeText(eventUrl)
-      toast.success("Event link copied to clipboard.")
-      setShowShareMenu(false)
-      return
-    }
-
-    const shareUrls: Record<string, string> = {
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`,
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(eventUrl)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(eventUrl)}`,
-    }
-
-    if (shareUrls[platform]) {
-      window.open(shareUrls[platform], "_blank", "width=600,height=400")
-      setShowShareMenu(false)
-    }
-  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -264,6 +210,12 @@ export function EventDetailSheet({
 
           {/* Actions */}
           <div className="flex flex-col gap-2 pt-2">
+            <Button variant="default" className="w-full" size="lg" asChild>
+              <Link href={eventPageUrl}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Open event page
+              </Link>
+            </Button>
             {canRegister && onRegister && (
               <Button
                 onClick={() => onRegister(event.id)}
@@ -304,72 +256,29 @@ export function EventDetailSheet({
                 Event full
               </Button>
             )}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2">
               <Button variant="outline" className="w-full" asChild size="sm">
                 <a href={`mailto:${event.organizer}?subject=${encodeURIComponent(event.title)}`}>
                   <Mail className="mr-2 h-4 w-4" />
-                  Contact
+                  Contact organizer
                 </a>
               </Button>
-              <div className="relative" ref={shareMenuRef}>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  size="sm"
-                  onClick={() => setShowShareMenu(!showShareMenu)}
-                >
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-                {showShareMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-48 rounded-md border bg-background p-2 shadow-lg z-50">
-                    <button
-                      onClick={() => handleShare("native")}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent rounded-md"
-                    >
-                      <Share2 className="h-4 w-4" />
-                      Share via...
-                    </button>
-                    <button
-                      onClick={() => handleShare("copy")}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent rounded-md"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy Link
-                    </button>
-                    <button
-                      onClick={() => handleShare("facebook")}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent rounded-md"
-                    >
-                      <Facebook className="h-4 w-4" />
-                      Facebook
-                    </button>
-                    <button
-                      onClick={() => handleShare("twitter")}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent rounded-md"
-                    >
-                      <Twitter className="h-4 w-4" />
-                      Twitter
-                    </button>
-                    <button
-                      onClick={() => handleShare("linkedin")}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-accent rounded-md"
-                    >
-                      <Linkedin className="h-4 w-4" />
-                      LinkedIn
-                    </button>
-                  </div>
-                )}
-              </div>
               {(event.platform === "Google Meet" || event.platform.includes("Meet")) && (
-                <Button variant="outline" className="w-full col-span-2" asChild size="sm">
+                <Button variant="outline" className="w-full" asChild size="sm">
                   <a href="#" target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    Join
+                    Join online
                   </a>
                 </Button>
               )}
             </div>
+
+            <EventSharePanel
+              eventId={String(event.id)}
+              eventTitle={event.title}
+              startDate={event.date}
+              variant="inline"
+            />
           </div>
         </div>
       </SheetContent>

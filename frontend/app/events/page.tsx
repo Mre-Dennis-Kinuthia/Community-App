@@ -119,7 +119,6 @@ export default function EventsPage() {
         currency: event.currency,
         priceLabel,
         registrationQuestions: event.registrationQuestions,
-      }
     })
   }, [eventsData])
 

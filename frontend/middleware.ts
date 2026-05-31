@@ -56,6 +56,13 @@ export default auth((request) => {
     return NextResponse.next()
   }
 
+  // Public event detail pages are shareable without login (Luma-style links)
+  const isPublicEventDetail =
+    /^\/events\/[^/]+$/.test(pathname) && pathname !== "/events"
+  if (isPublicEventDetail) {
+    return NextResponse.next()
+  }
+
   const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"))
   if (isPublicRoute) {
     return NextResponse.next()

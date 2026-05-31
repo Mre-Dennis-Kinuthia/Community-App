@@ -3,12 +3,19 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { DashboardLayout } from "@/app/dashboard/layout"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, Clock, MapPin, Users, Loader2, Copy } from "lucide-react"
-import { format, isBefore } from "date-fns"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Loader2,
+  ExternalLink,
+  Ticket,
+} from "lucide-react"
+import { format, isBefore } from "date-fns"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
 import { displayLocation, eventTypeLabel, formatLocationType } from "@/lib/event-constants"
@@ -18,7 +25,8 @@ import {
   parseRegistrationQuestions,
 } from "@/lib/event-questions"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
-import { Badge } from "@/components/ui/badge"
+import { EventPublicLayout } from "@/components/events/event-public-layout"
+import { EventSharePanel } from "@/components/events/event-share-panel"
 
 interface EventDetailPageProps {
   params: { id: string }
@@ -158,9 +166,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         }),
       })
       const data = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to register")
-      }
+      if (!response.ok) throw new Error(data.error || "Failed to register")
       setRegDialogOpen(false)
       const refresh = await fetch(`/api/events/${event.id}`)
       if (refresh.ok) {
@@ -168,11 +174,11 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         setEvent(refreshed.event)
         setUserRegistration(refreshed.userRegistration ?? null)
       }
-      if (data.registration?.status === "waitlisted") {
-        toast.success("You're on the waitlist.")
-      } else {
-        toast.success("You're registered for this event.")
-      }
+      toast.success(
+        data.registration?.status === "waitlisted"
+          ? "You're on the waitlist."
+          : "You're registered for this event."
+      )
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Failed to register")
     } finally {
@@ -183,7 +189,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   const handleRegister = () => {
     if (!event || !canRegister) return
     if (!user?.email) {
-      toast.info("Please log in to register for this event.")
+      toast.info("Log in to register for this event.")
       router.push(
         `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
       )
@@ -218,180 +224,275 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     }
   }
 
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-      toast.success("Link copied")
-    } catch {
-      toast.error("Could not copy link")
-    }
-  }
-
-  const title = event?.title ?? "Event not found"
+  const registerLabel =
+    isFull && event?.waitlistEnabled ? "Join waitlist" : "Register"
 
   return (
-    <DashboardLayout>
-      <div className="mx-auto max-w-4xl space-y-6 pb-28 md:pb-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-            {event && (
-              <p className="text-muted-foreground mt-1">
-                {format(new Date(event.startDate), "EEEE, MMMM d, yyyy · h:mm a")}
-              </p>
-            )}
-            {priceLabel && (
-              <p className="text-lg font-semibold mt-2">{priceLabel}</p>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {canRegister && (
-              <Button size="sm" onClick={handleRegister} disabled={registering}>
-                {registering ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isFull && event?.waitlistEnabled ? "Joining..." : "Registering..."}
-                  </>
-                ) : isFull && event?.waitlistEnabled ? (
-                  "Join waitlist"
-                ) : (
-                  "Register"
-                )}
-              </Button>
-            )}
-            {isRegistered && (
-              <Button variant="outline" size="sm" disabled>
-                ✓ Registered
-              </Button>
-            )}
-            {isWaitlisted && (
-              <>
-                <Button variant="outline" size="sm" disabled>
-                  On waitlist
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleCancel} disabled={cancelling}>
-                  {cancelling ? "Cancelling..." : "Leave waitlist"}
-                </Button>
-              </>
-            )}
-            {isRegistered && !isPastEvent && (
-              <Button variant="ghost" size="sm" onClick={handleCancel} disabled={cancelling}>
-                {cancelling ? "Cancelling..." : "Cancel registration"}
-              </Button>
-            )}
-            {!registrationRequired && event && !isPastEvent && (
-              <Badge variant="secondary">No registration required</Badge>
-            )}
-            <Button variant="outline" size="sm" className="gap-1" onClick={copyLink}>
-              <Copy className="h-4 w-4" />
-              Copy link
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/events">All events</Link>
-            </Button>
-          </div>
+    <EventPublicLayout>
+      {loading ? (
+        <div className="flex justify-center py-24">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-
-        {loading ? (
-          <Card>
-            <CardContent className="pt-6 flex justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </CardContent>
-          </Card>
-        ) : event ? (
-          <>
-            {event.imageUrl && (
-              <div className="rounded-xl overflow-hidden border h-56 md:h-72">
-                <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+      ) : !event ? (
+        <div className="mx-auto max-w-lg px-4 py-24 text-center">
+          <p className="text-muted-foreground mb-4">
+            {error || "We couldn't find an event with this link."}
+          </p>
+          <Button asChild variant="outline">
+            <Link href={user ? "/events" : "/"}>Go back</Link>
+          </Button>
+        </div>
+      ) : (
+        <>
+          {/* Hero */}
+          <div className="relative border-b">
+            {event.imageUrl ? (
+              <div className="relative h-56 sm:h-72 md:h-80 overflow-hidden">
+                <img
+                  src={event.imageUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
               </div>
+            ) : (
+              <div className="h-24 bg-gradient-to-b from-primary/10 to-background" />
             )}
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 -mt-16 sm:-mt-20 relative pb-6">
+              <div className="flex flex-wrap gap-2 mb-3">
+                {event.eventType && (
+                  <Badge variant="secondary">{eventTypeLabel(event.eventType)}</Badge>
+                )}
+                <Badge variant="outline">{formatLocationType(event.locationType)}</Badge>
+                {isPastEvent && <Badge variant="outline">Past event</Badge>}
+                {priceLabel && (
+                  <Badge className="bg-primary text-primary-foreground">{priceLabel}</Badge>
+                )}
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
+                {event.title}
+              </h1>
+              {event.organizerName && (
+                <p className="text-muted-foreground mt-2">
+                  Hosted by {event.organizerName}
+                </p>
+              )}
+            </div>
+          </div>
 
-            {isRegistered && ticket && (
-              <Card>
-                <CardContent className="pt-6 flex flex-col sm:flex-row items-center gap-6">
-                  <img
-                    src={ticket.qrDataUrl}
-                    alt="Check-in QR code"
-                    className="w-48 h-48 rounded-lg border"
-                  />
-                  <div className="text-center sm:text-left">
-                    <h2 className="font-semibold text-lg">Your ticket</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Show this QR code at check-in
-                    </p>
-                    <p className="font-mono text-sm mt-3 tracking-widest">{ticket.checkInCode}</p>
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8 pb-28 md:pb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
+              {/* Main content */}
+              <div className="lg:col-span-2 space-y-8">
+                <section className="grid sm:grid-cols-2 gap-4">
+                  <div className="flex gap-3 rounded-xl border p-4">
+                    <Calendar className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Date
+                      </p>
+                      <p className="font-medium">{format(new Date(event.startDate), "EEEE, MMMM d, yyyy")}</p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card>
-              <CardContent className="pt-6 space-y-6">
-                <div className="flex flex-wrap gap-2">
-                  {event.eventType && (
-                    <Badge variant="secondary">{eventTypeLabel(event.eventType)}</Badge>
-                  )}
-                  <Badge variant="outline">{formatLocationType(event.locationType)}</Badge>
-                  {priceLabel && <Badge variant="outline">{priceLabel}</Badge>}
-                  {isPastEvent && <Badge variant="outline">Past event</Badge>}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4 shrink-0" />
-                    {format(new Date(event.startDate), "PPP")}
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="h-4 w-4 shrink-0" />
-                    {format(new Date(event.startDate), "p")}
-                    {event.endDate && ` – ${format(new Date(event.endDate), "p")}`}
+                  <div className="flex gap-3 rounded-xl border p-4">
+                    <Clock className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Time
+                      </p>
+                      <p className="font-medium">
+                        {format(new Date(event.startDate), "h:mm a")}
+                        {event.endDate && ` – ${format(new Date(event.endDate), "h:mm a")}`}
+                      </p>
+                    </div>
                   </div>
                   {(event.location || event.onlineUrl) && (
-                    <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2">
-                      <MapPin className="h-4 w-4 shrink-0" />
-                      {displayLocation(event)}
+                    <div className="flex gap-3 rounded-xl border p-4 sm:col-span-2">
+                      <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Location
+                        </p>
+                        <p className="font-medium">{displayLocation(event)}</p>
+                        {event.onlineUrl && event.locationType !== "in-person" && (
+                          <a
+                            href={event.onlineUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-sm text-primary mt-1 hover:underline"
+                          >
+                            Join online <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   )}
-                </div>
-
-                {event.capacity != null && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {confirmedCount} / {event.capacity} spots filled
-                      </span>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-muted">
-                      <div
-                        className="h-2 rounded-full bg-primary"
-                        style={{
-                          width: `${Math.min(100, (confirmedCount / event.capacity) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
+                </section>
 
                 {event.description && (
-                  <div>
-                    <h2 className="font-semibold mb-2">About this event</h2>
-                    <p className="text-sm leading-relaxed whitespace-pre-line text-muted-foreground">
+                  <section>
+                    <h2 className="text-lg font-semibold mb-3">About this event</h2>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                       {event.description}
                     </p>
-                  </div>
+                  </section>
                 )}
-              </CardContent>
-            </Card>
-          </>
-        ) : (
-          <Card>
-            <CardContent className="pt-6 py-8 text-muted-foreground">
-              {error || "We couldn't find an event with this link."}
-            </CardContent>
-          </Card>
-        )}
-      </div>
+
+                {event.tags && event.tags.length > 0 && (
+                  <section className="flex flex-wrap gap-2">
+                    {event.tags.map((tag) => (
+                      <Badge key={tag} variant="outline">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </section>
+                )}
+
+                {isRegistered && ticket && (
+                  <section className="rounded-xl border p-6 flex flex-col sm:flex-row items-center gap-6 bg-muted/30">
+                    <img
+                      src={ticket.qrDataUrl}
+                      alt="Check-in QR code"
+                      className="w-44 h-44 rounded-lg border bg-white"
+                    />
+                    <div className="text-center sm:text-left">
+                      <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                        <Ticket className="h-5 w-5 text-primary" />
+                        <h2 className="font-semibold text-lg">Your ticket</h2>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Show this QR code at check-in
+                      </p>
+                      <p className="font-mono text-sm mt-3 tracking-widest">{ticket.checkInCode}</p>
+                    </div>
+                  </section>
+                )}
+
+                <EventSharePanel
+                  eventId={event.id}
+                  eventTitle={event.title}
+                  startDate={event.startDate}
+                />
+              </div>
+
+              {/* Sticky registration sidebar */}
+              <aside className="lg:col-span-1">
+                <div className="lg:sticky lg:top-20 space-y-4">
+                  <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(event.startDate), "EEE, MMM d · h:mm a")}
+                      </p>
+                      {priceLabel && (
+                        <p className="text-2xl font-bold mt-1">{priceLabel}</p>
+                      )}
+                    </div>
+
+                    {event.capacity != null && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            {confirmedCount} / {event.capacity} spots
+                          </span>
+                          {(event.waitlistCount ?? 0) > 0 && (
+                            <span className="text-muted-foreground text-xs">
+                              {event.waitlistCount} waitlisted
+                            </span>
+                          )}
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all"
+                            style={{
+                              width: `${Math.min(100, (confirmedCount / event.capacity) * 100)}%`,
+                            }}
+                          />
+                        </div>
+                        {isFull && event.waitlistEnabled && !isRegistered && !isWaitlisted && (
+                          <p className="text-xs text-muted-foreground">
+                            Event is full — join the waitlist for a chance to attend.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {canRegister && (
+                      <Button className="w-full" size="lg" onClick={handleRegister} disabled={registering}>
+                        {registering ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {isFull && event.waitlistEnabled ? "Joining..." : "Registering..."}
+                          </>
+                        ) : (
+                          registerLabel
+                        )}
+                      </Button>
+                    )}
+
+                    {isRegistered && (
+                      <Button variant="outline" className="w-full" disabled>
+                        ✓ Registered
+                      </Button>
+                    )}
+
+                    {isWaitlisted && (
+                      <Button variant="outline" className="w-full" disabled>
+                        On waitlist
+                      </Button>
+                    )}
+
+                    {(isRegistered || isWaitlisted) && !isPastEvent && (
+                      <Button
+                        variant="ghost"
+                        className="w-full text-muted-foreground"
+                        size="sm"
+                        onClick={handleCancel}
+                        disabled={cancelling}
+                      >
+                        {cancelling ? "Cancelling..." : isWaitlisted ? "Leave waitlist" : "Cancel registration"}
+                      </Button>
+                    )}
+
+                    {isPastEvent && (
+                      <p className="text-sm text-center text-muted-foreground">This event has ended.</p>
+                    )}
+
+                    {!registrationRequired && !isPastEvent && (
+                      <p className="text-sm text-center text-muted-foreground">
+                        No registration required — just show up!
+                      </p>
+                    )}
+
+                    {!user && canRegister && (
+                      <p className="text-xs text-center text-muted-foreground">
+                        <Link href={`/login?redirect=${encodeURIComponent(`/events/${event.id}`)}`} className="underline">
+                          Log in
+                        </Link>{" "}
+                        to register
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          {canRegister && (
+            <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)] lg:hidden">
+              <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-sm">{event.title}</p>
+                  {priceLabel && <p className="text-xs text-muted-foreground">{priceLabel}</p>}
+                </div>
+                <Button onClick={handleRegister} disabled={registering}>
+                  {registerLabel}
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {event && (
         <EventRegistrationDialog
@@ -406,17 +507,6 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
           onSubmit={submitRegistration}
         />
       )}
-
-      {canRegister && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background shadow-sm pb-[env(safe-area-inset-bottom)] md:hidden">
-          <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3">
-            <p className="truncate font-semibold flex-1">{event?.title}</p>
-            <Button onClick={handleRegister} disabled={registering}>
-              {isFull && event?.waitlistEnabled ? "Join waitlist" : "Register"}
-            </Button>
-          </div>
-        </div>
-      )}
-    </DashboardLayout>
+    </EventPublicLayout>
   )
 }
