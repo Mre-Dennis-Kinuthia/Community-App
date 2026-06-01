@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth-utils"
 import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
+import { sendWelcomeEmail, sendEmailInBackground } from "@/lib/email"
 import { z } from "zod"
 
 const registerSchema = z.object({
@@ -75,6 +76,11 @@ export async function POST(request: NextRequest) {
       name: user.name,
       createdAt: user.createdAt,
     })
+
+    sendEmailInBackground(
+      sendWelcomeEmail({ to: user.email, name: user.name }),
+      "welcome"
+    )
 
     return NextResponse.json(
       { message: "User created successfully", user },

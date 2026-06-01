@@ -1,3 +1,9 @@
+import {
+  formatBookingDate,
+  formatBookingTimeRange,
+  formatResourceType,
+} from "@/lib/booking-format"
+import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl } from "@/lib/app-url"
 import { formatEventWhen, layoutEmail, escapeHtml } from "./templates"
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type SendEmailResult } from "./send"
@@ -211,6 +217,197 @@ export async function sendWorkspaceInquiryConfirmationEmail(params: {
       bodyHtml,
     }),
     text: `We received your ${params.inquiryLabel} request. Our team will contact you soon.`,
+  })
+}
+
+export async function sendBookingConfirmationEmail(params: {
+  to: string
+  name?: string | null
+  bookingId: string
+  resourceType: string
+  date: Date | string
+  startTime: string
+  endTime?: string | null
+  totalPrice: number
+}): Promise<SendEmailResult> {
+  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
+  const resource = formatResourceType(params.resourceType)
+  const when = formatBookingDate(params.date)
+  const time = formatBookingTimeRange(params.startTime, params.endTime)
+  const bookingUrl = getDashboardBookingUrl(params.bookingId)
+
+  const bodyHtml = `
+    <p>${greeting}</p>
+    <p>Your workspace booking is confirmed.</p>
+    <p><strong>${escapeHtml(resource)}</strong><br />
+    ${escapeHtml(when)}<br />
+    ${escapeHtml(time)}</p>
+    <p><strong>Total:</strong> KES ${params.totalPrice.toLocaleString("en-KE")}</p>
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: `Booking confirmed — ${resource}`,
+    html: layoutEmail({
+      preheader: "Your booking is confirmed",
+      title: "Booking confirmed",
+      bodyHtml,
+      ctaLabel: "View booking",
+      ctaUrl: bookingUrl,
+    }),
+    text: `Booking confirmed\n${resource}\n${when}\n${time}\nTotal: KES ${params.totalPrice.toLocaleString("en-KE")}\n${bookingUrl}`,
+  })
+}
+
+export async function sendBookingCancelledEmail(params: {
+  to: string
+  name?: string | null
+  resourceType: string
+  date: Date | string
+  startTime: string
+  endTime?: string | null
+}): Promise<SendEmailResult> {
+  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
+  const resource = formatResourceType(params.resourceType)
+  const when = formatBookingDate(params.date)
+  const time = formatBookingTimeRange(params.startTime, params.endTime)
+  const bookingsUrl = `${getAppBaseUrl()}/dashboard/bookings`
+
+  const bodyHtml = `
+    <p>${greeting}</p>
+    <p>Your workspace booking has been cancelled.</p>
+    <p><strong>${escapeHtml(resource)}</strong><br />
+    ${escapeHtml(when)}<br />
+    ${escapeHtml(time)}</p>
+    <p>If you have questions, reply to this email or contact our team.</p>
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: `Booking cancelled — ${resource}`,
+    html: layoutEmail({
+      preheader: "Your booking was cancelled",
+      title: "Booking cancelled",
+      bodyHtml,
+      ctaLabel: "My bookings",
+      ctaUrl: bookingsUrl,
+    }),
+    text: `Booking cancelled\n${resource}\n${when}\n${time}\n${bookingsUrl}`,
+  })
+}
+
+export async function sendEventRegistrationCancelledEmail(params: {
+  to: string
+  name?: string | null
+  eventTitle: string
+  eventStartDate: Date | string
+  eventTimezone?: string | null
+  eventUrl: string
+}): Promise<SendEmailResult> {
+  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
+  const when = formatEventWhen(params.eventStartDate, params.eventTimezone)
+
+  const bodyHtml = `
+    <p>${greeting}</p>
+    <p>Your registration has been cancelled for the following event.</p>
+    <p><strong>${escapeHtml(params.eventTitle)}</strong><br />
+    ${escapeHtml(when)}</p>
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: `Registration cancelled — ${params.eventTitle}`,
+    html: layoutEmail({
+      preheader: "Event registration cancelled",
+      title: "Registration cancelled",
+      bodyHtml,
+      ctaLabel: "Browse events",
+      ctaUrl: `${getAppBaseUrl()}/events`,
+    }),
+    text: `Registration cancelled\n${params.eventTitle}\n${when}`,
+  })
+}
+
+export async function sendWelcomeEmail(params: {
+  to: string
+  name?: string | null
+}): Promise<SendEmailResult> {
+  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
+  const appUrl = getAppBaseUrl()
+
+  const bodyHtml = `
+    <p>${greeting}</p>
+    <p>Welcome to Impact Hub Nairobi! Your account is ready.</p>
+    <p>Book workspace, register for events, and stay up to date with community news from your dashboard.</p>
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: "Welcome to Impact Hub Nairobi",
+    html: layoutEmail({
+      preheader: "Your account is ready",
+      title: "Welcome aboard",
+      bodyHtml,
+      ctaLabel: "Go to dashboard",
+      ctaUrl: `${appUrl}/dashboard`,
+    }),
+    text: `Welcome to Impact Hub Nairobi!\n${appUrl}/dashboard`,
+  })
+}
+
+export async function sendNewsletterSubscribeEmail(params: {
+  to: string
+}): Promise<SendEmailResult> {
+  const appUrl = getAppBaseUrl()
+
+  const bodyHtml = `
+    <p>Thanks for subscribing to Impact Hub Nairobi updates.</p>
+    <p>You will receive news and announcements about events, programs, and the community.</p>
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: "You are subscribed to Impact Hub Nairobi updates",
+    html: layoutEmail({
+      preheader: "Subscription confirmed",
+      title: "Subscription confirmed",
+      bodyHtml,
+      ctaLabel: "Visit our site",
+      ctaUrl: appUrl,
+    }),
+    text: `Thanks for subscribing to Impact Hub Nairobi updates.\n${appUrl}`,
+  })
+}
+
+export async function sendNewsArticleEmail(params: {
+  to: string
+  name?: string | null
+  title: string
+  excerpt?: string | null
+  postId: string
+}): Promise<SendEmailResult> {
+  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
+  const articleUrl = getNewsArticleUrl(params.postId)
+  const excerpt = params.excerpt?.trim()
+
+  const bodyHtml = `
+    <p>${greeting}</p>
+    <p>A new article has been published on Impact Hub Nairobi.</p>
+    <p><strong>${escapeHtml(params.title)}</strong></p>
+    ${excerpt ? `<p>${escapeHtml(excerpt)}</p>` : ""}
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: `New article: ${params.title}`,
+    html: layoutEmail({
+      preheader: params.title,
+      title: "New community update",
+      bodyHtml,
+      ctaLabel: "Read article",
+      ctaUrl: articleUrl,
+    }),
+    text: `New article: ${params.title}${excerpt ? `\n\n${excerpt}` : ""}\n${articleUrl}`,
   })
 }
 

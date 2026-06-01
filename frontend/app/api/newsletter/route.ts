@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { sendNewsletterSubscribeEmail, sendEmailInBackground } from "@/lib/email"
 
 const schema = z.object({
   email: z.string().email().transform((v) => v.toLowerCase().trim()),
@@ -15,9 +16,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email } = schema.parse(body)
 
-    // TODO: Integrate with an email service (Resend, Mailchimp, etc.) or
-    // add a NewsletterSubscriber Prisma model to persist subscribers.
+    // TODO: add a NewsletterSubscriber Prisma model to persist subscribers.
     console.log("[newsletter] New subscriber:", email)
+
+    sendEmailInBackground(
+      sendNewsletterSubscribeEmail({ to: email }),
+      "newsletter-subscribe"
+    )
 
     return NextResponse.json({ success: true }, { headers: corsHeaders(request) })
   } catch (error) {

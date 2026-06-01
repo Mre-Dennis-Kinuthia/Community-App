@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
+import { sendBookingConfirmationEmail, sendEmailInBackground } from "@/lib/email"
 
 const bookingSchema = z.object({
   resourceType: z.enum(["hot-desk", "meeting-room", "private-office", "event-space"]),
@@ -310,6 +311,22 @@ export async function POST(request: NextRequest) {
       userId: userId,
       ...notificationParams,
     })
+
+    if (booking.user?.email) {
+      sendEmailInBackground(
+        sendBookingConfirmationEmail({
+          to: booking.user.email,
+          name: booking.user.name,
+          bookingId: booking.id,
+          resourceType: booking.resourceType,
+          date: booking.date,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          totalPrice: Number(booking.totalPrice),
+        }),
+        "booking-confirmation"
+      )
+    }
 
     return NextResponse.json(
       {

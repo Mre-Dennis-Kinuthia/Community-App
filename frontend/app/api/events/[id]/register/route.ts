@@ -13,7 +13,7 @@ import {
 } from "@/lib/event-questions"
 import { findEventByPublicParam } from "@/lib/event-slug"
 import { getEventPublicUrl } from "@/lib/event-url"
-import { sendEventRegistrationEmail, sendEmailInBackground } from "@/lib/email"
+import { sendEventRegistrationEmail, sendEventRegistrationCancelledEmail, sendEmailInBackground } from "@/lib/email"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
 
@@ -300,6 +300,17 @@ export async function DELETE(
         email,
         status: { in: ["registered", "waitlisted", "pending"] },
       },
+      include: {
+        event: {
+          select: {
+            title: true,
+            startDate: true,
+            timezone: true,
+            slug: true,
+            shortCode: true,
+          },
+        },
+      },
     })
 
     if (!registration) {
@@ -313,6 +324,22 @@ export async function DELETE(
       where: { id: registration.id },
       data: { status: "cancelled" },
     })
+
+    sendEmailInBackground(
+      sendEventRegistrationCancelledEmail({
+        to: email,
+        name: registration.name,
+        eventTitle: registration.event.title,
+        eventStartDate: registration.event.startDate,
+        eventTimezone: registration.event.timezone,
+        eventUrl: getEventPublicUrl({
+          id: eventId,
+          slug: registration.event.slug,
+          shortCode: registration.event.shortCode,
+        }),
+      }),
+      "event-registration-cancelled"
+    )
 
     return NextResponse.json(
       { message: "Registration cancelled" },
