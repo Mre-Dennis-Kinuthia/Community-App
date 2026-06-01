@@ -31,6 +31,17 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { format } from "date-fns"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
+import { FilterChip } from "@/components/mobile/filter-chip"
+import { FilterChipRow } from "@/components/mobile/filter-chip-row"
+import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
+import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
+import {
+  MobilePageHeader,
+  MobileStatsStrip,
+  MobileFilterMeta,
+  MobileBreadcrumbsHidden,
+  MobileSearchFilterRow,
+} from "@/components/mobile/mobile-page-shell"
 
 const categoryColors: Record<string, string> = {
   "Climate & Environment": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
@@ -80,6 +91,7 @@ function ProjectsPageContent() {
   const [locationFilter, setLocationFilter] = useState<string>(searchParams.get("location") || "all")
   const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "newest")
   const [showFeatured, setShowFeatured] = useState<boolean>(searchParams.get("featured") === "true")
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   
   const projectsParams = new URLSearchParams()
   if (searchQuery) projectsParams.set("search", searchQuery)
@@ -190,19 +202,38 @@ function ProjectsPageContent() {
   const uniqueNeeds = Array.from(new Set(projectsData.flatMap((p) => p.needs || []).filter(Boolean)))
   const uniqueLocations = Array.from(new Set(projectsData.map((p) => p.location).filter(Boolean)))
 
+  const advancedFilterCount = [
+    categoryFilter !== "all",
+    stageFilter !== "all",
+    needsFilter !== "all",
+    locationFilter !== "all",
+    sortBy !== "newest",
+    showFeatured,
+  ].filter(Boolean).length
+
   return (
     <DashboardLayout>
-      <div className="space-y-10">
-        <Breadcrumbs items={[{ label: "Projects & Initiatives" }]} />
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Projects & Initiatives</h1>
-          <p className="text-muted-foreground text-sm md:text-base">
-            Discover member projects creating positive social and environmental impact across Kenya and beyond.
-          </p>
-        </div>
+      <div className="space-y-5 md:space-y-10">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Projects & Initiatives" }]} />
+        </MobileBreadcrumbsHidden>
+        <MobilePageHeader
+          title="Projects & Initiatives"
+          description="Discover member projects creating positive social and environmental impact across Kenya and beyond."
+        />
 
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <MobileStatsStrip
+          loading={isLoadingProjects}
+          items={[
+            { label: "Projects", value: projectsData.length, icon: Lightbulb },
+            { label: "Featured", value: projectsData.filter((p) => p.isFeatured).length, icon: Star },
+            { label: "Seeking support", value: projectsData.filter((p) => p.needs?.length).length, icon: Handshake },
+            { label: "Followers", value: projectsData.reduce((s, p) => s + (p._count?.followers || 0), 0), icon: Heart },
+          ]}
+        />
+
+        {/* Stats — desktop */}
+        <div className="hidden gap-4 md:grid md:grid-cols-4">
           <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Projects</CardTitle>
@@ -344,8 +375,85 @@ function ProjectsPageContent() {
           </div>
         )}
 
-        {/* Filters */}
-        <div className="space-y-4">
+        {/* Filters — mobile */}
+        <div className="space-y-3 md:hidden">
+          <MobileSearchFilterRow
+            search={
+              <MobileSearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search projects…"
+              />
+            }
+            filterTrigger={
+              <MobileFilterSheet
+                open={filterSheetOpen}
+                onOpenChange={setFilterSheetOpen}
+                activeCount={advancedFilterCount}
+                onClear={clearFilters}
+              >
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Category</p>
+                    <FilterChipRow>
+                      <FilterChip label="All" active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} />
+                      {uniqueCategories.map((c) => (
+                        <FilterChip key={c} label={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
+                      ))}
+                    </FilterChipRow>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Stage</p>
+                    <FilterChipRow>
+                      <FilterChip label="All" active={stageFilter === "all"} onClick={() => setStageFilter("all")} />
+                      {uniqueStages.map((s) => (
+                        <FilterChip key={s} label={s} active={stageFilter === s} onClick={() => setStageFilter(s)} />
+                      ))}
+                    </FilterChipRow>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Needs</p>
+                    <FilterChipRow>
+                      <FilterChip label="All" active={needsFilter === "all"} onClick={() => setNeedsFilter("all")} />
+                      {uniqueNeeds.map((n) => (
+                        <FilterChip key={n} label={n.replace("Seeking ", "").replace("Looking for ", "")} active={needsFilter === n} onClick={() => setNeedsFilter(n)} />
+                      ))}
+                    </FilterChipRow>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sort</p>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="newest">Newest</SelectItem>
+                        <SelectItem value="oldest">Oldest</SelectItem>
+                        <SelectItem value="popular">Popular</SelectItem>
+                        <SelectItem value="impactful">Impactful</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </MobileFilterSheet>
+            }
+          />
+          <FilterChipRow>
+            <FilterChip label="All" active={!hasActiveFilters} onClick={clearFilters} />
+            <FilterChip label="Featured" active={showFeatured} onClick={() => setShowFeatured(!showFeatured)} />
+            {uniqueCategories.slice(0, 4).map((c) => (
+              <FilterChip key={c} label={c.split(" ")[0]} active={categoryFilter === c} onClick={() => setCategoryFilter(categoryFilter === c ? "all" : c)} />
+            ))}
+          </FilterChipRow>
+          <MobileFilterMeta
+            count={filteredAndSortedProjects.length}
+            countLabel="projects"
+            filterCount={activeFilterCount}
+            hasFilters={hasActiveFilters}
+            onClear={clearFilters}
+          />
+        </div>
+
+        {/* Filters — desktop */}
+        <div className="hidden space-y-4 md:block">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

@@ -30,6 +30,18 @@ import {
   Loader2,
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { FilterChip } from "@/components/mobile/filter-chip"
+import { FilterChipRow } from "@/components/mobile/filter-chip-row"
+import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
+import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
+import { PillTabs } from "@/components/mobile/pill-tabs"
+import {
+  MobilePageHeader,
+  MobileStatsStrip,
+  MobileFilterMeta,
+  MobileBreadcrumbsHidden,
+  MobileSearchFilterRow,
+} from "@/components/mobile/mobile-page-shell"
 
 type InvestmentProject = {
   id: string
@@ -99,6 +111,7 @@ function InvestmentsPageContent() {
     searchParams.get("readinessMin") || ""
   )
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get("q") || "")
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
   // Build query params for API key
   const apiParams = new URLSearchParams()
@@ -206,23 +219,42 @@ function InvestmentsPageContent() {
 
   const metrics = data?.metrics
 
+  const advancedFilterCount = [
+    sectorFilter !== "all",
+    stageFilter !== "all",
+    fundingStageFilter !== "all",
+    locationFilter !== "all",
+    visibilityFilter !== "all",
+    capitalMin !== "",
+    capitalMax !== "",
+    readinessMin !== "",
+  ].filter(Boolean).length
+
+  const activeFilterCount = advancedFilterCount + (searchQuery ? 1 : 0)
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        <Breadcrumbs items={[{ label: "Investments & Dealflow" }]} />
+      <div className="space-y-5 md:space-y-8">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Investments & Dealflow" }]} />
+        </MobileBreadcrumbsHidden>
 
-        <div className="space-y-2">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            Investments & Dealflow
-          </h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
-            Explore curated ventures from the Impact Hub Nairobi community that are actively
-            raising capital.
-          </p>
-        </div>
+        <MobilePageHeader
+          title="Investments & Dealflow"
+          description="Explore curated ventures from the Impact Hub Nairobi community that are actively raising capital."
+        />
 
-        {/* Metrics bar */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <MobileStatsStrip
+          loading={isLoading}
+          items={[
+            { label: "Active", value: metrics?.activeCount ?? projects.length, icon: Sparkles },
+            { label: "Capital", value: isInvestor && metrics?.totalCapitalSought != null ? formatCurrency(metrics.totalCapitalSought) : "—", icon: DollarSign },
+            { label: "Readiness", value: metrics?.avgReadinessScore != null ? metrics.avgReadinessScore.toFixed(1) : "—", icon: Shield },
+            { label: "Sectors", value: metrics?.sectorsCount ?? uniqueSectors.length, icon: BarChart3 },
+          ]}
+        />
+
+        <div className="hidden gap-4 md:grid md:grid-cols-4">
           <Card className="border-border ">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground uppercase">
@@ -284,8 +316,87 @@ function InvestmentsPageContent() {
           </Card>
         </div>
 
-        {/* Filters */}
-        <div className="space-y-4">
+        {/* Mobile filters */}
+        <div className="space-y-3 md:hidden">
+          <MobileSearchFilterRow
+            search={
+              <MobileSearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search ventures…"
+              />
+            }
+            filterTrigger={
+              <MobileFilterSheet
+                open={filterSheetOpen}
+                onOpenChange={setFilterSheetOpen}
+                activeCount={advancedFilterCount}
+                onClear={clearFilters}
+                title="Investment filters"
+              >
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sector</p>
+                    <FilterChipRow>
+                      <FilterChip label="All" active={sectorFilter === "all"} onClick={() => setSectorFilter("all")} />
+                      {uniqueSectors.map((s) => (
+                        <FilterChip key={s} label={s} active={sectorFilter === s} onClick={() => setSectorFilter(s)} />
+                      ))}
+                    </FilterChipRow>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Stage</p>
+                    <FilterChipRow>
+                      <FilterChip label="All" active={stageFilter === "all"} onClick={() => setStageFilter("all")} />
+                      {uniqueStages.map((s) => (
+                        <FilterChip key={s} label={s} active={stageFilter === s} onClick={() => setStageFilter(s)} />
+                      ))}
+                    </FilterChipRow>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Funding stage</p>
+                    <FilterChipRow>
+                      <FilterChip label="All" active={fundingStageFilter === "all"} onClick={() => setFundingStageFilter("all")} />
+                      {uniqueFundingStages.map((s) => (
+                        <FilterChip key={s} label={s} active={fundingStageFilter === s} onClick={() => setFundingStageFilter(s)} />
+                      ))}
+                    </FilterChipRow>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Min capital</p>
+                      <Input value={capitalMin} onChange={(e) => setCapitalMin(e.target.value)} placeholder="Min" className="h-10 rounded-xl" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Max capital</p>
+                      <Input value={capitalMax} onChange={(e) => setCapitalMax(e.target.value)} placeholder="Max" className="h-10 rounded-xl" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Min readiness score</p>
+                    <Input value={readinessMin} onChange={(e) => setReadinessMin(e.target.value)} placeholder="0–100" className="h-10 rounded-xl" />
+                  </div>
+                </div>
+              </MobileFilterSheet>
+            }
+          />
+          <FilterChipRow>
+            <FilterChip label="All" active={!hasFilters} onClick={clearFilters} />
+            {uniqueSectors.slice(0, 4).map((s) => (
+              <FilterChip key={s} label={s.split(" ")[0]} active={sectorFilter === s} onClick={() => setSectorFilter(sectorFilter === s ? "all" : s)} />
+            ))}
+          </FilterChipRow>
+          <MobileFilterMeta
+            count={filteredProjects.length}
+            countLabel="ventures"
+            filterCount={activeFilterCount}
+            hasFilters={hasFilters}
+            onClear={clearFilters}
+          />
+        </div>
+
+        {/* Desktop filters */}
+        <div className="hidden space-y-4 md:block">
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

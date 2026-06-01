@@ -23,7 +23,15 @@ import { format, formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { PageHeader } from "@/components/page-header"
+import { FilterChip } from "@/components/mobile/filter-chip"
+import { FilterChipRow } from "@/components/mobile/filter-chip-row"
+import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
+import { PillTabs } from "@/components/mobile/pill-tabs"
+import {
+  MobilePageHeader,
+  MobileFilterMeta,
+  MobileBreadcrumbsHidden,
+} from "@/components/mobile/mobile-page-shell"
 
 interface NewsTag {
   id: string
@@ -89,13 +97,43 @@ export default function NewsPage() {
     setSearchInput(searchQuery)
   }, [searchQuery])
 
-  const applySearch = () => {
+  const applySearch = (value?: string) => {
+    const q = (value ?? searchInput).trim()
     const params = new URLSearchParams(searchParams.toString())
-    if (searchInput.trim()) params.set("search", searchInput.trim())
+    if (q) params.set("search", q)
     else params.delete("search")
     params.delete("page")
     router.replace(params.toString() ? `?${params.toString()}` : "/news", { scroll: false })
   }
+
+  const setCategoryFilter = (id: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (id) params.set("categoryId", id)
+    else params.delete("categoryId")
+    params.delete("tagId")
+    router.replace(params.toString() ? `?${params.toString()}` : "/news", { scroll: false })
+  }
+
+  const setTagFilter = (id: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (id) params.set("tagId", id)
+    else params.delete("tagId")
+    params.delete("categoryId")
+    router.replace(params.toString() ? `?${params.toString()}` : "/news", { scroll: false })
+  }
+
+  const uniqueCategories = Array.from(
+    new Map(
+      news
+        .filter((p) => p.category)
+        .map((p) => [p.category!.id, p.category!])
+    ).values()
+  )
+  const uniqueTags = Array.from(
+    new Map(
+      news.flatMap((p) => p.tags?.map((t) => t.tag) ?? []).map((t) => [t.id, t])
+    ).values()
+  )
 
   const clearFilters = () => {
     setSearchInput("")
@@ -122,16 +160,77 @@ export default function NewsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="mx-auto w-full max-w-5xl space-y-6">
-          <Breadcrumbs items={[{ label: "News & Updates" }]} />
+      <div className="space-y-4 md:space-y-6">
+        <div className="mx-auto w-full max-w-5xl space-y-4 md:space-y-6">
+          <MobileBreadcrumbsHidden>
+            <Breadcrumbs items={[{ label: "News & Updates" }]} />
+          </MobileBreadcrumbsHidden>
 
-          <div className="space-y-6">
-            <PageHeader
-              title="News & updates"
-              description="Stories, announcements, and insights from Impact Hub Nairobi."
+          <MobilePageHeader
+            title="News & updates"
+            description="Stories, announcements, and insights from Impact Hub Nairobi."
+          />
+
+          <div className="space-y-3">
+            <MobileSearchBar
+              value={searchInput}
+              onChange={(v) => {
+                setSearchInput(v)
+                if (!v.trim() && searchQuery) applySearch("")
+              }}
+              placeholder="Search articles…"
+              className="md:max-w-md"
             />
+            <div className="flex gap-2 md:hidden">
+              <Button type="button" size="sm" className="h-9 rounded-lg px-4" onClick={() => applySearch()}>
+                Search
+              </Button>
+              {hasActiveFilters && (
+                <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg" onClick={clearFilters}>
+                  Clear
+                </Button>
+              )}
+            </div>
 
+            {(uniqueCategories.length > 0 || uniqueTags.length > 0) && (
+              <FilterChipRow>
+                <FilterChip
+                  label="All"
+                  active={!categoryId && !tagId}
+                  onClick={() => {
+                    setCategoryFilter("")
+                    setTagFilter("")
+                  }}
+                />
+                {uniqueCategories.map((cat) => (
+                  <FilterChip
+                    key={cat.id}
+                    label={cat.name}
+                    active={categoryId === cat.id}
+                    onClick={() => setCategoryFilter(categoryId === cat.id ? "" : cat.id)}
+                  />
+                ))}
+                {uniqueTags.slice(0, 6).map((tag) => (
+                  <FilterChip
+                    key={tag.id}
+                    label={`#${tag.name}`}
+                    active={tagId === tag.id}
+                    onClick={() => setTagFilter(tagId === tag.id ? "" : tag.id)}
+                  />
+                ))}
+              </FilterChipRow>
+            )}
+
+            <MobileFilterMeta
+              count={news.length}
+              countLabel="articles"
+              filterCount={[searchQuery, categoryId, tagId].filter(Boolean).length}
+              hasFilters={!!hasActiveFilters}
+              onClear={clearFilters}
+            />
+          </div>
+
+          <div className="hidden md:block">
             <div className="flex max-w-md flex-col gap-2 sm:flex-row">
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -153,20 +252,14 @@ export default function NewsPage() {
                   </button>
                 )}
               </div>
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                className="shrink-0"
-                onClick={applySearch}
-                aria-label="Search"
-              >
+              <Button type="button" variant="secondary" size="icon" className="shrink-0" onClick={() => applySearch()} aria-label="Search">
                 <Search className="h-4 w-4" />
               </Button>
             </div>
+          </div>
 
-            {hasActiveFilters && (
-              <div className="flex flex-wrap items-center gap-2">
+          {hasActiveFilters && (
+            <div className="hidden flex-wrap items-center gap-2 md:flex">
                 <span className="text-sm text-muted-foreground">Filters:</span>
                 {searchQuery && (
                   <Badge variant="secondary" className="font-normal">

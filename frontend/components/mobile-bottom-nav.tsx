@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Users, Newspaper } from "lucide-react"
+import { LayoutDashboard, Calendar, Users, Newspaper, MapPin } from "lucide-react"
 
 const navItems = [
   {
@@ -14,7 +14,7 @@ const navItems = [
   {
     title: "Book",
     href: "/booking",
-    icon: Calendar,
+    icon: MapPin,
   },
   {
     title: "Community",

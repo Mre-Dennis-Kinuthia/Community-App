@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { PageHeader } from "@/components/page-header"
+import { MobilePageHeader, MobileStatsStrip, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { toast } from "@/lib/toast"
 import { badgeClassForLabel, badgeNeutral, badgePrimary } from "@/lib/badge-styles"
 import { cn } from "@/lib/utils"
@@ -278,24 +278,48 @@ export default function BillingPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-5xl space-y-8">
-        <Breadcrumbs items={[{ label: "Profile", href: "/profile" }, { label: "Billing" }]} />
+      <div className="mx-auto max-w-5xl space-y-4 md:space-y-8">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Profile", href: "/profile" }, { label: "Billing" }]} />
+        </MobileBreadcrumbsHidden>
 
-        <PageHeader
-          title="Billing & payments"
-          description="Membership, saved payment methods, and invoices for your Impact Hub Nairobi account."
-        >
-          <Button variant="outline" size="sm" asChild>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <MobilePageHeader
+            title="Billing & payments"
+            description="Membership, saved payment methods, and invoices for your Impact Hub Nairobi account."
+          />
+          <Button variant="outline" size="sm" className="shrink-0" asChild>
             <a href={MEMBERSHIP_EMAIL}>
               <Mail className="mr-2 h-4 w-4" />
               Email membership
             </a>
           </Button>
-        </PageHeader>
+        </div>
+
+        <MobileStatsStrip
+          loading={isLoading}
+          items={[
+            {
+              label: "Plan",
+              value: hasPlan ? subscription!.plan.name : "None",
+              icon: CreditCard,
+            },
+            {
+              label: "Status",
+              value: planStatus,
+              icon: CalendarClock,
+            },
+            {
+              label: "Invoices",
+              value: invoices.length,
+              icon: Receipt,
+            },
+          ]}
+        />
 
         {/* Plan summary */}
-        <section className="rounded-lg border border-border bg-card overflow-hidden">
-          <div className="border-b border-border bg-muted/30 px-6 py-5 md:px-8">
+        <section className="overflow-hidden rounded-xl border border-border/80 bg-card">
+          <div className="border-b border-border bg-muted/30 px-4 py-5 md:px-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1 min-w-0">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -723,7 +747,32 @@ export default function BillingPage() {
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-border border-t border-border">
+              <ul className="space-y-2 px-4 pb-4 md:hidden">
+                {invoices.map((invoice) => (
+                  <li
+                    key={invoice.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border/80 p-3.5"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{invoice.invoiceNumber}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {format(new Date(invoice.createdAt), "MMM d, yyyy")}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      <span className="text-xs font-medium tabular-nums">
+                        {invoice.currency} {invoice.amount.toLocaleString()}
+                      </span>
+                      <Badge variant="outline" className={cn("text-[10px]", invoiceStatusClass(invoice.status))}>
+                        {invoice.status}
+                      </Badge>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!isLoading && invoices.length > 0 && (
+              <div className="hidden divide-y divide-border border-t border-border md:block">
                 {invoices.map((invoice) => (
                   <div
                     key={invoice.id}

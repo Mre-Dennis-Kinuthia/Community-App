@@ -154,10 +154,10 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
         // Past events grouped by month
         groupedByMonth.map((monthGroup, monthIndex) => (
           <div key={monthGroup.month} className="space-y-4">
-            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border">
+            <div className="sticky top-16 z-10 mb-2 -mx-2 px-2 bg-background/95 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur-sm border-b border-border md:top-0 md:text-sm">
               {monthGroup.month}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-3 items-stretch">
               {monthGroup.groups.flatMap((group) =>
                 group.events.map((event) => (
                   <EventCard
@@ -177,10 +177,10 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
         // Upcoming events grouped by date
         groupedUpcomingByDate.map((dateGroup) => (
           <div key={dateGroup.label} className="space-y-4">
-            <div className="sticky top-0 z-20 mb-2 -mx-2 px-2 bg-background py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider border-b border-border">
+            <div className="sticky top-16 z-10 mb-2 -mx-2 px-2 bg-background/95 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur-sm border-b border-border md:top-0 md:text-sm">
               {dateGroup.label}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-3 items-stretch">
               {dateGroup.events.map((event) => (
                 <EventCard
                   key={event.id}

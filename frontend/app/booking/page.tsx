@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { toast } from "@/lib/toast"
 import { localCalendarDayToISO } from "@/lib/date-booking"
@@ -254,8 +255,10 @@ export default function BookingPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 pb-24 lg:pb-8">
-        <Breadcrumbs items={[{ label: "Book Workspace" }]} />
+      <div className="space-y-6 pb-24 md:space-y-8 lg:pb-8">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Book Workspace" }]} />
+        </MobileBreadcrumbsHidden>
 
         {/* Above the Fold - Critical Information */}
         <div className="space-y-8">

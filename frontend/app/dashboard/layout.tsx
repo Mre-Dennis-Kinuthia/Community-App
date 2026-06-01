@@ -199,7 +199,7 @@ function DashboardLayoutContent({
         </aside>
         <main
           id="main-content"
-          className="container flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto px-4 py-8 pb-20 md:px-8 md:pb-8"
+          className="container flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto px-4 py-4 pb-20 md:px-8 md:py-8 md:pb-8"
         >
           {children}
         </main>

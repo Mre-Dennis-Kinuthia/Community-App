@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Bell, ArrowLeft, Loader2, Check } from "lucide-react"
+import { ArrowLeft, Loader2, Check } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
+import { MobilePageHeader } from "@/components/mobile/mobile-page-shell"
 
 interface Notification {
   id: string
@@ -103,115 +102,81 @@ export default function DashboardNotificationsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex items-start gap-2">
+        <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" asChild>
           <Link href="/dashboard">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Bell className="h-6 w-6" />
-            Notifications
-          </h1>
-          <p className="text-muted-foreground text-sm">View and manage your notifications</p>
-        </div>
+        <MobilePageHeader
+          title="Notifications"
+          description={`${notifications.filter((n) => !n.read).length} unread`}
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All notifications</CardTitle>
-          <CardDescription>
-            {notifications.filter((n) => !n.read).length} unread
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Loading...
-            </div>
-          ) : error ? (
-            <div className="text-center py-8">
-              <p className="text-destructive mb-2">{error}</p>
-              <Button variant="outline" size="sm" onClick={fetchNotifications}>
-                Retry
-              </Button>
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No notifications yet.
-            </div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {notifications.map((notification) => (
-                <li key={notification.id}>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => handleClick(notification)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault()
-                        handleClick(notification)
-                      }
+      {loading ? (
+        <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Loading...
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-border py-8 text-center">
+          <p className="mb-2 text-destructive">{error}</p>
+          <Button variant="outline" size="sm" onClick={fetchNotifications}>
+            Retry
+          </Button>
+        </div>
+      ) : notifications.length === 0 ? (
+        <div className="rounded-xl border border-border/60 bg-muted/20 py-12 text-center text-muted-foreground">
+          No notifications yet.
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {notifications.map((notification) => (
+            <li key={notification.id}>
+              <button
+                type="button"
+                onClick={() => handleClick(notification)}
+                className={cn(
+                  "flex w-full items-start gap-3 rounded-xl border border-border/80 p-3.5 text-left transition-colors hover:bg-muted/30",
+                  !notification.read && "bg-primary/5 border-primary/20"
+                )}
+              >
+                <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", getTypeDot(notification.type))} />
+                <div className="min-w-0 flex-1">
+                  <p className={cn("text-sm font-medium leading-snug", !notification.read && "text-foreground")}>
+                    {notification.title}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.message}</p>
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                  </p>
+                </div>
+                {!notification.read && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    disabled={markingId === notification.id}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      markAsRead(notification.id)
                     }}
-                    className={cn(
-                      "flex items-start gap-3 p-4 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors",
-                      !notification.read && "bg-accent/50"
-                    )}
+                    aria-label="Mark as read"
                   >
-                    <div
-                      className={cn(
-                        "h-2 w-2 rounded-full shrink-0 mt-2",
-                        !notification.read ? getTypeDot(notification.type) : "bg-transparent"
-                      )}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium">{notification.title}</p>
-                        {notification.category && (
-                          <Badge variant="outline" className="text-xs">
-                            {notification.category}
-                          </Badge>
-                        )}
-                        {!notification.read && (
-                          <Badge variant="secondary">Unread</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                      </p>
-                    </div>
-                    {!notification.read && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="shrink-0"
-                        disabled={markingId === notification.id}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          markAsRead(notification.id)
-                        }}
-                      >
-                        {markingId === notification.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Check className="h-4 w-4" />
-                        )}
-                      </Button>
+                    {markingId === notification.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Check className="h-3.5 w-3.5" />
                     )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                  </Button>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

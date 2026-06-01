@@ -25,8 +25,18 @@ import {
   Loader2
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { PageHeader } from "@/components/page-header"
 import Link from "next/link"
+import { FilterChip } from "@/components/mobile/filter-chip"
+import { FilterChipRow } from "@/components/mobile/filter-chip-row"
+import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
+import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
+import {
+  MobilePageHeader,
+  MobileStatsStrip,
+  MobileFilterMeta,
+  MobileBreadcrumbsHidden,
+  MobileSearchFilterRow,
+} from "@/components/mobile/mobile-page-shell"
 
 const typeIcons: Record<string, any> = {
   "Workspace Partner": Building2,
@@ -62,6 +72,7 @@ export default function PartnersPageClient() {
   const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
   const [locationFilter, setLocationFilter] = useState<string>(searchParams.get("location") || "all")
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   
   const partnersParams = new URLSearchParams()
   if (searchQuery) partnersParams.set("search", searchQuery)
@@ -131,17 +142,33 @@ export default function PartnersPageClient() {
 
   const hasActiveFilters = typeFilter !== "all" || categoryFilter !== "all" || locationFilter !== "all"
 
+  const advancedFilterCount = [
+    typeFilter !== "all",
+    categoryFilter !== "all",
+    locationFilter !== "all",
+  ].filter(Boolean).length
+
   return (
     <DashboardLayout>
-      <div className="space-y-10">
-        <Breadcrumbs items={[{ label: "Partners & Network" }]} />
-        <PageHeader
+      <div className="space-y-5 md:space-y-10">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Partners & Network" }]} />
+        </MobileBreadcrumbsHidden>
+        <MobilePageHeader
           title="Partners & network"
           description="Connect with investors, partners, and organizations supporting social innovation in Kenya and beyond."
         />
 
-        {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <MobileStatsStrip
+          loading={isLoadingPartners}
+          items={[
+            { label: "Partners", value: partnersData.length, icon: Building2 },
+            { label: "Investors", value: partnersData.filter((p) => p.type === "Investor" || p.type === "Funder").length, icon: TrendingUp },
+            { label: "Opportunities", value: partnersData.reduce((s, p) => s + (p.opportunitiesCount || 0), 0), icon: Target },
+          ]}
+        />
+
+        <div className="hidden gap-4 md:grid md:grid-cols-4">
           <Card className="border-border  transition-all hover:bg-muted/30 ">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Partners</CardTitle>
@@ -187,10 +214,74 @@ export default function PartnersPageClient() {
             <TabsTrigger value="partners">Partners</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="partners" className="space-y-6 mt-6">
-            {/* Filters */}
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
-              <div className="relative flex-1">
+          <TabsContent value="partners" className="mt-4 space-y-4 md:mt-6 md:space-y-6">
+            {/* Mobile filters */}
+            <div className="space-y-3 md:hidden">
+              <MobileSearchFilterRow
+                search={
+                  <MobileSearchBar
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    placeholder="Search partners…"
+                  />
+                }
+                filterTrigger={
+                  <MobileFilterSheet
+                    open={filterSheetOpen}
+                    onOpenChange={setFilterSheetOpen}
+                    activeCount={advancedFilterCount}
+                    onClear={clearFilters}
+                  >
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Type</p>
+                        <FilterChipRow>
+                          <FilterChip label="All" active={typeFilter === "all"} onClick={() => setTypeFilter("all")} />
+                          {uniqueTypes.map((t) => (
+                            <FilterChip key={t} label={t} active={typeFilter === t} onClick={() => setTypeFilter(t)} />
+                          ))}
+                        </FilterChipRow>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Category</p>
+                        <FilterChipRow>
+                          <FilterChip label="All" active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} />
+                          {uniqueCategories.map((c) => (
+                            <FilterChip key={c} label={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
+                          ))}
+                        </FilterChipRow>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Location</p>
+                        <FilterChipRow>
+                          <FilterChip label="All" active={locationFilter === "all"} onClick={() => setLocationFilter("all")} />
+                          {uniqueLocationTypes.map((l) => (
+                            <FilterChip key={l} label={l} active={locationFilter === l} onClick={() => setLocationFilter(l)} />
+                          ))}
+                        </FilterChipRow>
+                      </div>
+                    </div>
+                  </MobileFilterSheet>
+                }
+              />
+              <FilterChipRow>
+                <FilterChip label="All" active={!hasActiveFilters} onClick={clearFilters} />
+                {uniqueTypes.slice(0, 5).map((t) => (
+                  <FilterChip key={t} label={t} active={typeFilter === t} onClick={() => setTypeFilter(typeFilter === t ? "all" : t)} />
+                ))}
+              </FilterChipRow>
+              <MobileFilterMeta
+                count={filteredPartners.length}
+                countLabel="partners"
+                filterCount={activeFilterCount}
+                hasFilters={hasActiveFilters}
+                onClear={clearFilters}
+              />
+            </div>
+
+            {/* Desktop filters */}
+            <div className="hidden flex-col gap-4 md:flex md:flex-row md:flex-wrap md:items-center">
+              <div className="relative flex-1 min-w-[200px]">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search partners, investors, organizations..."
@@ -200,7 +291,7 @@ export default function PartnersPageClient() {
                 />
               </div>
               {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="hidden md:flex">
+                <Badge variant="secondary">
                   {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
                 </Badge>
               )}

@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Calendar, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { MobilePageHeader } from "@/components/mobile/mobile-page-shell"
 
 interface Booking {
   id: string
@@ -122,79 +123,74 @@ export default function DashboardBookingDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex items-start gap-2">
+        <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" asChild>
           <Link href="/dashboard/bookings">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Calendar className="h-6 w-6" />
-            {resourceLabel(booking.resourceType)}
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            {format(new Date(booking.date), "EEEE, MMMM d, yyyy")}
-          </p>
-        </div>
+        <MobilePageHeader
+          title={resourceLabel(booking.resourceType)}
+          description={format(new Date(booking.date), "EEEE, MMMM d, yyyy")}
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <CardTitle>Booking details</CardTitle>
-            <div className="flex items-center gap-2">
-              <Badge variant={statusVariant(booking.status)}>{booking.status}</Badge>
-              {booking.paymentStatus && (
-                <Badge variant="outline">{booking.paymentStatus}</Badge>
-              )}
-            </div>
+      <div className="rounded-xl border border-border/80 bg-card p-4 md:p-6">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold">Booking details</h2>
+          <div className="flex items-center gap-2">
+            <Badge variant={statusVariant(booking.status)} className="text-[10px]">
+              {booking.status}
+            </Badge>
+            {booking.paymentStatus && (
+              <Badge variant="outline" className="text-[10px]">
+                {booking.paymentStatus}
+              </Badge>
+            )}
           </div>
-          <CardDescription>Reference: {booking.id}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Date</p>
-              <p className="font-medium">{format(new Date(booking.date), "EEE, MMM d, yyyy")}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Time</p>
-              <p className="font-medium">
-                {booking.startTime}
-                {booking.endTime ? ` – ${booking.endTime}` : ""} ({booking.duration})
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Resource</p>
-              <p className="font-medium">{resourceLabel(booking.resourceType)}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Total</p>
-              <p className="font-medium">KES {Number(booking.totalPrice).toLocaleString()}</p>
-            </div>
+        </div>
+        <p className="mb-4 text-xs text-muted-foreground">Reference: {booking.id}</p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-3 py-2.5">
+            <span className="text-xs text-muted-foreground">Date</span>
+            <span className="text-sm font-medium">{format(new Date(booking.date), "EEE, MMM d, yyyy")}</span>
           </div>
-          {booking.notes && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
-              <p className="text-sm">{booking.notes}</p>
-            </div>
-          )}
-          <div className="pt-4 border-t">
-            <p className="text-xs text-muted-foreground">
-              Booked on {format(new Date(booking.createdAt), "MMM d, yyyy 'at' HH:mm")}
-            </p>
+          <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-3 py-2.5">
+            <span className="text-xs text-muted-foreground">Time</span>
+            <span className="text-sm font-medium">
+              {booking.startTime}
+              {booking.endTime ? ` – ${booking.endTime}` : ""} ({booking.duration})
+            </span>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-3 py-2.5">
+            <span className="text-xs text-muted-foreground">Resource</span>
+            <span className="text-sm font-medium">{resourceLabel(booking.resourceType)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-3 py-2.5">
+            <span className="text-xs text-muted-foreground">Total</span>
+            <span className="text-sm font-semibold tabular-nums">
+              KES {Number(booking.totalPrice).toLocaleString()}
+            </span>
+          </div>
+        </div>
+        {booking.notes && (
+          <div className="mt-4 rounded-lg border border-border/60 px-3 py-2.5">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Notes</p>
+            <p className="text-sm">{booking.notes}</p>
+          </div>
+        )}
+        <p className="mt-4 border-t border-border pt-4 text-[11px] text-muted-foreground">
+          Booked on {format(new Date(booking.createdAt), "MMM d, yyyy 'at' HH:mm")}
+        </p>
+      </div>
 
-      <div className="flex gap-2">
-        <Button asChild variant="outline">
-          <Link href="/dashboard/bookings">Back to My Bookings</Link>
+      <div className="flex flex-wrap gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link href="/dashboard/bookings">Back to bookings</Link>
         </Button>
         {booking.status !== "cancelled" && new Date(booking.date) >= new Date() && (
-          <Button asChild>
+          <Button asChild size="sm">
             <Link href="/booking">Book again</Link>
           </Button>
         )}

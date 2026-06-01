@@ -10,11 +10,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, X, Calendar, Filter, Loader2, Clock, MapPin, Users, Video, ExternalLink, Share2 } from "lucide-react"
+import { Search, X, Loader2 } from "lucide-react"
 import { EventsHeader } from "@/components/events/events-header"
 import { EventsTimeline } from "@/components/events/events-timeline"
 import { EventDetailSheet } from "@/components/events/event-detail-sheet"
-import { format, isToday, isTomorrow, startOfWeek, endOfWeek, isWithinInterval } from "date-fns"
+import { FilterChip } from "@/components/mobile/filter-chip"
+import { FilterChipRow } from "@/components/mobile/filter-chip-row"
+import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
+import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
+import { startOfWeek, endOfWeek, isWithinInterval } from "date-fns"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
 import {
@@ -73,6 +77,7 @@ export default function EventsPage() {
   const [isFiltering, setIsFiltering] = useState(false)
   const [regDialogOpen, setRegDialogOpen] = useState(false)
   const [pendingRegistration, setPendingRegistration] = useState<Event | null>(null)
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
   const filter = activeTab === "upcoming" ? "upcoming" : "past"
   const eventsKey = `/api/events?filter=${filter}&limit=100&${searchQuery ? `search=${encodeURIComponent(searchQuery)}` : ""}`
@@ -339,6 +344,14 @@ export default function EventsPage() {
     dateRangeFilter !== "all",
   ].filter(Boolean).length
 
+  const advancedFilterCount = [
+    statusFilter !== "all",
+    organizerFilter !== "all",
+    platformFilter !== "all",
+    sortBy !== "date",
+    dateRangeFilter !== "all",
+  ].filter(Boolean).length
+
   // Filter presets
   const filterPresets = [
     {
@@ -384,134 +397,251 @@ export default function EventsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6">
         <div className="mx-auto max-w-5xl">
-          <Breadcrumbs items={[{ label: "Events & Programs" }]} />
-          <div className="mb-6">
-            <EventsHeader activeTab={activeTab} onTabChange={setActiveTab} />
+          <div className="hidden md:block">
+            <Breadcrumbs items={[{ label: "Events & Programs" }]} />
           </div>
+          <EventsHeader
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            upcomingCount={activeTab === "upcoming" ? filteredEvents.length : undefined}
+          />
 
-          {/* Filter Presets */}
-          <div className="flex flex-wrap gap-2">
-            {filterPresets.map((preset) => (
-              <Button
-                key={preset.label}
-                variant="outline"
-                size="sm"
-                onClick={preset.action}
+          {/* Mobile: search + chips + filter sheet */}
+          <div className="mt-4 space-y-3 md:hidden">
+            <div className="flex gap-2">
+              <MobileSearchBar
+                className="flex-1"
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search events…"
+              />
+              <MobileFilterSheet
+                open={filterSheetOpen}
+                onOpenChange={setFilterSheetOpen}
+                activeCount={advancedFilterCount}
+                onClear={clearFilters}
               >
-                {preset.label}
-              </Button>
-            ))}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</p>
+                    <FilterChipRow>
+                      <FilterChip label="All" active={statusFilter === "all"} onClick={() => setStatusFilter("all")} />
+                      {uniqueStatuses.map((status) => (
+                        <FilterChip
+                          key={status}
+                          label={status}
+                          active={statusFilter === status}
+                          onClick={() => setStatusFilter(status)}
+                        />
+                      ))}
+                    </FilterChipRow>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Organizer</p>
+                    <Select value={organizerFilter} onValueChange={setOrganizerFilter}>
+                      <SelectTrigger className="h-11 rounded-xl">
+                        <SelectValue placeholder="All organizers" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All organizers</SelectItem>
+                        {uniqueOrganizers.map((organizer) => (
+                          <SelectItem key={organizer} value={organizer}>{organizer}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Format</p>
+                    <FilterChipRow>
+                      <FilterChip label="All" active={platformFilter === "all"} onClick={() => setPlatformFilter("all")} />
+                      {uniquePlatforms.map((platform) => (
+                        <FilterChip
+                          key={platform}
+                          label={platform}
+                          active={platformFilter === platform}
+                          onClick={() => setPlatformFilter(platform)}
+                        />
+                      ))}
+                    </FilterChipRow>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sort by</p>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="h-11 rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date">Date</SelectItem>
+                        <SelectItem value="title">Title</SelectItem>
+                        <SelectItem value="organizer">Organizer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </MobileFilterSheet>
+            </div>
+
+            <FilterChipRow>
+              <FilterChip
+                label="All"
+                active={typeFilter === "all" && dateRangeFilter === "all" && statusFilter === "all"}
+                onClick={() => {
+                  setTypeFilter("all")
+                  setDateRangeFilter("all")
+                  setStatusFilter("all")
+                }}
+              />
+              {filterPresets.map((preset) => (
+                <FilterChip
+                  key={preset.label}
+                  label={preset.label}
+                  active={
+                    (preset.label === "This Week" && dateRangeFilter === "thisWeek") ||
+                    (preset.label === "My Events" && statusFilter === "Registered") ||
+                    (preset.label === "Open Events" && statusFilter === "Open")
+                  }
+                  onClick={preset.action}
+                />
+              ))}
+              {uniqueTypes.map((type) => (
+                <FilterChip
+                  key={type}
+                  label={eventTypeLabel(type)}
+                  active={typeFilter === type}
+                  onClick={() => setTypeFilter(typeFilter === type ? "all" : type)}
+                />
+              ))}
+            </FilterChipRow>
+
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""}
+                {activeFilterCount > 0 && ` · ${activeFilterCount} filter${activeFilterCount !== 1 ? "s" : ""}`}
+              </span>
+              {hasActiveFilters && (
+                <button type="button" onClick={clearFilters} className="font-medium text-primary">
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Search and Filters */}
-          <Card className="border-border">
-            <CardContent className="pt-4">
-              <div className="space-y-3">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Search events by title, organizer, or tags..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
+          {/* Desktop: full filter panel */}
+          <div className="mt-6 hidden space-y-4 md:block">
+            <div className="flex flex-wrap gap-2">
+              {filterPresets.map((preset) => (
+                <Button key={preset.label} variant="outline" size="sm" onClick={preset.action}>
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
 
-                {/* Filters */}
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                  <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      {uniqueTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {eventTypeLabel(type)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      {uniqueStatuses.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {status}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={organizerFilter} onValueChange={setOrganizerFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Organizers" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Organizers</SelectItem>
-                      {uniqueOrganizers.map((organizer) => (
-                        <SelectItem key={organizer} value={organizer}>
-                          {organizer}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={platformFilter} onValueChange={setPlatformFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Platforms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Platforms</SelectItem>
-                      {uniquePlatforms.map((platform) => (
-                        <SelectItem key={platform} value={platform}>
-                          {platform}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="date">Date</SelectItem>
-                      <SelectItem value="title">Title</SelectItem>
-                      <SelectItem value="organizer">Organizer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Filter Summary */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {activeFilterCount > 0 && (
-                      <Badge variant="secondary">
-                        {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-                      </Badge>
-                    )}
-                    <span className="text-sm text-muted-foreground">
-                      {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} found
-                    </span>
+            <Card className="border-border">
+              <CardContent className="pt-4">
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search events by title, organizer, or tags..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
                   </div>
-                  {hasActiveFilters && (
-                    <Button variant="outline" size="sm" onClick={clearFilters}>
-                      <X className="mr-2 h-4 w-4" />
-                      Clear Filters
-                    </Button>
-                  )}
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {uniqueTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {eventTypeLabel(type)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        {uniqueStatuses.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={organizerFilter} onValueChange={setOrganizerFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Organizers" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Organizers</SelectItem>
+                        {uniqueOrganizers.map((organizer) => (
+                          <SelectItem key={organizer} value={organizer}>
+                            {organizer}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={platformFilter} onValueChange={setPlatformFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Platforms" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Platforms</SelectItem>
+                        {uniquePlatforms.map((platform) => (
+                          <SelectItem key={platform} value={platform}>
+                            {platform}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date">Date</SelectItem>
+                        <SelectItem value="title">Title</SelectItem>
+                        <SelectItem value="organizer">Organizer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {activeFilterCount > 0 && (
+                        <Badge variant="secondary">
+                          {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
+                        </Badge>
+                      )}
+                      <span className="text-sm text-muted-foreground">
+                        {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} found
+                      </span>
+                    </div>
+                    {hasActiveFilters && (
+                      <Button variant="outline" size="sm" onClick={clearFilters}>
+                        <X className="mr-2 h-4 w-4" />
+                        Clear Filters
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Events Timeline */}

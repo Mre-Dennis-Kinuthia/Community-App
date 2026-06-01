@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Calendar, Loader2, Plus } from "lucide-react"
+import { ArrowLeft, Loader2, Plus } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { PillTabs } from "@/components/mobile/pill-tabs"
+import { MobilePageHeader } from "@/components/mobile/mobile-page-shell"
 
 interface Booking {
   id: string
@@ -25,6 +26,7 @@ export default function DashboardBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming")
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -76,128 +78,99 @@ export default function DashboardBookingsPage() {
     (b) => b.status === "cancelled" || new Date(b.date) < new Date()
   )
 
+  const displayed = activeTab === "upcoming" ? upcoming : past
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-2">
+          <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" asChild>
             <Link href="/dashboard">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Calendar className="h-6 w-6" />
-              My Bookings
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              View and manage your workspace bookings
-            </p>
-          </div>
+          <MobilePageHeader
+            title="My bookings"
+            description="View and manage your workspace bookings"
+          />
         </div>
-        <Button asChild>
-          <Link href="/booking" className="gap-2">
+        <Button asChild size="sm" className="shrink-0 rounded-lg">
+          <Link href="/booking" className="gap-1.5">
             <Plus className="h-4 w-4" />
-            New booking
+            <span className="hidden sm:inline">New</span>
           </Link>
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>All bookings</CardTitle>
-          <CardDescription>
-            {upcoming.length} upcoming · {past.length} past
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12 gap-2 text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Loading...
-            </div>
-          ) : error ? (
-            <div className="text-center py-8">
-              <p className="text-destructive mb-2">{error}</p>
-              <Button variant="outline" size="sm" onClick={fetchBookings}>
-                Retry
-              </Button>
-            </div>
-          ) : bookings.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p className="mb-2">You don&apos;t have any bookings yet.</p>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/booking">Book a workspace</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {upcoming.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Upcoming</h3>
-                  <ul className="space-y-2">
-                    {upcoming.map((booking) => (
-                      <li key={booking.id}>
-                        <Link
-                          href={`/dashboard/bookings/${booking.id}`}
-                          className="block p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center justify-between gap-4 flex-wrap">
-                            <div>
-                              <p className="font-medium">{resourceLabel(booking.resourceType)}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {format(new Date(booking.date), "EEE, MMM d, yyyy")} · {booking.startTime}
-                                {booking.endTime ? ` – ${booking.endTime}` : ""}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={statusVariant(booking.status)}>{booking.status}</Badge>
-                              <span className="text-sm font-medium">
-                                KES {Number(booking.totalPrice).toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {past.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Past</h3>
-                  <ul className="space-y-2">
-                    {past.map((booking) => (
-                      <li key={booking.id}>
-                        <Link
-                          href={`/dashboard/bookings/${booking.id}`}
-                          className="block p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors opacity-80"
-                        >
-                          <div className="flex items-center justify-between gap-4 flex-wrap">
-                            <div>
-                              <p className="font-medium">{resourceLabel(booking.resourceType)}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {format(new Date(booking.date), "EEE, MMM d, yyyy")} · {booking.startTime}
-                                {booking.endTime ? ` – ${booking.endTime}` : ""}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={statusVariant(booking.status)}>{booking.status}</Badge>
-                              <span className="text-sm text-muted-foreground">
-                                KES {Number(booking.totalPrice).toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+      <PillTabs
+        items={[
+          { value: "upcoming", label: "Upcoming", count: upcoming.length },
+          { value: "past", label: "Past", count: past.length },
+        ]}
+        value={activeTab}
+        onChange={(v) => setActiveTab(v as "upcoming" | "past")}
+      />
+
+      {loading ? (
+        <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Loading...
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-border py-8 text-center">
+          <p className="mb-2 text-destructive">{error}</p>
+          <Button variant="outline" size="sm" onClick={fetchBookings}>
+            Retry
+          </Button>
+        </div>
+      ) : displayed.length === 0 ? (
+        <div className="rounded-xl border border-border/60 bg-muted/20 py-12 text-center text-muted-foreground">
+          <p className="mb-3">
+            {activeTab === "upcoming" ? "No upcoming bookings." : "No past bookings."}
+          </p>
+          {activeTab === "upcoming" && (
+            <Button asChild variant="outline" size="sm">
+              <Link href="/booking">Book a workspace</Link>
+            </Button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {displayed.map((booking) => (
+            <li key={booking.id}>
+              <Link
+                href={`/dashboard/bookings/${booking.id}`}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl border border-border/80 p-3.5 transition-colors hover:bg-muted/30 active:bg-muted/40",
+                  activeTab === "past" && "opacity-80"
+                )}
+              >
+                <div className="flex w-12 shrink-0 flex-col items-center rounded-lg bg-muted/40 py-1.5">
+                  <span className="text-lg font-semibold leading-none">{format(new Date(booking.date), "d")}</span>
+                  <span className="text-[10px] font-medium uppercase text-muted-foreground">
+                    {format(new Date(booking.date), "MMM")}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{resourceLabel(booking.resourceType)}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {booking.startTime}
+                    {booking.endTime ? ` – ${booking.endTime}` : ""}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  <Badge variant={statusVariant(booking.status)} className="text-[10px]">
+                    {booking.status}
+                  </Badge>
+                  <span className="text-xs font-medium tabular-nums">
+                    KES {Number(booking.totalPrice).toLocaleString()}
+                  </span>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

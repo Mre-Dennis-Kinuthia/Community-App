@@ -36,6 +36,17 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
+import { FilterChip } from "@/components/mobile/filter-chip"
+import { FilterChipRow } from "@/components/mobile/filter-chip-row"
+import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
+import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
+import { PillTabs } from "@/components/mobile/pill-tabs"
+import {
+  MobilePageHeader,
+  MobileFilterMeta,
+  MobileBreadcrumbsHidden,
+  MobileSearchFilterRow,
+} from "@/components/mobile/mobile-page-shell"
 
 // Note: Programs are currently managed as events in the system
 // For now, we'll show an empty state or fetch from events API if needed
@@ -75,6 +86,7 @@ function ResourcesPageContent() {
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get("category") || "all")
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get("status") || "all")
   const [typeFilter, setTypeFilter] = useState<string>(searchParams.get("type") || "all")
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   
   // Store scroll positions for each tab
   const scrollPositionsRef = useRef<{ programs: number; resources: number }>({
@@ -196,32 +208,109 @@ function ResourcesPageContent() {
   const resourceCategoryNames = Array.from(new Set(resources.map((r) => r.category).filter(Boolean)))
   const uniqueResourceTypes = Array.from(new Set(resources.map((r) => r.type).filter(Boolean)))
 
+  const advancedFilterCount = [
+    categoryFilter !== "all",
+    statusFilter !== "all",
+    typeFilter !== "all",
+  ].filter(Boolean).length
+
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-5xl space-y-6 w-full overflow-x-hidden">
-        <Breadcrumbs items={[{ label: "Programs & Resources" }]} />
-        
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">Programs & Resources</h1>
-          <p className="text-muted-foreground text-base">
-            Explore ongoing program opportunities and access tools, templates, and guides to support your social impact journey.
-          </p>
+      <div className="mx-auto max-w-5xl w-full space-y-4 overflow-x-hidden md:space-y-6">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Programs & Resources" }]} />
+        </MobileBreadcrumbsHidden>
+
+        <MobilePageHeader
+          title="Programs & Resources"
+          description="Explore program opportunities and access tools, templates, and guides to support your social impact journey."
+        />
+
+        <PillTabs
+          items={[
+            { value: "programs", label: "Programs" },
+            { value: "resources", label: "Resources" },
+          ]}
+          value={activeTab}
+          onChange={(v) => handleTabChange(v as "programs" | "resources")}
+        />
+
+        {/* Mobile filters */}
+        <div className="space-y-3 md:hidden">
+          <MobileSearchFilterRow
+            search={
+              <MobileSearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={activeTab === "programs" ? "Search programs…" : "Search resources…"}
+              />
+            }
+            filterTrigger={
+              <MobileFilterSheet
+                open={filterSheetOpen}
+                onOpenChange={setFilterSheetOpen}
+                activeCount={advancedFilterCount}
+                onClear={clearFilters}
+              >
+                <div className="space-y-4">
+                  {activeTab === "programs" ? (
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Category</p>
+                        <FilterChipRow>
+                          <FilterChip label="All" active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} />
+                          {uniqueProgramCategories.map((c) => (
+                            <FilterChip key={c} label={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
+                          ))}
+                        </FilterChipRow>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</p>
+                        <FilterChipRow>
+                          <FilterChip label="All" active={statusFilter === "all"} onClick={() => setStatusFilter("all")} />
+                          {uniqueStatuses.map((s) => (
+                            <FilterChip key={s} label={s.replace("Applications ", "")} active={statusFilter === s} onClick={() => setStatusFilter(s)} />
+                          ))}
+                        </FilterChipRow>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Category</p>
+                        <FilterChipRow>
+                          <FilterChip label="All" active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} />
+                          {resourceCategoryNames.map((c) => (
+                            <FilterChip key={c} label={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
+                          ))}
+                        </FilterChipRow>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Type</p>
+                        <FilterChipRow>
+                          <FilterChip label="All" active={typeFilter === "all"} onClick={() => setTypeFilter("all")} />
+                          {uniqueResourceTypes.map((t) => (
+                            <FilterChip key={t} label={t} active={typeFilter === t.toLowerCase()} onClick={() => setTypeFilter(t.toLowerCase())} />
+                          ))}
+                        </FilterChipRow>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </MobileFilterSheet>
+            }
+          />
+          <MobileFilterMeta
+            count={activeTab === "programs" ? filteredPrograms.length : filteredResources.length}
+            countLabel={activeTab === "programs" ? "programs" : "resources"}
+            filterCount={activeFilterCount}
+            hasFilters={!!hasActiveFilters}
+            onClear={clearFilters}
+          />
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => handleTabChange(v as "programs" | "resources")}>
-          <TabsList className="h-9 bg-muted p-1">
-            <TabsTrigger value="programs" className="rounded-md px-3 py-1.5 text-sm">
-              Programs
-            </TabsTrigger>
-            <TabsTrigger value="resources" className="rounded-md px-3 py-1.5 text-sm">
-              Resources
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Search and Filters */}
-        <Card className="border-border w-full overflow-x-hidden">
+        {/* Desktop search & filters */}
+        <Card className="hidden border-border md:block w-full overflow-x-hidden">
           <CardContent className="pt-4 w-full">
             <div className="space-y-3 w-full min-w-0">
               {/* Search */}

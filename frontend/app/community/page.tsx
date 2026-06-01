@@ -13,25 +13,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   Search, 
   Mail, 
-  Linkedin, 
   X, 
   Users, 
-  MapPin, 
   Star,
   UserPlus,
   CheckCircle2,
-  Clock,
-  TrendingUp,
   Heart,
-  Briefcase,
-  GraduationCap,
   Loader2,
   AlertCircle
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { PageHeader } from "@/components/page-header"
 import { badgeClassForLabel } from "@/lib/badge-styles"
-import { FEATURE_FLAGS } from "@/lib/feature-flags"
+import { FilterChip } from "@/components/mobile/filter-chip"
+import { FilterChipRow } from "@/components/mobile/filter-chip-row"
+import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
+import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
+import { UnderlineTabs } from "@/components/mobile/underline-tabs"
 import {
   Select,
   SelectContent,
@@ -79,6 +76,7 @@ function CommunityPageContent() {
   const [showFeatured, setShowFeatured] = useState(searchParams.get("featured") === "true")
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"))
   const [isFiltering, setIsFiltering] = useState(false)
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
   // Fetch members from API
   const {
@@ -167,17 +165,48 @@ function CommunityPageContent() {
 
   const badgeFor = (label: string) => badgeClassForLabel(label)
 
+  const advancedFilterCount = [
+    selectedExperience !== "All",
+    selectedAvailability !== "All",
+    selectedLocation !== "All",
+    sortBy !== "newest",
+  ].filter(Boolean).length
+
   return (
     <DashboardLayout>
-      <div className="space-y-10">
-        <Breadcrumbs items={[{ label: "Community" }]} />
-        <PageHeader
-          title="Community directory"
-          description="Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions."
-        />
+      <div className="space-y-5 md:space-y-10">
+        <div className="hidden md:block">
+          <Breadcrumbs items={[{ label: "Community" }]} />
+        </div>
 
-        {/* Stats */}
-        <div className="grid gap-3 md:grid-cols-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Community</h1>
+          <p className="hidden text-sm text-muted-foreground sm:block md:text-base max-w-2xl">
+            Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions.
+          </p>
+        </div>
+
+        {/* Stats — horizontal scroll on mobile, grid on desktop */}
+        <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
+          {[
+            { label: "Members", value: pagination?.total ?? 0, icon: Users },
+            { label: "Featured", value: featuredMembers.length, icon: Star },
+            { label: "Connections", value: myConnections.length, icon: UserPlus },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="flex min-w-[7.5rem] shrink-0 flex-col rounded-xl border border-border/60 bg-muted/20 px-4 py-3"
+            >
+              <stat.icon className="mb-1 h-3.5 w-3.5 text-primary/70" />
+              <span className="text-xl font-semibold tabular-nums leading-none">
+                {isLoading ? "—" : stat.value}
+              </span>
+              <span className="mt-1 text-[11px] text-muted-foreground">{stat.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden gap-3 md:grid md:grid-cols-4">
           <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
             <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -261,95 +290,158 @@ function CommunityPageContent() {
           </Card>
         </div>
 
+        <UnderlineTabs
+          className="md:hidden"
+          items={[
+            { value: "all", label: "All members" },
+            { value: "connections", label: `Connections (${myConnections.length})` },
+          ]}
+          value={activeTab}
+          onChange={setActiveTab}
+        />
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="hidden w-full max-w-md grid-cols-2 md:grid">
             <TabsTrigger value="all">All Members</TabsTrigger>
             <TabsTrigger value="connections">My Connections ({myConnections.length})</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-6 mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
-            {/* Featured Members Section */}
+          <TabsContent value="all" className="space-y-4 mt-4 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
+            {/* Featured — compact on mobile */}
             {!hasActiveFilters && featuredMembers.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl md:text-2xl font-semibold">Featured Members</h2>
+                  <Star className="h-4 w-4 text-primary md:h-5 md:w-5" />
+                  <h2 className="text-lg font-semibold md:text-2xl">Featured</h2>
                 </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-0 lg:grid-cols-4">
                   {featuredMembers.map((member) => (
-                    <Link key={member.id} href={`/community/${member.id}`}>
-                      <Card className="flex flex-col cursor-pointer transition-all hover:bg-muted/30 hover:border-primary/50 border-border ring-2 ring-primary/20 h-full">
-                        <CardHeader className="text-center">
-                          <div className="flex justify-center mb-2">
-                            <Badge className="bg-primary/10 text-primary border-primary/20">
-                              <Star className="mr-1 h-3 w-3" />
-                              Featured
-                            </Badge>
-                          </div>
-                            <Avatar className="mx-auto h-20 w-20">
-                              {(member.avatar || member.image) ? (
-                                <AvatarImage
-                                  src={member.avatar || member.image}
-                                  alt={member.name || "Member"}
-                                />
-                              ) : null}
-                              <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                          <div className="space-y-1 mt-3">
-                            <CardTitle className="text-lg">{member.name}</CardTitle>
-                            <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
-                            <p className="text-xs text-muted-foreground">{member.industry}</p>
+                    <Link key={member.id} href={`/community/${member.id}`} className="block w-[11rem] shrink-0 md:w-auto">
+                      <Card className="flex h-full cursor-pointer flex-col transition-all hover:border-primary/50 border-border ring-1 ring-primary/10">
+                        <CardHeader className="p-4 text-center">
+                          <Avatar className="mx-auto h-14 w-14 md:h-20 md:w-20">
+                            {(member.avatar || member.image) ? (
+                              <AvatarImage
+                                src={member.avatar || member.image}
+                                alt={member.name || "Member"}
+                              />
+                            ) : null}
+                            <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-0.5 mt-2">
+                            <CardTitle className="text-sm md:text-lg line-clamp-1">{member.name}</CardTitle>
+                            <p className="text-xs text-muted-foreground line-clamp-1">{member.role}</p>
                           </div>
                         </CardHeader>
-                        <CardContent className="flex-1 text-center space-y-3">
-                          <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              <span>{member.connections}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Heart className="h-3 w-3" />
-                              <span>{member.followers}</span>
-                            </div>
-                          </div>
-                          {member.skills && member.skills.length > 0 && (
-                            <div className="flex flex-wrap justify-center gap-1">
-                              {member.skills.slice(0, 3).map((skill) => (
-                                <Badge key={skill} variant="secondary" className="text-[10px]">
-                                  {skill}
-                                </Badge>
-                              ))}
-                              {member.skills.length > 3 && (
-                                <Badge variant="secondary" className="text-[10px]">
-                                  +{member.skills.length - 3}
-                                </Badge>
-                              )}
-                            </div>
-                          )}
-                          {(member.availability ?? []).length > 0 && (
-                            <div className="flex flex-wrap justify-center gap-1">
-                              {(member.availability ?? []).slice(0, 1).map((avail, idx) => (
-                                <Badge key={idx} className={`${badgeFor(avail)} text-[9px]`} variant="outline">
-                                  {avail}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </CardContent>
                       </Card>
                     </Link>
                   ))}
                 </div>
-                <div className="pt-4 border-t">
-                  <Button variant="outline" onClick={() => setShowFeatured(false)} className="w-full md:w-auto">
-                    View All Members
-                  </Button>
-                </div>
               </div>
             )}
 
-            {/* Filters */}
-            <div className="space-y-4">
+            {/* Mobile filters */}
+            <div className="space-y-3 md:hidden">
+              <div className="flex gap-2">
+                <MobileSearchBar
+                  className="flex-1"
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search members…"
+                />
+                <MobileFilterSheet
+                  open={filterSheetOpen}
+                  onOpenChange={setFilterSheetOpen}
+                  activeCount={advancedFilterCount}
+                  onClear={clearFilters}
+                >
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Experience</p>
+                      <FilterChipRow>
+                        {experienceLevels.map((level) => (
+                          <FilterChip
+                            key={level}
+                            label={level}
+                            active={selectedExperience === level}
+                            onClick={() => setSelectedExperience(level)}
+                          />
+                        ))}
+                      </FilterChipRow>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Availability</p>
+                      <FilterChipRow>
+                        {availabilityOptions.map((avail) => (
+                          <FilterChip
+                            key={avail}
+                            label={avail === "All" ? "All" : avail.replace("Open to ", "").replace("Offering ", "")}
+                            active={selectedAvailability === avail}
+                            onClick={() => setSelectedAvailability(avail)}
+                          />
+                        ))}
+                      </FilterChipRow>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Location</p>
+                      <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                        <SelectTrigger className="h-11 rounded-xl">
+                          <SelectValue placeholder="Location" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {locations.map((location) => (
+                            <SelectItem key={location} value={location}>{location}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sort by</p>
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="h-11 rounded-xl">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="newest">Newest First</SelectItem>
+                          <SelectItem value="oldest">Oldest First</SelectItem>
+                          <SelectItem value="most_connected">Most Connected</SelectItem>
+                          <SelectItem value="most_active">Most Active</SelectItem>
+                          <SelectItem value="alphabetical">Alphabetical</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </MobileFilterSheet>
+              </div>
+
+              {locations.length > 1 && (
+                <FilterChipRow>
+                  {locations.slice(0, 6).map((location) => (
+                    <FilterChip
+                      key={location}
+                      label={location}
+                      active={selectedLocation === location}
+                      onClick={() => setSelectedLocation(location)}
+                    />
+                  ))}
+                </FilterChipRow>
+              )}
+
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>
+                  {pagination?.total ?? 0} member{(pagination?.total ?? 0) !== 1 ? "s" : ""}
+                  {activeFilterCount > 0 && ` · ${activeFilterCount} filter${activeFilterCount !== 1 ? "s" : ""}`}
+                </span>
+                {hasActiveFilters && (
+                  <button type="button" onClick={clearFilters} className="font-medium text-primary">
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Desktop filters */}
+            <div className="hidden space-y-4 md:block">
               <div className="flex flex-col gap-4 md:flex-row md:items-center">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -477,95 +569,69 @@ function CommunityPageContent() {
                     <h2 className="text-xl md:text-2xl font-semibold mb-4">All Members</h2>
                   </div>
                 )}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-2 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-4">
                   {filteredAndSortedMembers.map((member) => {
                     const isConnected = myConnections.includes(member.id)
                     return (
                       <Link key={member.id} href={`/community/${member.id}`}>
-                        <Card className="flex flex-col cursor-pointer transition-all hover:bg-muted/30 hover:border-primary/50 border-border h-full">
-                          <CardHeader className="text-center">
-                            {member.featured && (
-                              <div className="flex justify-center mb-2">
-                                <Badge className="bg-primary/10 text-primary border-primary/20">
+                        <Card className="flex cursor-pointer flex-row items-center gap-3 border-border/80 p-3 transition-colors hover:border-primary/40 hover:bg-muted/20 md:flex-col md:p-0 md:text-center">
+                          <Avatar className="h-12 w-12 shrink-0 md:mx-auto md:mt-4 md:h-20 md:w-20">
+                            {(member.avatar || member.image) ? (
+                              <AvatarImage
+                                src={member.avatar || member.image}
+                                alt={member.name}
+                              />
+                            ) : null}
+                            <AvatarFallback>{member.name?.charAt(0) || "?"}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1 md:w-full">
+                            <div className="md:px-4 md:pb-2">
+                              {member.featured && (
+                                <Badge className="mb-1 hidden bg-primary/10 text-primary border-primary/20 md:inline-flex">
                                   <Star className="mr-1 h-3 w-3" />
                                   Featured
                                 </Badge>
-                              </div>
-                            )}
-                            <Avatar className="mx-auto h-20 w-20">
-                              {(member.avatar || member.image) ? (
-                                <AvatarImage
-                                  src={member.avatar || member.image}
-                                  alt={member.name}
-                                />
-                              ) : null}
-                              <AvatarFallback>{member.name?.charAt(0) || "?"}</AvatarFallback>
-                            </Avatar>
-                          <div className="space-y-1 mt-3">
-                            <CardTitle className="text-lg">{member.name || "Anonymous"}</CardTitle>
-                            {member.role && (
-                              <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
-                            )}
-                            {member.industry && (
-                              <p className="text-xs text-muted-foreground">{member.industry}</p>
-                            )}
-                          </div>
-                          </CardHeader>
-                          <CardContent className="flex-1 text-center space-y-3">
-                            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Users className="h-3 w-3" />
-                                <span>{member.connections || 0}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Heart className="h-3 w-3" />
-                                <span>{member.followers || 0}</span>
-                              </div>
-                              {FEATURE_FLAGS.projectsAndInitiatives &&
-                                member.projectsInvolved &&
-                                member.projectsInvolved.length > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Briefcase className="h-3 w-3" />
-                                  <span>{member.projectsInvolved.length}</span>
-                                </div>
+                              )}
+                              <CardTitle className="truncate text-base md:text-lg">{member.name || "Anonymous"}</CardTitle>
+                              {member.role && (
+                                <p className="truncate text-sm text-muted-foreground">{member.role}</p>
+                              )}
+                              {member.industry && (
+                                <p className="hidden truncate text-xs text-muted-foreground md:block">{member.industry}</p>
                               )}
                             </div>
-                            {member.experienceLevel && (
-                            <Badge className={`${badgeFor(member.experienceLevel)} text-xs`} variant="outline">
-                              {member.experienceLevel}
-                            </Badge>
-                            )}
-                            {member.skills && member.skills.length > 0 && (
-                              <div className="flex flex-wrap justify-center gap-1">
-                                {member.skills.slice(0, 3).map((skill) => (
-                                  <Badge key={skill} variant="secondary" className="text-[10px]">
-                                    {skill}
-                                  </Badge>
-                                ))}
-                                {member.skills.length > 3 && (
-                                  <Badge variant="secondary" className="text-[10px]">
-                                    +{member.skills.length - 3}
-                                  </Badge>
-                                )}
+                            <CardContent className="hidden flex-1 space-y-3 p-4 pt-0 text-center md:block">
+                              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  <span>{member.connections || 0}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Heart className="h-3 w-3" />
+                                  <span>{member.followers || 0}</span>
+                                </div>
                               </div>
+                              {member.experienceLevel && (
+                                <Badge className={`${badgeFor(member.experienceLevel)} text-xs`} variant="outline">
+                                  {member.experienceLevel}
+                                </Badge>
+                              )}
+                              {isConnected && (
+                                <Badge variant="default" className="text-xs">
+                                  <CheckCircle2 className="mr-1 h-3 w-3" />
+                                  Connected
+                                </Badge>
+                              )}
+                            </CardContent>
+                          </div>
+                          <div className="shrink-0 md:hidden">
+                            {isConnected ? (
+                              <CheckCircle2 className="h-5 w-5 text-primary" />
+                            ) : (
+                              <UserPlus className="h-5 w-5 text-muted-foreground" />
                             )}
-                            {(member.availability ?? []).length > 0 && (
-                              <div className="flex flex-wrap justify-center gap-1">
-                                {(member.availability ?? []).slice(0, 1).map((avail, idx) => (
-                                  <Badge key={idx} className={`${badgeFor(avail)} text-[9px]`} variant="outline">
-                                    {avail}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                            {isConnected && (
-                              <Badge variant="default" className="text-xs">
-                                <CheckCircle2 className="mr-1 h-3 w-3" />
-                                Connected
-                              </Badge>
-                            )}
-                          </CardContent>
-                          <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
+                          </div>
+                          <CardFooter className="hidden w-full grid-cols-2 gap-2 border-t p-4 md:grid">
                             {member.email && (
                               <Button
                                 variant="ghost"

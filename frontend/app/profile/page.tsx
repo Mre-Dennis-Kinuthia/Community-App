@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select"
 import { Edit, Save, X, Plus, Loader2, CreditCard, Users, CalendarDays, Briefcase } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { PageHeader } from "@/components/page-header"
+import { MobilePageHeader, MobileStatsStrip, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { toast } from "@/lib/toast"
 import { getInitials, cn } from "@/lib/utils"
@@ -236,46 +236,69 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-5xl space-y-8">
-        <Breadcrumbs items={[{ label: "Profile" }]} />
+      <div className="mx-auto max-w-5xl space-y-4 md:space-y-8">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Profile" }]} />
+        </MobileBreadcrumbsHidden>
 
-        <PageHeader
-          title="Your profile"
-          description="This information appears in the community directory. Keep it accurate so members can find and collaborate with you."
-        >
-          {isEditing ? (
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={handleCancel} disabled={saving}>
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleSave} disabled={saving}>
-                {saving ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                Save
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link href={user?.id ? `/community/${user.id}` : "/community"}>
-                  View public profile
-                </Link>
-              </Button>
-              <Button size="sm" onClick={() => setIsEditing(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Button>
-            </div>
-          )}
-        </PageHeader>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <MobilePageHeader
+            title="Your profile"
+            description="This information appears in the community directory. Keep it accurate so members can find and collaborate with you."
+          />
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {isEditing ? (
+              <>
+                <Button variant="outline" size="sm" onClick={handleCancel} disabled={saving}>
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleSave} disabled={saving}>
+                  {saving ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={user?.id ? `/community/${user.id}` : "/community"}>
+                    View public profile
+                  </Link>
+                </Button>
+                <Button size="sm" onClick={() => setIsEditing(true)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+
+        <MobileStatsStrip
+          items={[
+            { label: "Connections", value: stats?.connections ?? 0, icon: Users },
+            { label: "Event sign-ups", value: stats?.events ?? 0, icon: CalendarDays },
+            { label: "Projects", value: stats?.projects ?? 0, icon: Briefcase },
+          ]}
+          loading={loading}
+        />
+
+        <div className="flex gap-2 lg:hidden">
+          <Button variant="outline" size="sm" className="flex-1 rounded-lg" asChild>
+            <Link href="/billing">Billing</Link>
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1 rounded-lg" asChild>
+            <Link href="/booking">Book space</Link>
+          </Button>
+        </div>
 
         {/* Identity */}
-        <div className="rounded-lg border border-border bg-card overflow-hidden">
-          <div className="border-b border-border bg-muted/30 px-6 py-6 md:px-8">
+        <div className="overflow-hidden rounded-xl border border-border/80 bg-card">
+          <div className="border-b border-border bg-muted/30 px-4 py-5 md:px-8 md:py-6">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               <Avatar className="h-20 w-20 shrink-0 border-2 border-background shadow-sm md:h-24 md:w-24">
                 <AvatarImage src={user.image || undefined} alt={displayName} />
@@ -541,7 +564,7 @@ export default function ProfilePage() {
             </Card>
           </div>
 
-          <aside className="space-y-6">
+          <aside className="hidden space-y-6 lg:block">
             <Card className="border-border">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Your activity</CardTitle>

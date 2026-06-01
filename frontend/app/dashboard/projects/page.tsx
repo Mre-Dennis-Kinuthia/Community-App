@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { MobilePageHeader, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -143,19 +144,23 @@ export default function MyProjectsPage() {
   }
 
   return (
-    <div className="space-y-6">
-        <Breadcrumbs items={[{ label: "Dashboard" }, { label: "My projects" }]} />
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-semibold tracking-tight">My projects</h1>
-            <p className="text-muted-foreground text-sm">
-              {showForm ? "Submit for admin approval to publish on Projects & Initiatives." : "View and submit projects."}
-            </p>
-          </div>
+    <div className="space-y-4 md:space-y-6">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Dashboard" }, { label: "My projects" }]} />
+        </MobileBreadcrumbsHidden>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <MobilePageHeader
+            title="My projects"
+            description={
+              showForm
+                ? "Submit for admin approval to publish on Projects & Initiatives."
+                : "View and submit projects."
+            }
+          />
           {!showForm && (
-            <Button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground shadow-sm">
+            <Button onClick={() => setShowForm(true)} size="sm" className="shrink-0 rounded-lg">
               <Plus className="h-4 w-4" />
-              Submit a project
+              <span className="hidden sm:inline ml-1.5">Submit</span>
             </Button>
           )}
         </div>
@@ -315,22 +320,29 @@ export default function MyProjectsPage() {
                   <p className="text-sm mt-1">Use the button above to submit your first project.</p>
                 </div>
               ) : (
-                <ul className="divide-y divide-border">
+                <ul className="space-y-2">
                   {projects.map((p) => {
                     const config = statusConfig[p.status] || statusConfig.pending
                     const Icon = config.icon
                     return (
-                      <li key={p.id} className="flex flex-wrap items-center justify-between gap-4 py-4 first:pt-0 last:pb-0">
-                        <div className="min-w-0">
-                          <p className="font-medium truncate">{p.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Submitted {p.submittedAt ? format(new Date(p.submittedAt), "PP") : format(new Date(p.createdAt), "PP")}
-                          </p>
+                      <li key={p.id}>
+                        <div className="flex items-center gap-3 rounded-xl border border-border/80 p-3.5">
+                          <div className="flex w-10 shrink-0 items-center justify-center rounded-lg bg-muted/40">
+                            <Lightbulb className="h-4 w-4 text-primary/70" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium">{p.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {p.submittedAt
+                                ? format(new Date(p.submittedAt), "MMM d, yyyy")
+                                : format(new Date(p.createdAt), "MMM d, yyyy")}
+                            </p>
+                          </div>
+                          <Badge variant={config.variant} className="shrink-0 gap-1 text-[10px]">
+                            <Icon className="h-3 w-3" />
+                            {config.label}
+                          </Badge>
                         </div>
-                        <Badge variant={config.variant} className="gap-1 shrink-0">
-                          <Icon className="h-3 w-3" />
-                          {config.label}
-                        </Badge>
                       </li>
                     )
                   })}

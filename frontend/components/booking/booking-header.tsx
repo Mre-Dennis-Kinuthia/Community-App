@@ -21,10 +21,10 @@ export function BookingHeader({ workspace, onBookNow, onCheckAvailability }: Boo
           <MapPin className="h-4 w-4" />
           <span>{workspace.location}</span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
           {workspace.name}
         </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl">
+        <p className="max-w-2xl text-sm text-muted-foreground md:text-lg">
           {workspace.valueProposition}
         </p>
       </div>
@@ -43,8 +43,8 @@ export function BookingHeader({ workspace, onBookNow, onCheckAvailability }: Boo
         </div>
       )}
 
-      {/* Primary CTAs */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+      {/* Primary CTAs — desktop only; mobile uses sticky summary */}
+      <div className="hidden flex-col gap-3 pt-2 sm:flex-row md:flex">
         <Button 
           size="lg" 
           onClick={onBookNow}

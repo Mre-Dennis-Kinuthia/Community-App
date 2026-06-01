@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Users2, CheckCircle2, ArrowUpRight, ExternalLink, HelpCircle, Sparkles, X, Plus } from "lucide-react"
 import Link from "next/link"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import {
+  MobileStatsStrip,
+  MobileBreadcrumbsHidden,
+} from "@/components/mobile/mobile-page-shell"
 import { useState, useEffect } from "react"
 import useSWR from "swr"
 import {
@@ -156,22 +160,33 @@ export default function DashboardPage() {
   return (
     <TooltipProvider>
       <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
-      <div className="space-y-10">
-        <Breadcrumbs items={[{ label: "Dashboard" }]} />
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight">{greeting}, {userName}</h1>
-            <p className="text-muted-foreground text-base">
+      <div className="space-y-6 md:space-y-10">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Dashboard" }]} />
+        </MobileBreadcrumbsHidden>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{greeting}, {userName}</h1>
+            <p className="hidden text-sm text-muted-foreground sm:block md:text-base">
               Welcome back to Impact Hub Nairobi. Continue building your impact.
             </p>
           </div>
-          <Button asChild>
+          <Button asChild className="shrink-0">
             <Link href="/booking">
               <Plus className="mr-2 h-4 w-4" />
               Book Workspace
             </Link>
           </Button>
         </div>
+
+        <MobileStatsStrip
+          loading={isLoadingStats}
+          items={[
+            { label: "Events", value: statsWithDefaults.upcomingEvents, icon: CalendarDays },
+            { label: "Members", value: statsWithDefaults.activeMembers, icon: Users2 },
+            { label: "Connections", value: statsWithDefaults.userConnections, icon: CheckCircle2 },
+          ]}
+        />
 
         {/* Getting Started Card for New Users */}
         {showGettingStarted && (
@@ -232,7 +247,7 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="hidden gap-5 md:grid md:grid-cols-2 lg:grid-cols-3">
           <Card 
             className="cursor-pointer transition-colors hover:bg-muted/30 focus-within:ring-2 focus-within:ring-ring" 
             onClick={() => window.location.href = "/profile"}

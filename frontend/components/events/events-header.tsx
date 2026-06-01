@@ -1,29 +1,30 @@
 "use client"
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PageHeader } from "@/components/page-header"
+import { PillTabs } from "@/components/mobile/pill-tabs"
 
 interface EventsHeaderProps {
   activeTab: "upcoming" | "past"
   onTabChange: (tab: "upcoming" | "past") => void
+  upcomingCount?: number
 }
 
-export function EventsHeader({ activeTab, onTabChange }: EventsHeaderProps) {
+export function EventsHeader({ activeTab, onTabChange, upcomingCount }: EventsHeaderProps) {
   return (
-    <PageHeader
-      title="Events"
-      description="Workshops, networking sessions, and programs from Impact Hub Nairobi."
-    >
-      <Tabs value={activeTab} onValueChange={(v) => onTabChange(v as "upcoming" | "past")}>
-        <TabsList className="h-9 bg-muted p-1">
-          <TabsTrigger value="upcoming" className="rounded-md px-3 py-1.5 text-sm">
-            Upcoming
-          </TabsTrigger>
-          <TabsTrigger value="past" className="rounded-md px-3 py-1.5 text-sm">
-            Past
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-    </PageHeader>
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Events</h1>
+        <p className="hidden text-sm text-muted-foreground sm:block md:text-base max-w-2xl">
+          Workshops, networking sessions, and programs from Impact Hub Nairobi.
+        </p>
+      </div>
+      <PillTabs
+        items={[
+          { value: "upcoming", label: "Upcoming", count: upcomingCount },
+          { value: "past", label: "Past" },
+        ]}
+        value={activeTab}
+        onChange={(v) => onTabChange(v as "upcoming" | "past")}
+      />
+    </div>
   )
 }
