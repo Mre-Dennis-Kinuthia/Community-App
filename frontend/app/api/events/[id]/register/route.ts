@@ -12,6 +12,8 @@ import {
   isPaidEvent,
 } from "@/lib/event-questions"
 import { findEventByPublicParam } from "@/lib/event-slug"
+import { getEventPublicUrl } from "@/lib/event-url"
+import { sendEventRegistrationEmail, sendEmailInBackground } from "@/lib/email"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
 
@@ -205,10 +207,30 @@ export async function POST(
             location: true,
             price: true,
             currency: true,
+            timezone: true,
+            slug: true,
+            shortCode: true,
           },
         },
       },
     })
+
+    sendEmailInBackground(
+      sendEventRegistrationEmail({
+        to: email,
+        name: name || null,
+        eventTitle: event.title,
+        eventStartDate: event.startDate,
+        eventTimezone: event.timezone,
+        eventUrl: getEventPublicUrl({
+          id: event.id,
+          slug: event.slug,
+          shortCode: event.shortCode,
+        }),
+        status,
+      }),
+      "event-registration"
+    )
 
     const message =
       status === "pending"

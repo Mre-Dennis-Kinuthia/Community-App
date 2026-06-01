@@ -1,5 +1,6 @@
 "use client"
 
+import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -665,8 +666,8 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <a href="mailto:nairobi@impacthub.net" className="hover:text-foreground transition-colors">
-                    nairobi@impacthub.net
+                  <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="hover:text-foreground transition-colors">
+                    {HUB_CONTACT_EMAIL}
                   </a>
                 </li>
                 <li className="flex items-start gap-2">

@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { toast } from "@/lib/toast"
 import { localCalendarDayToISO } from "@/lib/date-booking"
 import { useWorkspace } from "@/lib/hooks/use-workspace"
@@ -566,7 +567,7 @@ export default function BookingPage() {
           <p className="text-center text-xs text-muted-foreground lg:hidden pb-4">
             Need help with booking?{" "}
             <a
-              href="mailto:nairobi@impacthub.net?subject=Workspace%20booking%20support"
+              href={`mailto:${HUB_CONTACT_EMAIL}?subject=Workspace%20booking%20support`}
               className="text-foreground underline underline-offset-2"
             >
               Email the team

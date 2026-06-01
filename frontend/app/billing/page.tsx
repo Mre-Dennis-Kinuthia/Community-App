@@ -41,8 +41,9 @@ import {
   ArrowRight,
 } from "lucide-react"
 import { format } from "date-fns"
+import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 
-const MEMBERSHIP_EMAIL = "mailto:nairobi@impacthub.net?subject=Impact%20Hub%20Nairobi%20%E2%80%94%20Billing"
+const MEMBERSHIP_EMAIL = `mailto:${HUB_CONTACT_EMAIL}?subject=Impact%20Hub%20Nairobi%20%E2%80%94%20Billing`
 
 interface BillingPlan {
   id: string

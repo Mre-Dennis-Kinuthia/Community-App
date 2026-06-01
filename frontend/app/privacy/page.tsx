@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import type { Metadata } from "next"
@@ -77,8 +78,8 @@ export default function PrivacyPage() {
               You have the right to access, correct, or delete your personal information. You may
               also request a copy of the data we hold about you. To exercise any of these rights,
               contact us at{" "}
-              <a href="mailto:info@nairobi.impacthub.net" className="text-primary hover:underline">
-                info@nairobi.impacthub.net
+              <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="text-primary hover:underline">
+                {HUB_CONTACT_EMAIL}
               </a>
               .
             </p>
@@ -96,8 +97,8 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold mb-3">8. Contact</h2>
             <p className="text-muted-foreground">
               For privacy-related questions, contact Impact Hub Nairobi at{" "}
-              <a href="mailto:info@nairobi.impacthub.net" className="text-primary hover:underline">
-                info@nairobi.impacthub.net
+              <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="text-primary hover:underline">
+                {HUB_CONTACT_EMAIL}
               </a>{" "}
               or visit{" "}
               <Link

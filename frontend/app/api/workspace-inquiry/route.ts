@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import {
+  sendWorkspaceInquiryConfirmationEmail,
+  sendWorkspaceInquiryStaffEmail,
+  sendEmailInBackground,
+} from "@/lib/email"
 import { z } from "zod"
 
 const inquirySchema = z
@@ -58,6 +63,29 @@ export async function POST(request: NextRequest) {
         category: "workspace-inquiry",
       },
     })
+
+    const inquiryLabel =
+      data.inquiryType === "event-space" ? "Event space inquiry" : "Private office inquiry"
+
+    sendEmailInBackground(
+      sendWorkspaceInquiryConfirmationEmail({
+        to: data.email,
+        name: data.name,
+        inquiryLabel,
+      }),
+      "workspace-inquiry-confirmation"
+    )
+
+    sendEmailInBackground(
+      sendWorkspaceInquiryStaffEmail({
+        inquiryLabel,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        details: description,
+      }),
+      "workspace-inquiry-staff"
+    )
 
     return NextResponse.json(
       { message: "Inquiry submitted successfully. Our staff will contact you shortly." },

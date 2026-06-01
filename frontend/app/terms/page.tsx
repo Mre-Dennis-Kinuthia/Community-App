@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import type { Metadata } from "next"
@@ -111,8 +112,8 @@ export default function TermsPage() {
             <h2 className="text-xl font-semibold mb-3">10. Contact</h2>
             <p className="text-muted-foreground">
               For questions about these Terms, contact us at{" "}
-              <a href="mailto:info@nairobi.impacthub.net" className="text-primary hover:underline">
-                info@nairobi.impacthub.net
+              <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="text-primary hover:underline">
+                {HUB_CONTACT_EMAIL}
               </a>
               .
             </p>
