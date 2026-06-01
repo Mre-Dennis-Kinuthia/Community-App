@@ -282,7 +282,6 @@ export default function NewsPage() {
                 </Button>
               </div>
             )}
-          </div>
 
           {loading && (
             <div className="flex items-center justify-center py-16">
