@@ -311,14 +311,80 @@ Google received a scope literally named `gmail`, which does not exist. Fix:
 
 Do **not** use shorthand like `gmail`, `gmail.send`, or `mail.google.com` without `https://`.
 
-### Step 6.4 — Exchange the code for tokens
+#### If you see `unauthorized_client: Unauthorized` when running test-smtp
 
-1. Click **Step 2 — Exchange authorization code for tokens** (the button in the left panel under Step 2).
-2. The right panel fills with JSON. Look for these fields:
-  - `"access_token": "..."` — short-lived; the app refreshes this automatically.
-  - `"refresh_token": "1//0g..."` — **this is what you need.** Copy the entire refresh token string, including any characters after `1//`.
+Google rejected the combination of **Client ID + Client secret + Refresh token**. The refresh token is tied to the **exact** OAuth client that was used in the Playground when Dennis clicked Allow. Common causes:
 
-Store the refresh token in your password manager. You will paste it into `GOOGLE_REFRESH_TOKEN` in `.env.local` and Vercel.
+1. **Playground used Google’s default credentials** — gear icon was not checked for “Use your own OAuth credentials” when you got the refresh token.
+2. **Client secret was regenerated** in Google Cloud after you copied the old one into `.env.local`.
+3. **Wrong OAuth client** — refresh token from one project/client, but `.env` has another Client ID.
+4. **OAuth client type is not Web application** — create a **Web application** client, not Desktop or TV.
+
+**Fix (get a fresh refresh token):**
+
+1. Google Cloud → **APIs & Services** → **Credentials** → open your **Web** OAuth client.
+2. Confirm **Client ID** matches `GOOGLE_CLIENT_ID` in `.env.local`.
+3. If the secret might be wrong: **Add secret** (or reset), copy the new value into `GOOGLE_CLIENT_SECRET`.
+4. Confirm redirect URI includes `https://developers.google.com/oauthplayground`.
+5. https://myaccount.google.com/permissions → remove **Impact Hub Community App** (or your app name).
+6. [OAuth Playground](https://developers.google.com/oauthplayground) → **Reset all settings**.
+7. Gear → **Use your own OAuth credentials** → paste the **same** Client ID and secret as in `.env.local`.
+8. Step 1 → Gmail API v1 → **only** `https://mail.google.com/` → **Authorize APIs** as Dennis.
+9. Step 2 → **Exchange authorization code for tokens** → copy **refresh_token** into `GOOGLE_REFRESH_TOKEN`.
+10. Verify before sending mail:
+    ```bash
+    npx tsx --env-file=.env.local scripts/verify-google-oauth.ts
+    npx tsx --env-file=.env.local scripts/test-smtp.ts dennis.ndungu@impacthub.net
+    ```
+
+Keep **only one** `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REFRESH_TOKEN` block in `.env.local` (no duplicate empty lines above real values).
+
+### Step 6.4 — Get refresh token (recommended: local script)
+
+Playground often causes `unauthorized_client` because the authorization code is tied to **Playground’s default OAuth client**, not yours. **Use the local script instead:**
+
+#### 6.4a — Add localhost redirect URI (one time)
+
+1. Google Cloud → **APIs & Services** → **Credentials**
+2. Open your **Web application** OAuth client (`82939029066-...` or your client)
+3. Under **Authorized redirect URIs**, add:
+   ```
+   http://localhost:3333/oauth/callback
+   ```
+4. **Save**
+
+#### 6.4b — Run local OAuth flow
+
+1. Ensure `.env.local` has correct `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (copy fresh from Google Cloud if unsure).
+2. In terminal:
+
+```bash
+cd Community-App/frontend
+npx tsx --env-file=.env.local scripts/google-oauth-local.ts
+```
+
+3. The script prints a URL — open it in your browser.
+4. Sign in as **`dennis.ndungu@impacthub.net`** → **Allow**.
+5. Browser shows “Success” — terminal prints `GOOGLE_REFRESH_TOKEN=...`
+6. Paste into **both** `Community-App/frontend/.env.local` and `Community-app-admin/.env.local`.
+
+#### 6.4c — Verify
+
+```bash
+npx tsx --env-file=.env.local scripts/verify-google-oauth.ts
+npx tsx --env-file=.env.local scripts/test-smtp.ts dennis.ndungu@impacthub.net
+```
+
+#### Alternative — OAuth Playground (only if local script is unavailable)
+
+If you use [OAuth Playground](https://developers.google.com/oauthplayground):
+
+1. **Reset all settings**
+2. **Gear first** → **Use your own OAuth credentials** → paste Client ID + secret from `.env.local`
+3. Confirm the banner says you are using **custom OAuth configuration**
+4. Step 1 → authorize → copy code → run `scripts/exchange-google-auth-code.ts`
+
+If exchange returns `unauthorized_client`, the code was not issued for your client — use the **local script** (6.4b) instead.
 
 ### If there is no `refresh_token` in the JSON
 
