@@ -57,7 +57,10 @@ export async function POST(request: NextRequest) {
         request.nextUrl.origin
       const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
 
-      await sendPasswordResetEmail({ to: email, resetUrl })
+      const emailResult = await sendPasswordResetEmail({ to: email, resetUrl })
+      if (!emailResult.ok) {
+        console.error("[FORGOT PASSWORD] Email not sent:", emailResult.error)
+      }
     }
 
     return NextResponse.json({ message: GENERIC_MESSAGE })

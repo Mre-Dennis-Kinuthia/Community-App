@@ -48,7 +48,8 @@ export async function sendSmtpEmail(params: {
     })
     return { ok: true, id: info.messageId }
   } catch (error) {
-    console.error("[EMAIL] SMTP error:", error)
-    return { ok: false, error: "Failed to send email" }
+    const message = error instanceof Error ? error.message : String(error)
+    console.error("[EMAIL] SMTP error:", message)
+    return { ok: false, error: message || "Failed to send email" }
   }
 }

@@ -136,7 +136,9 @@ Check Brevo → **Transactional** → **Email logs** (or your host’s sent fold
 
 ## Troubleshooting
 
-- **Emails not sent** — Confirm `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` on Vercel and redeploy. Search logs for `[EMAIL]`.
+- **Brevo: “SMTP account is not yet activated” (502)** — New Brevo accounts must complete onboarding (profile, use case) and may need SMTP enabled by support. In Brevo: **Settings** → **SMTP & API** — check for an activation banner. Contact Brevo support or `contact@sendinblue.com` if sends fail with 502 and **Transactional** logs stay empty.
+- **Forgot password: no email, no Brevo log** — Usually SMTP never connected (inactive account) or the user has **no password** (Google-only sign-in). Reset only runs for accounts with a stored password.
+- **Emails not sent** — Confirm `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` on Vercel and redeploy. Search logs for `[EMAIL]` or `[FORGOT PASSWORD]`.
 - **Sender not verified** — Brevo blocks until the sender email is verified.
 - **Authentication failed** — Regenerate SMTP key; use the SMTP password, not the account login password (unless your host says otherwise).
 - **Wrong links** — Set `NEXT_PUBLIC_APP_URL` / `NEXT_PUBLIC_COMMUNITY_APP_URL` to production URLs.
