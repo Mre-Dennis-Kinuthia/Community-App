@@ -287,7 +287,12 @@ function CommunityPageContent() {
                             </Badge>
                           </div>
                             <Avatar className="mx-auto h-20 w-20">
-                              <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name || "Member"} />
+                              {(member.avatar || member.image) ? (
+                                <AvatarImage
+                                  src={member.avatar || member.image}
+                                  alt={member.name || "Member"}
+                                />
+                              ) : null}
                               <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                           <div className="space-y-1 mt-3">
@@ -488,7 +493,12 @@ function CommunityPageContent() {
                               </div>
                             )}
                             <Avatar className="mx-auto h-20 w-20">
-                              <AvatarImage src={member.avatar || member.image || "/placeholder.svg"} alt={member.name} />
+                              {(member.avatar || member.image) ? (
+                                <AvatarImage
+                                  src={member.avatar || member.image}
+                                  alt={member.name}
+                                />
+                              ) : null}
                               <AvatarFallback>{member.name?.charAt(0) || "?"}</AvatarFallback>
                             </Avatar>
                           <div className="space-y-1 mt-3">
@@ -671,7 +681,12 @@ function CommunityPageContent() {
                     <Card className="flex flex-col cursor-pointer transition-all hover:bg-muted/30 hover:border-primary/50 border-border h-full">
                       <CardHeader className="text-center">
                             <Avatar className="mx-auto h-20 w-20">
-                              <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name || "Member"} />
+                              {(member.avatar || member.image) ? (
+                                <AvatarImage
+                                  src={member.avatar || member.image}
+                                  alt={member.name || "Member"}
+                                />
+                              ) : null}
                               <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                           <div className="space-y-1 mt-3">

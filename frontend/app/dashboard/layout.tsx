@@ -126,7 +126,9 @@ function DashboardLayoutContent({
                   className="relative min-h-[44px] min-w-[44px] rounded-full transition-colors duration-200 ease-out hover:bg-muted/60"
                 >
                   <Avatar className="h-8 w-8 transition-transform duration-200 ease-out">
-                    <AvatarImage src={user?.image || "/placeholder-user.jpg"} alt={displayName} />
+                    {user?.image ? (
+                      <AvatarImage src={user.image} alt={displayName} />
+                    ) : null}
                     <AvatarFallback>{userInitials}</AvatarFallback>
                   </Avatar>
                 </Button>

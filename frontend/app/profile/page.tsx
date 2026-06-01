@@ -259,10 +259,17 @@ export default function ProfilePage() {
               </Button>
             </div>
           ) : (
-            <Button size="sm" onClick={() => setIsEditing(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" asChild>
+                <Link href={user?.id ? `/community/${user.id}` : "/community"}>
+                  View public profile
+                </Link>
+              </Button>
+              <Button size="sm" onClick={() => setIsEditing(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            </div>
           )}
         </PageHeader>
 
@@ -579,38 +586,6 @@ export default function ProfilePage() {
                 </Button>
                 <Button variant="ghost" className="mt-2 w-full" asChild>
                   <Link href="/booking">Book workspace</Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Directory preview</CardTitle>
-                <CardDescription>How others see you in the community list.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-md border border-border bg-muted/20 p-4 space-y-2">
-                  <p className="font-medium">{displayName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {[form.role, form.industry].filter(Boolean).join(" · ") || "Add a headline and industry"}
-                  </p>
-                  {form.skills.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {form.skills.slice(0, 4).map((s) => (
-                        <Badge key={s} variant="secondary" className="text-xs">
-                          {s}
-                        </Badge>
-                      ))}
-                      {form.skills.length > 4 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{form.skills.length - 4}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <Button variant="link" className="mt-2 h-auto px-0" asChild>
-                  <Link href={user?.id ? `/community/${user.id}` : "/community"}>View public profile</Link>
                 </Button>
               </CardContent>
             </Card>

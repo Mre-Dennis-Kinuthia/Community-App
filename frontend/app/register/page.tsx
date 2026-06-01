@@ -194,7 +194,7 @@ function RegisterForm() {
                 <Input
                   id="first-name"
                   name="first-name"
-                  placeholder="John"
+                  placeholder="First name"
                   value={formData.firstName}
                   onChange={(e) => handleChange("firstName", e.target.value)}
                   onBlur={(e) => validateField("firstName", e.target.value)}
@@ -213,7 +213,7 @@ function RegisterForm() {
                 <Input
                   id="last-name"
                   name="last-name"
-                  placeholder="Doe"
+                  placeholder="Last name"
                   value={formData.lastName}
                   onChange={(e) => handleChange("lastName", e.target.value)}
                   onBlur={(e) => validateField("lastName", e.target.value)}
@@ -234,7 +234,7 @@ function RegisterForm() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="you@email.com"
                 value={formData.email}
                 onChange={(e) => handleChange("email", e.target.value)}
                 onBlur={(e) => validateField("email", e.target.value)}
