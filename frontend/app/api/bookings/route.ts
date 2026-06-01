@@ -3,7 +3,11 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
-import { sendBookingConfirmationEmail, sendEmailInBackground } from "@/lib/email"
+import {
+  sendBookingConfirmationEmail,
+  sendNewBookingStaffEmail,
+  sendEmailInBackground,
+} from "@/lib/email"
 
 const bookingSchema = z.object({
   resourceType: z.enum(["hot-desk", "meeting-room", "private-office", "event-space"]),
@@ -313,19 +317,39 @@ export async function POST(request: NextRequest) {
     })
 
     if (booking.user?.email) {
+      const memberEmail = booking.user.email
+      const memberName = booking.user.name
+      const bookingEmailParams = {
+        bookingId: booking.id,
+        resourceType: booking.resourceType,
+        date: booking.date,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        totalPrice: Number(booking.totalPrice),
+      }
+
       sendEmailInBackground(
-        sendBookingConfirmationEmail({
-          to: booking.user.email,
-          name: booking.user.name,
-          bookingId: booking.id,
-          resourceType: booking.resourceType,
-          date: booking.date,
-          startTime: booking.startTime,
-          endTime: booking.endTime,
-          totalPrice: Number(booking.totalPrice),
-        }),
+        () =>
+          sendBookingConfirmationEmail({
+            to: memberEmail,
+            name: memberName,
+            ...bookingEmailParams,
+          }),
         "booking-confirmation"
       )
+
+      sendEmailInBackground(
+        () =>
+          sendNewBookingStaffEmail({
+            memberEmail,
+            memberName,
+            notes: booking.notes,
+            ...bookingEmailParams,
+          }),
+        "booking-staff"
+      )
+    } else {
+      console.warn("[BOOKING API] No member email — confirmation not sent:", booking.id)
     }
 
     return NextResponse.json(

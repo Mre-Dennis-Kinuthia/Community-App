@@ -9,8 +9,10 @@ export {
   getEmailProvider,
   sendEmail,
   sendEmailInBackground,
+  sendEmailsInBackground,
   type SendEmailResult,
   type EmailProvider,
+  type EmailTask,
 } from "@/lib/email/send"
 
 export {
@@ -25,6 +27,10 @@ export {
   sendWelcomeEmail,
   sendNewsletterSubscribeEmail,
   sendNewsArticleEmail,
+  sendNewBookingStaffEmail,
+  sendNewAccountStaffEmail,
+  sendEventRegistrationStaffEmail,
+  sendNewsletterSubscribeStaffEmail,
   sendWorkspaceInquiryConfirmationEmail,
   sendWorkspaceInquiryStaffEmail,
 } from "@/lib/email/messages"

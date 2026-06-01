@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
-import { sendNewsletterSubscribeEmail, sendEmailInBackground } from "@/lib/email"
+import { sendNewsletterSubscribeEmail, sendNewsletterSubscribeStaffEmail, sendEmailInBackground } from "@/lib/email"
 
 const schema = z.object({
   email: z.string().email().transform((v) => v.toLowerCase().trim()),
@@ -20,8 +20,13 @@ export async function POST(request: NextRequest) {
     console.log("[newsletter] New subscriber:", email)
 
     sendEmailInBackground(
-      sendNewsletterSubscribeEmail({ to: email }),
+      () => sendNewsletterSubscribeEmail({ to: email }),
       "newsletter-subscribe"
+    )
+
+    sendEmailInBackground(
+      () => sendNewsletterSubscribeStaffEmail({ email }),
+      "newsletter-subscribe-staff"
     )
 
     return NextResponse.json({ success: true }, { headers: corsHeaders(request) })

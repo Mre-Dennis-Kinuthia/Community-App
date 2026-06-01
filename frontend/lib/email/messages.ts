@@ -411,6 +411,138 @@ export async function sendNewsArticleEmail(params: {
   })
 }
 
+async function sendStaffAlertEmail(params: {
+  subject: string
+  title: string
+  bodyHtml: string
+  text: string
+  replyTo?: string
+}): Promise<SendEmailResult> {
+  return sendEmail({
+    to: getEmailStaffTo(),
+    subject: params.subject,
+    html: layoutEmail({
+      title: params.title,
+      bodyHtml: params.bodyHtml,
+    }),
+    text: params.text,
+    replyTo: params.replyTo,
+  })
+}
+
+export async function sendNewBookingStaffEmail(params: {
+  memberName?: string | null
+  memberEmail: string
+  bookingId: string
+  resourceType: string
+  date: Date | string
+  startTime: string
+  endTime?: string | null
+  totalPrice: number
+  notes?: string | null
+}): Promise<SendEmailResult> {
+  const resource = formatResourceType(params.resourceType)
+  const when = formatBookingDate(params.date)
+  const time = formatBookingTimeRange(params.startTime, params.endTime)
+  const memberLabel = params.memberName
+    ? `${escapeHtml(params.memberName)} (${escapeHtml(params.memberEmail)})`
+    : escapeHtml(params.memberEmail)
+
+  const bodyHtml = `
+    <p>A new workspace booking was created.</p>
+    <p><strong>Member:</strong> ${memberLabel}<br />
+    <strong>Resource:</strong> ${escapeHtml(resource)}<br />
+    <strong>Date:</strong> ${escapeHtml(when)}<br />
+    <strong>Time:</strong> ${escapeHtml(time)}<br />
+    <strong>Total:</strong> KES ${params.totalPrice.toLocaleString("en-KE")}<br />
+    <strong>Reference:</strong> ${escapeHtml(params.bookingId)}</p>
+    ${params.notes ? `<p><strong>Notes:</strong> ${escapeHtml(params.notes)}</p>` : ""}
+  `
+
+  return sendStaffAlertEmail({
+    subject: `[Booking] New ${resource} — ${params.memberEmail}`,
+    title: "New booking",
+    bodyHtml,
+    text: `New booking\nMember: ${params.memberName ?? params.memberEmail}\n${resource}\n${when}\n${time}\nKES ${params.totalPrice}`,
+    replyTo: params.memberEmail,
+  })
+}
+
+export async function sendNewAccountStaffEmail(params: {
+  name?: string | null
+  email: string
+}): Promise<SendEmailResult> {
+  const memberLabel = params.name
+    ? `${escapeHtml(params.name)} (${escapeHtml(params.email)})`
+    : escapeHtml(params.email)
+
+  const bodyHtml = `
+    <p>A new member account was created.</p>
+    <p><strong>Member:</strong> ${memberLabel}</p>
+  `
+
+  return sendStaffAlertEmail({
+    subject: `[Account] New member — ${params.email}`,
+    title: "New account",
+    bodyHtml,
+    text: `New account: ${params.name ?? params.email} (${params.email})`,
+    replyTo: params.email,
+  })
+}
+
+export async function sendEventRegistrationStaffEmail(params: {
+  memberName?: string | null
+  memberEmail: string
+  eventTitle: string
+  eventStartDate: Date | string
+  eventTimezone?: string | null
+  status: "registered" | "waitlisted" | "pending"
+}): Promise<SendEmailResult> {
+  const when = formatEventWhen(params.eventStartDate, params.eventTimezone)
+  const memberLabel = params.memberName
+    ? `${escapeHtml(params.memberName)} (${escapeHtml(params.memberEmail)})`
+    : escapeHtml(params.memberEmail)
+  const statusLabel =
+    params.status === "pending"
+      ? "Pending approval"
+      : params.status === "waitlisted"
+        ? "Waitlisted"
+        : "Registered"
+
+  const bodyHtml = `
+    <p>New event registration.</p>
+    <p><strong>Member:</strong> ${memberLabel}<br />
+    <strong>Status:</strong> ${escapeHtml(statusLabel)}<br />
+    <strong>Event:</strong> ${escapeHtml(params.eventTitle)}<br />
+    ${escapeHtml(when)}</p>
+  `
+
+  return sendStaffAlertEmail({
+    subject: `[Event] ${statusLabel} — ${params.eventTitle}`,
+    title: "Event registration",
+    bodyHtml,
+    text: `Event registration (${statusLabel})\n${params.memberName ?? params.memberEmail}\n${params.eventTitle}\n${when}`,
+    replyTo: params.memberEmail,
+  })
+}
+
+export async function sendNewsletterSubscribeStaffEmail(params: {
+  email: string
+}): Promise<SendEmailResult> {
+  const bodyHtml = `
+    <p>Someone subscribed to the newsletter.</p>
+    <p><strong>Email:</strong> ${escapeHtml(params.email)}</p>
+  `
+
+  return sendStaffAlertEmail({
+    subject: `[Newsletter] New subscriber — ${params.email}`,
+    title: "Newsletter signup",
+    bodyHtml,
+    text: `Newsletter subscriber: ${params.email}`,
+    replyTo: params.email,
+  })
+}
+
 export async function sendWorkspaceInquiryStaffEmail(params: {
   inquiryLabel: string
   name: string

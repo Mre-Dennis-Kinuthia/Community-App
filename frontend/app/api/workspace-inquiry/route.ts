@@ -68,22 +68,24 @@ export async function POST(request: NextRequest) {
       data.inquiryType === "event-space" ? "Event space inquiry" : "Private office inquiry"
 
     sendEmailInBackground(
-      sendWorkspaceInquiryConfirmationEmail({
-        to: data.email,
-        name: data.name,
-        inquiryLabel,
-      }),
+      () =>
+        sendWorkspaceInquiryConfirmationEmail({
+          to: data.email,
+          name: data.name,
+          inquiryLabel,
+        }),
       "workspace-inquiry-confirmation"
     )
 
     sendEmailInBackground(
-      sendWorkspaceInquiryStaffEmail({
-        inquiryLabel,
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        details: description,
-      }),
+      () =>
+        sendWorkspaceInquiryStaffEmail({
+          inquiryLabel,
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          details: description,
+        }),
       "workspace-inquiry-staff"
     )
 

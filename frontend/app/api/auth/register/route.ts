@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth-utils"
 import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
-import { sendWelcomeEmail, sendEmailInBackground } from "@/lib/email"
+import { sendWelcomeEmail, sendNewAccountStaffEmail, sendEmailInBackground } from "@/lib/email"
 import { z } from "zod"
 
 const registerSchema = z.object({
@@ -78,8 +78,13 @@ export async function POST(request: NextRequest) {
     })
 
     sendEmailInBackground(
-      sendWelcomeEmail({ to: user.email, name: user.name }),
+      () => sendWelcomeEmail({ to: user.email, name: user.name }),
       "welcome"
+    )
+
+    sendEmailInBackground(
+      () => sendNewAccountStaffEmail({ email: user.email, name: user.name }),
+      "new-account-staff"
     )
 
     return NextResponse.json(

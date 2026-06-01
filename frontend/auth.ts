@@ -4,6 +4,7 @@ import Google from "next-auth/providers/google"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword } from "@/lib/auth-utils"
+import { sendWelcomeEmail, sendNewAccountStaffEmail, sendEmailInBackground } from "@/lib/email"
 import { authConfig } from "./auth.config"
 import { randomBytes } from "crypto"
 
@@ -89,6 +90,19 @@ const nextAuthConfig = {
   adapter: envValid ? PrismaAdapter(prisma) : undefined,
   trustHost: true,
   secret: resolvedSecret,
+  events: {
+    async createUser({ user }) {
+      if (!user.email) return
+      sendEmailInBackground(
+        () => sendWelcomeEmail({ to: user.email!, name: user.name }),
+        "welcome-oauth"
+      )
+      sendEmailInBackground(
+        () => sendNewAccountStaffEmail({ email: user.email!, name: user.name }),
+        "new-account-staff-oauth"
+      )
+    },
+  },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
