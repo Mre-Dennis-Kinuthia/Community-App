@@ -1,26 +1,8 @@
-import nodemailer from "nodemailer"
 import type { SendEmailResult } from "./send"
 import { getEmailFrom } from "./config"
+import { createSmtpTransport, isSmtpConfigured } from "./smtp-transport"
 
-function createTransport() {
-  const host = process.env.SMTP_HOST?.trim()
-  const user = process.env.SMTP_USER?.trim()
-  const pass = process.env.SMTP_PASS?.trim()
-
-  if (!host || !user || !pass) {
-    return null
-  }
-
-  const port = parseInt(process.env.SMTP_PORT || "587", 10)
-  const secure = process.env.SMTP_SECURE === "true" || port === 465
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    auth: { user, pass },
-  })
-}
+export { isSmtpConfigured, isGoogleOAuthSmtpConfigured, isSmtpPasswordConfigured } from "./smtp-transport"
 
 export async function sendSmtpEmail(params: {
   to: string | string[]
@@ -29,9 +11,11 @@ export async function sendSmtpEmail(params: {
   text?: string
   replyTo?: string
 }): Promise<SendEmailResult> {
-  const transport = createTransport()
+  const transport = createSmtpTransport()
   if (!transport) {
-    console.warn("[EMAIL] SMTP not configured (SMTP_HOST, SMTP_USER, SMTP_PASS)")
+    console.warn(
+      "[EMAIL] SMTP not configured — set SMTP_PASS (App Password) or GOOGLE_REFRESH_TOKEN (OAuth)"
+    )
     return { ok: false, error: "SMTP not configured" }
   }
 

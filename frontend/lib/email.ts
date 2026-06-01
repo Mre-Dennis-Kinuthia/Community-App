@@ -1,6 +1,6 @@
 /**
  * Transactional email (SMTP or Resend).
- * @see docs/EMAIL_SETUP.md
+ * @see docs/GOOGLE_WORKSPACE_EMAIL.md
  */
 export {
   isEmailConfigured,

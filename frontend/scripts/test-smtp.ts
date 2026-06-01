@@ -1,5 +1,5 @@
 /**
- * Test Brevo SMTP from local env.
+ * Test SMTP (Google OAuth or App Password).
  * Run: npx tsx --env-file=.env.local scripts/test-smtp.ts [recipient@email.com]
  */
 import nodemailer from "nodemailer"

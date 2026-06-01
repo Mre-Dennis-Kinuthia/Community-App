@@ -1,5 +1,6 @@
 import { sendResendEmail } from "./resend"
 import { sendSmtpEmail } from "./smtp"
+import { isSmtpConfigured } from "./smtp-transport"
 
 export type SendEmailResult = { ok: true; id?: string } | { ok: false; error: string }
 
@@ -11,12 +12,12 @@ export { getEmailFrom, getEmailStaffTo } from "./config"
 export function getEmailProvider(): EmailProvider | null {
   const forced = process.env.EMAIL_PROVIDER?.trim().toLowerCase()
   if (forced === "smtp") {
-    return process.env.SMTP_HOST?.trim() ? "smtp" : null
+    return isSmtpConfigured() ? "smtp" : null
   }
   if (forced === "resend") {
     return process.env.RESEND_API_KEY?.trim() ? "resend" : null
   }
-  if (process.env.SMTP_HOST?.trim() && process.env.SMTP_USER?.trim()) {
+  if (isSmtpConfigured()) {
     return "smtp"
   }
   if (process.env.RESEND_API_KEY?.trim()) {
