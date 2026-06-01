@@ -1,11 +1,22 @@
 /**
- * Canonical public URL for an event (used in share links, OG tags, admin copy-link).
+ * Canonical public URL for an event (short share link preferred).
  */
-export function getEventPublicUrl(eventId: string): string {
+export function getEventPublicUrl(event: {
+  id: string
+  shortCode?: string | null
+  slug?: string | null
+}): string {
   const base =
     process.env.NEXT_PUBLIC_APP_URL ||
     (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000")
-  return `${base.replace(/\/$/, "")}/events/${eventId}`
+  const root = base.replace(/\/$/, "")
+  if (event.shortCode) {
+    return `${root}/e/${event.shortCode}`
+  }
+  if (event.slug) {
+    return `${root}/events/${event.slug}`
+  }
+  return `${root}/events/${event.id}`
 }
 
 export function getEventShareText(title: string, startDate?: Date | string): string {

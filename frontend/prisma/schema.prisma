@@ -251,6 +251,8 @@ model NewsPost {
 model Event {
   id                   String   @id @default(cuid())
   title                String
+  slug                 String?  @unique
+  shortCode            String?  @unique
   description          String   @db.Text
   startDate            DateTime
   endDate              DateTime?
@@ -282,6 +284,8 @@ model Event {
   @@index([startDate])
   @@index([eventType])
   @@index([visibility])
+  @@index([slug])
+  @@index([shortCode])
   @@map("events")
 }
 

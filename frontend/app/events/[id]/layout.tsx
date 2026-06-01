@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
+import { findEventByPublicParam, ensureEventSlugAndShortCode } from "@/lib/event-slug"
 import { getEventPublicUrl, getEventShareText } from "@/lib/event-url"
 
 type LayoutProps = {
@@ -8,25 +9,19 @@ type LayoutProps = {
 }
 
 export async function generateMetadata({ params }: LayoutProps): Promise<Metadata> {
-  const { id } = await params
+  const { id: param } = await params
 
   try {
-    const event = await prisma.event.findFirst({
-      where: { id, deletedAt: null },
-      select: {
-        title: true,
-        description: true,
-        imageUrl: true,
-        startDate: true,
-        visibility: true,
-      },
-    })
+    let event = await findEventByPublicParam(prisma, param)
 
     if (!event) {
       return { title: "Event not found | Impact Hub Nairobi" }
     }
 
-    const url = getEventPublicUrl(id)
+    const links = await ensureEventSlugAndShortCode(prisma, event)
+    event = { ...event, ...links }
+
+    const url = getEventPublicUrl(event)
     const description =
       event.description?.replace(/\s+/g, " ").trim().slice(0, 160) ||
       getEventShareText(event.title, event.startDate)

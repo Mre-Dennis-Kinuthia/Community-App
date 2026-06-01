@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { countConfirmedRegistrations } from "@/lib/event-registrations"
+import { findEventByPublicParam, ensureEventSlugAndShortCode } from "@/lib/event-slug"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 
 export async function OPTIONS(request: NextRequest) {
@@ -10,18 +11,13 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await auth()
-    const { id } = params
+    const { id: param } = await Promise.resolve(params)
 
-    const event = await prisma.event.findFirst({
-      where: {
-        id,
-        deletedAt: null,
-      },
-    })
+    let event = await findEventByPublicParam(prisma, param)
 
     if (!event) {
       return NextResponse.json(
@@ -29,6 +25,9 @@ export async function GET(
         { status: 404, headers: corsHeaders(request) }
       )
     }
+
+    const links = await ensureEventSlugAndShortCode(prisma, event)
+    event = { ...event, ...links }
 
     if (!session?.user) {
       if (event.visibility === "members") {
@@ -45,15 +44,17 @@ export async function GET(
       }
     }
 
+    const eventId = event.id
+
     const [confirmedCount, waitlistCount, userRegistration] = await Promise.all([
-      countConfirmedRegistrations(prisma, id),
+      countConfirmedRegistrations(prisma, eventId),
       prisma.eventRegistration.count({
-        where: { eventId: id, status: "waitlisted" },
+        where: { eventId, status: "waitlisted" },
       }),
       session?.user?.email
         ? prisma.eventRegistration.findFirst({
             where: {
-              eventId: id,
+              eventId,
               email: session.user.email.toLowerCase().trim(),
               status: { in: ["registered", "waitlisted", "attended"] },
             },

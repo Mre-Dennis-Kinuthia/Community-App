@@ -274,9 +274,13 @@ export function EventDetailSheet({
             </div>
 
             <EventSharePanel
-              eventId={String(event.id)}
-              eventTitle={event.title}
-              startDate={event.date}
+              event={{
+                id: String(event.id),
+                title: event.title,
+                startDate: event.date,
+                shortCode: (event as { shortCode?: string }).shortCode,
+                slug: (event as { slug?: string }).slug,
+              }}
               variant="inline"
             />
           </div>

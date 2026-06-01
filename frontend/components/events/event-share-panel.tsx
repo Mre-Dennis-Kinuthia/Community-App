@@ -17,23 +17,25 @@ import { getEventPublicUrl, getEventShareText } from "@/lib/event-url"
 import { cn } from "@/lib/utils"
 
 interface EventSharePanelProps {
-  eventId: string
-  eventTitle: string
-  startDate?: string | Date
+  event: {
+    id: string
+    title: string
+    startDate?: string | Date
+    slug?: string | null
+    shortCode?: string | null
+  }
   variant?: "inline" | "card"
   className?: string
 }
 
 export function EventSharePanel({
-  eventId,
-  eventTitle,
-  startDate,
+  event,
   variant = "card",
   className,
 }: EventSharePanelProps) {
   const [copied, setCopied] = useState(false)
-  const url = getEventPublicUrl(eventId)
-  const shareText = getEventShareText(eventTitle, startDate)
+  const url = getEventPublicUrl(event)
+  const shareText = getEventShareText(event.title, event.startDate)
 
   const copyLink = async () => {
     try {
@@ -49,7 +51,7 @@ export function EventSharePanel({
   const shareNative = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: eventTitle, text: shareText, url })
+        await navigator.share({ title: event.title, text: shareText, url })
         return
       } catch {
         // cancelled or unsupported
@@ -148,7 +150,7 @@ export function EventSharePanel({
       <div>
         <p className="text-sm font-medium">Share this event</p>
         <p className="text-xs text-muted-foreground">
-          Anyone with this link can view the event and register.
+          Short link — opens the correct event page for anyone.
         </p>
       </div>
       {content}

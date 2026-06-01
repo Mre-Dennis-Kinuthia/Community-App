@@ -73,7 +73,11 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
     event.status !== "Waitlisted" &&
     event.status !== "Attended" &&
     (!isFull || event.waitlistEnabled)
-  const eventUrl = getEventPublicUrl(String(event.id))
+  const eventUrl = getEventPublicUrl({
+    id: String(event.id),
+    shortCode: (event as { shortCode?: string }).shortCode,
+    slug: (event as { slug?: string }).slug,
+  })
   const shareText = getEventShareText(event.title, event.date)
 
   const handleShare = async () => {

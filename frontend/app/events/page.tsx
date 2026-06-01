@@ -119,6 +119,8 @@ export default function EventsPage() {
         currency: event.currency,
         priceLabel,
         registrationQuestions: event.registrationQuestions,
+        slug: event.slug,
+        shortCode: event.shortCode,
       }
     })
   }, [eventsData])

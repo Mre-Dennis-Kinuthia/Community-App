@@ -11,8 +11,14 @@ import {
   validateRegistrationAnswers,
   isPaidEvent,
 } from "@/lib/event-questions"
+import { findEventByPublicParam } from "@/lib/event-slug"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
+
+async function resolveEventId(param: string): Promise<string | null> {
+  const event = await findEventByPublicParam(prisma, param)
+  return event?.id ?? null
+}
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -31,7 +37,13 @@ export async function GET(
   try {
     const session = await auth()
     const resolvedParams = await Promise.resolve(params)
-    const { id: eventId } = resolvedParams
+    const eventId = await resolveEventId(resolvedParams.id)
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "Event not found" },
+        { status: 404, headers: corsHeaders(request) }
+      )
+    }
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -76,7 +88,13 @@ export async function POST(
   try {
     const session = await auth()
     const resolvedParams = await Promise.resolve(params)
-    const { id: eventId } = resolvedParams
+    const eventId = await resolveEventId(resolvedParams.id)
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "Event not found" },
+        { status: 404, headers: corsHeaders(request) }
+      )
+    }
 
     const event = await prisma.event.findFirst({
       where: { id: eventId, deletedAt: null },
@@ -233,7 +251,13 @@ export async function DELETE(
   try {
     const session = await auth()
     const resolvedParams = await Promise.resolve(params)
-    const { id: eventId } = resolvedParams
+    const eventId = await resolveEventId(resolvedParams.id)
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "Event not found" },
+        { status: 404, headers: corsHeaders(request) }
+      )
+    }
 
     if (!session?.user?.email) {
       return NextResponse.json(

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -27,9 +27,10 @@ import {
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { EventPublicLayout } from "@/components/events/event-public-layout"
 import { EventSharePanel } from "@/components/events/event-share-panel"
+import { isEventCuid } from "@/lib/event-slug"
 
 interface EventDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 interface EventData {
@@ -54,6 +55,8 @@ interface EventData {
   price?: number | null
   currency?: string | null
   registrationQuestions?: unknown
+  slug?: string | null
+  shortCode?: string | null
 }
 
 type UserRegistration = {
@@ -63,7 +66,7 @@ type UserRegistration = {
 } | null
 
 export default function EventDetailPage({ params }: EventDetailPageProps) {
-  const { id } = params
+  const { id } = use(params)
   const router = useRouter()
   const { user } = useSession()
 
@@ -114,6 +117,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       cancelled = true
     }
   }, [id])
+
+  // Canonical URL: replace long cuid links with slug
+  useEffect(() => {
+    if (event?.slug && isEventCuid(id) && id !== event.slug) {
+      router.replace(`/events/${event.slug}`, { scroll: false })
+    }
+  }, [event?.slug, id, router])
 
   const eventStartDate = event ? new Date(event.startDate) : null
   const isPastEvent = eventStartDate ? isBefore(eventStartDate, new Date()) : false
@@ -385,9 +395,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                 )}
 
                 <EventSharePanel
-                  eventId={event.id}
-                  eventTitle={event.title}
-                  startDate={event.startDate}
+                  event={{
+                    id: event.id,
+                    title: event.title,
+                    startDate: event.startDate,
+                    slug: event.slug,
+                    shortCode: event.shortCode,
+                  }}
                 />
               </div>
 

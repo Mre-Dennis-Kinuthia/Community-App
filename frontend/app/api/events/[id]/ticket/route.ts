@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { buildCheckInPayload, generateCheckInCode } from "@/lib/event-checkin"
 import { prisma } from "@/lib/prisma"
+import { findEventByPublicParam } from "@/lib/event-slug"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import QRCode from "qrcode"
 
@@ -15,7 +16,7 @@ export async function OPTIONS(request: NextRequest) {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await auth()
@@ -26,7 +27,15 @@ export async function GET(
       )
     }
 
-    const { id: eventId } = params
+    const { id: param } = await Promise.resolve(params)
+    const event = await findEventByPublicParam(prisma, param)
+    if (!event) {
+      return NextResponse.json(
+        { error: "Event not found" },
+        { status: 404, headers: corsHeaders(request) }
+      )
+    }
+    const eventId = event.id
     const email = session.user.email.toLowerCase().trim()
 
     const registration = await prisma.eventRegistration.findFirst({
