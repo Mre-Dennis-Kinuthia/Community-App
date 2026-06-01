@@ -60,7 +60,14 @@ export async function POST(request: NextRequest) {
       const emailResult = await sendPasswordResetEmail({ to: email, resetUrl })
       if (!emailResult.ok) {
         console.error("[FORGOT PASSWORD] Email not sent:", emailResult.error)
+      } else if (process.env.NODE_ENV === "development") {
+        console.log("[FORGOT PASSWORD] Reset email sent to", email)
       }
+    } else if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "[FORGOT PASSWORD] No email sent — user missing or no password (Google-only accounts cannot reset via email):",
+        email
+      )
     }
 
     return NextResponse.json({ message: GENERIC_MESSAGE })
