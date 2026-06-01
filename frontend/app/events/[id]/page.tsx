@@ -15,7 +15,13 @@ import {
   ExternalLink,
   Ticket,
 } from "lucide-react"
-import { format, isBefore } from "date-fns"
+import { isBefore } from "date-fns"
+import {
+  eventTimezone,
+  formatEventDate,
+  formatEventDateTimeLine,
+  formatEventTime,
+} from "@/lib/event-datetime"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
 import { displayLocation, eventTypeLabel, formatLocationType } from "@/lib/event-constants"
@@ -144,6 +150,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     !isPendingApproval &&
     (!isFull || event.waitlistEnabled)
 
+  const eventTz = event ? eventTimezone(event.timezone) : eventTimezone()
   const questions = parseRegistrationQuestions(event?.registrationQuestions)
   const priceLabel = event ? formatEventPrice(event.price, event.currency ?? "KES") : null
 
@@ -321,7 +328,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         Date
                       </p>
-                      <p className="font-medium">{format(new Date(event.startDate), "EEEE, MMMM d, yyyy")}</p>
+                      <p className="font-medium">{formatEventDate(event.startDate, eventTz)}</p>
                     </div>
                   </div>
                   <div className="flex gap-3 rounded-xl border p-4">
@@ -330,10 +337,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                         Time
                       </p>
-                      <p className="font-medium">
-                        {format(new Date(event.startDate), "h:mm a")}
-                        {event.endDate && ` – ${format(new Date(event.endDate), "h:mm a")}`}
+                      <p className="font-medium tabular-nums">
+                        {formatEventTime(event.startDate, eventTz)}
+                        {event.endDate && ` – ${formatEventTime(event.endDate, eventTz)}`}
                       </p>
+                      {event.timezone && (
+                        <p className="text-xs text-muted-foreground mt-1">{eventTz.replace(/_/g, " ")}</p>
+                      )}
                     </div>
                   </div>
                   {(event.location || event.onlineUrl) && (
@@ -415,7 +425,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                   <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
                     <div>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(event.startDate), "EEE, MMM d · h:mm a")}
+                        {formatEventDateTimeLine(event.startDate, eventTz)}
                       </p>
                       {priceLabel && (
                         <p className="text-2xl font-bold mt-1">{priceLabel}</p>

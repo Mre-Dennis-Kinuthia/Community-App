@@ -23,6 +23,7 @@ import {
   formatLocationType,
 } from "@/lib/event-constants"
 import { formatEventPrice, isPaidEvent, parseRegistrationQuestions } from "@/lib/event-questions"
+import { eventCalendarDate, formatEventTime24 } from "@/lib/event-datetime"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 
 interface Event {
@@ -81,8 +82,9 @@ export default function EventsPage() {
   const allEvents: Event[] = useMemo(() => {
     const raw = Array.isArray(eventsData?.events) ? eventsData.events : []
     return raw.map((event: any) => {
-      const startDate = new Date(event.startDate)
-      const endDate = event.endDate ? new Date(event.endDate) : null
+      const tz = event.timezone || "Africa/Nairobi"
+      const startDate = eventCalendarDate(event.startDate, tz)
+      const endDate = event.endDate ? eventCalendarDate(event.endDate, tz) : null
       const registeredCount = event.confirmedCount ?? event._count?.registrations ?? 0
       const waitlistCount = event.waitlistCount ?? 0
       const isFull = event.capacity != null && registeredCount >= event.capacity
@@ -101,8 +103,9 @@ export default function EventsPage() {
         title: event.title,
         type: event.eventType || "other",
         category: event.eventType || "general",
-        time: format(startDate, "HH:mm"),
-        endTime: endDate ? format(endDate, "HH:mm") : undefined,
+        time: formatEventTime24(event.startDate, tz),
+        endTime: event.endDate ? formatEventTime24(event.endDate, tz) : undefined,
+        timezone: tz,
         organizer: event.organizerName || "Impact Hub Nairobi",
         platform: formatLocationType(event.locationType),
         status,

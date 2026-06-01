@@ -13,7 +13,7 @@ import { getEventPublicUrl, getEventShareText } from "@/lib/event-url"
 
 interface EventCardProps {
   event: {
-    id: number
+    id: number | string
     title: string
     type: string
     category: string
@@ -27,12 +27,12 @@ interface EventCardProps {
     capacity?: number
     registered?: number
     waitlistEnabled?: boolean
-    registrationDeadline?: Date
-    waitlistEnabled?: boolean
     priceLabel?: string | null
+    slug?: string
+    shortCode?: string
   }
   onClick?: () => void
-  onRegister?: (eventId: number) => void
+  onRegister?: (eventId: number | string) => void
   isRegistering?: boolean
   activeTab: "upcoming" | "past"
 }
@@ -41,23 +41,28 @@ const statusColors: Record<string, string> = {
   Open: badgePrimary,
   Registered: badgeNeutral,
   Pending: "bg-violet-100 text-violet-800 border-violet-200",
+  Waitlisted: "bg-amber-100 text-amber-800 border-amber-200",
   Invited: badgeNeutral,
   Attended: badgeNeutral,
   Full: badgeDestructive,
 }
 
-export function EventCard({ event, onClick, onRegister, isRegistering = false, activeTab }: EventCardProps) {
+export function EventCard({
+  event,
+  onClick,
+  onRegister,
+  isRegistering = false,
+  activeTab,
+}: EventCardProps) {
   const eventPageUrl = `/events/${event.id}`
-  const timeString = format(
-    new Date().setHours(parseInt(event.time.split(":")[0]), parseInt(event.time.split(":")[1])),
-    "h:mm a"
-  )
-  const endTimeString = event.endTime
-    ? format(
-        new Date().setHours(parseInt(event.endTime.split(":")[0]), parseInt(event.endTime.split(":")[1])),
-        "h:mm a"
-      )
-    : null
+  const formatClock = (hhmm: string) => {
+    const [h, m] = hhmm.split(":").map(Number)
+    const d = new Date()
+    d.setHours(h, m, 0, 0)
+    return format(d, "h:mm a")
+  }
+  const timeString = formatClock(event.time)
+  const endTimeString = event.endTime ? formatClock(event.endTime) : null
 
   const dateLabel = isToday(event.date)
     ? "Today"
@@ -75,10 +80,14 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
     event.status !== "Pending" &&
     event.status !== "Attended" &&
     (!isFull || event.waitlistEnabled)
+
+  const registerLabel =
+    isFull && event.waitlistEnabled ? "Join waitlist" : "Register"
+
   const eventUrl = getEventPublicUrl({
     id: String(event.id),
-    shortCode: (event as { shortCode?: string }).shortCode,
-    slug: (event as { slug?: string }).slug,
+    shortCode: event.shortCode,
+    slug: event.slug,
   })
   const shareText = getEventShareText(event.title, event.date)
 
@@ -102,15 +111,18 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
   return (
     <Card
       onClick={onClick}
-      className="relative flex cursor-pointer flex-col gap-4 border-border p-[1.15rem] transition-colors rounded-lg md:flex-row md:items-stretch hover:border-foreground/20"
+      className={cn(
+        "flex h-full min-w-0 cursor-pointer flex-col overflow-hidden rounded-lg border-border",
+        "transition-colors hover:border-foreground/20",
+        onClick && "hover:bg-muted/20"
+      )}
     >
-      {/* Thumbnail (if available) */}
       {event.thumbnail && (
-        <div className="w-full md:w-40 lg:w-44 shrink-0 overflow-hidden rounded-md bg-muted">
-          <div className="aspect-[4/3] w-full h-full">
+        <div className="w-full shrink-0 overflow-hidden bg-muted">
+          <div className="aspect-[16/9] w-full">
             <img
               src={event.thumbnail}
-              alt={event.title}
+              alt=""
               className="h-full w-full object-cover"
               loading="lazy"
             />
@@ -118,135 +130,141 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
         </div>
       )}
 
-      {/* Event content */}
-      <div className="flex min-w-0 flex-1 flex-col justify-between space-y-2">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-1 flex-col">
-            <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <Badge className={cn(badgeClassForLabel(event.type), "text-xs")}>
-                {event.type}
-              </Badge>
-              <Badge
-                variant="secondary"
-                className={cn(statusColors[event.status] || badgePrimary, "text-xs border")}
-              >
-                {event.status}
-              </Badge>
-              {isFull && (
-                <Badge variant="destructive" className="text-xs">
-                  Full
-                </Badge>
-              )}
-            </div>
-            <h3 className="line-clamp-2 break-words text-sm font-semibold leading-snug text-foreground">
-              <Link
-                href={eventPageUrl}
-                onClick={(e) => e.stopPropagation()}
-                className="hover:underline underline-offset-2"
-              >
-                {event.title}
-              </Link>
-            </h3>
-            {event.priceLabel && (
-              <p className="text-xs font-medium text-foreground mt-0.5">{event.priceLabel}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Calendar className="h-3.5 w-3.5" />
-            <span>{dateLabel}</span>
-            <span className="mx-1">•</span>
-            <Clock className="h-3.5 w-3.5" />
-            <span>
-              {timeString}
-              {endTimeString && ` - ${endTimeString}`}
-            </span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" />
-              <span>By {event.organizer}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {event.platform === "Google Meet" || event.platform.includes("Meet") || event.platform.includes("Zoom") ? (
-                <Video className="h-3.5 w-3.5" />
-              ) : (
-                <MapPin className="h-3.5 w-3.5" />
-              )}
-              <span>{event.platform}</span>
-            </div>
-            {event.capacity && (
-              <div className="flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5" />
-                <span>
-                  {event.registered || 0}/{event.capacity} registered
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        {activeTab === "upcoming" && (
-          <div className="flex items-center gap-2 pt-2">
-            {canRegister && onRegister && (
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onRegister(event.id)
-                }}
-                disabled={isRegistering}
-                className=""
-              >
-                {isRegistering ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Registering...
-                  </>
-                ) : (
-                  "Register Now"
-                )}
-              </Button>
-            )}
-            {event.status === "Registered" && (
-              <Badge variant="secondary" className={cn(badgePrimary, "border")}>
-                ✓ Registered
+      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge className={cn(badgeClassForLabel(event.type), "text-xs")}>
+              {event.type}
+            </Badge>
+            <Badge
+              variant="secondary"
+              className={cn(statusColors[event.status] || badgePrimary, "text-xs border")}
+            >
+              {event.status}
+            </Badge>
+            {isFull && event.status === "Open" && (
+              <Badge variant="destructive" className="text-xs">
+                Full
               </Badge>
             )}
-            {isFull && event.status !== "Registered" && (
-              <Button size="sm" variant="outline" disabled>
-                Waitlist
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="outline"
-              asChild
+          </div>
+
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+            <Link
+              href={eventPageUrl}
               onClick={(e) => e.stopPropagation()}
+              className="hover:underline underline-offset-2"
             >
-              <Link href={eventPageUrl}>
-                <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                View
-              </Link>
-            </Button>
+              {event.title}
+            </Link>
+          </h3>
+
+          {event.priceLabel && (
+            <p className="text-xs font-medium text-foreground">{event.priceLabel}</p>
+          )}
+
+          <div className="space-y-1.5 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>{dateLabel}</span>
+              <span className="hidden sm:inline text-muted-foreground/50">·</span>
+              <Clock className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                {timeString}
+                {endTimeString && ` – ${endTimeString}`}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="inline-flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5 shrink-0" />
+                {event.organizer}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                {event.platform === "Google Meet" ||
+                event.platform.includes("Meet") ||
+                event.platform.includes("Zoom") ? (
+                  <Video className="h-3.5 w-3.5 shrink-0" />
+                ) : (
+                  <MapPin className="h-3.5 w-3.5 shrink-0" />
+                )}
+                {event.platform}
+              </span>
+              {event.capacity != null && (
+                <span className="inline-flex items-center gap-1.5">
+                  {event.registered ?? 0}/{event.capacity} spots
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div
+          className="mt-auto flex w-full min-w-0 flex-wrap gap-2 border-t border-border pt-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {activeTab === "upcoming" && canRegister && onRegister && (
             <Button
               size="sm"
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation()
-                handleShare()
-              }}
-              className="gap-1"
+              className="min-w-0 flex-1 sm:flex-none"
+              onClick={() => onRegister(event.id)}
+              disabled={isRegistering}
             >
-              <Share2 className="h-3.5 w-3.5" />
-              Share
+              {isRegistering ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isFull && event.waitlistEnabled ? "Joining..." : "Registering..."}
+                </>
+              ) : (
+                registerLabel
+              )}
             </Button>
-          </div>
-        )}
+          )}
+
+          {activeTab === "upcoming" && event.status === "Registered" && (
+            <Badge variant="secondary" className={cn(badgePrimary, "border px-3 py-1.5")}>
+              ✓ Registered
+            </Badge>
+          )}
+
+          {activeTab === "upcoming" && event.status === "Waitlisted" && (
+            <Badge variant="secondary" className="border px-3 py-1.5 bg-amber-50 text-amber-900">
+              On waitlist
+            </Badge>
+          )}
+
+          {activeTab === "upcoming" && event.status === "Pending" && (
+            <Badge variant="secondary" className="border px-3 py-1.5 bg-violet-50 text-violet-900">
+              Pending approval
+            </Badge>
+          )}
+
+          {activeTab === "upcoming" &&
+            isFull &&
+            !event.waitlistEnabled &&
+            event.status === "Full" && (
+              <Button size="sm" variant="outline" disabled className="flex-1 sm:flex-none">
+                Event full
+              </Button>
+            )}
+
+          <Button size="sm" variant="outline" className="flex-1 sm:flex-none" asChild>
+            <Link href={eventPageUrl}>
+              <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+              View
+            </Link>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 sm:flex-none gap-1"
+            onClick={handleShare}
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Share
+          </Button>
+        </div>
       </div>
     </Card>
   )
