@@ -89,6 +89,11 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
             return
           }
           const data = await res.json().catch(() => ({}))
+          if (res.status === 403 && !cancelled) {
+            setError(data.error || "You need to log in to view this event.")
+            setEvent(null)
+            return
+          }
           throw new Error(data.error || "Failed to load event")
         }
         const data = await res.json()
@@ -234,13 +239,24 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : !event ? (
-        <div className="mx-auto max-w-lg px-4 py-24 text-center">
-          <p className="text-muted-foreground mb-4">
+        <div className="mx-auto max-w-lg px-4 py-24 text-center space-y-4">
+          <p className="text-muted-foreground">
             {error || "We couldn't find an event with this link."}
           </p>
-          <Button asChild variant="outline">
-            <Link href={user ? "/events" : "/"}>Go back</Link>
-          </Button>
+          <div className="flex flex-wrap justify-center gap-2">
+            {!user && error?.toLowerCase().includes("log in") && (
+              <Button asChild>
+                <Link
+                  href={`/login?redirect=${encodeURIComponent(`/events/${id}`)}`}
+                >
+                  Log in to view
+                </Link>
+              </Button>
+            )}
+            <Button asChild variant="outline">
+              <Link href={user ? "/events" : "/"}>Go back</Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <>

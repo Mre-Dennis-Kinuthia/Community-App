@@ -28,7 +28,8 @@ interface EventCardProps {
     registered?: number
     waitlistEnabled?: boolean
     registrationDeadline?: Date
-  priceLabel?: string | null
+    waitlistEnabled?: boolean
+    priceLabel?: string | null
   }
   onClick?: () => void
   onRegister?: (eventId: number) => void
@@ -63,8 +64,15 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
       ? "Tomorrow"
       : format(event.date, "MMM d, yyyy")
 
-  const canRegister = activeTab === "upcoming" && event.status === "Open" && event.capacity && (event.registered || 0) < event.capacity
-  const isFull = event.capacity && event.registered && event.registered >= event.capacity
+  const isFull =
+    event.capacity != null && (event.registered ?? 0) >= event.capacity
+  const canRegister =
+    activeTab === "upcoming" &&
+    (event.status === "Open" || (isFull && event.waitlistEnabled)) &&
+    event.status !== "Registered" &&
+    event.status !== "Waitlisted" &&
+    event.status !== "Attended" &&
+    (!isFull || event.waitlistEnabled)
   const eventUrl = getEventPublicUrl(String(event.id))
   const shareText = getEventShareText(event.title, event.date)
 

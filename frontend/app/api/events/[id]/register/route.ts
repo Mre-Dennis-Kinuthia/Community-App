@@ -85,14 +85,14 @@ export async function POST(
     if (!event) {
       return NextResponse.json(
         { error: "Event not found" },
-        { status: 404, headers: corsHeaders }
+        { status: 404, headers: corsHeaders(request) }
       )
     }
 
     if (event.startDate < new Date()) {
       return NextResponse.json(
         { error: "Cannot register for past events" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders(request) }
       )
     }
 
@@ -105,14 +105,17 @@ export async function POST(
     if (!email) {
       return NextResponse.json(
         { error: "Email is required for registration" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders(request) }
       )
     }
 
     const questions = parseRegistrationQuestions(event.registrationQuestions)
     const answerError = validateRegistrationAnswers(questions, answers)
     if (answerError) {
-      return NextResponse.json({ error: answerError }, { status: 400, headers: corsHeaders })
+      return NextResponse.json(
+        { error: answerError },
+        { status: 400, headers: corsHeaders(request) }
+      )
     }
 
     let userId: string | null = session?.user?.id ?? null
@@ -127,7 +130,7 @@ export async function POST(
     if (event.registrationRequired === false) {
       return NextResponse.json(
         { error: "Registration is not required for this event" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders(request) }
       )
     }
 
@@ -144,7 +147,10 @@ export async function POST(
         existingRegistration.status === "waitlisted"
           ? "You are already on the waitlist for this event"
           : "Already registered for this event"
-      return NextResponse.json({ error: message }, { status: 400, headers: corsHeaders })
+      return NextResponse.json(
+        { error: message },
+        { status: 400, headers: corsHeaders(request) }
+      )
     }
 
     const confirmedCount = await countConfirmedRegistrations(prisma, eventId)
@@ -155,7 +161,7 @@ export async function POST(
     } catch {
       return NextResponse.json(
         { error: "Event is at full capacity" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders(request) }
       )
     }
 
@@ -201,7 +207,7 @@ export async function POST(
           paymentStatus: registration.paymentStatus,
         },
       },
-      { status: 201, headers: corsHeaders }
+      { status: 201, headers: corsHeaders(request) }
     )
   } catch (error: unknown) {
     console.error("[EVENT REGISTRATION API] Error:", error)
@@ -209,13 +215,13 @@ export async function POST(
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid registration data", details: error.errors },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders(request) }
       )
     }
 
     return NextResponse.json(
       { error: "Failed to register for event" },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders(request) }
     )
   }
 }

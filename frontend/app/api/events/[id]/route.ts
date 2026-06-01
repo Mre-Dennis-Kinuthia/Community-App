@@ -30,11 +30,19 @@ export async function GET(
       )
     }
 
-    if (event.visibility === "members" && !session?.user) {
-      return NextResponse.json(
-        { error: "This event is for members only. Please log in to view it." },
-        { status: 403, headers: corsHeaders(request) }
-      )
+    if (!session?.user) {
+      if (event.visibility === "members") {
+        return NextResponse.json(
+          { error: "This event is for members only. Please log in to view it." },
+          { status: 403, headers: corsHeaders(request) }
+        )
+      }
+      if (event.visibility === "private") {
+        return NextResponse.json(
+          { error: "This is a private event. Please log in with an invited account." },
+          { status: 403, headers: corsHeaders(request) }
+        )
+      }
     }
 
     const [confirmedCount, waitlistCount, userRegistration] = await Promise.all([
