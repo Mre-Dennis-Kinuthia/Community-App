@@ -264,8 +264,9 @@ model Event {
   eventType            String   @default("other") // workshop, meetup, conference, etc.
   timezone             String   @default("Africa/Nairobi")
   visibility           String   @default("public") // public, private, members
-  waitlistEnabled      Boolean  @default(false)
-  registrationRequired Boolean  @default(true)
+  waitlistEnabled              Boolean  @default(false)
+  registrationRequired         Boolean  @default(true)
+  registrationRequiresApproval Boolean  @default(false)
   organizerName        String?
   organizerEmail       String?
   tags                 String[]
@@ -296,7 +297,7 @@ model EventRegistration {
   userId        String?  // nullable for guest registrations
   email         String
   name          String?
-  status        String   @default("registered") // registered, waitlisted, cancelled, attended
+  status        String   @default("registered") // registered, waitlisted, pending, rejected, cancelled, attended
   checkInCode   String?  @unique
   answers       Json?
   paymentStatus String   @default("not_required") // not_required, pending, paid

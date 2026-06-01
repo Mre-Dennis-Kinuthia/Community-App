@@ -40,6 +40,7 @@ interface EventCardProps {
 const statusColors: Record<string, string> = {
   Open: badgePrimary,
   Registered: badgeNeutral,
+  Pending: "bg-violet-100 text-violet-800 border-violet-200",
   Invited: badgeNeutral,
   Attended: badgeNeutral,
   Full: badgeDestructive,
@@ -71,6 +72,7 @@ export function EventCard({ event, onClick, onRegister, isRegistering = false, a
     (event.status === "Open" || (isFull && event.waitlistEnabled)) &&
     event.status !== "Registered" &&
     event.status !== "Waitlisted" &&
+    event.status !== "Pending" &&
     event.status !== "Attended" &&
     (!isFull || event.waitlistEnabled)
   const eventUrl = getEventPublicUrl({

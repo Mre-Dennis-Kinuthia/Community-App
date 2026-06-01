@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
         where: {
           eventId: { in: events.map((e) => e.id) },
           email,
-          status: { in: ["registered", "waitlisted", "attended"] },
+          status: { in: ["registered", "waitlisted", "pending", "attended"] },
         },
         select: { eventId: true, status: true },
       })

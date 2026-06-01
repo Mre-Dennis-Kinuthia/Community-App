@@ -134,12 +134,14 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   const isRegistered =
     registrationStatus === "registered" || registrationStatus === "attended"
   const isWaitlisted = registrationStatus === "waitlisted"
+  const isPendingApproval = registrationStatus === "pending"
   const canRegister =
     event &&
     !isPastEvent &&
     registrationRequired &&
     !isRegistered &&
     !isWaitlisted &&
+    !isPendingApproval &&
     (!isFull || event.waitlistEnabled)
 
   const questions = parseRegistrationQuestions(event?.registrationQuestions)
@@ -190,9 +192,11 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         setUserRegistration(refreshed.userRegistration ?? null)
       }
       toast.success(
-        data.registration?.status === "waitlisted"
-          ? "You're on the waitlist."
-          : "You're registered for this event."
+        data.registration?.status === "pending"
+          ? "Application submitted — the organizer will review it."
+          : data.registration?.status === "waitlisted"
+            ? "You're on the waitlist."
+            : "You're registered for this event."
       )
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Failed to register")
@@ -472,7 +476,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                       </Button>
                     )}
 
-                    {(isRegistered || isWaitlisted) && !isPastEvent && (
+                    {isPendingApproval && (
+                      <Button variant="outline" className="w-full" disabled>
+                        Application pending approval
+                      </Button>
+                    )}
+
+                    {(isRegistered || isWaitlisted || isPendingApproval) && !isPastEvent && (
                       <Button
                         variant="ghost"
                         className="w-full text-muted-foreground"
@@ -480,7 +490,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                         onClick={handleCancel}
                         disabled={cancelling}
                       >
-                        {cancelling ? "Cancelling..." : isWaitlisted ? "Leave waitlist" : "Cancel registration"}
+                        {cancelling
+                          ? "Cancelling..."
+                          : isPendingApproval
+                            ? "Withdraw application"
+                            : isWaitlisted
+                              ? "Leave waitlist"
+                              : "Cancel registration"}
                       </Button>
                     )}
 

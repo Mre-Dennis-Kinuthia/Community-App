@@ -56,7 +56,7 @@ export async function GET(
             where: {
               eventId,
               email: session.user.email.toLowerCase().trim(),
-              status: { in: ["registered", "waitlisted", "attended"] },
+              status: { in: ["registered", "waitlisted", "pending", "attended"] },
             },
             select: { id: true, status: true, createdAt: true },
           })

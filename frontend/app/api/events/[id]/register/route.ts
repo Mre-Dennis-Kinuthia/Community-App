@@ -4,7 +4,7 @@ import { generateCheckInCode } from "@/lib/event-checkin"
 import { prisma } from "@/lib/prisma"
 import {
   countConfirmedRegistrations,
-  resolveRegistrationStatusForEvent,
+  resolveInitialRegistrationStatus,
 } from "@/lib/event-registrations"
 import {
   parseRegistrationQuestions,
@@ -57,7 +57,7 @@ export async function GET(
       where: {
         eventId,
         email,
-        status: { in: ["registered", "waitlisted", "attended"] },
+        status: { in: ["registered", "waitlisted", "pending", "attended"] },
       },
       select: {
         id: true,
@@ -65,6 +65,7 @@ export async function GET(
         checkInCode: true,
         paymentStatus: true,
         createdAt: true,
+        answers: true,
       },
     })
 
@@ -156,15 +157,17 @@ export async function POST(
       where: {
         eventId,
         email,
-        status: { in: ["registered", "waitlisted", "attended"] },
+        status: { in: ["registered", "waitlisted", "pending", "attended"] },
       },
     })
 
     if (existingRegistration) {
       const message =
-        existingRegistration.status === "waitlisted"
-          ? "You are already on the waitlist for this event"
-          : "Already registered for this event"
+        existingRegistration.status === "pending"
+          ? "Your application is already pending review"
+          : existingRegistration.status === "waitlisted"
+            ? "You are already on the waitlist for this event"
+            : "Already registered for this event"
       return NextResponse.json(
         { error: message },
         { status: 400, headers: corsHeaders(request) }
@@ -173,9 +176,9 @@ export async function POST(
 
     const confirmedCount = await countConfirmedRegistrations(prisma, eventId)
 
-    let status: "registered" | "waitlisted"
+    let status: "registered" | "waitlisted" | "pending"
     try {
-      status = resolveRegistrationStatusForEvent(event, confirmedCount)
+      status = resolveInitialRegistrationStatus(event, confirmedCount)
     } catch {
       return NextResponse.json(
         { error: "Event is at full capacity" },
@@ -208,11 +211,13 @@ export async function POST(
     })
 
     const message =
-      status === "waitlisted"
-        ? "You have been added to the waitlist"
-        : isPaidEvent(event.price)
-          ? "Registered — payment can be completed at the venue (online payments coming soon)"
-          : "Successfully registered for event"
+      status === "pending"
+        ? "Application submitted — the organizer will review your registration"
+        : status === "waitlisted"
+          ? "You have been added to the waitlist"
+          : isPaidEvent(event.price)
+            ? "Registered — payment can be completed at the venue (online payments coming soon)"
+            : "Successfully registered for event"
 
     return NextResponse.json(
       {
@@ -271,7 +276,7 @@ export async function DELETE(
       where: {
         eventId,
         email,
-        status: { in: ["registered", "waitlisted"] },
+        status: { in: ["registered", "waitlisted", "pending"] },
       },
     })
 

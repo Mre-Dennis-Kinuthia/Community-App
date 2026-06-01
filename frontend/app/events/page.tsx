@@ -93,6 +93,7 @@ export default function EventsPage() {
       let status = "Open"
       if (userStatus === "registered" || userStatus === "attended") status = "Registered"
       else if (userStatus === "waitlisted") status = "Waitlisted"
+      else if (userStatus === "pending") status = "Pending"
       else if (isFull && !event.waitlistEnabled) status = "Full"
 
       return {
@@ -234,7 +235,9 @@ export default function EventsPage() {
       setRegDialogOpen(false)
       setPendingRegistration(null)
       await mutateEvents()
-      if (data.registration?.status === "waitlisted") {
+      if (data.registration?.status === "pending") {
+        toast.success("Application submitted — the organizer will review it.")
+      } else if (data.registration?.status === "waitlisted") {
         toast.success("You're on the waitlist — we'll notify you if a spot opens up.")
       } else {
         toast.success("You're registered for this event.")
@@ -254,6 +257,7 @@ export default function EventsPage() {
       event.status === "Registered" ||
       event.status === "Attended" ||
       event.status === "Waitlisted" ||
+      event.status === "Pending" ||
       (event.status === "Full" && !event.waitlistEnabled)
     ) {
       return
