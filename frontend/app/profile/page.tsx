@@ -23,6 +23,8 @@ import { MobilePageHeader, MobileStatsStrip, MobileBreadcrumbsHidden } from "@/c
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { toast } from "@/lib/toast"
 import { getInitials, cn } from "@/lib/utils"
+import { getImageDisplayUrl } from "@/lib/stored-image"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { useSession } from "@/lib/use-session"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 
@@ -60,6 +62,7 @@ type ProfilePayload = {
 function emptyForm() {
   return {
     name: "",
+    image: "",
     bio: "",
     role: "",
     industry: "",
@@ -86,6 +89,7 @@ export default function ProfilePage() {
   const applyProfile = useCallback((profile: ProfilePayload) => {
     setForm({
       name: profile.user.name?.trim() || "",
+      image: profile.user.image?.trim() || "",
       bio: profile.bio?.trim() || "",
       role: profile.role?.trim() || "",
       industry: profile.industry?.trim() || "",
@@ -130,6 +134,7 @@ export default function ProfilePage() {
   }, [loadProfile])
 
   const displayName = form.name.trim() || user?.name || "Member"
+  const avatarSrc = getImageDisplayUrl(form.image || user?.image || undefined)
   const userInitials = getInitials(displayName, user?.email)
   const memberSince = joinedAt ? format(new Date(joinedAt), "MMM yyyy") : null
 
@@ -151,6 +156,7 @@ export default function ProfilePage() {
         credentials: "include",
         body: JSON.stringify({
           ...(form.name.trim() ? { name: form.name.trim() } : {}),
+          image: form.image.trim() ? form.image.trim() : null,
           bio: form.bio.trim() ? form.bio.trim() : null,
           skills: form.skills,
           location: form.location.trim() ? form.location.trim() : null,
@@ -301,18 +307,28 @@ export default function ProfilePage() {
           <div className="border-b border-border bg-muted/30 px-4 py-5 md:px-8 md:py-6">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
               <Avatar className="h-20 w-20 shrink-0 border-2 border-background shadow-sm md:h-24 md:w-24">
-                <AvatarImage src={user.image || undefined} alt={displayName} />
+                <AvatarImage src={avatarSrc} alt={displayName} />
                 <AvatarFallback className="text-lg">{userInitials}</AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 space-y-1">
                 {isEditing ? (
-                  <div className="space-y-2 max-w-md">
-                    <Label htmlFor="display-name">Display name</Label>
-                    <Input
-                      id="display-name"
-                      value={form.name}
-                      onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                      placeholder="Your name"
+                  <div className="space-y-4 max-w-md">
+                    <div className="space-y-2">
+                      <Label htmlFor="display-name">Display name</Label>
+                      <Input
+                        id="display-name"
+                        value={form.name}
+                        onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                        placeholder="Your name"
+                      />
+                    </div>
+                    <ImageUpload
+                      label="Profile photo"
+                      description="JPEG, PNG, WebP, or GIF. Max 2MB. Stored securely on the platform."
+                      value={form.image}
+                      onChange={(url) => setForm((p) => ({ ...p, image: url }))}
+                      category="profile"
+                      previewClassName="h-32 w-32 rounded-full"
                     />
                   </div>
                 ) : (
@@ -322,9 +338,11 @@ export default function ProfilePage() {
                   {user.email}
                   {memberSince ? ` · Member since ${memberSince}` : null}
                 </p>
-                <p className="text-xs text-muted-foreground pt-1">
-                  Profile photo comes from your sign-in account. To change it, update your Google or provider profile.
-                </p>
+                {!isEditing && (
+                  <p className="text-xs text-muted-foreground pt-1">
+                    Edit your profile to upload a custom photo.
+                  </p>
+                )}
               </div>
             </div>
           </div>

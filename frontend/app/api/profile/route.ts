@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
+import { imageRefSchema } from "@/lib/image-url-schema"
 
 /**
  * Handle OPTIONS preflight for CORS
@@ -43,6 +44,7 @@ async function resolveUserIdFromSession(session: Awaited<ReturnType<typeof auth>
 
 const profileUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
+  image: imageRefSchema,
   bio: z.union([z.string(), z.null()]).optional(),
   skills: z.array(z.string()).optional(),
   location: z.union([z.string(), z.null()]).optional(),
@@ -216,13 +218,19 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
     const validatedData = profileUpdateSchema.parse(body)
-    const { name: nameUpdate, ...profileData } = validatedData
+    const { name: nameUpdate, image: imageUpdate, ...profileData } = validatedData
 
-    // Update user name if provided
+    const userUpdates: { name?: string; image?: string | null } = {}
     if (nameUpdate !== undefined && nameUpdate.trim()) {
+      userUpdates.name = nameUpdate.trim()
+    }
+    if (imageUpdate !== undefined) {
+      userUpdates.image = imageUpdate
+    }
+    if (Object.keys(userUpdates).length > 0) {
       await prisma.user.update({
         where: { id: userId },
-        data: { name: nameUpdate.trim() },
+        data: userUpdates,
       })
     }
 

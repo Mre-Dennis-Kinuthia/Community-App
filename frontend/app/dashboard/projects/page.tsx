@@ -21,6 +21,7 @@ import {
 import { Plus, Loader2, Clock, CheckCircle2, XCircle, Send, Lightbulb } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "@/lib/toast"
+import { ImageUpload } from "@/components/ui/image-upload"
 
 const CATEGORIES = [
   "Climate & Environment",
@@ -202,18 +203,13 @@ export default function MyProjectsPage() {
                     className="border-border resize-none"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="imageUrl">Project image URL</Label>
-                  <Input
-                    id="imageUrl"
-                    type="url"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://example.com/your-project-image.jpg"
-                    className="border-border"
-                  />
-                  <p className="text-xs text-muted-foreground">Optional. Link to a cover image for your project.</p>
-                </div>
+                <ImageUpload
+                  label="Project cover image"
+                  description="Optional. Upload a cover for your project listing."
+                  value={formData.imageUrl}
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                  category="project_cover"
+                />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Category</Label>

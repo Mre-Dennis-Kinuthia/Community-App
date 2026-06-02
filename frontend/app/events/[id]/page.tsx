@@ -24,7 +24,8 @@ import {
 } from "@/lib/event-datetime"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
-import { displayLocation, eventTypeLabel, formatLocationType } from "@/lib/event-constants"
+import { displayLocation, eventTypeLabel, resolveEventPlatform } from "@/lib/event-constants"
+import { EventPlatformBadge } from "@/components/platform-icon"
 import {
   formatEventPrice,
   isPaidEvent,
@@ -153,6 +154,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   const eventTz = event ? eventTimezone(event.timezone) : eventTimezone()
   const questions = parseRegistrationQuestions(event?.registrationQuestions)
   const priceLabel = event ? formatEventPrice(event.price, event.currency ?? "KES") : null
+  const platformInfo = event
+    ? resolveEventPlatform({
+        locationType: event.locationType,
+        onlineUrl: event.onlineUrl,
+        location: event.location,
+      })
+    : null
 
   useEffect(() => {
     if (!isRegistered || !event || !user) {
@@ -300,7 +308,15 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                 {event.eventType && (
                   <Badge variant="secondary">{eventTypeLabel(event.eventType)}</Badge>
                 )}
-                <Badge variant="outline">{formatLocationType(event.locationType)}</Badge>
+                {platformInfo && (
+                  <Badge variant="outline" className="gap-1.5 font-normal">
+                    <EventPlatformBadge
+                      icon={platformInfo.icon}
+                      label={platformInfo.label}
+                      size={16}
+                    />
+                  </Badge>
+                )}
                 {isPastEvent && <Badge variant="outline">Past event</Badge>}
                 {priceLabel && (
                   <Badge className="bg-primary text-primary-foreground">{priceLabel}</Badge>
@@ -348,10 +364,21 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                   </div>
                   {(event.location || event.onlineUrl) && (
                     <div className="flex gap-3 rounded-xl border p-4 sm:col-span-2">
-                      <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      {platformInfo ? (
+                        <div className="shrink-0 mt-0.5">
+                          <EventPlatformBadge
+                            icon={platformInfo.icon}
+                            label=""
+                            size={22}
+                            className="[&_span]:sr-only"
+                          />
+                        </div>
+                      ) : (
+                        <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      )}
                       <div>
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Location
+                          {platformInfo?.formatLabel ?? "Location"}
                         </p>
                         <p className="font-medium">{displayLocation(event)}</p>
                         {event.onlineUrl && event.locationType !== "in-person" && (

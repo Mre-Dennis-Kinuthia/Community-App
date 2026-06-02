@@ -1,16 +1,18 @@
 "use client"
 
+import { PlatformIcon } from "@/components/platform-icon"
 import { cn } from "@/lib/utils"
 
 interface FilterChipProps {
   label: string
+  iconSrc?: string
   active?: boolean
   onClick?: () => void
   count?: number
   className?: string
 }
 
-export function FilterChip({ label, active, onClick, count, className }: FilterChipProps) {
+export function FilterChip({ label, iconSrc, active, onClick, count, className }: FilterChipProps) {
   return (
     <button
       type="button"
@@ -24,6 +26,14 @@ export function FilterChip({ label, active, onClick, count, className }: FilterC
         className
       )}
     >
+      {iconSrc ? (
+        <PlatformIcon
+          src={iconSrc}
+          alt=""
+          size={16}
+          className={active ? "brightness-0 invert" : undefined}
+        />
+      ) : null}
       {label}
       {count != null && count > 0 && (
         <span

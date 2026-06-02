@@ -3,7 +3,8 @@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Users, Video, Loader2, ExternalLink, Mail } from "lucide-react"
+import { Calendar, Clock, Users, Loader2, ExternalLink, Mail } from "lucide-react"
+import { EventPlatformBadge } from "@/components/platform-icon"
 import { format, isToday, isTomorrow } from "date-fns"
 import Link from "next/link"
 import { badgeClassForLabel } from "@/lib/badge-styles"
@@ -20,6 +21,7 @@ interface EventDetailSheetProps {
     endTime?: string
     organizer: string
     platform: string
+    platformIcon?: string
     status: string
     thumbnail?: string
     date: Date
@@ -138,14 +140,19 @@ export function EventDetailSheet({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {event.platform === "Google Meet" || event.platform.includes("Meet") || event.platform.includes("Zoom") ? (
-                <Video className="h-4 w-4 text-muted-foreground shrink-0" />
-              ) : (
-                <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-              )}
               <div className="min-w-0">
-                <p className="text-xs text-muted-foreground">Platform</p>
-                <p className="text-sm font-medium truncate">{event.platform}</p>
+                <p className="text-xs text-muted-foreground">Format</p>
+                <p className="text-sm font-medium truncate">
+                  {event.platformIcon ? (
+                    <EventPlatformBadge
+                      icon={event.platformIcon}
+                      label={event.platform}
+                      size={18}
+                    />
+                  ) : (
+                    event.platform
+                  )}
+                </p>
               </div>
             </div>
             {event.capacity && (
@@ -263,14 +270,6 @@ export function EventDetailSheet({
                   Contact organizer
                 </a>
               </Button>
-              {(event.platform === "Google Meet" || event.platform.includes("Meet")) && (
-                <Button variant="outline" className="w-full" asChild size="sm">
-                  <a href="#" target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Join online
-                  </a>
-                </Button>
-              )}
             </div>
 
             <EventSharePanel

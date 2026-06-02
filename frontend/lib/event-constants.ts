@@ -1,3 +1,13 @@
+export {
+  resolveEventPlatform,
+  detectMeetingPlatform,
+  EVENT_PLATFORM_META,
+  SHARE_PLATFORM_META,
+  listPlatformFilterOptions,
+  type EventPlatformId,
+  type SharePlatformId,
+} from "@/lib/event-platform"
+
 export function formatLocationType(locationType?: string | null): string {
   switch (locationType) {
     case "online":

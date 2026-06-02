@@ -24,7 +24,8 @@ import { toast } from "@/lib/toast"
 import {
   displayLocation,
   eventTypeLabel,
-  formatLocationType,
+  resolveEventPlatform,
+  listPlatformFilterOptions,
 } from "@/lib/event-constants"
 import { formatEventPrice, isPaidEvent, parseRegistrationQuestions } from "@/lib/event-questions"
 import { eventCalendarDate, formatEventTime24 } from "@/lib/event-datetime"
@@ -39,6 +40,8 @@ interface Event {
   endTime?: string
   organizer: string
   platform: string
+  platformId: string
+  platformIcon: string
   status: string
   thumbnail?: string
   date: Date
@@ -112,7 +115,14 @@ export default function EventsPage() {
         endTime: event.endDate ? formatEventTime24(event.endDate, tz) : undefined,
         timezone: tz,
         organizer: event.organizerName || "Impact Hub Nairobi",
-        platform: formatLocationType(event.locationType),
+        ...(() => {
+          const p = resolveEventPlatform({
+            locationType: event.locationType,
+            onlineUrl: event.onlineUrl,
+            location: event.location,
+          })
+          return { platform: p.label, platformId: p.id, platformIcon: p.icon }
+        })(),
         status,
         thumbnail: event.imageUrl,
         date: startDate,
@@ -173,7 +183,7 @@ export default function EventsPage() {
       const matchesType = typeFilter === "all" || event.type === typeFilter
       const matchesStatus = statusFilter === "all" || event.status === statusFilter
       const matchesOrganizer = organizerFilter === "all" || event.organizer === organizerFilter
-      const matchesPlatform = platformFilter === "all" || event.platform === platformFilter
+      const matchesPlatform = platformFilter === "all" || event.platformId === platformFilter
 
       // Date range filter
       let matchesDateRange = true
@@ -208,7 +218,10 @@ export default function EventsPage() {
   const uniqueTypes = useMemo(() => Array.from(new Set(allEvents.map((e) => e.type))), [allEvents])
   const uniqueStatuses = useMemo(() => Array.from(new Set(allEvents.map((e) => e.status))), [allEvents])
   const uniqueOrganizers = useMemo(() => Array.from(new Set(allEvents.map((e) => e.organizer))), [allEvents])
-  const uniquePlatforms = useMemo(() => Array.from(new Set(allEvents.map((e) => e.platform))), [allEvents])
+  const uniquePlatforms = useMemo(
+    () => listPlatformFilterOptions(allEvents),
+    [allEvents]
+  )
 
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event)
@@ -458,10 +471,11 @@ export default function EventsPage() {
                       <FilterChip label="All" active={platformFilter === "all"} onClick={() => setPlatformFilter("all")} />
                       {uniquePlatforms.map((platform) => (
                         <FilterChip
-                          key={platform}
-                          label={platform}
-                          active={platformFilter === platform}
-                          onClick={() => setPlatformFilter(platform)}
+                          key={platform.id}
+                          label={platform.label}
+                          iconSrc={platform.icon}
+                          active={platformFilter === platform.id}
+                          onClick={() => setPlatformFilter(platform.id)}
                         />
                       ))}
                     </FilterChipRow>
@@ -601,8 +615,8 @@ export default function EventsPage() {
                       <SelectContent>
                         <SelectItem value="all">All Platforms</SelectItem>
                         {uniquePlatforms.map((platform) => (
-                          <SelectItem key={platform} value={platform}>
-                            {platform}
+                          <SelectItem key={platform.id} value={platform.id}>
+                            {platform.label}
                           </SelectItem>
                         ))}
                       </SelectContent>

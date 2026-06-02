@@ -3,17 +3,11 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  Copy,
-  Check,
-  Share2,
-  MessageCircle,
-  Twitter,
-  Linkedin,
-  Facebook,
-} from "lucide-react"
+import { Copy, Check, Share2 } from "lucide-react"
 import { toast } from "@/lib/toast"
 import { getEventPublicUrl, getEventShareText } from "@/lib/event-url"
+import { SHARE_PLATFORM_META, type SharePlatformId } from "@/lib/event-platform"
+import { PlatformIcon } from "@/components/platform-icon"
 import { cn } from "@/lib/utils"
 
 interface EventSharePanelProps {
@@ -27,6 +21,8 @@ interface EventSharePanelProps {
   variant?: "inline" | "card"
   className?: string
 }
+
+const SHARE_PLATFORMS: SharePlatformId[] = ["whatsapp", "twitter", "linkedin", "facebook"]
 
 export function EventSharePanel({
   event,
@@ -60,10 +56,10 @@ export function EventSharePanel({
     await copyLink()
   }
 
-  const openShare = (platform: "whatsapp" | "twitter" | "linkedin" | "facebook") => {
+  const openShare = (platform: SharePlatformId) => {
     const encodedUrl = encodeURIComponent(url)
     const encodedText = encodeURIComponent(shareText)
-    const links: Record<string, string> = {
+    const links: Record<SharePlatformId, string> = {
       whatsapp: `https://wa.me/?text=${encodeURIComponent(`${shareText} ${url}`)}`,
       twitter: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
@@ -97,46 +93,22 @@ export function EventSharePanel({
           <Share2 className="h-3.5 w-3.5" />
           Share
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => openShare("whatsapp")}
-        >
-          <MessageCircle className="h-3.5 w-3.5" />
-          WhatsApp
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => openShare("twitter")}
-        >
-          <Twitter className="h-3.5 w-3.5" />
-          X
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => openShare("linkedin")}
-        >
-          <Linkedin className="h-3.5 w-3.5" />
-          LinkedIn
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => openShare("facebook")}
-        >
-          <Facebook className="h-3.5 w-3.5" />
-          Facebook
-        </Button>
+        {SHARE_PLATFORMS.map((platform) => {
+          const meta = SHARE_PLATFORM_META[platform]
+          return (
+            <Button
+              key={platform}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 pl-2"
+              onClick={() => openShare(platform)}
+            >
+              <PlatformIcon src={meta.icon} alt={meta.label} size={18} />
+              {meta.label}
+            </Button>
+          )
+        })}
       </div>
     </div>
   )

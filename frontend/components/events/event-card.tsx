@@ -3,7 +3,8 @@
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, Video, MapPin, Clock, Loader2, Share2, ExternalLink } from "lucide-react"
+import { Users, Clock, Loader2, Share2, ExternalLink } from "lucide-react"
+import { EventPlatformBadge } from "@/components/platform-icon"
 import { format, isToday, isTomorrow } from "date-fns"
 import Link from "next/link"
 import { toast } from "@/lib/toast"
@@ -21,6 +22,7 @@ interface EventCardProps {
     endTime?: string
     organizer: string
     platform: string
+    platformIcon?: string
     status: string
     thumbnail?: string
     date: Date
@@ -154,9 +156,12 @@ export function EventCard({
             {timeString}
             {endTimeString ? ` – ${endTimeString}` : ""}
           </p>
-          <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3 shrink-0" />
-            <span className="truncate">{event.platform}</span>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {event.platformIcon ? (
+              <EventPlatformBadge icon={event.platformIcon} label={event.platform} size={14} />
+            ) : (
+              <span className="truncate">{event.platform}</span>
+            )}
           </p>
           <div
             className="mt-3 flex items-center gap-2"
@@ -251,15 +256,12 @@ export function EventCard({
                   <Users className="h-3.5 w-3.5 shrink-0" />
                   {event.organizer}
                 </span>
-                <span className="inline-flex items-center gap-1.5">
-                  {event.platform === "Google Meet" ||
-                  event.platform.includes("Meet") ||
-                  event.platform.includes("Zoom") ? (
-                    <Video className="h-3.5 w-3.5 shrink-0" />
+                <span className="inline-flex items-center gap-1.5 min-w-0">
+                  {event.platformIcon ? (
+                    <EventPlatformBadge icon={event.platformIcon} label={event.platform} size={16} />
                   ) : (
-                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    event.platform
                   )}
-                  {event.platform}
                 </span>
                 {event.capacity != null && (
                   <span className="inline-flex items-center gap-1.5">

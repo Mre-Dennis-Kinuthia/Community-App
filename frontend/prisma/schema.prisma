@@ -770,6 +770,27 @@ model ProgramApplication {
 }
 
 // ============================================
+// STORED IMAGES (binary in Postgres)
+// ============================================
+
+model StoredImage {
+  id          String   @id @default(cuid())
+  data        Bytes
+  mimeType    String
+  fileName    String?
+  size        Int
+  category    String   // profile, event_cover, news_cover, project_cover, partner_logo, general
+  userId      String?
+  adminUserId String?
+  createdAt   DateTime @default(now())
+
+  @@map("stored_images")
+  @@index([category])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================
 // MEDIA LIBRARY
 // ============================================
 
