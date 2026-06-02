@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { getImageDisplayUrl } from "@/lib/stored-image"
 
 /**
  * Handle OPTIONS preflight for CORS
@@ -58,8 +59,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const origin = new URL(request.url).origin
+    const resolveImage = (ref: string) => getImageDisplayUrl(ref, { baseUrl: origin }) ?? ref
+
     // Map DB workspace to API shape expected by frontend components.
-    // Where extended fields are not configured yet, we fall back to safe defaults.
     const workspace = {
       id: dbWorkspace.id,
       name: dbWorkspace.name,
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
       currency: dbWorkspace.currency,
       rating: 0,
       reviewCount: 0,
-      images: dbWorkspace.images ?? [],
+      images: (dbWorkspace.images ?? []).map(resolveImage).filter(Boolean),
       amenities: (dbWorkspace.amenities as any[]) ?? [],
       whoIsThisFor: dbWorkspace.whoIsThisFor ?? "",
       openingHours: dbWorkspace.openingHours ?? "",
