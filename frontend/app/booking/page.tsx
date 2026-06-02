@@ -11,15 +11,7 @@ import { useWorkspace } from "@/lib/hooks/use-workspace"
 import { useAvailability } from "@/lib/hooks/use-availability"
 import { usePricing } from "@/lib/hooks/use-pricing"
 import { BookingHeader } from "@/components/booking/booking-header"
-import { BookingProgress } from "@/components/booking/booking-progress"
-import { BookingOrderPanel } from "@/components/booking/booking-order-panel"
 import { BookingStep } from "@/components/booking/booking-step"
-import {
-  getBookingFlowSteps,
-  getCurrentStepId,
-  resolveStepStatus,
-  type BookingFlowState,
-} from "@/lib/booking-flow"
 import { AvailabilityCalendar } from "@/components/booking/availability-calendar"
 import { TimeSelector, type BookingDuration } from "@/components/booking/time-selector"
 import { ResourceSelector, type ResourceType } from "@/components/booking/resource-selector"
@@ -34,18 +26,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function BookingPage() {
-  // Hooks
-  // By default we load the first active workspace configured
-  // in the admin Workspaces screen.
   const { workspace, isLoading: isLoadingWorkspace, error: workspaceError } = useWorkspace()
 
-  // Use the real workspace id once loaded so bookings,
-  // availability and pricing are tied to the admin record.
   const workspaceId = workspace?.id ?? "impact-hub-nairobi"
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
-  // Hot desk defaults to full-day; private office defaults to monthly
+
   const getDefaultDuration = (resource: ResourceType | null): BookingDuration => {
     if (resource === "hot-desk") return "full-day"
     return "hourly"
@@ -56,20 +44,20 @@ export default function BookingPage() {
     const price = mr?.[capacity]
     return typeof price === "number" && price > 0 ? price : { "1-4": 5000, "1-10": 8000, "1-35": 12000 }[capacity]
   }
-  
+
   const availabilityResourceType =
     selectedResource === "event-space" ? undefined : (selectedResource || undefined)
 
-  const { 
-    slots, 
+  const {
+    slots,
     unavailableDates,
     datesWithBookings,
-    nextAvailable, 
-    selectedDate, 
+    nextAvailable,
+    selectedDate,
     setSelectedDate,
     isLoadingSlots,
   } = useAvailability(workspaceId, availabilityResourceType)
-  
+
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("full-day")
   const [selectedHalfDay, setSelectedHalfDay] = useState<"morning" | "afternoon" | undefined>(undefined)
@@ -78,14 +66,13 @@ export default function BookingPage() {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [pastriesPax, setPastriesPax] = useState(1)
 
-  const { pricing, calculateTotal } = usePricing(
+  const { pricing } = usePricing(
     workspaceId,
     selectedResource || "hot-desk",
     selectedDate || undefined,
     selectedDuration === "hourly" ? 1 : selectedDuration === "half-day" ? 4 : selectedDuration === "monthly" ? 1 : 8
   )
-  
-  // Provide fallback pricing when null
+
   const safePricing = pricing || {
     basePrice: 0,
     currency: "KES",
@@ -93,45 +80,42 @@ export default function BookingPage() {
     addOns: [],
   }
 
-  // Calculate pricing
   const totalPrice = useMemo(() => {
     if (!selectedResource) return 0
-    
-    // Private office: no booking price (inquiry only)
     if (selectedResource === "private-office" || selectedResource === "event-space") return 0
-    
     if (!selectedDate) return 0
-    
+
     let hasRequiredSelections = false
     let basePrice = 0
-    
+
     if (selectedResource === "hot-desk") {
       if (selectedDuration === "full-day") {
         hasRequiredSelections = true
-        basePrice = safePricing.options.find(opt => opt.type === "full-day")?.price || 0
+        basePrice = safePricing.options.find((opt) => opt.type === "full-day")?.price || 0
       } else if (selectedDuration === "half-day") {
         hasRequiredSelections = !!selectedHalfDay
-        basePrice = safePricing.options.find(opt => opt.type === "half-day")?.price || 0
+        basePrice = safePricing.options.find((opt) => opt.type === "half-day")?.price || 0
       } else {
         hasRequiredSelections = !!selectedTime
-        basePrice = safePricing.options.find(opt => opt.type === "hourly")?.price || 0
+        basePrice = safePricing.options.find((opt) => opt.type === "hourly")?.price || 0
       }
     } else if (selectedResource === "meeting-room") {
-      hasRequiredSelections = !!selectedMeetingRoomCapacity && selectedMeetingRoomHours > 0 && !!selectedTime
+      hasRequiredSelections =
+        !!selectedMeetingRoomCapacity && selectedMeetingRoomHours > 0 && !!selectedTime
       if (selectedMeetingRoomCapacity) {
         basePrice = getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity) * selectedMeetingRoomHours
       }
     }
-    
+
     if (!hasRequiredSelections) return 0
-    
+
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
-      const addOn = safePricing.addOns.find(a => a.id === id)
+      const addOn = safePricing.addOns.find((a) => a.id === id)
       if (!addOn) return sum
       if (id === "pastries") return sum + (addOn.price || 0) * Math.max(1, pastriesPax)
       return sum + (addOn.price || 0)
     }, 0)
-    
+
     return basePrice + addOnsPrice
   }, [
     selectedDate,
@@ -147,25 +131,25 @@ export default function BookingPage() {
     pastriesPax,
   ])
 
-  // Check if booking is valid
   const isValidBooking = useMemo(() => {
     if (!selectedResource) return false
-    // Private office: inquiry flow, not booking
     if (selectedResource === "private-office" || selectedResource === "event-space") return false
     if (!selectedDate || !Number.isFinite(totalPrice) || totalPrice <= 0) return false
-    
-    // Hot desk: full-day only
-    if (selectedResource === "hot-desk") {
-      return selectedDuration === "full-day"
-    }
-    // Meeting room: capacity + hours + date + time
+    if (selectedResource === "hot-desk") return selectedDuration === "full-day"
     if (selectedResource === "meeting-room") {
       return !!selectedMeetingRoomCapacity && selectedMeetingRoomHours > 0 && !!selectedTime
     }
     return false
-  }, [selectedDate, selectedTime, selectedResource, selectedDuration, selectedMeetingRoomCapacity, selectedMeetingRoomHours, totalPrice])
+  }, [
+    selectedDate,
+    selectedTime,
+    selectedResource,
+    selectedDuration,
+    selectedMeetingRoomCapacity,
+    selectedMeetingRoomHours,
+    totalPrice,
+  ])
 
-  // Calculate start time based on duration and selection
   const calculateStartTime = useMemo(() => {
     if (selectedResource === "hot-desk" && selectedDuration === "full-day") return "09:00"
     if (selectedResource === "hot-desk" && selectedDuration === "half-day" && selectedHalfDay) {
@@ -174,30 +158,29 @@ export default function BookingPage() {
     return selectedTime || null
   }, [selectedResource, selectedDuration, selectedHalfDay, selectedTime])
 
-  // Proceed to confirmation/payment step. Booking can be created with paymentStatus pending.
   const handleConfirmBooking = () => {
     if (!isValidBooking || !selectedDate || !selectedResource) {
-      toast.warning("Complete your selection", "Please complete all required fields")
+      toast.warning("Complete your selection", "Choose your space, date, and time.")
       return
     }
 
-    // Only meeting rooms need explicit time selection
     if (selectedResource === "meeting-room" && !selectedTime) {
-      toast.warning("Complete your selection", "Please select a time")
+      toast.warning("Complete your selection", "Please select a time.")
       return
     }
 
     const startTime = calculateStartTime
     if (!startTime) {
-      toast.warning("Complete your selection", "Please select a time")
+      toast.warning("Complete your selection", "Please select a time.")
       return
     }
 
-    const basePrice = selectedResource === "meeting-room" && selectedMeetingRoomCapacity
-      ? getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity) * selectedMeetingRoomHours
-      : (safePricing.options.find(opt => opt.type === selectedDuration)?.price ?? 0)
+    const basePrice =
+      selectedResource === "meeting-room" && selectedMeetingRoomCapacity
+        ? getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity) * selectedMeetingRoomHours
+        : (safePricing.options.find((opt) => opt.type === selectedDuration)?.price ?? 0)
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
-      const addOn = safePricing.addOns.find(a => a.id === id)
+      const addOn = safePricing.addOns.find((a) => a.id === id)
       if (!addOn) return sum
       if (id === "pastries") return sum + (addOn.price || 0) * Math.max(1, pastriesPax)
       return sum + (addOn.price || 0)
@@ -232,14 +215,11 @@ export default function BookingPage() {
   }
 
   const handleAddOnToggle = (addOnId: string) => {
-    setSelectedAddOns(prev =>
-      prev.includes(addOnId)
-        ? prev.filter(id => id !== addOnId)
-        : [...prev, addOnId]
+    setSelectedAddOns((prev) =>
+      prev.includes(addOnId) ? prev.filter((id) => id !== addOnId) : [...prev, addOnId]
     )
   }
 
-  // Available time slots for selected date
   const availableSlots = useMemo(() => {
     if (!selectedDate) return []
     return slots
@@ -257,45 +237,30 @@ export default function BookingPage() {
       }))
   }, [slots, selectedDate])
 
-  const showBookingSidebar =
-    selectedResource !== "private-office" && selectedResource !== "event-space"
+  const isBookableResource =
+    selectedResource === "hot-desk" || selectedResource === "meeting-room"
 
-  const flowState: BookingFlowState = useMemo(
-    () => ({
-      resource: selectedResource,
-      meetingRoomCapacity: selectedMeetingRoomCapacity,
-      meetingRoomHours: selectedMeetingRoomHours,
-      selectedDate,
-      selectedTime,
-      selectedDuration,
-      isValidBooking,
-    }),
-    [
-      selectedResource,
-      selectedMeetingRoomCapacity,
-      selectedMeetingRoomHours,
-      selectedDate,
-      selectedTime,
-      selectedDuration,
-      isValidBooking,
-    ]
-  )
+  const canPickDate =
+    selectedResource === "hot-desk" ||
+    (selectedResource === "meeting-room" && !!selectedMeetingRoomCapacity)
 
-  const flowSteps = getBookingFlowSteps(selectedResource)
-  const currentStepId = getCurrentStepId(flowState)
-  const stepStatus = (id: Parameters<typeof resolveStepStatus>[0]) =>
-    resolveStepStatus(id, flowState)
+  const canPickTime =
+    selectedResource === "meeting-room" && !!selectedDate && !!selectedMeetingRoomCapacity
+
+  const canPickAddOns =
+    (selectedResource === "hot-desk" && !!selectedDate) ||
+    (selectedResource === "meeting-room" && !!selectedDate && !!selectedTime)
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-6xl space-y-5 overflow-x-hidden pb-[calc(8.5rem+env(safe-area-inset-bottom))] lg:space-y-6 lg:pb-10">
+      <div className="mx-auto w-full max-w-6xl space-y-6 overflow-x-hidden pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:pb-10">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Book Workspace" }]} />
         </MobileBreadcrumbsHidden>
 
         {isLoadingWorkspace ? (
           <div className="flex justify-center py-16">
-            <p className="text-sm text-muted-foreground">Loading workspace…</p>
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : !workspace ? (
           <div className="rounded-xl border border-border bg-muted/20 px-6 py-12 text-center">
@@ -309,34 +274,29 @@ export default function BookingPage() {
           </div>
         ) : (
           <>
-            {showBookingSidebar ? (
-              <BookingProgress steps={flowSteps} currentStepId={currentStepId} />
-            ) : null}
-
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start lg:gap-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
               <BookingHeader workspace={workspace} />
               <ImageGallery
                 images={workspace.images}
                 spaceName={workspace.name}
                 compact
-                className="hidden w-full shrink-0 sm:block sm:max-w-[200px] lg:max-w-[260px]"
+                className="hidden w-full shrink-0 sm:block sm:max-w-[220px] lg:max-w-[280px]"
               />
             </div>
 
             <div
               className={
-                showBookingSidebar
-                  ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] lg:gap-8"
+                isBookableResource
+                  ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-8"
                   : "max-w-2xl"
               }
             >
-              <div className="min-w-0 space-y-4 sm:space-y-5">
+              <div className="min-w-0 space-y-5">
                 <BookingStep
                   id="availability-section"
                   step={1}
                   title="Choose your space"
-                  description="What do you need today?"
-                  status={stepStatus("space")}
+                  description="Pick a resource to see availability and pricing."
                 >
                   <ResourceSelector
                     selectedResource={selectedResource}
@@ -374,49 +334,50 @@ export default function BookingPage() {
                   </BookingStep>
                 )}
 
-                {selectedResource === "meeting-room" && (
-                  <BookingStep
-                    step={2}
-                    title="Room size & duration"
-                    description="Capacity and hours for your meeting."
-                    status={stepStatus("room")}
-                  >
-                    <MeetingRoomSelector
-                        selectedCapacity={selectedMeetingRoomCapacity}
-                        selectedHours={selectedMeetingRoomHours}
-                        pricing={workspace?.pricing?.["meeting-room"] as Record<string, number> | undefined}
-                        currency={workspace?.currency || "KES"}
-                        onCapacitySelect={(c) => {
-                          setSelectedMeetingRoomCapacity(c)
-                          setSelectedDate(null)
-                          setSelectedTime(null)
-                        }}
-                        onHoursChange={(h) => {
-                          setSelectedMeetingRoomHours(h)
-                          setSelectedTime(null)
-                        }}
-                    />
-                  </BookingStep>
-                )}
+                {isBookableResource && (
+                  <>
+                    {selectedResource === "meeting-room" && (
+                      <BookingStep
+                        step={2}
+                        title="Room size & duration"
+                        description="Capacity and hours for your meeting."
+                      >
+                        <MeetingRoomSelector
+                          selectedCapacity={selectedMeetingRoomCapacity}
+                          selectedHours={selectedMeetingRoomHours}
+                          pricing={
+                            workspace?.pricing?.["meeting-room"] as
+                              | Record<string, number>
+                              | undefined
+                          }
+                          currency={workspace?.currency || "KES"}
+                          onCapacitySelect={(c) => {
+                            setSelectedMeetingRoomCapacity(c)
+                            setSelectedDate(null)
+                            setSelectedTime(null)
+                          }}
+                          onHoursChange={(h) => {
+                            setSelectedMeetingRoomHours(h)
+                            setSelectedTime(null)
+                          }}
+                        />
+                      </BookingStep>
+                    )}
 
-                {selectedResource &&
-                  selectedResource !== "private-office" &&
-                  selectedResource !== "event-space" && (
                     <BookingStep
                       step={selectedResource === "meeting-room" ? 3 : 2}
                       title="Pick a date"
-                      description={
-                        selectedResource === "meeting-room"
-                          ? "Available days for your room size."
-                          : "Unavailable days are greyed out."
-                      }
-                      status={stepStatus("date")}
+                      description="Unavailable days are disabled on the calendar."
                     >
-                      {selectedResource === "meeting-room" && !selectedMeetingRoomCapacity ? (
-                        <p className="text-sm text-muted-foreground">
-                          Select room capacity in step 2 first.
-                        </p>
-                      ) : (
+                      <div
+                        className={cn(!canPickDate && "pointer-events-none opacity-50")}
+                        aria-disabled={!canPickDate}
+                      >
+                        {!canPickDate ? (
+                          <p className="mb-3 text-sm text-muted-foreground">
+                            Select a room size first.
+                          </p>
+                        ) : null}
                         <AvailabilityCalendar
                           selectedDate={selectedDate}
                           onDateSelect={(d) => {
@@ -426,75 +387,90 @@ export default function BookingPage() {
                           unavailableDates={unavailableDates}
                           datesWithBookings={datesWithBookings}
                           nextAvailable={nextAvailable}
-                          resourceType={selectedResource || "hot-desk"}
-                        />
-                      )}
-                    </BookingStep>
-                  )}
-
-                {selectedResource === "meeting-room" && selectedMeetingRoomCapacity && (
-                  <BookingStep
-                    step={4}
-                    title="Start time"
-                    description="Pick a slot that works for you."
-                    status={stepStatus("time")}
-                  >
-                    <TimeSelector
-                        selectedTime={selectedTime}
-                        selectedDuration={
-                          selectedResource === "meeting-room"
-                            ? "hourly"
-                            : selectedDuration
-                        }
-                        selectedHalfDay={selectedHalfDay}
-                        onTimeSelect={setSelectedTime}
-                        onDurationChange={(duration) => {
-                          setSelectedDuration(duration)
-                          if (duration !== "half-day") setSelectedHalfDay(undefined)
-                          if (duration === "full-day" && selectedResource === "hot-desk") {
-                            setSelectedTime(null)
-                          }
-                        }}
-                        onHalfDaySelect={setSelectedHalfDay}
-                        availableSlots={availableSlots}
-                        date={selectedDate}
-                        resourceType={selectedResource || "hot-desk"}
-                        hideDurationSelector={selectedResource === "meeting-room"}
-                        slotsLoading={isLoadingSlots}
-                    />
-                  </BookingStep>
-                )}
-
-                {(selectedResource === "hot-desk" && selectedDate) ||
-                (selectedResource === "meeting-room" && selectedDate && selectedTime) ? (
-                  <BookingStep
-                    step={selectedResource === "meeting-room" ? 5 : 3}
-                    title="Add-ons"
-                    description="Optional — skip if you don't need extras."
-                    status={stepStatus("extras")}
-                  >
-                    <AddOnSelector
-                        addOns={safePricing.addOns}
-                        selectedAddOns={selectedAddOns}
-                        onToggle={handleAddOnToggle}
-                      />
-                    {selectedAddOns.includes("pastries") && (
-                      <div className="mt-4 max-w-xs space-y-2">
-                        <Label htmlFor="pastries-pax">Guests (PAX)</Label>
-                        <Input
-                          id="pastries-pax"
-                          type="number"
-                          min={1}
-                          value={pastriesPax}
-                          onChange={(e) => setPastriesPax(Number(e.target.value) || 1)}
+                          resourceType={selectedResource}
                         />
                       </div>
+                    </BookingStep>
+
+                    {selectedResource === "meeting-room" && (
+                      <BookingStep
+                        step={4}
+                        title="Start time"
+                        description="Available slots for your selected day."
+                      >
+                        <div
+                          className={cn(!canPickTime && "pointer-events-none opacity-50")}
+                          aria-disabled={!canPickTime}
+                        >
+                          {!canPickTime ? (
+                            <p className="mb-3 text-sm text-muted-foreground">
+                              Choose a date to see time slots.
+                            </p>
+                          ) : null}
+                          <TimeSelector
+                            selectedTime={selectedTime}
+                            selectedDuration="hourly"
+                            selectedHalfDay={selectedHalfDay}
+                            onTimeSelect={setSelectedTime}
+                            onDurationChange={(duration) => {
+                              setSelectedDuration(duration)
+                              if (duration !== "half-day") setSelectedHalfDay(undefined)
+                            }}
+                            onHalfDaySelect={setSelectedHalfDay}
+                            availableSlots={availableSlots}
+                            date={selectedDate}
+                            resourceType="meeting-room"
+                            hideDurationSelector
+                            slotsLoading={isLoadingSlots}
+                          />
+                        </div>
+                      </BookingStep>
                     )}
-                  </BookingStep>
-                ) : null}
+
+                    {selectedResource === "hot-desk" && selectedDate && (
+                      <p className="px-1 text-sm text-muted-foreground">
+                        Hot desk bookings are <span className="font-medium text-foreground">full day</span> from 09:00.
+                      </p>
+                    )}
+
+                    <BookingStep
+                      step={selectedResource === "meeting-room" ? 5 : 3}
+                      title="Add-ons (optional)"
+                      description="Extras you can add to your booking."
+                    >
+                      <div
+                        className={cn(!canPickAddOns && "pointer-events-none opacity-50")}
+                        aria-disabled={!canPickAddOns}
+                      >
+                        {!canPickAddOns ? (
+                          <p className="mb-3 text-sm text-muted-foreground">
+                            Complete date{selectedResource === "meeting-room" ? " and time" : ""} first.
+                          </p>
+                        ) : null}
+                        <AddOnSelector
+                          addOns={safePricing.addOns}
+                          selectedAddOns={selectedAddOns}
+                          onToggle={handleAddOnToggle}
+                        />
+                        {selectedAddOns.includes("pastries") && canPickAddOns && (
+                          <div className="mt-4 max-w-xs space-y-2">
+                            <Label htmlFor="pastries-pax">Guests (PAX)</Label>
+                            <Input
+                              id="pastries-pax"
+                              type="number"
+                              min={1}
+                              value={pastriesPax}
+                              onChange={(e) => setPastriesPax(Number(e.target.value) || 1)}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </BookingStep>
+                  </>
+                )}
               </div>
 
-              {showBookingSidebar && (
+              {isBookableResource && (
                 <aside className="hidden lg:block">
                   <div className="sticky top-24 space-y-4">
                     <PricingBreakdown
@@ -502,7 +478,7 @@ export default function BookingPage() {
                       pricing={safePricing}
                       selectedDuration={selectedDuration}
                       selectedAddOns={selectedAddOns}
-                      resourceType={selectedResource || "hot-desk"}
+                      resourceType={selectedResource}
                       meetingRoomCapacity={selectedMeetingRoomCapacity}
                       meetingRoomHours={selectedMeetingRoomHours}
                       meetingRoomHourlyPrice={
@@ -513,48 +489,37 @@ export default function BookingPage() {
                       currency={safePricing.currency}
                       pastriesPax={pastriesPax}
                     />
-                    <BookingOrderPanel
-                      workspaceName={workspace.name}
-                      workspaceLocation={workspace.location}
-                      resourceType={selectedResource}
-                      date={selectedDate}
-                      time={selectedTime}
-                      meetingRoomCapacity={selectedMeetingRoomCapacity ?? undefined}
-                      meetingRoomHours={selectedMeetingRoomHours}
-                      totalPrice={totalPrice}
-                      currency={safePricing.currency}
-                      isValid={isValidBooking}
-                      onCheckout={handleConfirmBooking}
-                    />
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      disabled={!isValidBooking}
+                      onClick={handleConfirmBooking}
+                    >
+                      Continue to checkout
+                    </Button>
+                    {!isValidBooking ? (
+                      <p className="text-center text-xs text-muted-foreground">
+                        Fill in all required fields above
+                      </p>
+                    ) : null}
                   </div>
                 </aside>
               )}
             </div>
 
-            {showBookingSidebar && (
+            {isBookableResource && (
               <StickyBookingSummary
-            summary={{
-              date: selectedDate,
-              time: selectedTime,
-              duration: selectedResource === "meeting-room" ? "hourly" : selectedDuration,
-              resourceType: selectedResource,
-              addOns: selectedAddOns,
-              totalPrice,
-              currency: safePricing.currency,
-              meetingRoomCapacity: selectedMeetingRoomCapacity ?? undefined,
-              meetingRoomHours: selectedMeetingRoomHours,
-            }}
-            onClear={() => {
-              setSelectedDate(null)
-              setSelectedTime(null)
-              setSelectedMeetingRoomCapacity(null)
-              setSelectedMeetingRoomHours(1)
-              setSelectedAddOns([])
-            }}
-            onConfirm={handleConfirmBooking}
-            isBooking={false}
-            isValid={isValidBooking}
-                showDesktop={false}
+                summary={{
+                  date: selectedDate,
+                  time: selectedTime,
+                  duration: selectedResource === "meeting-room" ? "hourly" : selectedDuration,
+                  resourceType: selectedResource,
+                  totalPrice,
+                  currency: safePricing.currency,
+                }}
+                onConfirm={handleConfirmBooking}
+                isBooking={false}
+                isValid={isValidBooking}
               />
             )}
 

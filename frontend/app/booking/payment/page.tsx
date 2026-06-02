@@ -6,24 +6,14 @@ import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
-import { BookingProgress } from "@/components/booking/booking-progress"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/lib/toast"
-import {
-  Phone,
-  Loader2,
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Building2,
-  ShieldCheck,
-  ChevronDown,
-} from "lucide-react"
+import { Phone, Loader2, ArrowLeft, Calendar, Clock, Building2 } from "lucide-react"
 import { format } from "date-fns"
-import { cn } from "@/lib/utils"
 
 const PENDING_BOOKING_KEY = "pendingWorkspaceBooking"
 
@@ -45,11 +35,9 @@ export interface PendingBookingPayload {
 function getResourceName(type: string) {
   switch (type) {
     case "hot-desk":
-      return "Hot desk"
+      return "Hot Desk"
     case "meeting-room":
-      return "Meeting room"
-    case "private-office":
-      return "Private office"
+      return "Meeting Room"
     default:
       return type
   }
@@ -60,23 +48,14 @@ function getDurationLabel(duration: string, meetingRoomHours?: number) {
     return `${meetingRoomHours} ${meetingRoomHours === 1 ? "hour" : "hours"}`
   }
   switch (duration) {
-    case "hourly":
-      return "1 hour"
-    case "half-day":
-      return "Half day"
     case "full-day":
       return "Full day"
-    case "monthly":
-      return "Monthly"
+    case "half-day":
+      return "Half day"
     default:
       return duration
   }
 }
-
-const CHECKOUT_STEPS = [
-  { id: "space" as const, label: "Book" },
-  { id: "checkout" as const, label: "Checkout" },
-]
 
 export default function BookingPaymentPage() {
   const router = useRouter()
@@ -84,7 +63,6 @@ export default function BookingPaymentPage() {
   const [mpesaPhone, setMpesaPhone] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
-  const [showMpesa, setShowMpesa] = useState(false)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -141,30 +119,24 @@ export default function BookingPaymentPage() {
 
   const handleConfirmWithoutPayment = async () => {
     if (!pending) return
-
     setIsProcessing(true)
     try {
       const booking = await createBooking()
       sessionStorage.removeItem(PENDING_BOOKING_KEY)
       setIsRedirecting(true)
-      toast.success("Booking confirmed", "You're all set. Payment can be completed later.")
+      toast.success("Booking confirmed", "Your reservation is confirmed.")
       router.replace(`/booking/success?id=${booking.id}`)
     } catch (err) {
-      console.error("[BOOKING CONFIRM WITHOUT PAYMENT]", err)
-      toast.error(
-        "Booking failed",
-        err instanceof Error ? err.message : "Please try again or contact support."
-      )
+      toast.error("Booking failed", err instanceof Error ? err.message : "Please try again.")
       setIsProcessing(false)
     }
   }
 
   const handlePayAndConfirm = async () => {
     if (!pending) return
-
     const phone = mpesaPhone.trim().replace(/\D/g, "")
     if (phone.length < 10) {
-      toast.error("Invalid phone", "Enter a valid M-Pesa number (e.g. 07XX XXX XXX).")
+      toast.error("Invalid phone", "Enter a valid M-Pesa number.")
       return
     }
 
@@ -176,29 +148,19 @@ export default function BookingPaymentPage() {
         body: JSON.stringify({
           phoneNumber: phone.startsWith("254") ? phone : `254${phone.replace(/^0/, "")}`,
           amount: Math.round(pending.totalPrice),
-          description: `Workspace booking - ${getResourceName(pending.resourceType)}, ${format(new Date(pending.date), "d MMM yyyy")}`,
+          description: `Workspace booking - ${getResourceName(pending.resourceType)}`,
         }),
       })
       const mpesaData = await mpesaRes.json()
-      if (!mpesaRes.ok) {
-        throw new Error(mpesaData.error || "Payment initiation failed")
-      }
+      if (!mpesaRes.ok) throw new Error(mpesaData.error || "Payment failed")
 
       const booking = await createBooking()
       sessionStorage.removeItem(PENDING_BOOKING_KEY)
       setIsRedirecting(true)
-      const stubNote =
-        mpesaData.launchMode === "stub"
-          ? "Payment is pending — M-Pesa STK is not live yet."
-          : "Check your phone to complete M-Pesa."
-      toast.success("Booking confirmed", stubNote)
+      toast.success("Booking confirmed", mpesaData.message || "Check your phone for M-Pesa.")
       router.replace(`/booking/success?id=${booking.id}`)
     } catch (err) {
-      console.error("[BOOKING PAYMENT]", err)
-      toast.error(
-        "Payment or booking failed",
-        err instanceof Error ? err.message : "Please try again."
-      )
+      toast.error("Failed", err instanceof Error ? err.message : "Please try again.")
       setIsProcessing(false)
     }
   }
@@ -218,196 +180,107 @@ export default function BookingPaymentPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-4xl space-y-5 overflow-x-hidden pb-[calc(8.5rem+env(safe-area-inset-bottom))] md:space-y-6 md:pb-10">
+      <div className="mx-auto w-full max-w-lg space-y-6 overflow-x-hidden pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:pb-10">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs
             items={[
-              { label: "Book workspace", href: "/booking" },
+              { label: "Book Workspace", href: "/booking" },
               { label: "Checkout" },
             ]}
           />
         </MobileBreadcrumbsHidden>
 
-        <BookingProgress steps={CHECKOUT_STEPS} currentStepId="checkout" />
-
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" className="h-9 px-2" asChild>
-            <Link href="/booking">
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              Edit booking
-            </Link>
-          </Button>
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Checkout</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Review and confirm your booking.</p>
         </div>
 
         {pending && (
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:gap-8 lg:items-start">
-            {/* Order summary */}
-            <section className="rounded-xl border border-border/80 bg-card">
-              <div className="border-b border-border px-4 py-3 md:px-5">
-                <h1 className="text-lg font-semibold tracking-tight md:text-xl">Review your booking</h1>
-                <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-                  Confirm to reserve your space. Payment is optional at launch.
-                </p>
-              </div>
-              <div className="space-y-4 p-4 md:p-5">
-                <ul className="space-y-3 text-sm">
-                  <li className="flex gap-3">
-                    <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{getResourceName(pending.resourceType)}</p>
-                      {pending.meetingRoomCapacity ? (
-                        <p className="text-xs text-muted-foreground">
-                          {pending.meetingRoomCapacity} people
-                        </p>
-                      ) : null}
-                    </div>
-                  </li>
-                  {bookingDate ? (
-                    <li className="flex gap-3">
-                      <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span>{format(bookingDate, "EEEE, MMMM d, yyyy")}</span>
-                    </li>
-                  ) : null}
-                  <li className="flex gap-3">
-                    <Clock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span>
-                      {pending.startTime} · {getDurationLabel(pending.duration, pending.meetingRoomHours)}
-                    </span>
-                  </li>
-                </ul>
-
-                <Separator />
-
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Subtotal</span>
-                    <span className="tabular-nums">
-                      KES {(pending.basePrice + pending.addOnsPrice).toLocaleString()}
-                    </span>
-                  </div>
-                  {pending.addOns.length > 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      Includes {pending.addOns.length} add-on
-                      {pending.addOns.length !== 1 ? "s" : ""}
-                    </p>
-                  ) : null}
+          <>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Booking details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div className="flex gap-3">
+                  <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span>{getResourceName(pending.resourceType)}</span>
                 </div>
-
-                <div className="flex items-baseline justify-between rounded-lg bg-muted/40 px-3 py-2.5">
-                  <span className="font-medium">Total due</span>
-                  <span className="text-xl font-bold tabular-nums text-primary">
-                    KES {pending.totalPrice.toLocaleString()}
+                {bookingDate && (
+                  <div className="flex gap-3">
+                    <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span>{format(bookingDate, "EEEE, MMMM d, yyyy")}</span>
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span>
+                    {pending.startTime} · {getDurationLabel(pending.duration, pending.meetingRoomHours)}
                   </span>
                 </div>
-              </div>
-            </section>
-
-            {/* Checkout actions */}
-            <aside className="lg:sticky lg:top-24">
-              <div className="rounded-xl border border-border/80 bg-card p-4 md:p-5 space-y-4">
-                <div className="hidden lg:block">
-                  <p className="text-sm font-semibold">Complete reservation</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Your slot is held once you confirm.
-                  </p>
+                <Separator />
+                <div className="flex justify-between font-semibold">
+                  <span>Total</span>
+                  <span className="tabular-nums">KES {pending.totalPrice.toLocaleString()}</span>
                 </div>
+              </CardContent>
+            </Card>
 
-                <Button
-                  className="w-full"
-                  size="lg"
-                  onClick={handleConfirmWithoutPayment}
-                  disabled={busy}
-                >
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Payment</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button className="w-full" size="lg" onClick={handleConfirmWithoutPayment} disabled={busy}>
                   {busy ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Confirming…
                     </>
                   ) : (
-                    "Confirm reservation"
+                    "Confirm booking"
                   )}
                 </Button>
-
-                <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary/80" />
-                  <p>No charge at confirm — pay on-site or via M-Pesa when ready.</p>
-                </div>
-
+                <p className="text-center text-xs text-muted-foreground">
+                  No payment required now — pay on-site or via M-Pesa later.
+                </p>
                 <Separator />
-
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between text-left text-sm font-medium"
-                  onClick={() => setShowMpesa((v) => !v)}
-                >
-                  <span className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    Pay with M-Pesa (optional)
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "h-4 w-4 text-muted-foreground transition-transform",
-                      showMpesa && "rotate-180"
-                    )}
+                <div className="space-y-2">
+                  <Label htmlFor="mpesa-phone" className="text-xs text-muted-foreground">
+                    Optional: M-Pesa
+                  </Label>
+                  <Input
+                    id="mpesa-phone"
+                    placeholder="07XX XXX XXX"
+                    value={mpesaPhone}
+                    onChange={(e) => setMpesaPhone(e.target.value)}
+                    disabled={busy}
                   />
-                </button>
+                  <Button variant="outline" className="w-full" onClick={handlePayAndConfirm} disabled={busy}>
+                    <Phone className="mr-2 h-4 w-4" />
+                    Pay with M-Pesa
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-                {showMpesa ? (
-                  <div className="space-y-3 pt-1">
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      STK push may be in test mode. Your booking is still created if payment stays pending.
-                    </p>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="mpesa-phone" className="text-xs">
-                        M-Pesa number
-                      </Label>
-                      <Input
-                        id="mpesa-phone"
-                        placeholder="07XX XXX XXX"
-                        value={mpesaPhone}
-                        onChange={(e) => setMpesaPhone(e.target.value)}
-                        disabled={busy}
-                        autoComplete="tel"
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={handlePayAndConfirm}
-                      disabled={busy}
-                    >
-                      {busy ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Phone className="mr-2 h-4 w-4" />
-                      )}
-                      Pay KES {pending.totalPrice.toLocaleString()}
-                    </Button>
-                  </div>
-                ) : null}
-              </div>
-            </aside>
-          </div>
+            <Button variant="ghost" className="w-full" asChild>
+              <Link href="/booking">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Edit booking
+              </Link>
+            </Button>
+          </>
         )}
       </div>
 
       {pending && !isRedirecting && (
-        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-border bg-background/95 shadow-sm backdrop-blur lg:hidden">
-          <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs text-muted-foreground">
-                {bookingDate ? format(bookingDate, "EEE, MMM d") : null} · {pending.startTime}
-              </p>
-              <p className="text-base font-bold tabular-nums">
-                KES {pending.totalPrice.toLocaleString()}
-              </p>
-            </div>
-            <Button
-              size="lg"
-              className="shrink-0"
-              onClick={handleConfirmWithoutPayment}
-              disabled={busy}
-            >
+        <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-border bg-background lg:hidden">
+          <div className="mx-auto flex h-[4.25rem] max-w-lg items-center justify-between gap-3 px-4">
+            <p className="text-base font-semibold tabular-nums">
+              KES {pending.totalPrice.toLocaleString()}
+            </p>
+            <Button size="lg" className="h-11 min-w-[7.5rem]" onClick={handleConfirmWithoutPayment} disabled={busy}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm"}
             </Button>
           </div>
