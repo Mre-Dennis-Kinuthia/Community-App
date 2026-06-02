@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { ChevronLeft, ChevronRight, Maximize2, ImageIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface ImageGalleryProps {
   images: string[]
@@ -25,10 +26,18 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
     setSelectedIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
+  const frameClass = compact
+    ? "aspect-[16/9] max-h-[220px] w-full sm:max-h-[260px] lg:max-h-[300px]"
+    : "aspect-video w-full"
+
   if (images.length === 0) {
     return (
       <div
-        className={`${compact ? "aspect-[2/1]" : "aspect-video"} rounded-lg bg-muted flex items-center justify-center ${className ?? ""}`}
+        className={cn(
+          "flex w-full items-center justify-center overflow-hidden rounded-xl border border-border/80 bg-muted",
+          frameClass,
+          className
+        )}
       >
         <ImageIcon className="h-8 w-8 text-muted-foreground" />
       </div>
@@ -37,90 +46,94 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
 
   return (
     <>
-      <div className={`relative group ${className ?? ""}`}>
-        {/* Main Image */}
+      <div className={cn("w-full min-w-0", className)}>
         <div
-          className={`relative overflow-hidden rounded-lg bg-muted ${
-            compact ? "aspect-[2/1] sm:aspect-[16/10]" : "aspect-video"
-          }`}
+          className={cn(
+            "group relative w-full overflow-hidden rounded-xl border border-border/80 bg-muted",
+            frameClass
+          )}
         >
           {images[selectedIndex] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={images[selectedIndex]}
-              alt={`${spaceName} - Image ${selectedIndex + 1}`}
-              className="h-full w-full object-cover"
+              alt={`${spaceName} — photo ${selectedIndex + 1} of ${images.length}`}
+              className="h-full w-full object-cover object-center"
               loading="lazy"
             />
           ) : (
-            <div className="h-full w-full flex items-center justify-center">
+            <div className="flex h-full w-full items-center justify-center">
               <ImageIcon className="h-12 w-12 text-muted-foreground" />
             </div>
           )}
-          
-          {/* Navigation Arrows */}
+
           {images.length > 1 && (
             <>
               <Button
-                variant="ghost"
+                type="button"
+                variant="secondary"
                 size="icon"
-                className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+                className="absolute left-2 top-1/2 h-9 w-9 -translate-y-1/2 bg-background/90 shadow-sm sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity"
                 onClick={prevImage}
+                aria-label="Previous photo"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button
-                variant="ghost"
+                type="button"
+                variant="secondary"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+                className="absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 bg-background/90 shadow-sm sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity"
                 onClick={nextImage}
+                aria-label="Next photo"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
+              <span className="absolute left-2 top-2 rounded-md bg-background/85 px-2 py-0.5 text-xs font-medium tabular-nums shadow-sm">
+                {selectedIndex + 1} / {images.length}
+              </span>
             </>
           )}
 
-          {/* Fullscreen Button */}
           <Button
-            variant="ghost"
+            type="button"
+            variant="secondary"
             size="icon"
-            className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background"
+            className="absolute bottom-2 right-2 h-9 w-9 bg-background/90 shadow-sm sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity"
             onClick={() => setIsFullscreen(true)}
+            aria-label="View fullscreen"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* Thumbnail Strip */}
         {images.length > 1 && (
-          <div
-            className={`flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-              compact ? "mt-2" : "mt-3 pb-2"
-            }`}
-          >
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {images.map((image, index) => (
               <button
                 key={index}
+                type="button"
                 onClick={() => setSelectedIndex(index)}
-                className={`flex-shrink-0 overflow-hidden rounded-md border-2 transition-all ${
-                  compact ? "h-12 w-16" : "h-20 w-20 rounded-lg"
-                } ${
+                aria-label={`Show photo ${index + 1}`}
+                aria-current={selectedIndex === index}
+                className={cn(
+                  "h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-colors sm:h-16 sm:w-24",
                   selectedIndex === index
-                    ? "border-primary"
-                    : "border-border hover:border-border"
-                }`}
+                    ? "border-primary ring-1 ring-primary/20"
+                    : "border-border opacity-80 hover:opacity-100"
+                )}
               >
                 {image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={image}
-                    alt={`Thumbnail ${index + 1}`}
-                    className="h-full w-full object-cover"
+                    alt=""
+                    className="h-full w-full object-cover object-center"
                     loading="lazy"
                   />
                 ) : (
-                  <div className="h-full w-full bg-muted flex items-center justify-center">
-                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                  <div className="flex h-full w-full items-center justify-center bg-muted">
+                    <ImageIcon className="h-5 w-5 text-muted-foreground" />
                   </div>
                 )}
               </button>
@@ -129,45 +142,47 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
         )}
       </div>
 
-      {/* Fullscreen Modal */}
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent className="max-w-7xl p-0">
-          <div className="relative aspect-video">
+        <DialogContent className="max-h-[90vh] max-w-[min(100vw-2rem,56rem)] gap-0 overflow-hidden p-0">
+          <div className="relative flex min-h-[200px] max-h-[85vh] w-full items-center justify-center bg-black/95">
             {images[selectedIndex] && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={images[selectedIndex]}
-                alt={`${spaceName} - Fullscreen`}
-                className="h-full w-full object-contain"
+                alt={`${spaceName} — fullscreen`}
+                className="max-h-[85vh] w-full object-contain object-center"
               />
             )}
-            <div className="absolute inset-0 flex items-center justify-between p-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={prevImage}
-                className="bg-background/80 hover:bg-background"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={nextImage}
-                className="bg-background/80 hover:bg-background"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </div>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-              <p className="text-sm text-background bg-background/80 px-3 py-1 rounded">
-                {selectedIndex + 1} / {images.length}
-              </p>
-            </div>
+            {images.length > 1 && (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className="absolute left-2 top-1/2 h-10 w-10 -translate-y-1/2"
+                  onClick={prevImage}
+                  aria-label="Previous photo"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className="absolute right-2 top-1/2 h-10 w-10 -translate-y-1/2"
+                  onClick={nextImage}
+                  aria-label="Next photo"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+                <p className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-md bg-background/90 px-3 py-1 text-sm font-medium tabular-nums">
+                  {selectedIndex + 1} / {images.length}
+                </p>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
     </>
   )
 }
-

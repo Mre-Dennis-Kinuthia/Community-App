@@ -274,14 +274,14 @@ export default function BookingPage() {
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-              <BookingHeader workspace={workspace} />
+            <div className="space-y-4">
               <ImageGallery
                 images={workspace.images}
                 spaceName={workspace.name}
                 compact
-                className="hidden w-full shrink-0 sm:block sm:max-w-[220px] lg:max-w-[280px]"
+                className="w-full"
               />
+              <BookingHeader workspace={workspace} />
             </div>
 
             <div
