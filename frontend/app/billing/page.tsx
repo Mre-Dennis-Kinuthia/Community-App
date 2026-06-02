@@ -148,6 +148,10 @@ export default function BillingPage() {
   const [plansLoading, setPlansLoading] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState("")
   const [subscriptionActionLoading, setSubscriptionActionLoading] = useState(false)
+  const [subscribePhone, setSubscribePhone] = useState("")
+  const [subscribePlanId, setSubscribePlanId] = useState("")
+  const [subscribeLoading, setSubscribeLoading] = useState(false)
+  const [availablePlans, setAvailablePlans] = useState<BillingPlan[]>([])
 
   async function loadBilling(options?: { silent?: boolean }) {
     const silent = Boolean(options?.silent)
@@ -171,6 +175,45 @@ export default function BillingPage() {
   useEffect(() => {
     void loadBilling()
   }, [])
+
+  useEffect(() => {
+    if (isLoading || subscription) return
+    void (async () => {
+      try {
+        const response = await fetch("/api/billing/plans", { credentials: "include" })
+        const data = await response.json()
+        const list = Array.isArray(data.plans) ? (data.plans as BillingPlan[]) : []
+        setAvailablePlans(list)
+        setSubscribePlanId(list[0]?.id ?? "")
+      } catch {
+        setAvailablePlans([])
+      }
+    })()
+  }, [isLoading, subscription])
+
+  async function handleSubscribe() {
+    if (!subscribePlanId || !subscribePhone.trim()) {
+      toast.error("Choose a plan and enter your M-Pesa number")
+      return
+    }
+    setSubscribeLoading(true)
+    try {
+      const res = await fetch("/api/billing/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ planId: subscribePlanId, phoneNumber: subscribePhone.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Subscribe failed")
+      toast.success("Membership active", data.message)
+      await loadBilling({ silent: true })
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start membership")
+    } finally {
+      setSubscribeLoading(false)
+    }
+  }
 
   async function loadPlansForChange() {
     setPlansLoading(true)
@@ -460,6 +503,53 @@ export default function BillingPage() {
             </Button>
           </div>
         </section>
+
+        {!isLoading && !hasPlan && availablePlans.length > 0 ? (
+          <section className="rounded-xl border border-border/80 bg-card p-6 md:p-8 space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold">Start monthly membership</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Community membership (not workspace desk booking). Pay with M-Pesa to activate your plan.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
+              <div className="space-y-2">
+                <Label htmlFor="subscribe-plan">Plan</Label>
+                <Select value={subscribePlanId} onValueChange={setSubscribePlanId}>
+                  <SelectTrigger id="subscribe-plan">
+                    <SelectValue placeholder="Select plan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePlans.map((pl) => (
+                      <SelectItem key={pl.id} value={pl.id}>
+                        {pl.name} — {pl.currency} {pl.price.toLocaleString()}/{pl.interval === "yearly" ? "yr" : "mo"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="subscribe-phone">M-Pesa phone</Label>
+                <Input
+                  id="subscribe-phone"
+                  placeholder="07XX XXX XXX"
+                  value={subscribePhone}
+                  onChange={(e) => setSubscribePhone(e.target.value)}
+                />
+              </div>
+            </div>
+            <Button disabled={subscribeLoading} onClick={() => void handleSubscribe()}>
+              {subscribeLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing…
+                </>
+              ) : (
+                "Subscribe now"
+              )}
+            </Button>
+          </section>
+        ) : null}
 
         <Dialog
           open={changePlanOpen}

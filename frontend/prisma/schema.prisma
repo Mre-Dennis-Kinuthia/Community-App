@@ -71,6 +71,7 @@ model User {
   bookings  WorkspaceBooking[]
   notifications Notification[]
   subscriptions Subscription[]
+  membershipPaymentLinks MembershipPaymentLink[]
   payments  Payment[]
   paymentMethods PaymentMethod[]
   invoices  Invoice[]
@@ -576,8 +577,39 @@ model Plan {
   updatedAt   DateTime @updatedAt
 
   subscriptions Subscription[]
+  membershipPaymentLinks MembershipPaymentLink[]
 
   @@map("plans")
+}
+
+/// Admin-issued checkout link for monthly membership (members or prospects).
+model MembershipPaymentLink {
+  id               String    @id @default(cuid())
+  token            String    @unique
+  planId           String
+  plan             Plan      @relation(fields: [planId], references: [id])
+  recipientEmail   String
+  recipientName    String?
+  userId           String?
+  user             User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  amount           Decimal   @db.Decimal(12, 2)
+  currency         String    @default("KES")
+  status           String    @default("pending") // pending, paid, expired, cancelled
+  expiresAt        DateTime
+  paidAt           DateTime?
+  paymentId        String?   @unique
+  payment          Payment?  @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  subscriptionId   String?
+  subscription     Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  createdByAdminId String?
+  adminNote        String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("membership_payment_links")
+  @@index([status])
+  @@index([recipientEmail])
+  @@index([expiresAt])
 }
 
 model Subscription {
@@ -596,6 +628,7 @@ model Subscription {
 
   payments Payment[]
   invoices Invoice[]
+  membershipPaymentLinks MembershipPaymentLink[]
 
   @@map("subscriptions")
   @@index([userId])
@@ -618,6 +651,7 @@ model Payment {
   updatedAt       DateTime  @updatedAt
 
   invoice Invoice?
+  membershipPaymentLink MembershipPaymentLink?
 
   @@map("payments")
   @@index([userId])

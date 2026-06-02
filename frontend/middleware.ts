@@ -14,6 +14,7 @@ const publicRoutes = [
   "/reset-password",
   "/privacy",
   "/terms",
+  "/pay",
   "/api",
   "/setup-check",
 ]
