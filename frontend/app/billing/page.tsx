@@ -24,21 +24,28 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { MobilePageHeader, MobileStatsStrip, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
+import { MobilePageHeader, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { toast } from "@/lib/toast"
 import { badgeClassForLabel, badgeNeutral, badgePrimary } from "@/lib/badge-styles"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   CreditCard,
   Download,
   ExternalLink,
   Phone,
   Loader2,
-  CalendarClock,
   Receipt,
   HelpCircle,
   Mail,
   ArrowRight,
+  ChevronDown,
 } from "lucide-react"
 import { format } from "date-fns"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
@@ -342,17 +349,17 @@ export default function BillingPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-5xl space-y-4 md:space-y-8">
+      <div className="mx-auto w-full max-w-5xl space-y-4 overflow-x-hidden md:space-y-6">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Profile", href: "/profile" }, { label: "Billing" }]} />
         </MobileBreadcrumbsHidden>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <MobilePageHeader
-            title="Billing & payments"
-            description="Membership, saved payment methods, and invoices for your Impact Hub Nairobi account."
+            title="Billing"
+            description="Membership, payment methods, and invoices."
           />
-          <Button variant="outline" size="sm" className="shrink-0" asChild>
+          <Button variant="outline" size="sm" className="w-full shrink-0 sm:w-auto" asChild>
             <a href={MEMBERSHIP_EMAIL}>
               <Mail className="mr-2 h-4 w-4" />
               Email membership
@@ -360,56 +367,36 @@ export default function BillingPage() {
           </Button>
         </div>
 
-        <MobileStatsStrip
-          loading={isLoading}
-          items={[
-            {
-              label: "Plan",
-              value: hasPlan ? subscription!.plan.name : "None",
-              icon: CreditCard,
-            },
-            {
-              label: "Status",
-              value: planStatus,
-              icon: CalendarClock,
-            },
-            {
-              label: "Invoices",
-              value: invoices.length,
-              icon: Receipt,
-            },
-          ]}
-        />
-
-        {/* Plan summary */}
+        {/* Plan summary — compact */}
         <section className="overflow-hidden rounded-xl border border-border/80 bg-card">
-          <div className="border-b border-border bg-muted/30 px-4 py-5 md:px-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1 min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Current plan
+          <div className="bg-muted/30 px-4 py-4 md:px-6 md:py-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Membership
                 </p>
                 {isLoading ? (
                   <div className="flex items-center gap-2 py-1">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">Loading…</span>
                   </div>
                 ) : hasPlan ? (
                   <>
-                    <h2 className="text-xl font-semibold tracking-tight md:text-2xl">
+                    <h2 className="truncate text-lg font-semibold tracking-tight md:text-xl">
                       {subscription!.plan.name}
                     </h2>
-                    <p className="text-sm text-muted-foreground">
-                      {subscription!.plan.currency}{" "}
-                      {subscription!.plan.price.toLocaleString()} per {subscription!.plan.interval}
+                    <p className="text-xs text-muted-foreground sm:text-sm">
+                      {subscription!.plan.currency} {subscription!.plan.price.toLocaleString()}/
+                      {subscription!.plan.interval === "yearly" ? "yr" : "mo"}
+                      <span className="mx-1.5 text-border">·</span>
+                      Renews {format(new Date(subscription!.currentPeriodEnd), "MMM d, yyyy")}
                     </p>
                   </>
                 ) : (
                   <>
-                    <h2 className="text-xl font-semibold tracking-tight">No subscription on file</h2>
-                    <p className="text-sm text-muted-foreground max-w-xl">
-                      Workspace and programmes may be billed separately. Book space from the hub or contact
-                      membership to align a plan.
+                    <h2 className="text-lg font-semibold tracking-tight">No active plan</h2>
+                    <p className="text-xs text-muted-foreground sm:text-sm">
+                      Book workspace separately or contact membership to subscribe.
                     </p>
                   </>
                 )}
@@ -417,53 +404,65 @@ export default function BillingPage() {
               {!isLoading && (
                 <Badge
                   variant="outline"
-                  className={cn(
-                    "shrink-0 self-start",
-                    hasPlan ? badgePrimary : badgeNeutral
-                  )}
+                  className={cn("shrink-0 text-[11px]", hasPlan ? badgePrimary : badgeNeutral)}
                 >
                   {planStatus}
                 </Badge>
               )}
             </div>
-          </div>
-          <div className="grid gap-4 px-6 py-5 md:grid-cols-2 md:px-8 md:py-6">
-            <div className="flex gap-3 rounded-md border border-border bg-background px-4 py-3">
-              <CalendarClock className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">Next period ends</p>
-                <p className="text-sm font-medium">
-                  {hasPlan
-                    ? format(new Date(subscription!.currentPeriodEnd), "MMMM d, yyyy")
-                    : "—"}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3 rounded-md border border-border bg-background px-4 py-3">
-              <Receipt className="h-5 w-5 shrink-0 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-muted-foreground">Recent invoices</p>
-                <p className="text-sm font-medium">
-                  {isLoading ? "…" : `${invoices.length} on file`}
-                </p>
-              </div>
-            </div>
+            {!isLoading && hasPlan ? (
+              <p className="mt-2 text-[11px] text-muted-foreground md:hidden">
+                {invoices.length} invoice{invoices.length !== 1 ? "s" : ""} on file
+              </p>
+            ) : null}
           </div>
           {hasPlan && subscription!.cancelAtPeriodEnd ? (
-            <div className="border-t border-border bg-muted/40 px-6 py-3 md:px-8">
-              <p className="text-sm text-foreground">
-                Renewal is turned off. You keep access until{" "}
-                <span className="font-medium">
-                  {format(new Date(subscription!.currentPeriodEnd), "MMMM d, yyyy")}
-                </span>
-                . Use &quot;Keep subscription&quot; below if you want the plan to continue after that date.
-              </p>
+            <div className="border-t border-border bg-muted/40 px-4 py-2.5 text-xs md:px-6 md:text-sm">
+              Access until{" "}
+              <span className="font-medium">
+                {format(new Date(subscription!.currentPeriodEnd), "MMM d, yyyy")}
+              </span>
+              . Turn renewal back on below if needed.
             </div>
           ) : null}
-          <div className="flex flex-col gap-3 border-t border-border px-6 py-4 md:flex-row md:flex-wrap md:items-start md:justify-between md:px-8">
-            <div className="flex min-w-0 flex-1 flex-col gap-2">
-              {hasPlan ? (
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3 md:px-6">
+            {hasPlan ? (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 sm:flex-none"
+                      disabled={subscriptionActionLoading}
+                    >
+                      Manage plan
+                      <ChevronDown className="ml-1.5 h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuItem onClick={() => setChangePlanOpen(true)}>
+                      Change plan
+                    </DropdownMenuItem>
+                    {subscription!.cancelAtPeriodEnd ? (
+                      <DropdownMenuItem onClick={() => setResumeOpen(true)}>
+                        Keep subscription
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onClick={() => setScheduleCancelOpen(true)}>
+                        Cancel at period end
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setImmediateCancelOpen(true)}
+                    >
+                      Cancel immediately
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <div className="hidden flex-wrap gap-2 sm:flex">
                   <Button
                     variant="outline"
                     size="sm"
@@ -488,7 +487,7 @@ export default function BillingPage() {
                       disabled={subscriptionActionLoading}
                       onClick={() => setScheduleCancelOpen(true)}
                     >
-                      Cancel at end of period
+                      Cancel at period end
                     </Button>
                   )}
                   <Button
@@ -497,40 +496,30 @@ export default function BillingPage() {
                     disabled={subscriptionActionLoading}
                     onClick={() => setImmediateCancelOpen(true)}
                   >
-                    Cancel immediately
+                    Cancel now
                   </Button>
                 </div>
-              ) : null}
-              {!isLoading && !hasPlan ? (
-                <Button variant="outline" size="sm" className="w-fit" asChild>
-                  <a href={MEMBERSHIP_EMAIL}>Membership questions</a>
-                </Button>
-              ) : null}
-              {hasPlan ? (
-                <p className="text-xs text-muted-foreground max-w-xl">
-                  For refunds, tax receipts, or unusual billing,{" "}
-                  <a href={MEMBERSHIP_EMAIL} className="font-medium underline underline-offset-2">
-                    email membership
-                  </a>
-                  .
-                </p>
-              ) : null}
-            </div>
-            <Button variant="ghost" size="sm" asChild className="shrink-0 md:mt-0">
+              </>
+            ) : !isLoading ? (
+              <Button variant="outline" size="sm" asChild>
+                <a href={MEMBERSHIP_EMAIL}>Ask about membership</a>
+              </Button>
+            ) : null}
+            <Button variant="ghost" size="sm" asChild className="ml-auto shrink-0">
               <Link href="/booking">
-                Book workspace
-                <ArrowRight className="ml-2 h-4 w-4" />
+                Book
+                <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>
         </section>
 
         {!isLoading && !hasPlan && availablePlans.length > 0 ? (
-          <section className="rounded-xl border border-border/80 bg-card p-6 md:p-8 space-y-4">
+          <section className="space-y-4 rounded-xl border border-border/80 bg-card p-4 md:p-6">
             <div>
-              <h2 className="text-lg font-semibold">Start monthly membership</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Community membership (not workspace desk booking). Pay with M-Pesa to activate your plan.
+              <h2 className="text-base font-semibold md:text-lg">Start membership</h2>
+              <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+                Pay with M-Pesa to activate — separate from workspace bookings.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
@@ -740,109 +729,104 @@ export default function BillingPage() {
           </DialogContent>
         </Dialog>
 
-        <div className="grid gap-6 lg:grid-cols-5">
-          <Card className="border-border lg:col-span-2">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Payment method</CardTitle>
-              <CardDescription>Card or wallet we have stored for you.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : paymentMethod ? (
-                <div className="flex items-start gap-3 rounded-md border border-border p-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted">
-                    <CreditCard className="h-5 w-5 text-foreground" />
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold md:text-base">Payments</h2>
+          <div className="grid gap-3 lg:grid-cols-5 lg:gap-4">
+            <Card className="border-border lg:col-span-2">
+              <CardHeader className="space-y-0.5 p-4 pb-2 md:p-6 md:pb-3">
+                <CardTitle className="text-sm md:text-base">Saved card</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 p-4 pt-0 md:p-6 md:pt-0">
+                {isLoading ? (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">
-                      {(paymentMethod.brand || "Card").toUpperCase()} ending {paymentMethod.last4 || "••••"}
-                    </p>
-                    {paymentMethod.expiryMonth != null && paymentMethod.expiryYear != null && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Expires {String(paymentMethod.expiryMonth).padStart(2, "0")} /{" "}
-                        {paymentMethod.expiryYear}
+                ) : paymentMethod ? (
+                  <div className="flex items-center gap-3 rounded-lg border border-border px-3 py-2.5">
+                    <CreditCard className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 text-sm">
+                      <p className="font-medium truncate">
+                        {(paymentMethod.brand || "Card").toUpperCase()} ·••• {paymentMethod.last4 || "••••"}
                       </p>
-                    )}
+                      {paymentMethod.expiryMonth != null && paymentMethod.expiryYear != null && (
+                        <p className="text-xs text-muted-foreground">
+                          Exp {String(paymentMethod.expiryMonth).padStart(2, "0")}/{paymentMethod.expiryYear}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground sm:text-sm">No card on file.</p>
+                )}
+                <Button variant="outline" size="sm" className="w-full" asChild>
+                  <a href={MEMBERSHIP_EMAIL}>Update payment details</a>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border lg:col-span-3">
+              <CardHeader className="space-y-0.5 p-4 pb-2 md:p-6 md:pb-3">
+                <CardTitle className="text-sm md:text-base">M-Pesa (optional)</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  STK push for amounts agreed with membership.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 p-4 pt-0 md:p-6 md:pt-0">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="mpesa-phone" className="text-xs">
+                      Phone
+                    </Label>
+                    <Input
+                      id="mpesa-phone"
+                      placeholder="07XX XXX XXX"
+                      value={mpesaPhone}
+                      onChange={(e) => setMpesaPhone(e.target.value)}
+                      autoComplete="tel"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="mpesa-amount" className="text-xs">
+                      Amount (KES)
+                    </Label>
+                    <Input
+                      id="mpesa-amount"
+                      type="number"
+                      min="1"
+                      placeholder="25000"
+                      value={mpesaAmount}
+                      onChange={(e) => setMpesaAmount(e.target.value)}
+                    />
                   </div>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  No card on file. M-Pesa or membership team can help you add one when billing is enabled for
-                  your account.
-                </p>
-              )}
-              <Button variant="outline" className="w-full" asChild>
-                <a href={MEMBERSHIP_EMAIL}>Update payment details</a>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border lg:col-span-3">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">M-Pesa payment</CardTitle>
-              <CardDescription>
-                Optional STK push for amounts you have agreed with membership. If live checkout is not enabled,
-                you will see a message from the server instead of a phone prompt.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="mpesa-phone">Safaricom number</Label>
-                  <Input
-                    id="mpesa-phone"
-                    placeholder="07XX XXX XXX"
-                    value={mpesaPhone}
-                    onChange={(e) => setMpesaPhone(e.target.value)}
-                    autoComplete="tel"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="mpesa-amount">Amount (KES)</Label>
-                  <Input
-                    id="mpesa-amount"
-                    type="number"
-                    min="1"
-                    placeholder="e.g. 25000"
-                    value={mpesaAmount}
-                    onChange={(e) => setMpesaAmount(e.target.value)}
-                  />
-                </div>
-              </div>
-              <Button
-                className="w-full sm:w-auto"
-                variant="default"
-                onClick={handleMpesaPayment}
-                disabled={isProcessingPayment}
-              >
-                {isProcessingPayment ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing…
-                  </>
-                ) : (
-                  <>
-                    <Phone className="mr-2 h-4 w-4" />
-                    Request STK push
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+                <Button
+                  className="w-full sm:w-auto"
+                  size="sm"
+                  onClick={handleMpesaPayment}
+                  disabled={isProcessingPayment}
+                >
+                  {isProcessingPayment ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing…
+                    </>
+                  ) : (
+                    <>
+                      <Phone className="mr-2 h-4 w-4" />
+                      Request STK push
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
         {/* Invoices */}
         <Card className="border-border">
-          <CardHeader className="pb-3">
-            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle className="text-base">Invoice history</CardTitle>
-                <CardDescription>Last ten invoices tied to your account.</CardDescription>
-              </div>
-            </div>
+          <CardHeader className="p-4 pb-2 md:p-6 md:pb-3">
+            <CardTitle className="text-sm md:text-base">Invoices</CardTitle>
+            <CardDescription className="text-xs">Recent bills on your account.</CardDescription>
           </CardHeader>
           <CardContent className="px-0 sm:px-6">
             {isLoading ? (
@@ -862,22 +846,54 @@ export default function BillingPage() {
                 {invoices.map((invoice) => (
                   <li
                     key={invoice.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border/80 p-3.5"
+                    className="rounded-xl border border-border/80 p-3"
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{invoice.invoiceNumber}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {format(new Date(invoice.createdAt), "MMM d, yyyy")}
-                      </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{invoice.invoiceNumber}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {format(new Date(invoice.createdAt), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <span className="text-xs font-medium tabular-nums">
+                          {invoice.currency} {invoice.amount.toLocaleString()}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className={cn("text-[10px]", invoiceStatusClass(invoice.status))}
+                        >
+                          {invoice.status}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1">
-                      <span className="text-xs font-medium tabular-nums">
-                        {invoice.currency} {invoice.amount.toLocaleString()}
-                      </span>
-                      <Badge variant="outline" className={cn("text-[10px]", invoiceStatusClass(invoice.status))}>
-                        {invoice.status}
-                      </Badge>
-                    </div>
+                    {invoice.pdfUrl ? (
+                      <div className="mt-2 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 flex-1 text-xs"
+                          onClick={() => window.open(invoice.pdfUrl!, "_blank")}
+                        >
+                          <ExternalLink className="mr-1 h-3.5 w-3.5" />
+                          Open
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 flex-1 text-xs"
+                          onClick={() => {
+                            const link = document.createElement("a")
+                            link.href = invoice.pdfUrl!
+                            link.download = `${invoice.invoiceNumber}.pdf`
+                            link.click()
+                          }}
+                        >
+                          <Download className="mr-1 h-3.5 w-3.5" />
+                          PDF
+                        </Button>
+                      </div>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -940,7 +956,7 @@ export default function BillingPage() {
           </CardContent>
         </Card>
 
-        <div className="rounded-md border border-dashed border-border bg-muted/20 px-4 py-3 flex gap-3 text-sm text-muted-foreground">
+        <div className="flex gap-2 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2.5 text-xs text-muted-foreground sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
           <HelpCircle className="h-5 w-5 shrink-0 text-foreground/70" />
           <p>
             Questions about charges, tax receipts, or corporate billing?{" "}

@@ -239,8 +239,10 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="mx-auto max-w-5xl space-y-6">
-          <Breadcrumbs items={[{ label: "Profile" }]} />
+        <div className="mx-auto w-full max-w-5xl space-y-6 overflow-x-hidden">
+          <MobileBreadcrumbsHidden>
+            <Breadcrumbs items={[{ label: "Profile" }]} />
+          </MobileBreadcrumbsHidden>
           <div className="flex min-h-[40vh] items-center justify-center rounded-lg border border-border bg-card">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" aria-label="Loading profile" />
           </div>
@@ -251,7 +253,7 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-5xl space-y-4 md:space-y-8">
+      <div className="mx-auto w-full max-w-5xl space-y-4 overflow-x-hidden md:space-y-8">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Profile" }]} />
         </MobileBreadcrumbsHidden>
@@ -346,9 +348,14 @@ export default function ProfilePage() {
                 ) : (
                   <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{displayName}</h1>
                 )}
-                <p className="text-sm text-muted-foreground">
+                <p className="break-all text-sm text-muted-foreground">
                   {user.email}
-                  {memberSince ? ` · Member since ${memberSince}` : null}
+                  {memberSince ? (
+                    <span className="block sm:inline">
+                      <span className="hidden sm:inline"> · </span>
+                      Member since {memberSince}
+                    </span>
+                  ) : null}
                 </p>
                 {!isEditing && (
                   <p className="text-xs text-muted-foreground pt-1">
@@ -566,7 +573,7 @@ export default function ProfilePage() {
                           type="button"
                           onClick={() => toggleAvailability(option)}
                           className={cn(
-                            "rounded-md border px-3 py-2 text-left text-sm transition-colors",
+                            "rounded-md border px-2.5 py-1.5 text-left text-xs transition-colors sm:px-3 sm:py-2 sm:text-sm",
                             on
                               ? "border-primary bg-primary/10 text-foreground"
                               : "border-border bg-background hover:bg-muted/50"

@@ -132,8 +132,8 @@ export function StickyBookingSummary({
       </div>
 
       {/* Mobile: Bottom Sticky Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 pb-[env(safe-area-inset-bottom)] lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-        <div className="container px-4 py-3">
+      <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        <div className="container max-w-full px-4 py-2.5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground truncate">

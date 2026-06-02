@@ -122,7 +122,7 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
       )}
 
       {/* Desktop: card grid */}
-      <div className="hidden gap-3 sm:grid sm:grid-cols-2">
+      <div className="hidden gap-3 md:grid md:grid-cols-2">
         {resources.map((resource) => {
           const isSelected = selectedResource === resource.type
           return (

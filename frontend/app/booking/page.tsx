@@ -259,7 +259,7 @@ export default function BookingPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-6xl space-y-5 pb-28 lg:space-y-6 lg:pb-10">
+      <div className="mx-auto w-full max-w-6xl space-y-5 overflow-x-hidden pb-[calc(8.5rem+env(safe-area-inset-bottom))] lg:space-y-6 lg:pb-10">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Book Workspace" }]} />
         </MobileBreadcrumbsHidden>

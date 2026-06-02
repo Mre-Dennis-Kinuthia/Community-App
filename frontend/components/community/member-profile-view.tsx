@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import { toast } from "@/lib/toast"
@@ -141,19 +142,21 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: "Community", href: "/community" },
-          { label: member.name },
-        ]}
-      />
+    <div className="mx-auto w-full max-w-5xl space-y-4 overflow-x-hidden md:space-y-6">
+      <MobileBreadcrumbsHidden>
+        <Breadcrumbs
+          items={[
+            { label: "Community", href: "/community" },
+            { label: member.name },
+          ]}
+        />
+      </MobileBreadcrumbsHidden>
 
       {/* Hero */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <div className="border-b border-border bg-muted/30 px-6 py-8 md:px-8">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-            <Avatar className="h-24 w-24 shrink-0 border-2 border-background shadow-sm md:h-28 md:w-28">
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <div className="border-b border-border bg-muted/30 px-4 py-5 md:px-8 md:py-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+            <Avatar className="h-20 w-20 shrink-0 border-2 border-background shadow-sm sm:h-24 md:h-28 sm:w-24 md:w-28">
               <AvatarImage
                 src={getImageDisplayUrl(member.avatar) || undefined}
                 alt={member.name}
@@ -185,7 +188,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
               </div>
 
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{member.name}</h1>
+                <h1 className="text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">{member.name}</h1>
                 {(member.role || member.industry) && (
                   <p className="mt-1 text-base text-muted-foreground">
                     {[member.role, member.industry].filter(Boolean).join(" · ")}
@@ -230,9 +233,9 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
         </div>
 
         {!member.isSelf && (
-          <div className="flex flex-col gap-2 border-t border-border px-6 py-4 sm:flex-row sm:flex-wrap md:px-8">
+          <div className="flex flex-col gap-2 border-t border-border px-4 py-3 sm:flex-row sm:flex-wrap md:px-8 md:py-4">
             <Button
-              className="sm:min-w-[140px]"
+              className="w-full sm:w-auto sm:min-w-[120px]"
               disabled={
                 connectLoading ||
                 member.connectionStatus === "connected" ||

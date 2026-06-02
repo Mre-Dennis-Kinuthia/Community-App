@@ -11,10 +11,10 @@ interface MobilePageHeaderProps {
 
 export function MobilePageHeader({ title, description, className }: MobilePageHeaderProps) {
   return (
-    <div className={cn("space-y-1", className)}>
-      <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{title}</h1>
+    <div className={cn("min-w-0 space-y-1", className)}>
+      <h1 className="text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">{title}</h1>
       {description ? (
-        <p className="hidden max-w-2xl text-sm text-muted-foreground sm:block md:text-base">
+        <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:text-base">
           {description}
         </p>
       ) : null}
@@ -35,17 +35,17 @@ interface MobileStatsStripProps {
 
 export function MobileStatsStrip({ items, loading }: MobileStatsStripProps) {
   return (
-    <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
+    <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
       {items.map((stat) => (
         <div
           key={stat.label}
-          className="flex min-w-[7.5rem] shrink-0 flex-col rounded-xl border border-border/60 bg-muted/20 px-4 py-3"
+          className="flex min-w-[6.5rem] max-w-[9rem] shrink-0 flex-col rounded-xl border border-border/60 bg-muted/20 px-3 py-2.5"
         >
           {stat.icon && <stat.icon className="mb-1 h-3.5 w-3.5 text-primary/70" />}
-          <span className="text-xl font-semibold tabular-nums leading-none">
+          <span className="truncate text-lg font-semibold tabular-nums leading-none">
             {loading ? "—" : stat.value}
           </span>
-          <span className="mt-1 text-[11px] text-muted-foreground">{stat.label}</span>
+          <span className="mt-1 text-[10px] text-muted-foreground">{stat.label}</span>
         </div>
       ))}
     </div>
