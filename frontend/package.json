@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "postinstall": "npm run db:sync-schema && prisma generate",
-    "build": "npm run db:sync-schema && prisma migrate deploy && prisma generate && next build --webpack",
+    "build": "npm run db:sync-schema && tsx scripts/optional-migrate-deploy.ts && prisma generate && next build --webpack",
     "dev": "next dev --webpack",
     "lint": "eslint .",
     "start": "next start",
