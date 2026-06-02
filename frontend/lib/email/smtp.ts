@@ -2,7 +2,13 @@ import type { SendEmailResult } from "./send"
 import { getEmailFrom } from "./config"
 import { createSmtpTransport, isSmtpConfigured } from "./smtp-transport"
 
-export { isSmtpConfigured, isGoogleOAuthSmtpConfigured, isSmtpPasswordConfigured } from "./smtp-transport"
+export {
+  isSmtpConfigured,
+  isGoogleOAuthSmtpConfigured,
+  isSmtpPasswordConfigured,
+  getSmtpTransportLabel,
+  isDisallowedSmtpHost,
+} from "./smtp-transport"
 
 export async function sendSmtpEmail(params: {
   to: string | string[]

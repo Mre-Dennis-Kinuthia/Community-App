@@ -1,7 +1,11 @@
 import { after } from "next/server"
 import { sendResendEmail } from "./resend"
 import { sendSmtpEmail } from "./smtp"
-import { isSmtpConfigured } from "./smtp-transport"
+import {
+  getSmtpTransportLabel,
+  isGoogleOAuthSmtpConfigured,
+  isSmtpConfigured,
+} from "./smtp-transport"
 
 export type SendEmailResult = { ok: true; id?: string } | { ok: false; error: string }
 
@@ -11,21 +15,36 @@ export type EmailTask = () => Promise<SendEmailResult>
 
 export { getEmailFrom, getEmailStaffTo } from "./config"
 
-/** Which backend is active (SMTP preferred when both are set). */
+/**
+ * Active mail backend. Production uses Gmail via Google OAuth (see GOOGLE_WORKSPACE_EMAIL.md).
+ * Brevo/Sendinblue SMTP hosts are ignored even if present in env.
+ */
 export function getEmailProvider(): EmailProvider | null {
   const forced = process.env.EMAIL_PROVIDER?.trim().toLowerCase()
-  if (forced === "smtp") {
-    return isSmtpConfigured() ? "smtp" : null
-  }
+
   if (forced === "resend") {
     return process.env.RESEND_API_KEY?.trim() ? "resend" : null
   }
+
   if (isSmtpConfigured()) {
     return "smtp"
   }
+
+  if (forced === "smtp") {
+    return null
+  }
+
   if (process.env.RESEND_API_KEY?.trim()) {
     return "resend"
   }
+  return null
+}
+
+export function getEmailProviderLabel(): string | null {
+  const provider = getEmailProvider()
+  if (provider === "resend") return "Resend"
+  if (provider === "smtp") return getSmtpTransportLabel() ?? "SMTP"
+  if (isGoogleOAuthSmtpConfigured()) return "Gmail (Google OAuth)"
   return null
 }
 

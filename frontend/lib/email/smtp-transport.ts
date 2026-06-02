@@ -1,6 +1,13 @@
 import nodemailer from "nodemailer"
 import type SMTPTransport from "nodemailer/lib/smtp-transport"
 
+/** Third-party relays we do not use — production mail is Gmail / Google Workspace OAuth. */
+const DISALLOWED_SMTP_HOST = /brevo|sendinblue/i
+
+export function isDisallowedSmtpHost(host: string): boolean {
+  return DISALLOWED_SMTP_HOST.test(host)
+}
+
 /** Google OAuth2 (no App Password). Requires mail.google.com refresh token. */
 export function isGoogleOAuthSmtpConfigured(): boolean {
   return Boolean(
@@ -11,16 +18,25 @@ export function isGoogleOAuthSmtpConfigured(): boolean {
   )
 }
 
+/** App-password SMTP (e.g. smtp.gmail.com). Brevo/Sendinblue hosts are ignored. */
 export function isSmtpPasswordConfigured(): boolean {
-  return Boolean(
-    process.env.SMTP_HOST?.trim() &&
-      process.env.SMTP_USER?.trim() &&
-      process.env.SMTP_PASS?.trim()
-  )
+  const host = process.env.SMTP_HOST?.trim()
+  if (!host || isDisallowedSmtpHost(host)) return false
+  return Boolean(host && process.env.SMTP_USER?.trim() && process.env.SMTP_PASS?.trim())
 }
 
 export function isSmtpConfigured(): boolean {
-  return isSmtpPasswordConfigured() || isGoogleOAuthSmtpConfigured()
+  return isGoogleOAuthSmtpConfigured() || isSmtpPasswordConfigured()
+}
+
+export function getSmtpTransportLabel(): string | null {
+  if (isGoogleOAuthSmtpConfigured()) return "Gmail (Google OAuth)"
+  if (isSmtpPasswordConfigured()) {
+    const host = process.env.SMTP_HOST?.trim() ?? ""
+    if (/gmail|google/i.test(host)) return "Gmail SMTP"
+    return "SMTP"
+  }
+  return null
 }
 
 export function createSmtpTransport(): nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null {
@@ -43,6 +59,13 @@ export function createSmtpTransport(): nodemailer.Transporter<SMTPTransport.Sent
   const host = process.env.SMTP_HOST?.trim()
   const pass = process.env.SMTP_PASS?.trim()
   if (!host || !pass) return null
+
+  if (isDisallowedSmtpHost(host)) {
+    console.warn(
+      "[EMAIL] Brevo/Sendinblue SMTP is not used. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN, and SMTP_USER for Gmail. See docs/GOOGLE_WORKSPACE_EMAIL.md"
+    )
+    return null
+  }
 
   const port = parseInt(process.env.SMTP_PORT || "587", 10)
   const secure = process.env.SMTP_SECURE === "true" || port === 465
