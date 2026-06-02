@@ -1,7 +1,5 @@
-import { sendEmail } from "./send"
-import { layoutEmail } from "./layout"
-import { escapeHtml } from "./templates"
-import type { SendEmailResult } from "./send"
+import { sendEmail, type SendEmailResult } from "./send"
+import { escapeHtml, layoutEmail } from "./templates"
 
 function getAppBaseUrl(): string {
   const url =
