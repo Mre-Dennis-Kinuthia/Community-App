@@ -8,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getImageDisplayUrl } from "@/lib/stored-image"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
@@ -320,9 +321,9 @@ function CommunityPageContent() {
                       <Card className="flex h-full cursor-pointer flex-col transition-all hover:border-primary/50 border-border ring-1 ring-primary/10">
                         <CardHeader className="p-4 text-center">
                           <Avatar className="mx-auto h-14 w-14 md:h-20 md:w-20">
-                            {(member.avatar || member.image) ? (
+                            {getImageDisplayUrl(member.avatar || member.image) ? (
                               <AvatarImage
-                                src={member.avatar || member.image}
+                                src={getImageDisplayUrl(member.avatar || member.image)}
                                 alt={member.name || "Member"}
                               />
                             ) : null}
@@ -747,9 +748,9 @@ function CommunityPageContent() {
                     <Card className="flex flex-col cursor-pointer transition-all hover:bg-muted/30 hover:border-primary/50 border-border h-full">
                       <CardHeader className="text-center">
                             <Avatar className="mx-auto h-20 w-20">
-                              {(member.avatar || member.image) ? (
+                              {getImageDisplayUrl(member.avatar || member.image) ? (
                                 <AvatarImage
-                                  src={member.avatar || member.image}
+                                  src={getImageDisplayUrl(member.avatar || member.image)}
                                   alt={member.name || "Member"}
                                 />
                               ) : null}

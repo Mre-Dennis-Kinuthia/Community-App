@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Upload, X } from "lucide-react"
+import { getImagePreviewClasses } from "@/lib/image-display"
 import { getImageDisplayUrl, type StoredImageCategory } from "@/lib/stored-image"
 import { cn } from "@/lib/utils"
 import { toast } from "@/lib/toast"
@@ -36,6 +37,7 @@ export function ImageUpload({
   const [uploading, setUploading] = useState(false)
 
   const previewSrc = getImageDisplayUrl(value)
+  const previewClasses = getImagePreviewClasses(category, previewClassName)
 
   const handleFile = async (file: File | null) => {
     if (!file) return
@@ -80,8 +82,8 @@ export function ImageUpload({
       {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
 
       {previewSrc ? (
-        <div className={cn("relative overflow-hidden rounded-md border", previewClassName)}>
-          <img src={previewSrc} alt="" className="h-40 w-full object-cover" />
+        <div className={previewClasses.container}>
+          <img src={previewSrc} alt="" className={previewClasses.img} />
           {allowClear && (
             <Button
               type="button"

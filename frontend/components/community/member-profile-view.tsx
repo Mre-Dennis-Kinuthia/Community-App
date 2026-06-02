@@ -20,6 +20,8 @@ import {
   ArrowRight,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { thumbnailImageClassName } from "@/lib/image-display"
+import { getImageDisplayUrl } from "@/lib/stored-image"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -152,7 +154,10 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
         <div className="border-b border-border bg-muted/30 px-6 py-8 md:px-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
             <Avatar className="h-24 w-24 shrink-0 border-2 border-background shadow-sm md:h-28 md:w-28">
-              <AvatarImage src={member.avatar || undefined} alt={member.name} />
+              <AvatarImage
+                src={getImageDisplayUrl(member.avatar) || undefined}
+                alt={member.name}
+              />
               <AvatarFallback className="text-2xl">
                 {getInitials(member.name, member.email)}
               </AvatarFallback>
@@ -353,9 +358,9 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                       <div className="h-14 w-14 shrink-0 rounded-md bg-muted overflow-hidden">
                         {project.imageUrl ? (
                           <img
-                            src={project.imageUrl}
+                            src={getImageDisplayUrl(project.imageUrl) || project.imageUrl}
                             alt=""
-                            className="h-full w-full object-cover"
+                            className={thumbnailImageClassName}
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
@@ -452,7 +457,10 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                     className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
                   >
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={connection.avatar || undefined} alt={connection.name} />
+                      <AvatarImage
+                        src={getImageDisplayUrl(connection.avatar) || undefined}
+                        alt={connection.name}
+                      />
                       <AvatarFallback>{connection.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">

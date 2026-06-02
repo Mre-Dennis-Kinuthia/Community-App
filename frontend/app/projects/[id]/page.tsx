@@ -287,7 +287,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               {(project.imageUrl ?? null) && (
                 <div className="aspect-[21/9] w-full max-h-[320px] overflow-hidden bg-muted">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
+                  <img src={project.imageUrl} alt="" className="h-full w-full object-contain object-center" />
                 </div>
               )}
               <CardHeader>

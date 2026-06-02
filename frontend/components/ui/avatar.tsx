@@ -3,6 +3,7 @@
 import * as React from 'react'
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
 
+import { avatarImageClassName } from '@/lib/image-display'
 import { cn } from '@/lib/utils'
 
 function Avatar({
@@ -28,7 +29,7 @@ function AvatarImage({
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
-      className={cn('aspect-square size-full', className)}
+      className={cn(avatarImageClassName, className)}
       {...props}
     />
   )

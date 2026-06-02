@@ -340,7 +340,7 @@ export default function ProfilePage() {
                         await updateSession({ user: { image: url } })
                       }}
                       category="profile"
-                      previewClassName="h-32 w-32 rounded-full"
+                      previewClassName="size-24 md:size-32"
                     />
                   </div>
                 ) : (

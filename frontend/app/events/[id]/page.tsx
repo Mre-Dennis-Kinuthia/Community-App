@@ -296,7 +296,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                 <img
                   src={event.imageUrl}
                   alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="absolute inset-0 h-full w-full object-contain object-center"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
               </div>
