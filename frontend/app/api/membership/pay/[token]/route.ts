@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
-import {
-  fulfillMembershipPayment,
-  resolveUserForMembership,
-  serializePaymentLink,
-} from "@/lib/membership-billing"
+import { resolveUserForMembership, serializePaymentLink } from "@/lib/membership-billing"
+import { initiateMembershipPayment } from "@/lib/membership-automation"
 import { z } from "zod"
 
 export async function OPTIONS(request: NextRequest) {
@@ -115,25 +112,29 @@ export async function POST(
       existingUserId: session?.user?.id ?? link.userId,
     })
 
-    const result = await fulfillMembershipPayment(prisma, {
-      linkId: link.id,
+    const checkout = await initiateMembershipPayment(prisma, {
       userId,
-      method: "mpesa",
+      plan: link.plan,
+      amount: link.amount,
+      currency: link.currency,
       phoneNumber: body.phoneNumber,
-      transactionId: body.confirmOffline ? `offline-${Date.now()}` : `mpesa-pending-${Date.now()}`,
+      membershipPaymentLinkId: link.id,
     })
 
     return NextResponse.json(
       {
-        message:
-          "Membership payment recorded. Your subscription is active. If M-Pesa did not complete, our team will confirm shortly.",
-        subscription: {
-          id: result.subscription.id,
-          status: result.subscription.status,
-          currentPeriodEnd: result.subscription.currentPeriodEnd.toISOString(),
-          plan: { name: result.plan.name },
-        },
-        loginUrl: `/login?email=${encodeURIComponent(payerEmail)}`,
+        message: checkout.message,
+        pending: checkout.pending,
+        paymentId: checkout.paymentId,
+        subscription: checkout.subscription
+          ? {
+              id: checkout.subscription.id,
+              status: checkout.subscription.status,
+              currentPeriodEnd: checkout.subscription.currentPeriodEnd.toISOString(),
+              plan: { name: checkout.plan?.name ?? link.plan.name },
+            }
+          : undefined,
+        loginUrl: `/login?email=${encodeURIComponent(payerEmail)}&redirect=/billing`,
       },
       { headers: corsHeaders }
     )

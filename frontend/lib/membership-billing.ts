@@ -68,10 +68,18 @@ export async function activateMembershipPlan(
     transactionId?: string | null
     phoneNumber?: string | null
     membershipPaymentLinkId?: string
+    existingPaymentId?: string
   }
 ) {
   const now = new Date()
   const plan = params.plan
+  const paymentMeta = {
+    type: "membership",
+    membershipPaymentLinkId: params.membershipPaymentLinkId,
+    planId: plan.id,
+    planName: plan.name,
+    phoneNumber: params.phoneNumber ?? undefined,
+  }
 
   return prisma.$transaction(async (tx) => {
     await tx.subscription.updateMany({
@@ -87,22 +95,26 @@ export async function activateMembershipPlan(
       },
     })
 
-    const payment = await tx.payment.create({
-      data: {
-        userId: params.userId,
-        amount: params.amount,
-        currency: params.currency,
-        method: params.method,
-        status: "completed",
-        transactionId: params.transactionId ?? undefined,
-        metadata: {
-          membershipPaymentLinkId: params.membershipPaymentLinkId,
-          planId: plan.id,
-          planName: plan.name,
-          phoneNumber: params.phoneNumber ?? undefined,
-        },
-      },
-    })
+    const payment = params.existingPaymentId
+      ? await tx.payment.update({
+          where: { id: params.existingPaymentId },
+          data: {
+            status: "completed",
+            transactionId: params.transactionId ?? undefined,
+            metadata: paymentMeta,
+          },
+        })
+      : await tx.payment.create({
+          data: {
+            userId: params.userId,
+            amount: params.amount,
+            currency: params.currency,
+            method: params.method,
+            status: "completed",
+            transactionId: params.transactionId ?? undefined,
+            metadata: paymentMeta,
+          },
+        })
 
     const periodEnd = addBillingPeriodEnd(now, plan.interval)
 
@@ -163,6 +175,7 @@ export async function fulfillMembershipPayment(
     method: string
     transactionId?: string | null
     phoneNumber?: string | null
+    existingPaymentId?: string
   }
 ) {
   const link = await prisma.membershipPaymentLink.findUnique({
@@ -196,6 +209,7 @@ export async function fulfillMembershipPayment(
     transactionId: params.transactionId,
     phoneNumber: params.phoneNumber,
     membershipPaymentLinkId: link.id,
+    existingPaymentId: params.existingPaymentId,
   })
 }
 

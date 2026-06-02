@@ -206,7 +206,28 @@ export default function BillingPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Subscribe failed")
-      toast.success("Membership active", data.message)
+
+      if (data.pending && data.paymentId) {
+        toast.success(data.message || "Check your phone to approve M-Pesa")
+        const paymentId = data.paymentId as string
+        for (let i = 0; i < 40; i++) {
+          await new Promise((r) => setTimeout(r, 3000))
+          const statusRes = await fetch(`/api/billing/payments/${paymentId}/status`, {
+            credentials: "include",
+          })
+          const status = await statusRes.json()
+          if (status.completed) {
+            toast.success("Membership activated")
+            await loadBilling({ silent: true })
+            return
+          }
+          if (status.failed) throw new Error("M-Pesa payment was not completed")
+        }
+        toast.error("Payment still pending. Refresh billing after approving on your phone.")
+        return
+      }
+
+      toast.success(data.message || "Membership active")
       await loadBilling({ silent: true })
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not start membership")

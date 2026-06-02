@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
-import { activateMembershipPlan, serializeSubscription } from "@/lib/membership-billing"
+import { serializeSubscription } from "@/lib/membership-billing"
+import { initiateMembershipPayment } from "@/lib/membership-automation"
 import { z } from "zod"
 
 export async function OPTIONS(request: NextRequest) {
@@ -34,22 +35,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Plan not found or inactive" }, { status: 400, headers: corsHeaders })
     }
 
-    const result = await activateMembershipPlan(prisma, {
+    const checkout = await initiateMembershipPayment(prisma, {
       userId: session.user.id,
       plan,
       amount: plan.price,
       currency: plan.currency,
-      method: "mpesa",
       phoneNumber: body.phoneNumber,
-      transactionId: `self-subscribe-${Date.now()}`,
     })
 
     return NextResponse.json(
       {
-        message: `You are now on ${plan.name}. M-Pesa confirmation may follow separately.`,
-        subscription: serializeSubscription(result.subscription),
+        message: checkout.message,
+        pending: checkout.pending,
+        paymentId: checkout.paymentId,
+        subscription: checkout.subscription
+          ? serializeSubscription(checkout.subscription)
+          : undefined,
       },
-      { status: 201, headers: corsHeaders }
+      { status: checkout.pending ? 202 : 201, headers: corsHeaders }
     )
   } catch (error: unknown) {
     console.error("[BILLING SUBSCRIBE] Error:", error)

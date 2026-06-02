@@ -1,5 +1,11 @@
 {
   "installCommand": "bun install",
   "buildCommand": "bun run build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "crons": [
+    {
+      "path": "/api/cron/membership",
+      "schedule": "0 6 * * *"
+    }
+  ]
 }

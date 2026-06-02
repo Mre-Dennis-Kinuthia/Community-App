@@ -34,6 +34,8 @@ export default function MembershipPayPage() {
   const [link, setLink] = useState<PayLink | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [pendingMpesa, setPendingMpesa] = useState(false)
+  const [pendingPaymentId, setPendingPaymentId] = useState<string | null>(null)
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -57,6 +59,44 @@ export default function MembershipPayPage() {
     }
     if (token) load()
   }, [token])
+
+  useEffect(() => {
+    if (!pendingMpesa || !pendingPaymentId) return
+
+    let cancelled = false
+    const poll = async () => {
+      try {
+        const res = await fetch(`/api/billing/payments/${pendingPaymentId}/status`)
+        const data = await res.json()
+        if (cancelled) return
+        if (data.completed) {
+          setPendingMpesa(false)
+          setDone(true)
+          toast.success("Membership activated")
+        } else if (data.failed) {
+          setPendingMpesa(false)
+          toast.error("M-Pesa payment was not completed")
+        }
+      } catch {
+        /* retry */
+      }
+    }
+
+    const interval = setInterval(() => void poll(), 3000)
+    void poll()
+    const timeout = setTimeout(() => {
+      if (!cancelled) {
+        setPendingMpesa(false)
+        toast.error("Payment timed out. If you approved on your phone, refresh or contact support.")
+      }
+    }, 120000)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+      clearTimeout(timeout)
+    }
+  }, [pendingMpesa, pendingPaymentId])
 
   const handlePay = async () => {
     if (!link || link.status !== "pending") return
@@ -82,8 +122,16 @@ export default function MembershipPayPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Payment failed")
+
+      if (data.pending && data.paymentId) {
+        setPendingPaymentId(data.paymentId)
+        setPendingMpesa(true)
+        toast.success(data.message || "Check your phone to approve M-Pesa")
+        return
+      }
+
       setDone(true)
-      toast.success("Membership activated", data.message)
+      toast.success(data.message || "Membership activated")
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Payment failed")
     } finally {
@@ -114,6 +162,16 @@ export default function MembershipPayPage() {
               <Button asChild variant="outline">
                 <Link href="/">Back to home</Link>
               </Button>
+            </CardContent>
+          </Card>
+        ) : pendingMpesa ? (
+          <Card>
+            <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <h1 className="text-xl font-semibold">Waiting for M-Pesa</h1>
+              <p className="text-sm text-muted-foreground">
+                Approve the payment on your phone. This page will update automatically when payment is confirmed.
+              </p>
             </CardContent>
           </Card>
         ) : done ? (

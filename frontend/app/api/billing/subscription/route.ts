@@ -3,6 +3,11 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
+import { isEmailConfigured, sendEmailInBackground } from "@/lib/email/send"
+import {
+  sendMembershipCancelledMemberEmail,
+  sendMembershipCancelledStaffEmail,
+} from "@/lib/email/membership-cancelled"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -102,6 +107,35 @@ export async function PATCH(request: NextRequest) {
         include: { plan: true },
       })
 
+      const member = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true },
+      })
+      if (member?.email && isEmailConfigured()) {
+        const notify = {
+          memberEmail: member.email,
+          memberName: member.name,
+          planName: updated.plan.name,
+          immediate: false as const,
+          accessUntil: updated.currentPeriodEnd,
+        }
+        sendEmailInBackground(
+          () =>
+            sendMembershipCancelledMemberEmail({
+              to: member.email,
+              name: member.name,
+              planName: updated.plan.name,
+              immediate: false,
+              accessUntil: updated.currentPeriodEnd,
+            }),
+          "membership-cancel-scheduled-member"
+        )
+        sendEmailInBackground(
+          () => sendMembershipCancelledStaffEmail(notify),
+          "membership-cancel-scheduled-staff"
+        )
+      }
+
       return NextResponse.json(
         {
           message: `Your subscription stays active until ${updated.currentPeriodEnd.toISOString().slice(0, 10)}. It will not renew after that.`,
@@ -144,6 +178,33 @@ export async function PATCH(request: NextRequest) {
       },
       include: { plan: true },
     })
+
+    const member = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    })
+    if (member?.email && isEmailConfigured()) {
+      const notify = {
+        memberEmail: member.email,
+        memberName: member.name,
+        planName: updated.plan.name,
+        immediate: true as const,
+      }
+      sendEmailInBackground(
+        () =>
+          sendMembershipCancelledMemberEmail({
+            to: member.email,
+            name: member.name,
+            planName: updated.plan.name,
+            immediate: true,
+          }),
+        "membership-cancel-immediate-member"
+      )
+      sendEmailInBackground(
+        () => sendMembershipCancelledStaffEmail(notify),
+        "membership-cancel-immediate-staff"
+      )
+    }
 
     return NextResponse.json(
       {
