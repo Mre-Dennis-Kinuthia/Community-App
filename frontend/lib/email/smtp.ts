@@ -1,6 +1,6 @@
 import type { SendEmailResult } from "./send"
 import { getEmailFrom } from "./config"
-import { createSmtpTransport, isSmtpConfigured } from "./smtp-transport"
+import { createSmtpTransport, getLastSmtpSetupError } from "./smtp-transport"
 
 export {
   isSmtpConfigured,
@@ -17,8 +17,12 @@ export async function sendSmtpEmail(params: {
   text?: string
   replyTo?: string
 }): Promise<SendEmailResult> {
-  const transport = createSmtpTransport()
+  const transport = await createSmtpTransport()
   if (!transport) {
+    const setupError = getLastSmtpSetupError()
+    if (setupError) {
+      return { ok: false, error: setupError }
+    }
     console.warn(
       "[EMAIL] SMTP not configured — set SMTP_PASS (App Password) or GOOGLE_REFRESH_TOKEN (OAuth)"
     )

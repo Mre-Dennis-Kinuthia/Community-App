@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer"
 import type SMTPTransport from "nodemailer/lib/smtp-transport"
+import { refreshGoogleAccessToken } from "./google-oauth"
 
 /** Third-party relays we do not use — production mail is Gmail / Google Workspace OAuth. */
 const DISALLOWED_SMTP_HOST = /brevo|sendinblue/i
@@ -39,11 +40,27 @@ export function getSmtpTransportLabel(): string | null {
   return null
 }
 
-export function createSmtpTransport(): nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null {
+let lastSmtpSetupError: string | null = null
+
+export function getLastSmtpSetupError(): string | null {
+  return lastSmtpSetupError
+}
+
+export async function createSmtpTransport(): Promise<
+  nodemailer.Transporter<SMTPTransport.SentMessageInfo> | null
+> {
+  lastSmtpSetupError = null
   const user = process.env.SMTP_USER?.trim()
   if (!user) return null
 
   if (isGoogleOAuthSmtpConfigured()) {
+    const token = await refreshGoogleAccessToken()
+    if (!token.ok) {
+      lastSmtpSetupError = token.error
+      console.error("[EMAIL] Google token refresh failed:", token.error)
+      return null
+    }
+
     return nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -52,6 +69,7 @@ export function createSmtpTransport(): nodemailer.Transporter<SMTPTransport.Sent
         clientId: process.env.GOOGLE_CLIENT_ID!.trim(),
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!.trim(),
         refreshToken: process.env.GOOGLE_REFRESH_TOKEN!.trim(),
+        accessToken: token.accessToken,
       },
     })
   }

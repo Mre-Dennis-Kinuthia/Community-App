@@ -23,9 +23,10 @@ async function main() {
   console.log("SMTP_USER", process.env.SMTP_USER)
   console.log("Auth:", process.env.GOOGLE_REFRESH_TOKEN ? "Google OAuth" : "App Password")
 
-  const transport = createSmtpTransport()
+  const transport = await createSmtpTransport()
   if (!transport) {
-    console.error("Could not create SMTP transport")
+    const { getLastSmtpSetupError } = await import("../lib/email/smtp-transport")
+    console.error("Could not create SMTP transport:", getLastSmtpSetupError() || "unknown")
     process.exit(1)
   }
 
