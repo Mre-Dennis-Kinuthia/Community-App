@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { MobileBreadcrumbsHidden, MobilePageHeader } from "@/components/mobile/mobile-page-shell"
+import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { toast } from "@/lib/toast"
 import { localCalendarDayToISO } from "@/lib/date-booking"
@@ -11,7 +11,15 @@ import { useWorkspace } from "@/lib/hooks/use-workspace"
 import { useAvailability } from "@/lib/hooks/use-availability"
 import { usePricing } from "@/lib/hooks/use-pricing"
 import { BookingHeader } from "@/components/booking/booking-header"
+import { BookingProgress } from "@/components/booking/booking-progress"
+import { BookingOrderPanel } from "@/components/booking/booking-order-panel"
 import { BookingStep } from "@/components/booking/booking-step"
+import {
+  getBookingFlowSteps,
+  getCurrentStepId,
+  resolveStepStatus,
+  type BookingFlowState,
+} from "@/lib/booking-flow"
 import { AvailabilityCalendar } from "@/components/booking/availability-calendar"
 import { TimeSelector, type BookingDuration } from "@/components/booking/time-selector"
 import { ResourceSelector, type ResourceType } from "@/components/booking/resource-selector"
@@ -231,11 +239,6 @@ export default function BookingPage() {
     )
   }
 
-  const handleCheckAvailability = () => {
-    // Scroll to calendar
-    document.getElementById("availability-section")?.scrollIntoView({ behavior: "smooth" })
-  }
-
   // Available time slots for selected date
   const availableSlots = useMemo(() => {
     if (!selectedDate) return []
@@ -257,18 +260,38 @@ export default function BookingPage() {
   const showBookingSidebar =
     selectedResource !== "private-office" && selectedResource !== "event-space"
 
+  const flowState: BookingFlowState = useMemo(
+    () => ({
+      resource: selectedResource,
+      meetingRoomCapacity: selectedMeetingRoomCapacity,
+      meetingRoomHours: selectedMeetingRoomHours,
+      selectedDate,
+      selectedTime,
+      selectedDuration,
+      isValidBooking,
+    }),
+    [
+      selectedResource,
+      selectedMeetingRoomCapacity,
+      selectedMeetingRoomHours,
+      selectedDate,
+      selectedTime,
+      selectedDuration,
+      isValidBooking,
+    ]
+  )
+
+  const flowSteps = getBookingFlowSteps(selectedResource)
+  const currentStepId = getCurrentStepId(flowState)
+  const stepStatus = (id: Parameters<typeof resolveStepStatus>[0]) =>
+    resolveStepStatus(id, flowState)
+
   return (
     <DashboardLayout>
       <div className="mx-auto w-full max-w-6xl space-y-5 overflow-x-hidden pb-[calc(8.5rem+env(safe-area-inset-bottom))] lg:space-y-6 lg:pb-10">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Book Workspace" }]} />
         </MobileBreadcrumbsHidden>
-
-        <MobilePageHeader
-          title="Book workspace"
-          description="Choose a space, pick a date, and confirm your booking."
-          className="md:hidden"
-        />
 
         {isLoadingWorkspace ? (
           <div className="flex justify-center py-16">
@@ -286,16 +309,17 @@ export default function BookingPage() {
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-              <BookingHeader
-                workspace={workspace}
-                onBookNow={handleCheckAvailability}
-              />
+            {showBookingSidebar ? (
+              <BookingProgress steps={flowSteps} currentStepId={currentStepId} />
+            ) : null}
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start lg:gap-6">
+              <BookingHeader workspace={workspace} />
               <ImageGallery
                 images={workspace.images}
                 spaceName={workspace.name}
                 compact
-                className="w-full shrink-0 lg:max-w-[280px] xl:max-w-[320px]"
+                className="hidden w-full shrink-0 sm:block sm:max-w-[200px] lg:max-w-[260px]"
               />
             </div>
 
@@ -311,7 +335,8 @@ export default function BookingPage() {
                   id="availability-section"
                   step={1}
                   title="Choose your space"
-                  description="Pick a resource to see availability and pricing."
+                  description="What do you need today?"
+                  status={stepStatus("space")}
                 >
                   <ResourceSelector
                     selectedResource={selectedResource}
@@ -354,6 +379,7 @@ export default function BookingPage() {
                     step={2}
                     title="Room size & duration"
                     description="Capacity and hours for your meeting."
+                    status={stepStatus("room")}
                   >
                     <MeetingRoomSelector
                         selectedCapacity={selectedMeetingRoomCapacity}
@@ -381,9 +407,10 @@ export default function BookingPage() {
                       title="Pick a date"
                       description={
                         selectedResource === "meeting-room"
-                          ? "Choose an available day after selecting room size."
-                          : "Unavailable days are disabled."
+                          ? "Available days for your room size."
+                          : "Unavailable days are greyed out."
                       }
+                      status={stepStatus("date")}
                     >
                       {selectedResource === "meeting-room" && !selectedMeetingRoomCapacity ? (
                         <p className="text-sm text-muted-foreground">
@@ -406,7 +433,12 @@ export default function BookingPage() {
                   )}
 
                 {selectedResource === "meeting-room" && selectedMeetingRoomCapacity && (
-                  <BookingStep step={4} title="Start time" description="Available slots for your date.">
+                  <BookingStep
+                    step={4}
+                    title="Start time"
+                    description="Pick a slot that works for you."
+                    status={stepStatus("time")}
+                  >
                     <TimeSelector
                         selectedTime={selectedTime}
                         selectedDuration={
@@ -433,17 +465,13 @@ export default function BookingPage() {
                   </BookingStep>
                 )}
 
-                {selectedResource === "hot-desk" && selectedDate && (
-                  <p className="text-sm text-muted-foreground px-1">
-                    Hot desk is <span className="font-medium text-foreground">full-day</span> from 09:00.
-                  </p>
-                )}
-
-                {isValidBooking && (
+                {(selectedResource === "hot-desk" && selectedDate) ||
+                (selectedResource === "meeting-room" && selectedDate && selectedTime) ? (
                   <BookingStep
                     step={selectedResource === "meeting-room" ? 5 : 3}
                     title="Add-ons"
-                    description="Optional extras for your booking."
+                    description="Optional — skip if you don't need extras."
+                    status={stepStatus("extras")}
                   >
                     <AddOnSelector
                         addOns={safePricing.addOns}
@@ -463,7 +491,7 @@ export default function BookingPage() {
                       </div>
                     )}
                   </BookingStep>
-                )}
+                ) : null}
               </div>
 
               {showBookingSidebar && (
@@ -485,15 +513,19 @@ export default function BookingPage() {
                       currency={safePricing.currency}
                       pastriesPax={pastriesPax}
                     />
-                    {isValidBooking ? (
-                      <Button size="lg" className="w-full" onClick={handleConfirmBooking}>
-                        Review & confirm
-                      </Button>
-                    ) : (
-                      <p className="text-center text-xs text-muted-foreground">
-                        Complete the steps to continue
-                      </p>
-                    )}
+                    <BookingOrderPanel
+                      workspaceName={workspace.name}
+                      workspaceLocation={workspace.location}
+                      resourceType={selectedResource}
+                      date={selectedDate}
+                      time={selectedTime}
+                      meetingRoomCapacity={selectedMeetingRoomCapacity ?? undefined}
+                      meetingRoomHours={selectedMeetingRoomHours}
+                      totalPrice={totalPrice}
+                      currency={safePricing.currency}
+                      isValid={isValidBooking}
+                      onCheckout={handleConfirmBooking}
+                    />
                   </div>
                 </aside>
               )}
