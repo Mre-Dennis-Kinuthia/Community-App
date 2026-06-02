@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
+import { MobileBreadcrumbsHidden, MobilePageHeader } from "@/components/mobile/mobile-page-shell"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { toast } from "@/lib/toast"
 import { localCalendarDayToISO } from "@/lib/date-booking"
@@ -263,6 +263,12 @@ export default function BookingPage() {
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Book Workspace" }]} />
         </MobileBreadcrumbsHidden>
+
+        <MobilePageHeader
+          title="Book workspace"
+          description="Choose a space, pick a date, and confirm your booking."
+          className="md:hidden"
+        />
 
         {isLoadingWorkspace ? (
           <div className="flex justify-center py-16">

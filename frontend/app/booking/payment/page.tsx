@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
+import { MobileBreadcrumbsHidden, MobilePageHeader } from "@/components/mobile/mobile-page-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -201,29 +202,28 @@ export default function BookingPaymentPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 overflow-x-hidden pb-[calc(8.5rem+env(safe-area-inset-bottom))] md:pb-12">
-        <Breadcrumbs items={[{ label: "Book Workspace", href: "/booking" }, { label: "Payment" }]} />
+      <div className="mx-auto w-full max-w-2xl space-y-6 overflow-x-hidden pb-[calc(8.5rem+env(safe-area-inset-bottom))] md:space-y-8 md:pb-12">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs items={[{ label: "Book Workspace", href: "/booking" }, { label: "Payment" }]} />
+        </MobileBreadcrumbsHidden>
 
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Confirm your booking</h1>
-            <p className="text-muted-foreground mt-1">
-              Confirm now without payment (recommended at launch). M-Pesa STK push is coming soon — optional fields below record intent only.
-            </p>
-          </div>
+        <MobilePageHeader
+          title="Confirm booking"
+          description="Review details and complete your reservation."
+        />
 
-          {pending && (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Booking summary</CardTitle>
+        {pending && (
+          <>
+            <Card>
+              <CardHeader className="p-4 pb-3 md:p-6">
+                <CardTitle className="text-base md:text-lg">Booking summary</CardTitle>
                   <CardDescription>Review before confirming</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3 text-sm">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span>{getResourceName(pending.resourceType)}</span>
-                  </div>
+              <CardContent className="space-y-3 p-4 pt-0 md:p-6 md:pt-0">
+                <div className="flex items-center gap-3 text-sm">
+                  <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0">{getResourceName(pending.resourceType)}</span>
+                </div>
                   {bookingDate && (
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -245,14 +245,14 @@ export default function BookingPaymentPage() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Confirm & payment</CardTitle>
-                  <CardDescription>
-                    You can secure your booking now. Payment status will remain pending unless you complete M-Pesa.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            <Card>
+              <CardHeader className="p-4 pb-3 md:p-6">
+                <CardTitle className="text-base md:text-lg">Confirm & payment</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Secure your booking now. M-Pesa is optional.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
                   <Button
                     className="w-full"
                     size="lg"
@@ -326,7 +326,6 @@ export default function BookingPaymentPage() {
               </div>
             </>
           )}
-        </div>
       </div>
       {/* Mobile sticky CTA */}
       {pending && !isRedirecting && (

@@ -367,14 +367,14 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-3">
+          <div className="space-y-4 md:space-y-6 lg:col-span-2">
             <Card className="border-border">
-              <CardHeader>
+              <CardHeader className="p-4 pb-3 md:p-6">
                 <CardTitle className="text-lg">About you</CardTitle>
                 <CardDescription>Short introduction visible on your public member card.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 p-4 pt-0 md:p-6 md:pt-0">
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   {isEditing ? (
@@ -464,11 +464,11 @@ export default function ProfilePage() {
             </Card>
 
             <Card className="border-border">
-              <CardHeader>
+              <CardHeader className="p-4 pb-3 md:p-6">
                 <CardTitle className="text-lg">Skills</CardTitle>
                 <CardDescription>Helps others discover you in search and filters.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                 <div className="flex flex-wrap gap-2">
                   {form.skills.length === 0 && !isEditing && (
                     <p className="text-sm text-muted-foreground">No skills yet.</p>
@@ -511,11 +511,11 @@ export default function ProfilePage() {
             </Card>
 
             <Card className="border-border">
-              <CardHeader>
+              <CardHeader className="p-4 pb-3 md:p-6">
                 <CardTitle className="text-lg">Interests</CardTitle>
                 <CardDescription>Themes and topics you care about.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                 <div className="flex flex-wrap gap-2">
                   {form.interests.length === 0 && !isEditing && (
                     <p className="text-sm text-muted-foreground">No interests listed yet.</p>
@@ -558,11 +558,11 @@ export default function ProfilePage() {
             </Card>
 
             <Card className="border-border">
-              <CardHeader>
+              <CardHeader className="p-4 pb-3 md:p-6">
                 <CardTitle className="text-lg">Availability</CardTitle>
                 <CardDescription>What you are open to — shown on your member profile.</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                 {isEditing ? (
                   <div className="flex flex-wrap gap-2">
                     {AVAILABILITY_OPTIONS.map((option) => {
