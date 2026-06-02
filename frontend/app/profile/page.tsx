@@ -25,6 +25,7 @@ import { toast } from "@/lib/toast"
 import { getInitials, cn } from "@/lib/utils"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { ImageUpload } from "@/components/ui/image-upload"
+import { useSession as useNextAuthSession } from "next-auth/react"
 import { useSession } from "@/lib/use-session"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 
@@ -76,6 +77,7 @@ function emptyForm() {
 
 export default function ProfilePage() {
   const { user } = useSession()
+  const { update: updateSession } = useNextAuthSession()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<ProfileStats | null>(null)
   const [joinedAt, setJoinedAt] = useState<string | null>(null)
@@ -174,6 +176,13 @@ export default function ProfilePage() {
       if (data.profile) {
         applyProfile(data.profile)
         setJoinedAt(data.profile.user?.createdAt ?? null)
+        const savedImage = data.profile.user?.image
+        if (savedImage) {
+          await updateSession({ user: { image: savedImage } })
+          window.dispatchEvent(
+            new CustomEvent("profile-image-updated", { detail: { url: savedImage } })
+          )
+        }
       }
       setIsEditing(false)
       setNewSkill("")
@@ -326,7 +335,10 @@ export default function ProfilePage() {
                       label="Profile photo"
                       description="JPEG, PNG, WebP, or GIF. Max 2MB. Stored securely on the platform."
                       value={form.image}
-                      onChange={(url) => setForm((p) => ({ ...p, image: url }))}
+                      onChange={async (url) => {
+                        setForm((p) => ({ ...p, image: url }))
+                        await updateSession({ user: { image: url } })
+                      }}
                       category="profile"
                       previewClassName="h-32 w-32 rounded-full"
                     />

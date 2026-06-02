@@ -60,6 +60,11 @@ export function ImageUpload({
         throw new Error(data.error || "Upload failed")
       }
       onChange(data.url)
+      if (category === "profile") {
+        window.dispatchEvent(
+          new CustomEvent("profile-image-updated", { detail: { url: data.url } })
+        )
+      }
       toast.success("Image uploaded")
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed")

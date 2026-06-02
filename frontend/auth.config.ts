@@ -32,7 +32,7 @@ export const authConfig = {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         console.log("[AUTH] JWT callback - adding user to token:", {
           id: user.id,
@@ -43,6 +43,11 @@ export const authConfig = {
         token.email = user.email
         token.name = user.name
         token.image = user.image
+      }
+      if (trigger === "update" && session?.user) {
+        const updated = session.user as { image?: string | null; name?: string | null }
+        if (updated.image !== undefined) token.image = updated.image
+        if (updated.name !== undefined) token.name = updated.name
       }
       return token
     },

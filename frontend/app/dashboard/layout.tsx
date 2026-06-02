@@ -25,6 +25,7 @@ import { GlobalSearch } from "@/components/global-search"
 import { SidebarProvider, useSidebar } from "@/components/sidebar-context"
 import { cn, getInitials } from "@/lib/utils"
 import { useSession } from "@/lib/use-session"
+import { getImageDisplayUrl } from "@/lib/stored-image"
 import { toast } from "@/lib/toast"
 
 function DashboardLayoutContent({
@@ -38,6 +39,7 @@ function DashboardLayoutContent({
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [onboardingChecked, setOnboardingChecked] = useState(false)
   const [redirectingToOnboarding, setRedirectingToOnboarding] = useState(false)
+  const [profileImage, setProfileImage] = useState<string | null>(null)
 
   // Block dashboard until onboarding is verified; redirect if needed
   useEffect(() => {
@@ -51,6 +53,9 @@ function DashboardLayoutContent({
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (cancelled) return
+        if (data?.profile?.user?.image != null) {
+          setProfileImage(data.profile.user.image)
+        }
         if (data?.needsOnboarding === true) {
           setRedirectingToOnboarding(true)
           router.replace("/onboarding")
@@ -65,6 +70,15 @@ function DashboardLayoutContent({
       cancelled = true
     }
   }, [user?.id, status, router])
+
+  useEffect(() => {
+    const onProfileImageUpdated = (event: Event) => {
+      const url = (event as CustomEvent<{ url: string }>).detail?.url
+      if (url) setProfileImage(url)
+    }
+    window.addEventListener("profile-image-updated", onProfileImageUpdated)
+    return () => window.removeEventListener("profile-image-updated", onProfileImageUpdated)
+  }, [])
 
   const canShowDashboard = onboardingChecked && !redirectingToOnboarding
   const showLoading = status === "loading" || !user || !canShowDashboard
@@ -96,6 +110,7 @@ function DashboardLayoutContent({
   const userInitials = getInitials(user?.name, user?.email)
   const displayName = user?.name || "User"
   const displayEmail = user?.email || ""
+  const avatarSrc = getImageDisplayUrl(profileImage ?? user?.image)
 
   if (showLoading) {
     return (
@@ -126,8 +141,8 @@ function DashboardLayoutContent({
                   className="relative min-h-[44px] min-w-[44px] rounded-full transition-colors duration-200 ease-out hover:bg-muted/60"
                 >
                   <Avatar className="h-8 w-8 transition-transform duration-200 ease-out">
-                    {user?.image ? (
-                      <AvatarImage src={user.image} alt={displayName} />
+                    {avatarSrc ? (
+                      <AvatarImage src={avatarSrc} alt={displayName} />
                     ) : null}
                     <AvatarFallback>{userInitials}</AvatarFallback>
                   </Avatar>
