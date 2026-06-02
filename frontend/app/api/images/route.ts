@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import {
   categoryAllowedForMember,
-  createStoredImage,
   isStoredImageCategory,
 } from "@/lib/stored-image"
+import { createStoredImage } from "@/lib/stored-image-server"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getStoredImageBytes } from "@/lib/stored-image"
+import { getStoredImageBytes } from "@/lib/stored-image-server"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 
 export async function OPTIONS() {
