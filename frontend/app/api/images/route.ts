@@ -82,9 +82,15 @@ export async function POST(request: NextRequest) {
     )
   } catch (error: unknown) {
     console.error("[IMAGES API] Upload error:", error)
+    const message = error instanceof Error ? error.message : "Failed to upload image"
+    const missingTable = message.includes("stored_images") && message.includes("does not exist")
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to upload image" },
-      { status: 400, headers: corsHeaders }
+      {
+        error: missingTable
+          ? "Image storage is not set up on the database yet. Run: npx prisma migrate deploy"
+          : message,
+      },
+      { status: missingTable ? 503 : 400, headers: corsHeaders }
     )
   }
 }
