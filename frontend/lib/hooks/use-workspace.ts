@@ -5,6 +5,7 @@ export interface Workspace {
   name: string
   location: string
   address: string
+  googleMapsUrl?: string
   valueProposition: string
   startingPrice: number
   currency: string

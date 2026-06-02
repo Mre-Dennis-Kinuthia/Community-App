@@ -537,6 +537,7 @@ model Workspace {
   slug              String   @unique
   location          String?
   address           String?
+  googleMapsUrl     String?  @map("google_maps_url")
   valueProposition  String?  @db.Text
   startingPrice     Int?
   currency          String   @default("KES")

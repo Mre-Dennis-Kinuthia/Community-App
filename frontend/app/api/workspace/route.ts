@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
       name: dbWorkspace.name,
       location: dbWorkspace.location ?? "",
       address: dbWorkspace.address ?? "",
+      googleMapsUrl: dbWorkspace.googleMapsUrl ?? "",
       valueProposition: dbWorkspace.valueProposition ?? "",
       startingPrice: dbWorkspace.startingPrice ?? 0,
       currency: dbWorkspace.currency,
