@@ -52,7 +52,7 @@ export function MeetingRoomSelector({
   const totalPrice = selectedCapacity ? hourlyPrice * selectedHours : 0
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div>
         <p className="text-sm font-medium mb-3">Select capacity</p>
         <div className="grid gap-3 sm:grid-cols-3">

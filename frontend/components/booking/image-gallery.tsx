@@ -8,9 +8,12 @@ import { ChevronLeft, ChevronRight, Maximize2, ImageIcon } from "lucide-react"
 interface ImageGalleryProps {
   images: string[]
   spaceName: string
+  /** Smaller gallery for booking flow (less vertical space). */
+  compact?: boolean
+  className?: string
 }
 
-export function ImageGallery({ images, spaceName }: ImageGalleryProps) {
+export function ImageGallery({ images, spaceName, compact = false, className }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -24,17 +27,23 @@ export function ImageGallery({ images, spaceName }: ImageGalleryProps) {
 
   if (images.length === 0) {
     return (
-      <div className="aspect-video rounded-lg bg-muted flex items-center justify-center">
-        <ImageIcon className="h-12 w-12 text-muted-foreground" />
+      <div
+        className={`${compact ? "aspect-[2/1]" : "aspect-video"} rounded-lg bg-muted flex items-center justify-center ${className ?? ""}`}
+      >
+        <ImageIcon className="h-8 w-8 text-muted-foreground" />
       </div>
     )
   }
 
   return (
     <>
-      <div className="relative group">
+      <div className={`relative group ${className ?? ""}`}>
         {/* Main Image */}
-        <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
+        <div
+          className={`relative overflow-hidden rounded-lg bg-muted ${
+            compact ? "aspect-[2/1] sm:aspect-[16/10]" : "aspect-video"
+          }`}
+        >
           {images[selectedIndex] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -84,12 +93,18 @@ export function ImageGallery({ images, spaceName }: ImageGalleryProps) {
 
         {/* Thumbnail Strip */}
         {images.length > 1 && (
-          <div className="flex gap-2 mt-3 overflow-x-auto pb-2">
+          <div
+            className={`flex gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+              compact ? "mt-2" : "mt-3 pb-2"
+            }`}
+          >
             {images.map((image, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedIndex(index)}
-                className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                className={`flex-shrink-0 overflow-hidden rounded-md border-2 transition-all ${
+                  compact ? "h-12 w-16" : "h-20 w-20 rounded-lg"
+                } ${
                   selectedIndex === index
                     ? "border-primary"
                     : "border-border hover:border-border"

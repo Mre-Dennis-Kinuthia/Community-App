@@ -17,6 +17,8 @@ interface PricingBreakdownProps {
   currency?: string
   /** Headcount for per-PAX add-ons (e.g. pastries). */
   pastriesPax?: number
+  /** Tighter layout for sidebar. */
+  compact?: boolean
 }
 
 export function PricingBreakdown({
@@ -29,6 +31,7 @@ export function PricingBreakdown({
   meetingRoomHourlyPrice,
   currency: propCurrency,
   pastriesPax = 1,
+  compact = false,
 }: PricingBreakdownProps) {
   const isMeetingRoom = resourceType === "meeting-room"
   const currency = propCurrency || pricing.currency
@@ -64,12 +67,14 @@ export function PricingBreakdown({
   }, [selectedDuration, pricing.options])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Pricing Breakdown</CardTitle>
-        <CardDescription>Transparent pricing with no hidden fees</CardDescription>
+    <Card className={compact ? "border-border/80 shadow-none" : undefined}>
+      <CardHeader className={compact ? "px-4 pb-2 pt-4" : undefined}>
+        <CardTitle className={compact ? "text-base" : undefined}>Your total</CardTitle>
+        {!compact ? (
+          <CardDescription>Transparent pricing with no hidden fees</CardDescription>
+        ) : null}
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className={compact ? "space-y-3 px-4 pb-4 pt-0" : "space-y-4"}>
         {/* Base Price */}
         {showMeetingRoomBreakdown && (
           <div className="flex flex-col gap-2 py-2 border-b border-border">
@@ -159,13 +164,14 @@ export function PricingBreakdown({
           </p>
         </div>
 
-        {/* Info */}
-        <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-border">
-          <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-muted-foreground">
-            All prices include taxes. No hidden fees. Cancel anytime.
-          </p>
-        </div>
+        {!compact ? (
+          <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">
+              All prices include taxes. No hidden fees.
+            </p>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   )

@@ -11,6 +11,7 @@ import { useWorkspace } from "@/lib/hooks/use-workspace"
 import { useAvailability } from "@/lib/hooks/use-availability"
 import { usePricing } from "@/lib/hooks/use-pricing"
 import { BookingHeader } from "@/components/booking/booking-header"
+import { BookingStep } from "@/components/booking/booking-step"
 import { AvailabilityCalendar } from "@/components/booking/availability-calendar"
 import { TimeSelector, type BookingDuration } from "@/components/booking/time-selector"
 import { ResourceSelector, type ResourceType } from "@/components/booking/resource-selector"
@@ -253,66 +254,59 @@ export default function BookingPage() {
       }))
   }, [slots, selectedDate])
 
+  const showBookingSidebar =
+    selectedResource !== "private-office" && selectedResource !== "event-space"
+
   return (
     <DashboardLayout>
-      <div className="space-y-6 pb-24 md:space-y-8 lg:pb-8">
+      <div className="mx-auto max-w-6xl space-y-5 pb-28 lg:space-y-6 lg:pb-10">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Book Workspace" }]} />
         </MobileBreadcrumbsHidden>
 
-        {/* Above the Fold - Critical Information */}
-        <div className="space-y-8">
-          {isLoadingWorkspace ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <p className="text-muted-foreground">Loading workspace...</p>
-              </div>
-            </div>
-          ) : !workspace ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center space-y-2">
-                <p className="font-medium">No active workspace configured</p>
-                <p className="text-sm text-muted-foreground">
-                  Please create an active workspace in the admin panel to power this booking page.
-                </p>
-                {workspaceError && (
-                  <p className="text-xs text-destructive">{workspaceError}</p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <>
+        {isLoadingWorkspace ? (
+          <div className="flex justify-center py-16">
+            <p className="text-sm text-muted-foreground">Loading workspace…</p>
+          </div>
+        ) : !workspace ? (
+          <div className="rounded-xl border border-border bg-muted/20 px-6 py-12 text-center">
+            <p className="font-medium">No active workspace configured</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Create an active workspace in the admin panel to enable bookings.
+            </p>
+            {workspaceError ? (
+              <p className="mt-2 text-xs text-destructive">{workspaceError}</p>
+            ) : null}
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
               <BookingHeader
                 workspace={workspace}
                 onBookNow={handleCheckAvailability}
-                onCheckAvailability={handleCheckAvailability}
               />
+              <ImageGallery
+                images={workspace.images}
+                spaceName={workspace.name}
+                compact
+                className="w-full shrink-0 lg:max-w-[280px] xl:max-w-[320px]"
+              />
+            </div>
 
-              {/* Image Gallery */}
-              <ImageGallery images={workspace.images} spaceName={workspace.name} />
-            </>
-          )}
-        </div>
-
-        {/* Main Booking Content */}
-        {workspace && (
-          <div className="space-y-8">
-            <div className="grid gap-8 lg:grid-cols-3">
-              {/* Left Column - Steps */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* Step 1: Resource */}
-                <div id="availability-section" className="scroll-mt-24 space-y-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                        Step 1
-                      </p>
-                      <h2 className="text-xl font-semibold tracking-tight">Choose your space</h2>
-                      <p className="text-sm text-muted-foreground">
-                        Pick a resource type to see availability and pricing.
-                      </p>
-                    </div>
-                  </div>
+            <div
+              className={
+                showBookingSidebar
+                  ? "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,300px)] lg:gap-8"
+                  : "max-w-2xl"
+              }
+            >
+              <div className="min-w-0 space-y-4 sm:space-y-5">
+                <BookingStep
+                  id="availability-section"
+                  step={1}
+                  title="Choose your space"
+                  description="Pick a resource to see availability and pricing."
+                >
                   <ResourceSelector
                     selectedResource={selectedResource}
                     onResourceSelect={(resource) => {
@@ -329,41 +323,33 @@ export default function BookingPage() {
                     pricing={workspace?.pricing}
                     currency={workspace?.currency || "KES"}
                   />
-                </div>
+                </BookingStep>
 
-                  {/* Private Office: Inquiry form only */}
-                  {selectedResource === "private-office" && (
-                    <div className="space-y-4">
-                      <PrivateOfficeInquiryForm
-                        workspaceId={workspaceId}
-                        workspaceName={workspace?.name}
-                      />
-                    </div>
-                  )}
+                {selectedResource === "private-office" && (
+                  <BookingStep step={2} title="Request a private office">
+                    <PrivateOfficeInquiryForm
+                      workspaceId={workspaceId}
+                      workspaceName={workspace?.name}
+                    />
+                  </BookingStep>
+                )}
 
-                  {/* Event space: inquiry (up to 70 PAX) */}
-                  {selectedResource === "event-space" && (
-                    <div className="space-y-4">
-                      <EventSpaceInquiryForm
-                        workspaceId={workspaceId}
-                        workspaceName={workspace?.name}
-                      />
-                    </div>
-                  )}
+                {selectedResource === "event-space" && (
+                  <BookingStep step={2} title="Event space inquiry">
+                    <EventSpaceInquiryForm
+                      workspaceId={workspaceId}
+                      workspaceName={workspace?.name}
+                    />
+                  </BookingStep>
+                )}
 
-                  {/* Meeting Room: Capacity + Hours selector */}
-                  {selectedResource === "meeting-room" && (
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Step 2
-                        </p>
-                        <h2 className="text-xl font-semibold tracking-tight mb-1">Room size & duration</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Choose room size and number of hours
-                        </p>
-                      </div>
-                      <MeetingRoomSelector
+                {selectedResource === "meeting-room" && (
+                  <BookingStep
+                    step={2}
+                    title="Room size & duration"
+                    description="Capacity and hours for your meeting."
+                  >
+                    <MeetingRoomSelector
                         selectedCapacity={selectedMeetingRoomCapacity}
                         selectedHours={selectedMeetingRoomHours}
                         pricing={workspace?.pricing?.["meeting-room"] as Record<string, number> | undefined}
@@ -377,31 +363,26 @@ export default function BookingPage() {
                           setSelectedMeetingRoomHours(h)
                           setSelectedTime(null)
                         }}
-                      />
-                    </div>
-                  )}
+                    />
+                  </BookingStep>
+                )}
 
-                  {/* Date Selection - Hot desk & Meeting room */}
-                  {selectedResource &&
-                    selectedResource !== "private-office" &&
-                    selectedResource !== "event-space" && (
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {selectedResource === "meeting-room" ? "Step 3" : "Step 2"}
-                        </p>
-                        <h2 className="text-xl font-semibold tracking-tight mb-1">Pick a date</h2>
-                        <p className="text-sm text-muted-foreground">
-                          {selectedResource === "meeting-room"
-                            ? "Select room size first, then choose an available day."
-                            : "Select an available day. Fully booked days are disabled."}
-                        </p>
-                      </div>
+                {selectedResource &&
+                  selectedResource !== "private-office" &&
+                  selectedResource !== "event-space" && (
+                    <BookingStep
+                      step={selectedResource === "meeting-room" ? 3 : 2}
+                      title="Pick a date"
+                      description={
+                        selectedResource === "meeting-room"
+                          ? "Choose an available day after selecting room size."
+                          : "Unavailable days are disabled."
+                      }
+                    >
                       {selectedResource === "meeting-room" && !selectedMeetingRoomCapacity ? (
-                        <div className="rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-                          Choose a room capacity above (Step 2) before picking a date — that keeps availability and
-                          pricing aligned.
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Select room capacity in step 2 first.
+                        </p>
                       ) : (
                         <AvailabilityCalendar
                           selectedDate={selectedDate}
@@ -415,22 +396,12 @@ export default function BookingPage() {
                           resourceType={selectedResource || "hot-desk"}
                         />
                       )}
-                    </div>
+                    </BookingStep>
                   )}
 
-                  {/* Time Selection - Meeting room (after capacity + date) */}
-                  {selectedResource === "meeting-room" && selectedMeetingRoomCapacity && (
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          Step 4
-                        </p>
-                        <h2 className="text-xl font-semibold tracking-tight mb-1">Choose a start time</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Pick an available slot for your meeting room booking.
-                        </p>
-                      </div>
-                      <TimeSelector
+                {selectedResource === "meeting-room" && selectedMeetingRoomCapacity && (
+                  <BookingStep step={4} title="Start time" description="Available slots for your date.">
+                    <TimeSelector
                         selectedTime={selectedTime}
                         selectedDuration={
                           selectedResource === "meeting-room"
@@ -452,67 +423,48 @@ export default function BookingPage() {
                         resourceType={selectedResource || "hot-desk"}
                         hideDurationSelector={selectedResource === "meeting-room"}
                         slotsLoading={isLoadingSlots}
-                      />
-                    </div>
-                  )}
+                    />
+                  </BookingStep>
+                )}
 
-                  {/* Hot desk: make it explicit this is full-day (no time pick) */}
-                  {selectedResource === "hot-desk" && selectedDate && (
-                    <div className="rounded-md border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-                      Hot desk bookings are <span className="font-medium text-foreground">full-day</span> (starts at
-                      09:00). You’ll confirm details on the next step.
-                    </div>
-                  )}
+                {selectedResource === "hot-desk" && selectedDate && (
+                  <p className="text-sm text-muted-foreground px-1">
+                    Hot desk is <span className="font-medium text-foreground">full-day</span> from 09:00.
+                  </p>
+                )}
 
-                  {/* Add-ons */}
-                  {isValidBooking && (
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {selectedResource === "meeting-room" ? "Step 5" : "Step 3"}
-                        </p>
-                        <h2 className="text-xl font-semibold tracking-tight mb-1">Add-ons (optional)</h2>
-                        <p className="text-sm text-muted-foreground">
-                          Enhance your workspace experience (optional)
-                        </p>
-                      </div>
-                      <AddOnSelector
+                {isValidBooking && (
+                  <BookingStep
+                    step={selectedResource === "meeting-room" ? 5 : 3}
+                    title="Add-ons"
+                    description="Optional extras for your booking."
+                  >
+                    <AddOnSelector
                         addOns={safePricing.addOns}
                         selectedAddOns={selectedAddOns}
                         onToggle={handleAddOnToggle}
                       />
-                      {selectedAddOns.includes("pastries") && (
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label htmlFor="pastries-pax">How many people (PAX)?</Label>
-                            <Input
-                              id="pastries-pax"
-                              type="number"
-                              min={1}
-                              value={pastriesPax}
-                              onChange={(e) => setPastriesPax(Number(e.target.value) || 1)}
-                            />
-                          </div>
-                          <div className="rounded-md border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-                            You can request a customized menu in the notes on the next step.
-                          </div>
-                        </div>
-                      )}
-                      {isValidBooking && (
-                        <div className="pt-2 lg:hidden">
-                          <p className="text-xs text-center text-muted-foreground">
-                            Review & confirm is available in the bar at the bottom of the screen.
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                    {selectedAddOns.includes("pastries") && (
+                      <div className="mt-4 max-w-xs space-y-2">
+                        <Label htmlFor="pastries-pax">Guests (PAX)</Label>
+                        <Input
+                          id="pastries-pax"
+                          type="number"
+                          min={1}
+                          value={pastriesPax}
+                          onChange={(e) => setPastriesPax(Number(e.target.value) || 1)}
+                        />
+                      </div>
+                    )}
+                  </BookingStep>
+                )}
+              </div>
 
-                {/* Right Column - Pricing & Summary (Desktop) - Hidden for private office */}
-                {selectedResource !== "private-office" && selectedResource !== "event-space" && (
-                  <div className="lg:col-span-1 space-y-6">
+              {showBookingSidebar && (
+                <aside className="hidden lg:block">
+                  <div className="sticky top-24 space-y-4">
                     <PricingBreakdown
+                      compact
                       pricing={safePricing}
                       selectedDuration={selectedDuration}
                       selectedAddOns={selectedAddOns}
@@ -527,21 +479,22 @@ export default function BookingPage() {
                       currency={safePricing.currency}
                       pastriesPax={pastriesPax}
                     />
-
-                    {isValidBooking && (
-                      <div className="hidden lg:block">
-                        <Button size="lg" className="w-full" onClick={handleConfirmBooking}>
-                          Review & confirm
-                        </Button>
-                      </div>
+                    {isValidBooking ? (
+                      <Button size="lg" className="w-full" onClick={handleConfirmBooking}>
+                        Review & confirm
+                      </Button>
+                    ) : (
+                      <p className="text-center text-xs text-muted-foreground">
+                        Complete the steps to continue
+                      </p>
                     )}
                   </div>
-                )}
-              </div>
+                </aside>
+              )}
+            </div>
 
-          {/* Sticky Booking Summary - Hidden for private office */}
-          {selectedResource !== "private-office" && selectedResource !== "event-space" && (
-          <StickyBookingSummary
+            {showBookingSidebar && (
+              <StickyBookingSummary
             summary={{
               date: selectedDate,
               time: selectedTime,
@@ -563,20 +516,20 @@ export default function BookingPage() {
             onConfirm={handleConfirmBooking}
             isBooking={false}
             isValid={isValidBooking}
-            showDesktop={false}
-          />
-          )}
+                showDesktop={false}
+              />
+            )}
 
-          <p className="text-center text-xs text-muted-foreground lg:hidden pb-4">
-            Need help with booking?{" "}
-            <a
-              href={`mailto:${HUB_CONTACT_EMAIL}?subject=Workspace%20booking%20support`}
-              className="text-foreground underline underline-offset-2"
-            >
-              Email the team
-            </a>
-          </p>
-        </div>
+            <p className="text-center text-xs text-muted-foreground lg:hidden">
+              Questions?{" "}
+              <a
+                href={`mailto:${HUB_CONTACT_EMAIL}?subject=Workspace%20booking%20support`}
+                className="text-foreground underline underline-offset-2"
+              >
+                Email the team
+              </a>
+            </p>
+          </>
         )}
       </div>
     </DashboardLayout>
