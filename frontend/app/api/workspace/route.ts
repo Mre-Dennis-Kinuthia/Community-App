@@ -40,6 +40,12 @@ export async function GET(request: NextRequest) {
       dbWorkspace = await prisma.workspace.findFirst({
         where: { id: workspaceId, deletedAt: null },
       })
+      // Legacy callers may pass slug via ?id= (e.g. impact-hub-nairobi)
+      if (!dbWorkspace) {
+        dbWorkspace = await prisma.workspace.findFirst({
+          where: { slug: workspaceId.toLowerCase(), deletedAt: null },
+        })
+      }
     } else if (slug) {
       dbWorkspace = await prisma.workspace.findFirst({
         where: { slug: slug.toLowerCase(), deletedAt: null },

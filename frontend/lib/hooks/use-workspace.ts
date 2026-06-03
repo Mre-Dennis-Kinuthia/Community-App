@@ -27,6 +27,7 @@ export interface Workspace {
   }
   landmarks: string[]
   companyLogos?: string[]
+  pricing?: Record<string, unknown> | null
 }
 
 interface WorkspaceApiResponse {

@@ -27,7 +27,11 @@ export function getCheckoutGuideHint(params: {
   return null
 }
 
-export function shouldShowCheckoutGuide(resource: ResourceType | null, isValid: boolean): boolean {
+export function shouldShowCheckoutGuide(
+  resource: ResourceType | null,
+  isValid: boolean,
+  hasProgress: boolean
+): boolean {
   if (!resource || resource === "private-office" || resource === "event-space") return false
-  return true
+  return isValid || hasProgress
 }

@@ -28,6 +28,13 @@ export function useAvailability(workspaceId: string, resourceType?: string) {
 
   // Fetch unavailable dates when resource or workspace changes
   useEffect(() => {
+    if (!workspaceId) {
+      setUnavailableDates([])
+      setDatesWithBookings([])
+      setNextAvailable(null)
+      return
+    }
+
     let cancelled = false
 
     async function fetchUnavailableDates() {
@@ -64,7 +71,7 @@ export function useAvailability(workspaceId: string, resourceType?: string) {
 
   // Fetch slot-level availability when a day is selected
   useEffect(() => {
-    if (!selectedDate) {
+    if (!workspaceId || !selectedDate) {
       setAvailableSlots([])
       return
     }

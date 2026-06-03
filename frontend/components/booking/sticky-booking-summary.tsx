@@ -1,6 +1,5 @@
 "use client"
 
-import { CheckoutGuideBubble } from "@/components/booking/checkout-guide-bubble"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -22,24 +21,20 @@ interface StickyBookingSummaryProps {
   onConfirm: () => void
   isBooking: boolean
   isValid: boolean
-  highlight?: boolean
   guideReady?: boolean
   guideHint?: string | null
-  onPointToCheckout?: () => void
 }
 
-/** Fixed-height mobile checkout bar — always visible during booking to prevent layout jump. */
+/** Fixed bottom checkout dock (mobile) — guide tip + total bar in one stack. */
 export function StickyBookingSummary({
   summary,
   onConfirm,
   isBooking,
   isValid,
-  highlight = false,
   guideReady = false,
   guideHint = null,
-  onPointToCheckout,
 }: StickyBookingSummaryProps) {
-  const showGuide = guideReady || Boolean(guideHint)
+  const showTip = guideReady || Boolean(guideHint)
   const dateLabel =
     summary.date != null ? format(summary.date, "MMM d") : "Select date & time"
   const timeLabel =
@@ -48,27 +43,36 @@ export function StickyBookingSummary({
 
   return (
     <div
-      className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 lg:hidden"
+      className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-border bg-background shadow-[0_-8px_30px_rgba(0,0,0,0.06)] lg:hidden"
       role="region"
-      aria-label="Booking total"
+      aria-label="Booking checkout"
     >
-      {showGuide ? (
-        <div className="border-t border-border bg-background/95 px-3 pb-2 pt-3 backdrop-blur-sm">
-          <CheckoutGuideBubble
-            ready={guideReady}
-            hint={guideHint}
-            onCheckout={onConfirm}
-            onPointToCheckout={onPointToCheckout}
-            tail="down"
-          />
+      {showTip ? (
+        <div
+          className={cn(
+            "border-b px-4 py-2.5 text-center text-xs leading-snug",
+            guideReady
+              ? "border-primary/20 bg-primary text-primary-foreground"
+              : "border-border bg-muted/40 text-muted-foreground"
+          )}
+        >
+          {guideReady ? (
+            <button
+              type="button"
+              className="w-full font-semibold underline-offset-2 hover:underline"
+              onClick={onConfirm}
+            >
+              Ready for checkout — tap to continue to payment
+            </button>
+          ) : (
+            <span>{guideHint}</span>
+          )}
         </div>
       ) : null}
+
       <div
         id="checkout-cta"
-        className={cn(
-          "mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between gap-3 border-t border-border bg-background px-4 transition-shadow",
-          highlight && "ring-2 ring-inset ring-primary shadow-md"
-        )}
+        className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between gap-3 px-4"
       >
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs text-muted-foreground">
@@ -83,12 +87,17 @@ export function StickyBookingSummary({
         </div>
         <Button
           size="lg"
-          className="h-11 min-w-[7.5rem] shrink-0"
+          className={cn(
+            "h-11 min-w-[7.5rem] shrink-0",
+            guideReady && "shadow-md"
+          )}
           onClick={onConfirm}
           disabled={!isValid || isBooking}
         >
           {isBooking ? (
             <Loader2 className="h-4 w-4 animate-spin" />
+          ) : guideReady ? (
+            "Checkout"
           ) : (
             "Continue"
           )}

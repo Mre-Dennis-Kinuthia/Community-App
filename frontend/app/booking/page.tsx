@@ -21,7 +21,6 @@ import { EventSpaceInquiryForm } from "@/components/booking/event-space-inquiry-
 import { PricingBreakdown } from "@/components/booking/pricing-breakdown"
 import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
-import { CheckoutGuideBubble } from "@/components/booking/checkout-guide-bubble"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
 import {
   getCheckoutGuideHint,
@@ -36,7 +35,7 @@ import { cn } from "@/lib/utils"
 export default function BookingPage() {
   const { workspace, isLoading: isLoadingWorkspace, error: workspaceError } = useWorkspace()
 
-  const workspaceId = workspace?.id ?? "impact-hub-nairobi"
+  const workspaceId = workspace?.id
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
 
   const getDefaultDuration = (resource: ResourceType | null): BookingDuration => {
@@ -61,7 +60,7 @@ export default function BookingPage() {
     selectedDate,
     setSelectedDate,
     isLoadingSlots,
-  } = useAvailability(workspaceId, availabilityResourceType)
+  } = useAvailability(workspaceId ?? "", availabilityResourceType)
 
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [selectedDuration, setSelectedDuration] = useState<BookingDuration>("full-day")
@@ -70,13 +69,19 @@ export default function BookingPage() {
   const [selectedMeetingRoomHours, setSelectedMeetingRoomHours] = useState(1)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [pastriesPax, setPastriesPax] = useState(1)
-  const [highlightCheckout, setHighlightCheckout] = useState(false)
 
   const { pricing } = usePricing(
     workspaceId,
     selectedResource || "hot-desk",
     selectedDate || undefined,
-    selectedDuration === "hourly" ? 1 : selectedDuration === "half-day" ? 4 : selectedDuration === "monthly" ? 1 : 8
+    selectedDuration === "hourly" ? 1 : selectedDuration === "half-day" ? 4 : selectedDuration === "monthly" ? 1 : 8,
+    workspace
+      ? {
+          pricing: workspace.pricing,
+          currency: workspace.currency,
+          startingPrice: workspace.startingPrice,
+        }
+      : null
   )
 
   const safePricing = pricing || {
@@ -165,6 +170,10 @@ export default function BookingPage() {
   }, [selectedResource, selectedDuration, selectedHalfDay, selectedTime])
 
   const handleConfirmBooking = () => {
+    if (!workspace?.id) {
+      toast.error("Workspace unavailable", "Please refresh and try again.")
+      return
+    }
     if (!isValidBooking || !selectedDate || !selectedResource) {
       toast.warning("Complete your selection", "Choose your space, date, and time.")
       return
@@ -201,7 +210,7 @@ export default function BookingPage() {
       addOnsPrice,
       totalPrice,
       addOns: selectedAddOns,
-      workspaceId,
+      workspaceId: workspace.id,
     }
     if (selectedAddOns.includes("pastries")) {
       payload.pastriesPax = Math.max(1, pastriesPax)
@@ -257,7 +266,14 @@ export default function BookingPage() {
     (selectedResource === "hot-desk" && !!selectedDate) ||
     (selectedResource === "meeting-room" && !!selectedDate && !!selectedTime)
 
-  const showCheckoutGuide = shouldShowCheckoutGuide(selectedResource, isValidBooking)
+  const bookingHasProgress =
+    !!selectedDate || !!selectedMeetingRoomCapacity || !!selectedTime
+
+  const showCheckoutGuide = shouldShowCheckoutGuide(
+    selectedResource,
+    isValidBooking,
+    bookingHasProgress
+  )
   const checkoutGuideHint = getCheckoutGuideHint({
     resource: selectedResource,
     isValid: isValidBooking,
@@ -266,24 +282,16 @@ export default function BookingPage() {
     meetingRoomCapacity: selectedMeetingRoomCapacity,
   })
 
-  const pointToCheckout = () => {
-    const targetId =
-      typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
-        ? "checkout-cta-desktop"
-        : "checkout-cta"
-    document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "center" })
-    setHighlightCheckout(true)
-    window.setTimeout(() => setHighlightCheckout(false), 2400)
-  }
-
   return (
     <DashboardLayout>
       <div
         className={cn(
           "mx-auto w-full max-w-6xl space-y-6 overflow-x-hidden lg:pb-10",
-          isBookableResource && showCheckoutGuide
-            ? "pb-[calc(13.5rem+env(safe-area-inset-bottom))]"
-            : "pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
+          isBookableResource
+            ? showCheckoutGuide
+              ? "pb-[calc(10.5rem+env(safe-area-inset-bottom))]"
+              : "pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
+            : "pb-6"
         )}
       >
         <MobileBreadcrumbsHidden>
@@ -521,22 +529,9 @@ export default function BookingPage() {
                       currency={safePricing.currency}
                       pastriesPax={pastriesPax}
                     />
-                    {showCheckoutGuide && (
-                      <CheckoutGuideBubble
-                        ready={isValidBooking}
-                        hint={checkoutGuideHint}
-                        onCheckout={handleConfirmBooking}
-                        onPointToCheckout={pointToCheckout}
-                        tail="none"
-                      />
-                    )}
                     <Button
-                      id="checkout-cta-desktop"
                       size="lg"
-                      className={cn(
-                        "w-full",
-                        highlightCheckout && "ring-2 ring-primary ring-offset-2"
-                      )}
+                      className="w-full"
                       disabled={!isValidBooking}
                       onClick={handleConfirmBooking}
                     >
@@ -565,10 +560,8 @@ export default function BookingPage() {
                 onConfirm={handleConfirmBooking}
                 isBooking={false}
                 isValid={isValidBooking}
-                highlight={highlightCheckout}
                 guideReady={showCheckoutGuide && isValidBooking}
                 guideHint={showCheckoutGuide ? checkoutGuideHint : null}
-                onPointToCheckout={pointToCheckout}
               />
             )}
 

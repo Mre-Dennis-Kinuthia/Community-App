@@ -111,15 +111,31 @@ function ensureHotDeskFullDayOption(args: {
   ]
 }
 
-export function usePricing(workspaceId: string, resourceType: string, date?: Date, duration?: number) {
-  const key = workspaceId ? `/api/workspace?id=${encodeURIComponent(workspaceId)}` : null
+type WorkspacePricingSource = {
+  pricing?: unknown
+  currency?: string
+  startingPrice?: number
+}
+
+export function usePricing(
+  workspaceId: string | undefined,
+  resourceType: string,
+  date?: Date,
+  duration?: number,
+  workspaceFromParent?: WorkspacePricingSource | null
+) {
+  const key =
+    !workspaceFromParent && workspaceId
+      ? `/api/workspace?id=${encodeURIComponent(workspaceId)}`
+      : null
   const { data, error, isLoading } = useSWR<{
     workspace: { pricing?: any; currency: string; startingPrice?: number }
   }>(key)
 
-  const rawPricing = data?.workspace?.pricing as any | undefined
-  const currency = data?.workspace?.currency || "KES"
-  const startingPrice = data?.workspace?.startingPrice
+  const source = workspaceFromParent ?? data?.workspace
+  const rawPricing = source?.pricing as any | undefined
+  const currency = source?.currency || "KES"
+  const startingPrice = source?.startingPrice
 
   // Build pricing data from workspace.pricing if present, otherwise fall back to previous defaults.
   let pricing: PricingData | null = null
