@@ -1,5 +1,6 @@
 "use client"
 
+import { CheckoutGuideStrip } from "@/components/booking/checkout-guide-strip"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -23,9 +24,10 @@ interface StickyBookingSummaryProps {
   isValid: boolean
   guideReady?: boolean
   guideHint?: string | null
+  showGuide?: boolean
 }
 
-/** Fixed bottom checkout dock (mobile) — guide tip + total bar in one stack. */
+/** Fixed bottom checkout dock — guide + total bar (mobile/tablet). */
 export function StickyBookingSummary({
   summary,
   onConfirm,
@@ -33,8 +35,8 @@ export function StickyBookingSummary({
   isValid,
   guideReady = false,
   guideHint = null,
+  showGuide = true,
 }: StickyBookingSummaryProps) {
-  const showTip = guideReady || Boolean(guideHint)
   const dateLabel =
     summary.date != null ? format(summary.date, "MMM d") : "Select date & time"
   const timeLabel =
@@ -43,30 +45,17 @@ export function StickyBookingSummary({
 
   return (
     <div
-      className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-border bg-background shadow-[0_-8px_30px_rgba(0,0,0,0.06)] lg:hidden"
+      className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-[55] border-t border-border bg-background shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:hidden"
       role="region"
       aria-label="Booking checkout"
     >
-      {showTip ? (
-        <div
-          className={cn(
-            "border-b px-4 py-2.5 text-center text-xs leading-snug",
-            guideReady
-              ? "border-primary/20 bg-primary text-primary-foreground"
-              : "border-border bg-muted/40 text-muted-foreground"
-          )}
-        >
-          {guideReady ? (
-            <button
-              type="button"
-              className="w-full font-semibold underline-offset-2 hover:underline"
-              onClick={onConfirm}
-            >
-              Ready for checkout — tap to continue to payment
-            </button>
-          ) : (
-            <span>{guideHint}</span>
-          )}
+      {showGuide ? (
+        <div className="border-b border-border px-3 py-2">
+          <CheckoutGuideStrip
+            ready={guideReady}
+            hint={guideHint}
+            onCheckout={onConfirm}
+          />
         </div>
       ) : null}
 

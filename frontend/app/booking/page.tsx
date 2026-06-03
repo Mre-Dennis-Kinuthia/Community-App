@@ -21,11 +21,9 @@ import { EventSpaceInquiryForm } from "@/components/booking/event-space-inquiry-
 import { PricingBreakdown } from "@/components/booking/pricing-breakdown"
 import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
+import { CheckoutGuideStrip } from "@/components/booking/checkout-guide-strip"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
-import {
-  getCheckoutGuideHint,
-  shouldShowCheckoutGuide,
-} from "@/lib/checkout-guide-hint"
+import { getCheckoutGuideHint, isBookableForCheckout } from "@/lib/checkout-guide-hint"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -266,14 +264,7 @@ export default function BookingPage() {
     (selectedResource === "hot-desk" && !!selectedDate) ||
     (selectedResource === "meeting-room" && !!selectedDate && !!selectedTime)
 
-  const bookingHasProgress =
-    !!selectedDate || !!selectedMeetingRoomCapacity || !!selectedTime
-
-  const showCheckoutGuide = shouldShowCheckoutGuide(
-    selectedResource,
-    isValidBooking,
-    bookingHasProgress
-  )
+  const showCheckoutGuide = isBookableForCheckout(selectedResource)
   const checkoutGuideHint = getCheckoutGuideHint({
     resource: selectedResource,
     isValid: isValidBooking,
@@ -288,9 +279,7 @@ export default function BookingPage() {
         className={cn(
           "mx-auto w-full max-w-6xl space-y-6 overflow-x-hidden lg:pb-10",
           isBookableResource
-            ? showCheckoutGuide
-              ? "pb-[calc(10.5rem+env(safe-area-inset-bottom))]"
-              : "pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
+            ? "pb-[calc(10.5rem+env(safe-area-inset-bottom))]"
             : "pb-6"
         )}
       >
@@ -529,19 +518,21 @@ export default function BookingPage() {
                       currency={safePricing.currency}
                       pastriesPax={pastriesPax}
                     />
+                    {showCheckoutGuide && (
+                      <CheckoutGuideStrip
+                        ready={isValidBooking}
+                        hint={checkoutGuideHint}
+                        onCheckout={handleConfirmBooking}
+                      />
+                    )}
                     <Button
                       size="lg"
                       className="w-full"
                       disabled={!isValidBooking}
                       onClick={handleConfirmBooking}
                     >
-                      Continue to checkout
+                      {isValidBooking ? "Continue to checkout" : "Complete booking first"}
                     </Button>
-                    {!isValidBooking ? (
-                      <p className="text-center text-xs text-muted-foreground">
-                        Fill in all required fields above
-                      </p>
-                    ) : null}
                   </div>
                 </aside>
               )}
@@ -560,8 +551,9 @@ export default function BookingPage() {
                 onConfirm={handleConfirmBooking}
                 isBooking={false}
                 isValid={isValidBooking}
-                guideReady={showCheckoutGuide && isValidBooking}
-                guideHint={showCheckoutGuide ? checkoutGuideHint : null}
+                showGuide={showCheckoutGuide}
+                guideReady={isValidBooking}
+                guideHint={checkoutGuideHint}
               />
             )}
 

@@ -13,8 +13,10 @@ export function getCheckoutGuideHint(params: {
   if (isValid) return null
 
   if (resource === "hot-desk") {
-    if (!selectedDate) return "Pick a date on the calendar — checkout unlocks when your day is selected."
-    return "Confirm your full-day booking, then use checkout below."
+    if (!selectedDate) {
+      return "Pick a date on the calendar — checkout is at the bottom when you're done."
+    }
+    return "Almost done — use checkout at the bottom to pay."
   }
 
   if (resource === "meeting-room") {
@@ -27,11 +29,6 @@ export function getCheckoutGuideHint(params: {
   return null
 }
 
-export function shouldShowCheckoutGuide(
-  resource: ResourceType | null,
-  isValid: boolean,
-  hasProgress: boolean
-): boolean {
-  if (!resource || resource === "private-office" || resource === "event-space") return false
-  return isValid || hasProgress
+export function isBookableForCheckout(resource: ResourceType | null): boolean {
+  return resource === "hot-desk" || resource === "meeting-room"
 }
