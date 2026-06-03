@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { User, Settings, LogOut, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { signOut } from "next-auth/react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Logo } from "@/components/logo"
 import { MobileNav } from "@/components/mobile-nav"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
@@ -209,7 +209,9 @@ function DashboardLayoutContent({
             )}
           </Button>
           <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
-            <DashboardNav />
+            <Suspense fallback={null}>
+              <DashboardNav />
+            </Suspense>
           </div>
         </aside>
         <main

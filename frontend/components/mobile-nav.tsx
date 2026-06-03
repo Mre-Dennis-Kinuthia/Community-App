@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Users, BookOpen, Menu, CalendarDays, Handshake, Lightbulb, Newspaper, BarChart3 } from "lucide-react"
+import { LayoutDashboard, Calendar, Users, BookOpen, Menu, CalendarDays, Handshake, Lightbulb, Newspaper, BarChart3, Sparkles } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import {
@@ -53,7 +53,12 @@ const items = [
     icon: Handshake,
   },
   {
-    title: "Resources",
+    title: "Opportunities",
+    href: "/opportunities",
+    icon: Sparkles,
+  },
+  {
+    title: "Resource library",
     href: "/resources",
     icon: BookOpen,
   },

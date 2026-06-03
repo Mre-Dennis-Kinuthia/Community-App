@@ -2,7 +2,7 @@
  * UI feature toggles. Routes and nav items stay in the codebase; set flags to false to hide/block.
  */
 export const FEATURE_FLAGS = {
-  programsAndResources: false,
+  programsAndResources: true,
   myProjects: false,
   investmentsDealflow: false,
   projectsAndInitiatives: false,
@@ -12,6 +12,7 @@ export type FeatureFlagKey = keyof typeof FEATURE_FLAGS
 
 const NAV_HREF_FLAGS: Record<string, FeatureFlagKey> = {
   "/resources": "programsAndResources",
+  "/opportunities": "programsAndResources",
   "/dashboard/projects": "myProjects",
   "/investments": "investmentsDealflow",
   "/projects": "projectsAndInitiatives",
@@ -28,6 +29,7 @@ export function isNavHrefEnabled(href: string): boolean {
 export function isDeactivatedRoute(pathname: string): boolean {
   if (!FEATURE_FLAGS.programsAndResources) {
     if (pathname === "/resources" || pathname.startsWith("/resources/")) return true
+    if (pathname === "/opportunities" || pathname.startsWith("/opportunities/")) return true
   }
   if (!FEATURE_FLAGS.myProjects) {
     if (pathname === "/dashboard/projects" || pathname.startsWith("/dashboard/projects/")) return true
@@ -53,6 +55,9 @@ export function isSearchHrefEnabled(href: string): boolean {
     return false
   }
   if (!FEATURE_FLAGS.programsAndResources && (href === "/resources" || href.startsWith("/resources/"))) {
+    return false
+  }
+  if (!FEATURE_FLAGS.programsAndResources && (href === "/opportunities" || href.startsWith("/opportunities/"))) {
     return false
   }
   if (!FEATURE_FLAGS.investmentsDealflow && href.startsWith("/investments")) {

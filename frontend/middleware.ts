@@ -31,6 +31,7 @@ const protectedRoutes = [
   "/booking",
   "/billing",
   "/resources",
+  "/opportunities",
   "/profile",
   "/events",
   "/partners",

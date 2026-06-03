@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, ChevronRight, Building2, FolderOpen, BarChart3 } from "lucide-react"
+import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, Building2, FolderOpen, BarChart3, Sparkles } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useSidebar } from "@/components/sidebar-context"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -89,7 +89,12 @@ const navGroups: NavGroup[] = [
         icon: CalendarDays,
       },
       {
-        title: "Programs & Resources",
+        title: "Opportunities",
+        href: "/opportunities",
+        icon: Sparkles,
+      },
+      {
+        title: "Resource library",
         href: "/resources",
         icon: BookOpen,
       },
@@ -121,6 +126,8 @@ const visibleNavGroups = navGroups
 
 export function DashboardNav() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const resourcesTab = searchParams.get("tab")
   const { isCollapsed } = useSidebar()
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     Main: true,
@@ -139,7 +146,19 @@ export function DashboardNav() {
     }
   }
 
-  const isItemActive = (href: string) => pathname === href
+  const isItemActive = (href: string) => {
+    if (href === "/opportunities") {
+      return (
+        pathname === "/opportunities" ||
+        pathname.startsWith("/resources/opportunities") ||
+        (pathname === "/resources" && resourcesTab === "programs")
+      )
+    }
+    if (href === "/resources") {
+      return pathname === "/resources" && resourcesTab !== "programs"
+    }
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
 
   // Collapsed view - show only icons
   if (isCollapsed) {
