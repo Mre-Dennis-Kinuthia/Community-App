@@ -13,6 +13,7 @@
     "db:deploy": "tsx scripts/migrate-deploy.ts",
     "db:apply-stored-images": "tsx scripts/apply-stored-images-table.ts",
     "db:apply-membership-links": "tsx scripts/apply-membership-payment-links-table.ts",
+    "db:apply-community-opportunities": "tsx scripts/apply-community-opportunities-table.ts",
     "db:studio": "prisma studio",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",

@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
+
+function prismaErrorResponse(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    // P2021: table does not exist — schema not migrated on this database
+    if (error.code === "P2021") {
+      console.error("[OPPORTUNITIES API] Missing table:", error.meta)
+      return NextResponse.json(
+        {
+          error: "Opportunities are not available yet (database setup pending).",
+          code: "SCHEMA_PENDING",
+          hint: "Run npm run db:apply-community-opportunities or apply prisma/migrations/20260603140000_community_opportunities/APPLY_IN_NEON_CONSOLE.sql in Neon.",
+        },
+        { status: 503 }
+      )
+    }
+  }
+
+  console.error("[OPPORTUNITIES API]", error)
+  return NextResponse.json(
+    { error: error instanceof Error ? error.message : "Failed to load opportunities" },
+    { status: 500 }
+  )
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +40,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")?.trim()
     const featured = searchParams.get("featured") === "true"
 
-    const where: Record<string, unknown> = {
+    const where: Prisma.CommunityOpportunityWhereInput = {
       deletedAt: null,
       status: { in: ["open", "closed"] },
     }
@@ -71,10 +95,6 @@ export async function GET(request: NextRequest) {
       tags: Array.from(tagSet).sort((a, b) => a.localeCompare(b)),
     })
   } catch (error) {
-    console.error("[OPPORTUNITIES API]", error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to load opportunities" },
-      { status: 500 }
-    )
+    return prismaErrorResponse(error)
   }
 }

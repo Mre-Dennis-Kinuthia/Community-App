@@ -1,7 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { opportunityApplyEnabled, opportunityIsVisible } from "@/lib/community-opportunity"
+
+function prismaErrorResponse(error: unknown) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2021") {
+    return NextResponse.json(
+      {
+        error: "Opportunities are not available yet (database setup pending).",
+        code: "SCHEMA_PENDING",
+      },
+      { status: 503 }
+    )
+  }
+  console.error("[OPPORTUNITY DETAIL API]", error)
+  return NextResponse.json(
+    { error: error instanceof Error ? error.message : "Failed to load opportunity" },
+    { status: 500 }
+  )
+}
 
 export async function GET(
   request: NextRequest,
@@ -43,10 +61,6 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error("[OPPORTUNITY DETAIL API]", error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to load opportunity" },
-      { status: 500 }
-    )
+    return prismaErrorResponse(error)
   }
 }
