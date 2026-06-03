@@ -21,7 +21,12 @@ import { EventSpaceInquiryForm } from "@/components/booking/event-space-inquiry-
 import { PricingBreakdown } from "@/components/booking/pricing-breakdown"
 import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
+import { CheckoutGuideBubble } from "@/components/booking/checkout-guide-bubble"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
+import {
+  getCheckoutGuideHint,
+  shouldShowCheckoutGuide,
+} from "@/lib/checkout-guide-hint"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -65,6 +70,7 @@ export default function BookingPage() {
   const [selectedMeetingRoomHours, setSelectedMeetingRoomHours] = useState(1)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [pastriesPax, setPastriesPax] = useState(1)
+  const [highlightCheckout, setHighlightCheckout] = useState(false)
 
   const { pricing } = usePricing(
     workspaceId,
@@ -251,9 +257,35 @@ export default function BookingPage() {
     (selectedResource === "hot-desk" && !!selectedDate) ||
     (selectedResource === "meeting-room" && !!selectedDate && !!selectedTime)
 
+  const showCheckoutGuide = shouldShowCheckoutGuide(selectedResource, isValidBooking)
+  const checkoutGuideHint = getCheckoutGuideHint({
+    resource: selectedResource,
+    isValid: isValidBooking,
+    selectedDate,
+    selectedTime,
+    meetingRoomCapacity: selectedMeetingRoomCapacity,
+  })
+
+  const pointToCheckout = () => {
+    const targetId =
+      typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
+        ? "checkout-cta-desktop"
+        : "checkout-cta"
+    document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "center" })
+    setHighlightCheckout(true)
+    window.setTimeout(() => setHighlightCheckout(false), 2400)
+  }
+
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-6xl space-y-6 overflow-x-hidden pb-[calc(7.5rem+env(safe-area-inset-bottom))] lg:pb-10">
+      <div
+        className={cn(
+          "mx-auto w-full max-w-6xl space-y-6 overflow-x-hidden lg:pb-10",
+          isBookableResource && showCheckoutGuide
+            ? "pb-[calc(13.5rem+env(safe-area-inset-bottom))]"
+            : "pb-[calc(7.5rem+env(safe-area-inset-bottom))]"
+        )}
+      >
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Book Workspace" }]} />
         </MobileBreadcrumbsHidden>
@@ -489,9 +521,22 @@ export default function BookingPage() {
                       currency={safePricing.currency}
                       pastriesPax={pastriesPax}
                     />
+                    {showCheckoutGuide && (
+                      <CheckoutGuideBubble
+                        ready={isValidBooking}
+                        hint={checkoutGuideHint}
+                        onCheckout={handleConfirmBooking}
+                        onPointToCheckout={pointToCheckout}
+                        tail="none"
+                      />
+                    )}
                     <Button
+                      id="checkout-cta-desktop"
                       size="lg"
-                      className="w-full"
+                      className={cn(
+                        "w-full",
+                        highlightCheckout && "ring-2 ring-primary ring-offset-2"
+                      )}
                       disabled={!isValidBooking}
                       onClick={handleConfirmBooking}
                     >
@@ -520,6 +565,10 @@ export default function BookingPage() {
                 onConfirm={handleConfirmBooking}
                 isBooking={false}
                 isValid={isValidBooking}
+                highlight={highlightCheckout}
+                guideReady={showCheckoutGuide && isValidBooking}
+                guideHint={showCheckoutGuide ? checkoutGuideHint : null}
+                onPointToCheckout={pointToCheckout}
               />
             )}
 
