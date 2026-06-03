@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
@@ -23,15 +24,40 @@ import { ImageGallery } from "@/components/booking/image-gallery"
 import { AddOnSelector } from "@/components/booking/add-on-selector"
 import { CheckoutGuideStrip } from "@/components/booking/checkout-guide-strip"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
+import { WorkspacePicker } from "@/components/booking/workspace-picker"
 import { getCheckoutGuideHint, isBookableForCheckout } from "@/lib/checkout-guide-hint"
+import { useWorkspaces } from "@/lib/hooks/use-workspaces"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function BookingPage() {
-  const { workspace, isLoading: isLoadingWorkspace, error: workspaceError } = useWorkspace()
+function BookingPageContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const slugParam = searchParams.get("slug")
+
+  const { workspaces, isLoading: isLoadingList } = useWorkspaces()
+
+  useEffect(() => {
+    if (isLoadingList || slugParam || workspaces.length !== 1) return
+    router.replace(`/booking?slug=${encodeURIComponent(workspaces[0].slug)}`, { scroll: false })
+  }, [isLoadingList, slugParam, workspaces, router])
+
+  const needsPicker = !isLoadingList && workspaces.length > 1 && !slugParam
+  const effectiveSlug =
+    slugParam ?? (workspaces.length === 1 ? workspaces[0]?.slug : undefined)
+
+  const {
+    workspace,
+    isLoading: isLoadingWorkspace,
+    error: workspaceError,
+  } = useWorkspace(needsPicker ? null : effectiveSlug)
+
+  const selectWorkspace = (slug: string) => {
+    router.push(`/booking?slug=${encodeURIComponent(slug)}`, { scroll: false })
+  }
 
   const workspaceId = workspace?.id
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
@@ -287,22 +313,57 @@ export default function BookingPage() {
           <Breadcrumbs items={[{ label: "Book Workspace" }]} />
         </MobileBreadcrumbsHidden>
 
-        {isLoadingWorkspace ? (
+        {isLoadingList || (isLoadingWorkspace && !needsPicker) ? (
           <div className="flex justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        ) : !workspace ? (
+        ) : workspaces.length === 0 ? (
           <div className="rounded-xl border border-border bg-muted/20 px-6 py-12 text-center">
             <p className="font-medium">No active workspace configured</p>
             <p className="mt-2 text-sm text-muted-foreground">
               Create an active workspace in the admin panel to enable bookings.
             </p>
-            {workspaceError ? (
-              <p className="mt-2 text-xs text-destructive">{workspaceError}</p>
-            ) : null}
+          </div>
+        ) : needsPicker ? (
+          <WorkspacePicker
+            workspaces={workspaces}
+            selectedSlug={null}
+            onSelect={selectWorkspace}
+          />
+        ) : !workspace ? (
+          <div className="space-y-4">
+            <WorkspacePicker
+              workspaces={workspaces}
+              selectedSlug={slugParam}
+              onSelect={selectWorkspace}
+            />
+            <div className="rounded-xl border border-border bg-muted/20 px-6 py-8 text-center">
+              <p className="font-medium">Workspace not found</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Pick a workspace above, or check that it is marked active in admin.
+              </p>
+              {workspaceError ? (
+                <p className="mt-2 text-xs text-destructive">{workspaceError}</p>
+              ) : null}
+            </div>
           </div>
         ) : (
           <>
+            {workspaces.length > 1 && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
+                <span>
+                  Booking: <span className="font-semibold">{workspace.name}</span>
+                </span>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto p-0 text-xs"
+                  onClick={() => router.push("/booking", { scroll: false })}
+                >
+                  Change workspace
+                </Button>
+              </div>
+            )}
             <div className="space-y-4">
               <ImageGallery
                 images={workspace.images}
@@ -576,5 +637,23 @@ export default function BookingPage() {
         )}
       </div>
     </DashboardLayout>
+  )
+}
+
+function BookingPageFallback() {
+  return (
+    <DashboardLayout>
+      <div className="flex justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    </DashboardLayout>
+  )
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense fallback={<BookingPageFallback />}>
+      <BookingPageContent />
+    </Suspense>
   )
 }

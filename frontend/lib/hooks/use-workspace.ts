@@ -43,10 +43,17 @@ interface WorkspaceApiResponse {
  * Workspaces screen. If no slug is provided, the API will
  * return the first active workspace.
  */
-export function useWorkspace(workspaceSlug?: string) {
-  const key = workspaceSlug
-    ? `/api/workspace?slug=${encodeURIComponent(workspaceSlug)}`
-    : `/api/workspace`
+/**
+ * @param workspaceSlug - slug from URL, or undefined for default (oldest active).
+ * Pass `null` to skip fetching (e.g. while user picks a space).
+ */
+export function useWorkspace(workspaceSlug?: string | null) {
+  const key =
+    workspaceSlug === null
+      ? null
+      : workspaceSlug
+        ? `/api/workspace?slug=${encodeURIComponent(workspaceSlug)}`
+        : "/api/workspace"
   const { data, error, isLoading } = useSWR<WorkspaceApiResponse>(key)
 
   return {
