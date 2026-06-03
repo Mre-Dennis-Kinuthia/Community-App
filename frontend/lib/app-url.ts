@@ -23,6 +23,10 @@ export function getNewsArticleUrl(postId: string): string {
   return `${getAppBaseUrl()}/news/${postId}`
 }
 
+export function getCommunityOpportunityUrl(opportunityId: string): string {
+  return `${getAppBaseUrl()}/resources/opportunities/${opportunityId}`
+}
+
 export function getDashboardBookingUrl(bookingId: string): string {
   return `${getAppBaseUrl()}/dashboard/bookings/${bookingId}`
 }

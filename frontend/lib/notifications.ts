@@ -126,6 +126,16 @@ export const NotificationTemplates = {
     relatedType: "news",
   }),
 
+  opportunityPublished: (opportunityId: string, title: string, source?: string | null) => ({
+    title: "New opportunity for you",
+    message: source ? `${title} — via ${source}` : title,
+    type: "info" as const,
+    category: "opportunity",
+    actionUrl: `/resources/opportunities/${opportunityId}`,
+    relatedId: opportunityId,
+    relatedType: "community_opportunity",
+  }),
+
   paymentRequired: (bookingId: string, amount: number) => ({
     title: "Payment Required",
     message: `Payment of KES ${amount.toFixed(2)} is required for your booking.`,

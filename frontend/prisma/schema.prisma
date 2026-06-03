@@ -813,6 +813,32 @@ model ProgramApplication {
   @@index([status])
 }
 
+// Scouted external opportunities shared with the community (Programs hub)
+model CommunityOpportunity {
+  id          String    @id @default(cuid())
+  title       String
+  summary     String?   @db.Text
+  content     String    @db.Text
+  flierUrl    String?
+  applyUrl    String
+  tags        String[]  @default([])
+  source      String?
+  status      String    @default("draft") // draft, open, closed, archived
+  featured    Boolean   @default(false)
+  deadline    DateTime?
+  publishedAt DateTime?
+  notifiedAt  DateTime?
+  createdBy   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@map("community_opportunities")
+  @@index([status])
+  @@index([publishedAt])
+  @@index([deadline])
+}
+
 // ============================================
 // STORED IMAGES (binary in Postgres)
 // ============================================

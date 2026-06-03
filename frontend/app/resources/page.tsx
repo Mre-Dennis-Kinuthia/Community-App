@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
@@ -31,11 +30,13 @@ import {
   FileSpreadsheet,
   Link as LinkIcon,
   PlayCircle,
-  CheckCircle2
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
+import { format } from "date-fns"
+import { getImageDisplayUrl } from "@/lib/stored-image"
+import { OPPORTUNITY_STATUS_LABELS, type OpportunityStatus } from "@/lib/community-opportunity"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
@@ -48,11 +49,7 @@ import {
   MobileSearchFilterRow,
 } from "@/components/mobile/mobile-page-shell"
 
-// Note: Programs are currently managed as events in the system
-// For now, we'll show an empty state or fetch from events API if needed
-const programOpportunities: any[] = []
-
-// Resources will be fetched from API
+// Opportunities fetched from API (scouted external programs, grants, roles, etc.)
 const resourceCategories: any[] = []
 
 const typeColors: Record<string, string> = {
@@ -62,17 +59,9 @@ const typeColors: Record<string, string> = {
   Video: "bg-muted text-muted-foreground border border-border",
 }
 
-const programTypeColors: Record<string, string> = {
-  Mentorship: "bg-muted text-muted-foreground border border-border",
-  Incubation: "bg-muted text-muted-foreground border border-border",
-  Acceleration: "bg-primary/10 text-primary",
-  Fellowship: "bg-muted text-muted-foreground border border-border",
-}
-
-const statusColors: Record<string, string> = {
-  "Open for Applications": "bg-muted text-muted-foreground border border-border",
-  "Applications Closed": "bg-muted text-muted-foreground",
-  "Ongoing": "bg-primary/10 text-primary",
+const opportunityStatusColors: Record<string, string> = {
+  open: "bg-primary/10 text-primary border-primary/20",
+  closed: "bg-muted text-muted-foreground border border-border",
 }
 
 function ResourcesPageContent() {
@@ -129,6 +118,22 @@ function ResourcesPageContent() {
     restoreScroll()
   }, [activeTab])
 
+  const opportunitiesParams = new URLSearchParams()
+  if (searchQuery) opportunitiesParams.set("search", searchQuery)
+  if (categoryFilter !== "all") opportunitiesParams.set("tag", categoryFilter)
+  const opportunitiesKey =
+    activeTab === "programs" ? `/api/opportunities?${opportunitiesParams.toString()}` : null
+  const {
+    data: opportunitiesResponse,
+    error: opportunitiesError,
+    isLoading: isLoadingOpportunities,
+  } = useSWR<{ opportunities?: any[]; tags?: string[] }>(opportunitiesKey)
+  const opportunities = Array.isArray(opportunitiesResponse?.opportunities)
+    ? opportunitiesResponse.opportunities
+    : []
+  const opportunityTags = opportunitiesResponse?.tags ?? []
+  const opportunitiesErrorMsg = opportunitiesError?.message ?? null
+
   const resourcesParams = new URLSearchParams()
   if (searchQuery) resourcesParams.set("search", searchQuery)
   if (typeFilter !== "all") resourcesParams.set("type", typeFilter)
@@ -151,21 +156,13 @@ function ResourcesPageContent() {
     router.replace(newUrl, { scroll: false })
   }, [activeTab, searchQuery, categoryFilter, statusFilter, typeFilter, router])
 
-  // Filter Programs
-  const filteredPrograms = useMemo(() => {
-    return programOpportunities.filter((program) => {
-      const matchesSearch = 
-        program.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        program.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        program.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      
-      const matchesCategory = categoryFilter === "all" || program.category === categoryFilter
-      const matchesStatus = statusFilter === "all" || program.status === statusFilter
-      const matchesType = typeFilter === "all" || program.type === typeFilter
-
-      return matchesSearch && matchesCategory && matchesStatus && matchesType
+  // Filter opportunities (tag/search via API; status client-side)
+  const filteredOpportunities = useMemo(() => {
+    return opportunities.filter((item) => {
+      const matchesStatus = statusFilter === "all" || item.status === statusFilter
+      return matchesStatus
     })
-  }, [searchQuery, categoryFilter, statusFilter, typeFilter])
+  }, [opportunities, statusFilter])
 
   // Filter Resources (already filtered by API, but apply client-side filters if needed)
   const filteredResources = useMemo(() => {
@@ -202,9 +199,8 @@ function ResourcesPageContent() {
     typeFilter !== "all",
   ].filter(Boolean).length
 
-  const uniqueProgramCategories = Array.from(new Set(programOpportunities.map((p) => p.category)))
-  const uniqueProgramTypes = Array.from(new Set(programOpportunities.map((p) => p.type)))
-  const uniqueStatuses = Array.from(new Set(programOpportunities.map((p) => p.status)))
+  const uniqueOpportunityTags = opportunityTags
+  const opportunityStatuses = ["open", "closed"] as const
   const resourceCategoryNames = Array.from(new Set(resources.map((r) => r.category).filter(Boolean)))
   const uniqueResourceTypes = Array.from(new Set(resources.map((r) => r.type).filter(Boolean)))
 
@@ -223,12 +219,12 @@ function ResourcesPageContent() {
 
         <MobilePageHeader
           title="Programs & Resources"
-          description="Explore program opportunities and access tools, templates, and guides to support your social impact journey."
+          description="Scouted funding, programs, and roles — plus tools and guides for your impact journey."
         />
 
         <PillTabs
           items={[
-            { value: "programs", label: "Programs" },
+            { value: "programs", label: "Opportunities" },
             { value: "resources", label: "Resources" },
           ]}
           value={activeTab}
@@ -242,7 +238,7 @@ function ResourcesPageContent() {
               <MobileSearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
-                placeholder={activeTab === "programs" ? "Search programs…" : "Search resources…"}
+                placeholder={activeTab === "programs" ? "Search opportunities…" : "Search resources…"}
               />
             }
             filterTrigger={
@@ -256,10 +252,10 @@ function ResourcesPageContent() {
                   {activeTab === "programs" ? (
                     <>
                       <div className="space-y-2">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Category</p>
+                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tag</p>
                         <FilterChipRow>
                           <FilterChip label="All" active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} />
-                          {uniqueProgramCategories.map((c) => (
+                          {uniqueOpportunityTags.map((c) => (
                             <FilterChip key={c} label={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
                           ))}
                         </FilterChipRow>
@@ -268,8 +264,13 @@ function ResourcesPageContent() {
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</p>
                         <FilterChipRow>
                           <FilterChip label="All" active={statusFilter === "all"} onClick={() => setStatusFilter("all")} />
-                          {uniqueStatuses.map((s) => (
-                            <FilterChip key={s} label={s.replace("Applications ", "")} active={statusFilter === s} onClick={() => setStatusFilter(s)} />
+                          {opportunityStatuses.map((s) => (
+                            <FilterChip
+                              key={s}
+                              label={OPPORTUNITY_STATUS_LABELS[s]}
+                              active={statusFilter === s}
+                              onClick={() => setStatusFilter(s)}
+                            />
                           ))}
                         </FilterChipRow>
                       </div>
@@ -301,8 +302,8 @@ function ResourcesPageContent() {
             }
           />
           <MobileFilterMeta
-            count={activeTab === "programs" ? filteredPrograms.length : filteredResources.length}
-            countLabel={activeTab === "programs" ? "programs" : "resources"}
+            count={activeTab === "programs" ? filteredOpportunities.length : filteredResources.length}
+            countLabel={activeTab === "programs" ? "opportunities" : "resources"}
             filterCount={activeFilterCount}
             hasFilters={!!hasActiveFilters}
             onClear={clearFilters}
@@ -317,9 +318,9 @@ function ResourcesPageContent() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder={activeTab === "programs" 
-                    ? "Search programs, benefits, eligibility..." 
-                    : "Search resources, templates, guides..."}
+                  placeholder={activeTab === "programs"
+                    ? "Search opportunities, tags, sources…"
+                    : "Search resources, templates, guides…"}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 shadow-sm"
@@ -333,12 +334,12 @@ function ResourcesPageContent() {
                     <div className="min-w-0">
                       <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                         <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Categories" />
+                          <SelectValue placeholder="All tags" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {uniqueProgramCategories.map((category) => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
+                          <SelectItem value="all">All tags</SelectItem>
+                          {uniqueOpportunityTags.map((tag) => (
+                            <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -346,25 +347,14 @@ function ResourcesPageContent() {
                     <div className="min-w-0">
                       <Select value={statusFilter} onValueChange={setStatusFilter}>
                         <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Status" />
+                          <SelectValue placeholder="All status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          {uniqueStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>{status}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="min-w-0">
-                      <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          {uniqueProgramTypes.map((type) => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          <SelectItem value="all">All status</SelectItem>
+                          {opportunityStatuses.map((status) => (
+                            <SelectItem key={status} value={status}>
+                              {OPPORTUNITY_STATUS_LABELS[status]}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -377,7 +367,10 @@ function ResourcesPageContent() {
                         </Button>
                       </div>
                     ) : (
-                      <div className="hidden lg:block min-w-0" />
+                      <>
+                        <div className="hidden lg:block min-w-0" />
+                        <div className="hidden lg:block min-w-0" />
+                      </>
                     )}
                   </>
                 ) : (
@@ -433,8 +426,8 @@ function ResourcesPageContent() {
                     </Badge>
                   )}
                   <span className="text-sm text-muted-foreground">
-                    {activeTab === "programs" 
-                      ? `${filteredPrograms.length} program${filteredPrograms.length !== 1 ? "s" : ""} found`
+                    {activeTab === "programs"
+                      ? `${filteredOpportunities.length} opportunit${filteredOpportunities.length !== 1 ? "ies" : "y"} found`
                       : `${filteredResources.length} resource${filteredResources.length !== 1 ? "s" : ""} found`}
                   </span>
                 </div>
@@ -443,113 +436,101 @@ function ResourcesPageContent() {
           </CardContent>
         </Card>
 
-        {/* Programs Tab */}
-        <div 
-          className="space-y-6 w-full overflow-x-hidden" 
+        {/* Opportunities Tab */}
+        <div
+          className="space-y-6 w-full overflow-x-hidden"
           style={{ display: activeTab === "programs" ? "block" : "none" }}
           aria-hidden={activeTab !== "programs"}
         >
-            {filteredPrograms.length === 0 ? (
-              <Card className="border-border ">
+            {isLoadingOpportunities ? (
+              <Card className="border-border">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+                  <p className="text-muted-foreground text-center">Loading opportunities…</p>
+                </CardContent>
+              </Card>
+            ) : opportunitiesErrorMsg ? (
+              <Card className="border-border">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-center">{opportunitiesErrorMsg}</p>
+                </CardContent>
+              </Card>
+            ) : filteredOpportunities.length === 0 ? (
+              <Card className="border-border">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">
-                    No programs found matching your filters.
+                    No opportunities match your filters yet. Check back soon — our team scouts new
+                    programs regularly.
                   </p>
-                  <Button variant="outline" onClick={clearFilters} className="mt-4">
-                    Clear Filters
-                  </Button>
+                  {hasActiveFilters ? (
+                    <Button variant="outline" onClick={clearFilters} className="mt-4">
+                      Clear filters
+                    </Button>
+                  ) : null}
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 w-full min-w-0">
-                {filteredPrograms.map((program) => (
-                  <Link key={program.id} href={program.applicationLink}>
-                    <Card className="border-border  transition-all hover:bg-muted/30  cursor-pointer">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 space-y-3">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {program.featured && (
-                                <Badge className="bg-primary/10 text-primary border-primary/20">
-                                  Featured
-                                </Badge>
-                              )}
-                              <Badge className={programTypeColors[program.type]}>
-                                {program.type}
-                              </Badge>
-                              <Badge className={statusColors[program.status]}>
-                                {program.status}
-                              </Badge>
-                            </div>
-                            <CardTitle className="text-xl">{program.title}</CardTitle>
-                            <CardDescription className="text-base line-clamp-2">
-                              {program.description}
-                            </CardDescription>
+                {filteredOpportunities.map((item) => {
+                  const flier = item.flierUrl ? getImageDisplayUrl(item.flierUrl) : undefined
+                  const statusLabel =
+                    OPPORTUNITY_STATUS_LABELS[item.status as OpportunityStatus] ?? item.status
+                  return (
+                    <Link key={item.id} href={`/resources/opportunities/${item.id}`}>
+                      <Card className="border-border h-full transition-all hover:border-primary/30 hover:bg-muted/20 cursor-pointer overflow-hidden">
+                        {flier ? (
+                          <div className="aspect-[2/1] w-full overflow-hidden border-b border-border">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={flier} alt="" className="h-full w-full object-cover" loading="lazy" />
                           </div>
-                          {program.thumbnail && (
-                            <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-border">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={program.thumbnail}
-                                alt={program.title}
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <CheckCircle2 className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-medium">Key Benefits</span>
-                          </div>
-                          <ul className="space-y-1">
-                            {program.benefits.slice(0, 3).map((benefit, idx) => (
-                              <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                                {benefit}
-                              </li>
-                            ))}
-                            {program.benefits.length > 3 && (
-                              <li className="text-xs text-muted-foreground">
-                                +{program.benefits.length - 3} more benefits
-                              </li>
-                            )}
-                          </ul>
-                        </div>
-                        <div className="flex items-center gap-2 pt-2 border-t">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={program.programLeadAvatar} alt={program.programLead} />
-                            <AvatarFallback>{(program.programLead ?? "?")[0]}</AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm text-muted-foreground">Led by {program.programLead}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {program.tags.slice(0, 3).map((tag, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {tag}
+                        ) : null}
+                        <CardHeader className="pb-2">
+                          <div className="flex flex-wrap gap-2">
+                            {item.featured ? (
+                              <Badge className="bg-primary/10 text-primary border-primary/20">
+                                Featured
+                              </Badge>
+                            ) : null}
+                            <Badge className={opportunityStatusColors[item.status] ?? ""}>
+                              {statusLabel}
                             </Badge>
-                          ))}
-                        </div>
-                        <div className="pt-2 border-t">
-                          <Badge 
-                            variant={program.status === "Open for Applications" ? "default" : "secondary"} 
+                            {item.source ? (
+                              <Badge variant="secondary" className="text-xs">
+                                {item.source}
+                              </Badge>
+                            ) : null}
+                          </div>
+                          <CardTitle className="text-lg leading-snug">{item.title}</CardTitle>
+                          {item.summary ? (
+                            <CardDescription className="line-clamp-2">{item.summary}</CardDescription>
+                          ) : null}
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex flex-wrap gap-1">
+                            {(item.tags ?? []).slice(0, 4).map((tag: string) => (
+                              <Badge key={tag} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                          {item.deadline ? (
+                            <p className="text-xs text-muted-foreground">
+                              Apply by {format(new Date(item.deadline), "MMM d, yyyy")}
+                            </p>
+                          ) : null}
+                          <Badge
+                            variant={item.status === "open" ? "default" : "secondary"}
                             className="w-full justify-center py-2"
                           >
-                            {program.status === "Open for Applications" 
-                              ? "Apply Now →" 
-                              : program.status === "Applications Closed"
-                              ? "Applications Closed"
-                              : "View Details →"}
+                            {item.status === "open" ? "View & apply →" : "View details →"}
                           </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  )
+                })}
               </div>
             )}
         </div>
