@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { Suspense, useState, useEffect, useCallback, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -43,7 +43,7 @@ const BIO_MAX_LENGTH = 280
 const STEP_LABELS = ["Your profile", "Goals & community"] as const
 const TOTAL_STEPS = STEP_LABELS.length
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const organisationalIntent = isOrganisationalRegisterIntent(searchParams.get("intent"))
@@ -572,5 +572,19 @@ export default function OnboardingPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" aria-label="Loading" />
+        </div>
+      }
+    >
+      <OnboardingContent />
+    </Suspense>
   )
 }
