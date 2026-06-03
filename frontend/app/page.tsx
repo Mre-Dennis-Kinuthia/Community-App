@@ -318,7 +318,7 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="landing-header sticky top-0 z-50 overflow-x-hidden">
         <div className="container flex h-[4.25rem] min-w-0 items-center justify-between gap-4 px-4 md:px-6">
-          <Logo href="/" />
+          <Logo href="/" variant="landing" />
 
           <nav
             className="hidden items-center gap-8 md:flex"

@@ -1,19 +1,8 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <style>
-    @media (prefers-color-scheme: light) {
-      .background { fill: #171717; }
-      .foreground { fill: white; }
-    }
-    @media (prefers-color-scheme: dark) {
-      .background { fill: white; }
-      .foreground { fill: #171717; }
-    }
-  </style>
-  <rect class="background" width="180" height="180" rx="37" />
-  <g style="transform: scale(75%); transform-origin: center">
-    <!-- Simple "I" for Impact Hub -->
-    <rect class="foreground" x="90" y="30" width="60" height="30" rx="6" />
-    <rect class="foreground" x="90" y="60" width="60" height="90" rx="6" />
-    <rect class="foreground" x="90" y="150" width="60" height="30" rx="6" />
-  </g>
+  <rect width="180" height="180" rx="40" fill="#A6192E"/>
+  <circle cx="90" cy="90" r="16" fill="white"/>
+  <circle cx="90" cy="43" r="10.5" fill="white"/>
+  <circle cx="51" cy="126" r="10.5" fill="white"/>
+  <circle cx="129" cy="126" r="10.5" fill="white"/>
+  <path d="M90 53.5V74M60.4 117.5L76.5 100M119.6 117.5L103.5 100" stroke="white" stroke-width="8.5" stroke-linecap="round"/>
 </svg>

@@ -1,52 +1,64 @@
 "use client"
 
 import Link from "next/link"
-import { Building2 } from "lucide-react"
+import { BrandMark } from "@/components/brand-mark"
 import { cn } from "@/lib/utils"
 
-const BRAND_NAME = "Impact Hub Nairobi"
-
 interface LogoProps {
-  /** When provided, the logo wraps in a Link to this href */
   href?: string
-  /** Visual variant: default (icon + text), compact (smaller), iconOnly (icon box only) */
-  variant?: "default" | "compact" | "iconOnly"
+  variant?: "default" | "compact" | "landing" | "iconOnly"
   className?: string
 }
 
-export function Logo({ href, variant = "default", className }: LogoProps) {
-  const iconBox = (
-    <div
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm",
-        variant === "compact" ? "h-8 w-8" : "h-9 w-9"
-      )}
-    >
-      <Building2 className={variant === "compact" ? "h-4 w-4" : "h-4 w-4"} />
-    </div>
-  )
+const markSizes = {
+  compact: 32,
+  default: 36,
+  landing: 44,
+  iconOnly: 36,
+} as const
 
-  const text = variant !== "iconOnly" && (
-    <span
-      className={cn(
-        "font-semibold tracking-tight text-primary",
-        variant === "compact" ? "text-xs" : "text-sm"
-      )}
-    >
-      {BRAND_NAME}
-    </span>
-  )
+export function Logo({ href, variant = "default", className }: LogoProps) {
+  const markSize = markSizes[variant]
+
+  const wordmark =
+    variant !== "iconOnly" ? (
+      <span className="flex min-w-0 flex-col leading-none">
+        <span
+          className={cn(
+            "font-bold tracking-tight text-foreground",
+            variant === "compact" && "text-sm",
+            variant === "default" && "text-base",
+            variant === "landing" && "text-lg md:text-xl"
+          )}
+        >
+          Impact Hub
+        </span>
+        <span
+          className={cn(
+            "font-semibold uppercase tracking-[0.18em] text-primary",
+            variant === "compact" ? "mt-0.5 text-[9px]" : "mt-1 text-[10px]",
+            variant === "landing" && "text-[11px] md:text-xs"
+          )}
+        >
+          Nairobi
+        </span>
+      </span>
+    ) : null
 
   const content = (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
-      {iconBox}
-      {text}
+    <span className={cn("inline-flex min-w-0 items-center gap-3", className)}>
+      <BrandMark size={markSize} />
+      {wordmark}
     </span>
   )
 
   if (href) {
     return (
-      <Link href={href} className="transition-opacity duration-200 ease-out hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md">
+      <Link
+        href={href}
+        className="rounded-md transition-opacity duration-200 hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        aria-label="Impact Hub Nairobi home"
+      >
         {content}
       </Link>
     )
