@@ -48,9 +48,9 @@ export async function GET(request: NextRequest) {
         where,
         take: limit,
         skip: offset,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ isFeatured: "desc" }, { name: "asc" }],
         include: {
-          _count: { select: { opportunities: true } },
+          _count: { select: { opportunities: { where: { deletedAt: null } } } },
         },
       }),
       prisma.partner.count({ where }),
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       contactEmail: p.contactEmail ?? null,
       isFeatured: p.isFeatured ?? false,
       createdAt: p.createdAt,
-      _count: { opportunities: p._count.opportunities },
+      opportunitiesCount: p._count.opportunities,
     }))
 
     const filters = {

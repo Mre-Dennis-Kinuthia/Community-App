@@ -52,6 +52,7 @@ export async function GET(
       contactEmail: row.contactEmail ?? null,
       isFeatured: row.isFeatured ?? false,
       createdAt: row.createdAt,
+      opportunitiesCount: row.opportunities.length,
       opportunities: row.opportunities.map((o) => ({
         id: o.id,
         title: o.title,

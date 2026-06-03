@@ -1,118 +1,62 @@
 "use client"
 
 import { use } from "react"
-import { useRouter } from "next/navigation"
+import useSWR from "swr"
 import Link from "next/link"
+import { ArrowLeft, Loader2, MapPin, Target } from "lucide-react"
 import { DashboardLayout } from "@/app/dashboard/layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { 
-  ArrowLeft,
-  Building2,
-  Globe,
-  Handshake,
-  TrendingUp,
-  Award,
-  ExternalLink,
-  MapPin,
-  Target,
-  CheckCircle2,
-  Mail,
-  Calendar,
-  DollarSign,
-  Sparkles,
-  Loader2
-} from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { format } from "date-fns"
-import { useEffect, useState } from "react"
-
-// Partners will be fetched from API
-const partners: any[] = []
-
-const typeIcons: Record<string, any> = {
-  "Workspace Partner": Building2,
-  "Investor": TrendingUp,
-  "Partner": Handshake,
-  "Funder": Award,
-  "Government": Building2,
-  "Network": Globe,
-}
-
-const typeColors: Record<string, string> = {
-  "Workspace Partner": "bg-muted text-muted-foreground border border-border",
-  "Investor": "bg-muted text-muted-foreground border border-border",
-  "Partner": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Funder": "bg-muted text-muted-foreground border border-border",
-  "Government": "bg-muted text-muted-foreground border border-border",
-  "Network": "bg-muted text-muted-foreground border border-border",
-}
-
-const categoryColors: Record<string, string> = {
-  "Infrastructure": "bg-slate-100 text-slate-700 dark:bg-slate-900/20 dark:text-slate-400",
-  "Funding": "bg-muted text-muted-foreground border border-border",
-  "Ecosystem": "bg-muted text-muted-foreground border border-border",
-  "Public Sector": "bg-muted text-muted-foreground border border-border",
-}
-
-const opportunityCategoryColors: Record<string, string> = {
-  "Funding": "bg-muted text-muted-foreground border border-border",
-  "Program": "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary/80",
-  "Resource": "bg-muted text-muted-foreground border border-border",
-}
+import { MobilePageHeader, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
+import { PartnerBadges } from "@/components/partners/partner-badges"
+import { PartnerLogo } from "@/components/partners/partner-logo"
+import { PartnerConnectPanel } from "@/components/partners/partner-connect-panel"
+import { PartnerOpportunityList } from "@/components/partners/partner-opportunity-list"
+import { normalizePartner } from "@/lib/partner-utils"
+import type { Partner } from "@/types/partner"
 
 export default function PartnerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const router = useRouter()
-  const [partner, setPartner] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  
-  useEffect(() => {
-    async function fetchPartner() {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const response = await fetch(`/api/partners/${id}`)
-        if (!response.ok) {
-          throw new Error("Failed to fetch partner")
-        }
-        const data = await response.json()
-        setPartner(data.partner)
-      } catch (err: any) {
-        console.error("Failed to fetch partner:", err)
-        setError(err.message || "Failed to load partner")
-      } finally {
-        setIsLoading(false)
-      }
+
+  const { data, error, isLoading } = useSWR<{ partner: Partner }>(
+    `/api/partners/${id}`,
+    async (url) => {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error("Partner not found")
+      const json = await res.json()
+      return { partner: normalizePartner(json.partner) }
     }
-    
-    fetchPartner()
-  }, [id])
-  
+  )
+
+  const partner = data?.partner
+
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex min-h-[400px] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </DashboardLayout>
     )
   }
-  
+
   if (error || !partner) {
     return (
       <DashboardLayout>
-        <div className="space-y-6">
-          <Breadcrumbs items={[{ label: "Partners & Network" }, { label: "Not Found" }]} />
+        <div className="mx-auto max-w-5xl space-y-6">
+          <Breadcrumbs items={[{ label: "Partners & Network", href: "/partners" }, { label: "Not found" }]} />
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">{error || "Partner not found"}</p>
-              <Button onClick={() => router.push("/partners")}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Partners
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <p className="mb-4 text-sm text-muted-foreground">
+                {error?.message || "This partner could not be found."}
+              </p>
+              <Button asChild>
+                <Link href="/partners">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to partners
+                </Link>
               </Button>
             </CardContent>
           </Card>
@@ -120,279 +64,76 @@ export default function PartnerDetailPage({ params }: { params: Promise<{ id: st
       </DashboardLayout>
     )
   }
-  
-  const partnerOpportunities = partner.opportunities ?? []
-  const focusAreas = partner.focus ?? []
-  const benefits = partner.benefits ?? []
-  const successStories = partner.successStories ?? []
-  const opportunitiesCount =
-    partner.opportunitiesCount ?? partnerOpportunities.length
 
-  const TypeIcon = typeIcons[partner.type] || Building2
+  const opportunities = partner.opportunities ?? []
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <Breadcrumbs items={[{ label: "Partners & Network", href: "/partners" }, { label: partner.name }]} />
-        
-        <Button variant="ghost" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+      <div className="mx-auto w-full max-w-5xl space-y-6 overflow-x-hidden">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs
+            items={[{ label: "Partners & Network", href: "/partners" }, { label: partner.name }]}
+          />
+        </MobileBreadcrumbsHidden>
+
+        <Button variant="ghost" size="sm" className="-ml-2 w-fit" asChild>
+          <Link href="/partners">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            All partners
+          </Link>
         </Button>
 
+        <MobilePageHeader title={partner.name} description={partner.description} />
+
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             <Card className="border-border">
-              <CardHeader>
-                <div className="flex items-center gap-2 flex-wrap mb-4">
-                  <Badge className={typeColors[partner.type]}>
-                    <TypeIcon className="mr-1 h-3 w-3" />
-                    {partner.type}
-                  </Badge>
-                  <Badge className={categoryColors[partner.category]}>
-                    {partner.category}
-                  </Badge>
-                  {partner.locationType && (
-                    <Badge variant="outline">{partner.locationType}</Badge>
-                  )}
-                  {partner.isFeatured && (
-                    <Badge variant="secondary">Featured</Badge>
-                  )}
-                </div>
-                <CardTitle className="text-3xl">{partner.name}</CardTitle>
-                <CardDescription className="text-base mt-2">
-                  {partner.description}
-                </CardDescription>
-                <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-muted-foreground">
-                  {partner.location && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{partner.location}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    <span>
-                      {opportunitiesCount} {opportunitiesCount === 1 ? "opportunity" : "opportunities"}
-                    </span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {partner.impact && (
-                  <>
-                    <div>
-                      <h3 className="font-semibold mb-2 flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-primary" />
-                        Impact
-                      </h3>
-                      <p className="text-muted-foreground text-lg">{partner.impact}</p>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {benefits.length > 0 && (
-                  <>
-                    <div>
-                      <h3 className="font-semibold mb-3 flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-primary" />
-                        Partnership Benefits
-                      </h3>
-                      <p className="text-muted-foreground mb-3">
-                        As an Impact Hub member, you have access to the following benefits from this partner:
-                      </p>
-                      <ul className="space-y-2">
-                        {benefits.map((benefit: string, idx: number) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0 text-primary" />
-                            <span>{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {successStories.length > 0 && (
-                  <>
-                    <div>
-                      <h3 className="font-semibold mb-3 flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-primary" />
-                        Success Stories
-                      </h3>
-                      <ul className="space-y-2">
-                        {successStories.map((story: string, idx: number) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                            <span>{story}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {focusAreas.length > 0 && (
-                  <>
-                    <div>
-                      <h3 className="font-semibold mb-3">Focus Areas</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {focusAreas.map((area: string, idx: number) => (
-                          <Badge key={idx} variant="outline" className="text-sm">
-                            {area}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-
-                {partnerOpportunities.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3 flex items-center gap-2">
-                      <Target className="h-5 w-5 text-primary" />
-                      Active Opportunities ({partnerOpportunities.length})
-                    </h3>
-                    <div className="space-y-3">
-                      {partnerOpportunities.map((opp) => (
-                        <Card key={opp.id} className="border-border">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center gap-2 flex-wrap mb-2">
-                              <Badge className={opportunityCategoryColors[opp.category]}>
-                                {opp.category}
-                              </Badge>
-                              <Badge variant={opp.status === "Open" ? "default" : "secondary"}>
-                                {opp.status}
-                              </Badge>
-                              {opp.deadline && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Calendar className="mr-1 h-3 w-3" />
-                                  Deadline: {format(opp.deadline, "MMM d, yyyy")}
-                                </Badge>
-                              )}
-                            </div>
-                            <CardTitle className="text-lg">{opp.title}</CardTitle>
-                            <CardDescription>{opp.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center gap-4 text-sm">
-                              <div className="flex items-center gap-2 text-muted-foreground">
-                                <DollarSign className="h-4 w-4" />
-                                <span>{opp.amount}</span>
-                              </div>
-                              {opp.deadline && (
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                  <Calendar className="h-4 w-4" />
-                                  <span>{format(opp.deadline, "MMMM d, yyyy")}</span>
-                                </div>
-                              )}
-                            </div>
-                            {(opp.eligibility ?? []).length > 0 && (
-                              <div>
-                                <p className="text-sm font-medium mb-2">Eligibility:</p>
-                                <ul className="space-y-1">
-                                  {(opp.eligibility ?? []).map((req: string, idx: number) => (
-                                    <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                                      <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                      <span>{req}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            <Button className="w-full" onClick={() => {
-                              // In a real app, this would navigate to application form
-                              alert("Application form would open here")
-                            }}>
-                              Apply Now
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      ))}
+              <CardContent className="space-y-5 p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                  <PartnerLogo name={partner.name} logoUrl={partner.logoUrl} size="lg" />
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <PartnerBadges
+                      type={partner.type}
+                      category={partner.category}
+                      locationType={partner.locationType}
+                      featured={partner.isFeatured}
+                    />
+                    <p className="text-base text-muted-foreground">{partner.description}</p>
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                      {partner.location ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4" />
+                          {partner.location}
+                        </span>
+                      ) : null}
+                      <span className="inline-flex items-center gap-1.5">
+                        <Target className="h-4 w-4" />
+                        {partner.opportunitiesCount}{" "}
+                        {partner.opportunitiesCount === 1 ? "opportunity" : "opportunities"}
+                      </span>
                     </div>
                   </div>
-                )}
+                </div>
               </CardContent>
             </Card>
+
+            {partner.focus.length > 0 ? (
+              <section className="space-y-3">
+                <h2 className="text-lg font-semibold">Focus areas</h2>
+                <div className="flex flex-wrap gap-2">
+                  {partner.focus.map((area) => (
+                    <Badge key={area} variant="outline">
+                      {area}
+                    </Badge>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <PartnerOpportunityList partner={partner} opportunities={opportunities} />
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-4">
-            <Card className="border-border sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Connect with Partner</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {partner.website && (
-                  <Button
-                    className="w-full"
-                    onClick={() => window.open(partner.website, "_blank")}
-                  >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Visit Website
-                  </Button>
-                )}
-                {partner.contactEmail && (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      window.location.href = `mailto:${partner.contactEmail}`
-                    }}
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    Contact Partner
-                  </Button>
-                )}
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => {
-                    // In a real app, this would request an introduction
-                    alert("Request introduction form would open here")
-                  }}
-                >
-                  <Handshake className="mr-2 h-4 w-4" />
-                  Request Introduction
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border">
-              <CardHeader>
-                <CardTitle className="text-lg">Partner Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {partner.location && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Location</p>
-                    <p className="font-medium">{partner.location}</p>
-                  </div>
-                )}
-                {partner.locationType && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Reach</p>
-                    <Badge variant="outline">{partner.locationType}</Badge>
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Category</p>
-                  <Badge className={categoryColors[partner.category]}>
-                    {partner.category}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Opportunities</p>
-                  <p className="font-medium">{opportunitiesCount}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <PartnerConnectPanel partner={partner} />
         </div>
       </div>
     </DashboardLayout>
