@@ -45,23 +45,13 @@ export function StickyBookingSummary({
 
   return (
     <div
-      className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-[55] border-t border-border bg-background shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:hidden"
+      className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-[55] flex flex-col border-t border-border bg-background shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:hidden"
       role="region"
       aria-label="Booking checkout"
     >
-      {showGuide ? (
-        <div className="border-b border-border px-3 py-2">
-          <CheckoutGuideStrip
-            ready={guideReady}
-            hint={guideHint}
-            onCheckout={onConfirm}
-          />
-        </div>
-      ) : null}
-
       <div
         id="checkout-cta"
-        className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between gap-3 px-4"
+        className="mx-auto flex h-[4.25rem] w-full max-w-6xl items-center justify-between gap-3 border-b border-border px-4"
       >
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs text-muted-foreground">
@@ -92,6 +82,16 @@ export function StickyBookingSummary({
           )}
         </Button>
       </div>
+
+      {showGuide ? (
+        <div className="px-3 py-2">
+          <CheckoutGuideStrip
+            ready={guideReady}
+            hint={guideHint}
+            onCheckout={onConfirm}
+          />
+        </div>
+      ) : null}
     </div>
   )
 }

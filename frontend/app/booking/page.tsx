@@ -279,7 +279,7 @@ export default function BookingPage() {
         className={cn(
           "mx-auto w-full max-w-6xl space-y-6 overflow-x-hidden lg:pb-10",
           isBookableResource
-            ? "pb-[calc(10.5rem+env(safe-area-inset-bottom))]"
+            ? "pb-[calc(11.5rem+env(safe-area-inset-bottom))] lg:pb-10"
             : "pb-6"
         )}
       >
@@ -518,13 +518,6 @@ export default function BookingPage() {
                       currency={safePricing.currency}
                       pastriesPax={pastriesPax}
                     />
-                    {showCheckoutGuide && (
-                      <CheckoutGuideStrip
-                        ready={isValidBooking}
-                        hint={checkoutGuideHint}
-                        onCheckout={handleConfirmBooking}
-                      />
-                    )}
                     <Button
                       size="lg"
                       className="w-full"
@@ -537,6 +530,19 @@ export default function BookingPage() {
                 </aside>
               )}
             </div>
+
+            {isBookableResource && showCheckoutGuide && (
+              <section
+                className="hidden space-y-4 border-t border-border pt-6 lg:block"
+                aria-label="Checkout guide"
+              >
+                <CheckoutGuideStrip
+                  ready={isValidBooking}
+                  hint={checkoutGuideHint}
+                  onCheckout={handleConfirmBooking}
+                />
+              </section>
+            )}
 
             {isBookableResource && (
               <StickyBookingSummary
