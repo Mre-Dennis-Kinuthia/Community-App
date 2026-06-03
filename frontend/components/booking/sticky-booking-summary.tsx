@@ -14,6 +14,8 @@ interface BookingSummary {
   duration: BookingDuration
   resourceType: ResourceType | null
   totalPrice: number
+  listPrice?: number
+  membershipDiscount?: number
   currency: string
 }
 
@@ -61,8 +63,15 @@ export function StickyBookingSummary({
           <p className="text-base font-semibold tabular-nums">
             {summary.totalPrice > 0
               ? `${summary.currency} ${summary.totalPrice.toLocaleString()}`
-              : `${summary.currency} —`}
+              : summary.membershipDiscount && summary.membershipDiscount > 0
+                ? "Free"
+                : `${summary.currency} —`}
           </p>
+          {summary.membershipDiscount && summary.membershipDiscount > 0 ? (
+            <p className="text-[10px] text-primary">
+              Includes membership benefit
+            </p>
+          ) : null}
         </div>
         <Button
           size="lg"

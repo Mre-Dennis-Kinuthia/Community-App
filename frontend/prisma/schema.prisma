@@ -136,9 +136,15 @@ model MemberProfile {
   location  String?
   industry  String?
   role      String?
+  memberType String? // entrepreneur, employee, student, investor, partner, freelancer, other
+  membershipTier String? // community | star_connect | organisational
+  meetingRoomFreeMinutesUsed Int @default(0)
+  meetingRoomAllowancePeriodStart DateTime?
+  organization String? // company, NGO, or institution name
   experienceLevel String? // Early Career, Mid-Level, Senior, Expert
   availability String[] // Open to Collaboration, Seeking Mentorship, Offering Mentorship, etc.
   interests String[] // array of interests
+  socialLinks Json? // e.g. { "linkedin": "https://www.linkedin.com/in/..." }
   isFeatured Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -504,6 +510,9 @@ model WorkspaceBooking {
   // Pricing
   basePrice     Float
   addOnsPrice   Float    @default(0)
+  listPrice     Float?   // price before membership benefits
+  membershipDiscount Float @default(0)
+  freeMeetingRoomMinutesApplied Int @default(0)
   totalPrice    Float
   
   // Add-ons (stored as JSON array of add-on IDs)

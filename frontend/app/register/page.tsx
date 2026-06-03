@@ -13,11 +13,21 @@ import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { LegalLinks } from "@/components/legal-links"
+import {
+  isOrganisationalRegisterIntent,
+  MEMBERSHIP_REGISTER_INTENT,
+} from "@/lib/membership-register-intent"
+import { ORGANISATIONAL_PLAN_NAME } from "@/lib/membership-inquiry"
+import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
 
 function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") || "/onboarding"
+  const organisationalIntent = isOrganisationalRegisterIntent(searchParams.get("intent"))
+  const defaultRedirect = organisationalIntent
+    ? "/onboarding?intent=organisational"
+    : "/onboarding"
+  const redirect = searchParams.get("redirect") || defaultRedirect
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -34,6 +44,10 @@ function RegisterForm() {
   }>({})
   const [isLoading, setIsLoading] = useState(false)
   const [googleEnabled, setGoogleEnabled] = useState(false)
+
+  useEffect(() => {
+    if (organisationalIntent) markOrganisationalSignupPending()
+  }, [organisationalIntent])
 
   useEffect(() => {
     fetch("/api/auth/google-enabled")
@@ -148,6 +162,9 @@ function RegisterForm() {
         email: normalizedEmail,
         password: formData.password,
         name: name || undefined,
+        ...(organisationalIntent
+          ? { membershipIntent: MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL }
+          : {}),
       }
 
       console.log("[REGISTER FORM] Sending request to /api/auth/register:", {
@@ -174,9 +191,19 @@ function RegisterForm() {
       }
 
       console.log("[REGISTER FORM] Registration successful, redirecting to login")
-      toast.success("Account created!", "You can now sign in and complete your profile.")
+      const loginRedirect = organisationalIntent
+        ? "/onboarding?intent=organisational"
+        : "/onboarding"
+      const successDetail = organisationalIntent
+        ? data.emailsQueued === false
+          ? "Sign in and complete your profile. Our partnerships team will follow up."
+          : "Check your email, then sign in to complete your organisation profile."
+        : "You can now sign in and complete your profile."
+      toast.success("Account created!", successDetail)
       startNavigation()
-      router.push(`/login?email=${encodeURIComponent(formData.email)}&registered=true&redirect=${encodeURIComponent("/onboarding")}`)
+      router.push(
+        `/login?email=${encodeURIComponent(formData.email)}&registered=true&redirect=${encodeURIComponent(loginRedirect)}`
+      )
     } catch (error) {
       console.error("[REGISTER FORM] Error:", error)
       toast.error(
@@ -193,8 +220,14 @@ function RegisterForm() {
       <Logo href="/" className="mb-6" />
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Join the Community</CardTitle>
-          <CardDescription>Create your account to get started with Impact Hub Nairobi</CardDescription>
+          <CardTitle className="text-2xl font-bold">
+            {organisationalIntent ? `${ORGANISATIONAL_PLAN_NAME} membership` : "Join the Community"}
+          </CardTitle>
+          <CardDescription>
+            {organisationalIntent
+              ? "Register on the platform. Our partnerships team will follow up after you complete your profile."
+              : "Create your account to get started with Impact Hub Nairobi"}
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -336,10 +369,24 @@ function RegisterForm() {
 
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:underline">
+              <Link
+                href={
+                  organisationalIntent
+                    ? `/login?redirect=${encodeURIComponent("/onboarding?intent=organisational")}`
+                    : "/login"
+                }
+                className="text-primary hover:underline"
+              >
                 Sign in
               </Link>
             </p>
+            {organisationalIntent ? (
+              <p className="text-center text-sm text-muted-foreground">
+                <Link href="/membership/organisational" className="text-primary hover:underline">
+                  About organisational membership
+                </Link>
+              </p>
+            ) : null}
           </CardFooter>
         </form>
       </Card>

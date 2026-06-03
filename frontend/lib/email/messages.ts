@@ -229,6 +229,8 @@ export async function sendBookingConfirmationEmail(params: {
   startTime: string
   endTime?: string | null
   totalPrice: number
+  listPrice?: number | null
+  membershipDiscount?: number | null
 }): Promise<SendEmailResult> {
   const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const resource = formatResourceType(params.resourceType)
@@ -242,8 +244,19 @@ export async function sendBookingConfirmationEmail(params: {
     <p><strong>${escapeHtml(resource)}</strong><br />
     ${escapeHtml(when)}<br />
     ${escapeHtml(time)}</p>
+    ${
+      (params.membershipDiscount ?? 0) > 0
+        ? `<p><strong>Subtotal:</strong> KES ${(params.listPrice ?? params.totalPrice).toLocaleString("en-KE")}<br />
+    <strong>Membership benefit:</strong> −KES ${params.membershipDiscount!.toLocaleString("en-KE")}</p>`
+        : ""
+    }
     <p><strong>Total:</strong> KES ${params.totalPrice.toLocaleString("en-KE")}</p>
   `
+
+  const discountLine =
+    (params.membershipDiscount ?? 0) > 0
+      ? `\nMembership benefit: −KES ${params.membershipDiscount!.toLocaleString("en-KE")}`
+      : ""
 
   return sendEmail({
     to: params.to,
@@ -255,7 +268,7 @@ export async function sendBookingConfirmationEmail(params: {
       ctaLabel: "View booking",
       ctaUrl: bookingUrl,
     }),
-    text: `Booking confirmed\n${resource}\n${when}\n${time}\nTotal: KES ${params.totalPrice.toLocaleString("en-KE")}\n${bookingUrl}`,
+    text: `Booking confirmed\n${resource}\n${when}\n${time}${discountLine}\nTotal: KES ${params.totalPrice.toLocaleString("en-KE")}\n${bookingUrl}`,
   })
 }
 

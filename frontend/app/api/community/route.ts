@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { parseMemberSocialLinks } from "@/lib/member-social-links"
+import {
+  getMembershipTierLabel,
+  parseMembershipTier,
+} from "@/lib/membership-tier"
+import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 
 /**
  * Handle OPTIONS preflight for CORS
@@ -31,6 +37,7 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
     const session = await auth()
+    const viewerId = await resolveUserIdFromSession(session)
 
     // Build where clause
     // Show all users - profiles are optional
@@ -95,13 +102,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Connections filter (if user is logged in)
-    if (connectionsOnly && session?.user?.id) {
+    if (connectionsOnly && viewerId) {
       // Get user's accepted connections
       const userConnections = await prisma.connection.findMany({
         where: {
           OR: [
-            { fromUserId: session.user.id, status: "accepted" },
-            { toUserId: session.user.id, status: "accepted" },
+            { fromUserId: viewerId, status: "accepted" },
+            { toUserId: viewerId, status: "accepted" },
           ],
         },
         select: {
@@ -112,7 +119,7 @@ export async function GET(request: NextRequest) {
       
       const connectedUserIds = new Set<string>()
       userConnections.forEach((conn) => {
-        if (conn.fromUserId === session.user.id) {
+        if (conn.fromUserId === viewerId) {
           connectedUserIds.add(conn.toUserId)
         } else {
           connectedUserIds.add(conn.fromUserId)
@@ -168,11 +175,15 @@ export async function GET(request: NextRequest) {
               bio: true,
               skills: true,
               location: true,
-              industry: true,
-              role: true,
-              experienceLevel: true,
+            industry: true,
+            role: true,
+            memberType: true,
+            membershipTier: true,
+            organization: true,
+            experienceLevel: true,
               availability: true,
               interests: true,
+              socialLinks: true,
               isFeatured: true,
             },
           },
@@ -183,12 +194,12 @@ export async function GET(request: NextRequest) {
 
     // Get current user's connections if logged in
     let userConnections: string[] = []
-    if (session?.user?.id) {
+    if (viewerId) {
       const connections = await prisma.connection.findMany({
         where: {
           OR: [
-            { fromUserId: session.user.id, status: "accepted" },
-            { toUserId: session.user.id, status: "accepted" },
+            { fromUserId: viewerId, status: "accepted" },
+            { toUserId: viewerId, status: "accepted" },
           ],
         },
         select: {
@@ -198,7 +209,7 @@ export async function GET(request: NextRequest) {
       })
       
       connections.forEach((conn) => {
-        if (conn.fromUserId === session.user.id) {
+        if (conn.fromUserId === viewerId) {
           userConnections.push(conn.toUserId)
         } else {
           userConnections.push(conn.fromUserId)
@@ -238,26 +249,39 @@ export async function GET(request: NextRequest) {
       const connections = connectionCountMap.get(member.id) || 0
       const followers = followerCountMap.get(member.id) || 0
       
+      const isSelf = viewerId === member.id
+      const isConnected = userConnections.includes(member.id)
+      const canSeeEmail = isSelf || isConnected
+
       return {
         id: member.id,
         name: member.name || "Anonymous",
-        email: member.email,
+        email: canSeeEmail ? member.email : "",
         avatar: member.image || null,
         bio: member.profile?.bio || "",
         skills: member.profile?.skills || [],
         location: member.profile?.location || null,
         industry: member.profile?.industry || null,
         role: member.profile?.role || null,
+        memberType: member.profile?.memberType || null,
+        membershipTier: member.profile?.membershipTier || null,
+        membershipLabel: (() => {
+          const tier = parseMembershipTier(member.profile?.membershipTier)
+          return tier ? getMembershipTierLabel(tier) : null
+        })(),
+        organization: member.profile?.organization || null,
         experienceLevel: member.profile?.experienceLevel || null,
         availability: member.profile?.availability || [],
         interests: member.profile?.interests || [],
+        socialLinks: parseMemberSocialLinks(member.profile?.socialLinks),
         connections,
         followers,
         projectsInvolved: [], // Can be added later with Project model
         featured: member.profile?.isFeatured || false,
         joinedDate: member.createdAt,
         achievements: [], // Can be added later
-        isConnected: userConnections.includes(member.id),
+        isConnected,
+        isSelf,
       }
     })
 

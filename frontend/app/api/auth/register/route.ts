@@ -3,12 +3,17 @@ import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth-utils"
 import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
 import { sendWelcomeEmail, sendNewAccountStaffEmail, sendEmailInBackground } from "@/lib/email"
+import { recordOrganisationalRegistration } from "@/lib/membership-organisational-register"
+import { MEMBERSHIP_REGISTER_INTENT } from "@/lib/membership-register-intent"
+import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
+import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 import { z } from "zod"
 
 const registerSchema = z.object({
   email: z.string().email().transform((val) => val.toLowerCase().trim()),
   password: z.string().min(8),
   name: z.string().optional(),
+  membershipIntent: z.literal(MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -33,7 +38,7 @@ export async function POST(request: NextRequest) {
       name: body.name,
     })
     
-    const { email, password, name } = registerSchema.parse(body)
+    const { email, password, name, membershipIntent } = registerSchema.parse(body)
     const normalizedEmail = email.toLowerCase().trim()
     console.log("[REGISTER API] Validation passed, normalized email:", normalizedEmail)
 
@@ -46,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       console.log("[REGISTER API] User already exists:", normalizedEmail)
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: "An account with this email already exists" },
         { status: 400 }
       )
     }
@@ -77,18 +82,57 @@ export async function POST(request: NextRequest) {
       createdAt: user.createdAt,
     })
 
-    sendEmailInBackground(
-      () => sendWelcomeEmail({ to: user.email, name: user.name }),
-      "welcome"
-    )
+    const isOrganisational =
+      membershipIntent === MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL
 
-    sendEmailInBackground(
-      () => sendNewAccountStaffEmail({ email: user.email, name: user.name }),
-      "new-account-staff"
-    )
+    await syncMembershipTierOnSignup({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      options: {
+        explicitIntent: isOrganisational
+          ? MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL
+          : null,
+        defaultCommunity: true,
+      },
+    })
+
+    let emailsQueued = true
+    if (isOrganisational) {
+      const result = await recordOrganisationalRegistration({
+        email: user.email,
+        name: user.name,
+      })
+      emailsQueued = result.emailsQueued
+    } else {
+      const profile = await prisma.memberProfile.findUnique({
+        where: { userId: user.id },
+        select: { membershipTier: true },
+      })
+      const tier = profile?.membershipTier
+      const skipGenericWelcome =
+        tier === MEMBERSHIP_TIERS.STAR_CONNECT ||
+        tier === MEMBERSHIP_TIERS.ORGANISATIONAL
+
+      if (!skipGenericWelcome) {
+        sendEmailInBackground(
+          () => sendWelcomeEmail({ to: user.email, name: user.name }),
+          "welcome"
+        )
+        sendEmailInBackground(
+          () => sendNewAccountStaffEmail({ email: user.email, name: user.name }),
+          "new-account-staff"
+        )
+      }
+    }
 
     return NextResponse.json(
-      { message: "User created successfully", user },
+      {
+        message: "User created successfully",
+        user,
+        membershipIntent: membershipIntent ?? null,
+        emailsQueued,
+      },
       { status: 201 }
     )
   } catch (error) {

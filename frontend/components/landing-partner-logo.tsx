@@ -17,8 +17,8 @@ export function LandingPartnerLogo({ partner, className }: LandingPartnerLogoPro
   const content = (
     <div
       className={cn(
-        "group flex h-24 flex-col items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-5 transition-colors",
-        "hover:border-foreground/20",
+        "group flex h-24 flex-col items-center justify-center gap-2 rounded-md border border-border/90 bg-card px-4 py-5 shadow-sm shadow-black/[0.02] transition-colors",
+        "hover:border-foreground/25",
         className
       )}
     >

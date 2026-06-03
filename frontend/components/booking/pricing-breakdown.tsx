@@ -19,6 +19,7 @@ interface PricingBreakdownProps {
   pastriesPax?: number
   /** Tighter layout for sidebar. */
   compact?: boolean
+  membershipDiscount?: number
 }
 
 export function PricingBreakdown({
@@ -32,6 +33,7 @@ export function PricingBreakdown({
   currency: propCurrency,
   pastriesPax = 1,
   compact = false,
+  membershipDiscount = 0,
 }: PricingBreakdownProps) {
   const isMeetingRoom = resourceType === "meeting-room"
   const currency = propCurrency || pricing.currency
@@ -49,7 +51,8 @@ export function PricingBreakdown({
     }
     return sum + addOn.price
   }, 0)
-  const total = subtotal + addOnsTotal
+  const listTotal = subtotal + addOnsTotal
+  const total = Math.max(0, listTotal - membershipDiscount)
 
   const showMeetingRoomBreakdown = isMeetingRoom && meetingRoomCapacity && meetingRoomHourlyPrice && meetingRoomHours > 0
   const showEstimate = !showMeetingRoomBreakdown && !selectedOption && pricing.options.length > 0
@@ -154,13 +157,24 @@ export function PricingBreakdown({
           </div>
         )}
 
+        {membershipDiscount > 0 ? (
+          <div className="flex items-center justify-between text-sm text-primary">
+            <span className="font-medium">Membership benefit</span>
+            <span className="font-semibold tabular-nums">
+              −{currency} {membershipDiscount.toLocaleString()}
+            </span>
+          </div>
+        ) : null}
+
         {/* Total */}
         <div className="flex items-center justify-between pt-4 border-t border-border">
           <p className="text-base font-semibold">
             {showEstimate ? "Estimate" : "Total"}
           </p>
-          <p className={`text-2xl font-bold ${showEstimate ? "text-muted-foreground" : "text-primary"}`}>
-            {currency} {(showEstimate && estimateOption) ? estimateOption.price.toLocaleString() : total.toLocaleString()}
+          <p className={`text-2xl font-bold ${showEstimate && membershipDiscount <= 0 ? "text-muted-foreground" : "text-primary"}`}>
+            {total <= 0 && membershipDiscount > 0
+              ? "Free"
+              : `${currency} ${(showEstimate && estimateOption && membershipDiscount <= 0) ? estimateOption.price.toLocaleString() : total.toLocaleString()}`}
           </p>
         </div>
 

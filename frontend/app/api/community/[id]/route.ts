@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { parseMemberSocialLinks } from "@/lib/member-social-links"
+import {
+  getMembershipTierLabel,
+  parseMembershipTier,
+} from "@/lib/membership-tier"
 import type { MemberConnectionStatus } from "@/types/community"
 
 export async function OPTIONS(request: NextRequest) {
@@ -47,10 +52,14 @@ export async function GET(
             skills: true,
             location: true,
             industry: true,
+            memberType: true,
+            membershipTier: true,
+            organization: true,
             role: true,
             experienceLevel: true,
             availability: true,
             interests: true,
+            socialLinks: true,
             isFeatured: true,
             updatedAt: true,
           },
@@ -213,9 +222,17 @@ export async function GET(
       location: profile?.location ?? null,
       industry: profile?.industry ?? null,
       role: profile?.role ?? null,
+      memberType: profile?.memberType ?? null,
+      membershipTier: profile?.membershipTier ?? null,
+      membershipLabel: (() => {
+        const tier = parseMembershipTier(profile?.membershipTier)
+        return tier ? getMembershipTierLabel(tier) : null
+      })(),
+      organization: profile?.organization ?? null,
       experienceLevel: profile?.experienceLevel ?? null,
       availability: profile?.availability ?? [],
       interests: profile?.interests ?? [],
+      socialLinks: parseMemberSocialLinks(profile?.socialLinks),
       connections: connectionCount,
       followers: followerCount,
       projectsInvolved: projects.map((p) => p.id),

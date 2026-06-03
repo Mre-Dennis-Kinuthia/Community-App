@@ -34,3 +34,19 @@ export {
   sendWorkspaceInquiryConfirmationEmail,
   sendWorkspaceInquiryStaffEmail,
 } from "@/lib/email/messages"
+
+export {
+  sendStarConnectInquiryConfirmationEmail,
+  sendStarConnectInquiryStaffEmail,
+  buildStarConnectInquiryPlainText,
+  type StarConnectInquiryPayload,
+} from "@/lib/email/membership-inquiry"
+
+export {
+  sendOrganisationalRegistrationStaffEmail,
+  sendOrganisationalRegistrationWelcomeEmail,
+  buildOrganisationalRegistrationPlainText,
+  type OrganisationalRegistrationPayload,
+} from "@/lib/email/membership-organisational"
+
+export { sendMembershipTierRecognizedEmail } from "@/lib/email/membership-tier-recognized"

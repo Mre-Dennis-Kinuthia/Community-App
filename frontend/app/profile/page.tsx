@@ -28,6 +28,16 @@ import { ImageUpload } from "@/components/ui/image-upload"
 import { useSession as useNextAuthSession } from "next-auth/react"
 import { useSession } from "@/lib/use-session"
 import { badgeClassForLabel } from "@/lib/badge-styles"
+import {
+  getMemberTypeLabel,
+  IMPACT_SECTORS,
+  MEMBER_TYPES,
+  PRIMARY_ROLES,
+} from "@/lib/member-segmentation"
+import { validateLinkedInInput } from "@/lib/member-social-links"
+import { Linkedin } from "lucide-react"
+import { MembershipTierBadge } from "@/components/membership-tier-badge"
+import type { MembershipBenefits } from "@/lib/hooks/use-membership"
 
 const EXPERIENCE_LEVELS = ["Early Career", "Mid-Level", "Senior", "Expert"] as const
 
@@ -47,9 +57,12 @@ type ProfilePayload = {
   location: string | null
   industry: string | null
   role: string | null
+  memberType: string | null
+  organization: string | null
   experienceLevel: string | null
   availability: string[]
   interests: string[]
+  socialLinks?: { linkedin?: string } | null
   updatedAt: string
   user: {
     id: string
@@ -58,6 +71,7 @@ type ProfilePayload = {
     image: string | null
     createdAt: string
   }
+  membership?: MembershipBenefits | null
 }
 
 function emptyForm() {
@@ -67,11 +81,14 @@ function emptyForm() {
     bio: "",
     role: "",
     industry: "",
+    memberType: "",
+    organization: "",
     location: "",
     experienceLevel: "" as string,
     skills: [] as string[],
     interests: [] as string[],
     availability: [] as string[],
+    linkedin: "",
   }
 }
 
@@ -81,6 +98,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<ProfileStats | null>(null)
   const [joinedAt, setJoinedAt] = useState<string | null>(null)
+  const [membership, setMembership] = useState<MembershipBenefits | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -95,11 +113,14 @@ export default function ProfilePage() {
       bio: profile.bio?.trim() || "",
       role: profile.role?.trim() || "",
       industry: profile.industry?.trim() || "",
+      memberType: profile.memberType?.trim() || "",
+      organization: profile.organization?.trim() || "",
       location: profile.location?.trim() || "",
       experienceLevel: profile.experienceLevel?.trim() || "",
       skills: [...(profile.skills || [])],
       interests: [...(profile.interests || [])],
       availability: [...(profile.availability || [])],
+      linkedin: profile.socialLinks?.linkedin?.trim() || "",
     })
   }, [])
 
@@ -118,6 +139,7 @@ export default function ProfilePage() {
       const data = await res.json()
       if (data.profile) {
         applyProfile(data.profile)
+        setMembership(data.profile.membership ?? null)
         setJoinedAt(data.profile.user?.createdAt ?? null)
       }
       if (data.stats) {
@@ -150,6 +172,11 @@ export default function ProfilePage() {
   }
 
   const handleSave = async () => {
+    const linkedinError = validateLinkedInInput(form.linkedin)
+    if (linkedinError) {
+      toast.error("Invalid LinkedIn URL", linkedinError)
+      return
+    }
     setSaving(true)
     try {
       const res = await fetch("/api/profile", {
@@ -163,10 +190,15 @@ export default function ProfilePage() {
           skills: form.skills,
           location: form.location.trim() ? form.location.trim() : null,
           industry: form.industry.trim() ? form.industry.trim() : null,
+          memberType: form.memberType.trim() ? form.memberType.trim() : null,
+          organization: form.organization.trim() ? form.organization.trim() : null,
           role: form.role.trim() ? form.role.trim() : null,
           experienceLevel: form.experienceLevel.trim() ? form.experienceLevel.trim() : null,
           availability: form.availability,
           interests: form.interests,
+          socialLinks: form.linkedin.trim()
+            ? { linkedin: form.linkedin.trim() }
+            : null,
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -175,6 +207,7 @@ export default function ProfilePage() {
       }
       if (data.profile) {
         applyProfile(data.profile)
+        setMembership(data.profile.membership ?? null)
         setJoinedAt(data.profile.user?.createdAt ?? null)
         const savedImage = data.profile.user?.image
         if (savedImage) {
@@ -346,7 +379,10 @@ export default function ProfilePage() {
                     />
                   </div>
                 ) : (
-                  <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{displayName}</h1>
+                  <div className="space-y-2">
+                    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{displayName}</h1>
+                    <MembershipTierBadge membership={membership} />
+                  </div>
                 )}
                 <p className="break-all text-sm text-muted-foreground">
                   {user.email}
@@ -357,11 +393,21 @@ export default function ProfilePage() {
                     </span>
                   ) : null}
                 </p>
-                {!isEditing && (
+                {!isEditing && form.linkedin.trim() ? (
+                  <a
+                    href={form.linkedin.trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 pt-1 text-sm font-medium text-primary hover:underline"
+                  >
+                    <Linkedin className="h-4 w-4 text-[#0A66C2]" aria-hidden />
+                    LinkedIn profile
+                  </a>
+                ) : !isEditing ? (
                   <p className="text-xs text-muted-foreground pt-1">
-                    Edit your profile to upload a custom photo.
+                    Edit your profile to add a photo or LinkedIn link.
                   </p>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
@@ -394,29 +440,129 @@ export default function ProfilePage() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="role">Headline / role</Label>
+                    <Label>Member type</Label>
+                    {isEditing ? (
+                      <Select
+                        value={form.memberType || "__none__"}
+                        onValueChange={(v) =>
+                          setForm((p) => ({ ...p, memberType: v === "__none__" ? "" : v }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Not specified</SelectItem>
+                          {MEMBER_TYPES.map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {t.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {getMemberTypeLabel(form.memberType) || "—"}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="organization">Organization</Label>
                     {isEditing ? (
                       <Input
-                        id="role"
-                        placeholder="e.g. Founder, Climate programme lead"
-                        value={form.role}
-                        onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
+                        id="organization"
+                        placeholder="Company, NGO, or institution"
+                        value={form.organization}
+                        onChange={(e) => setForm((p) => ({ ...p, organization: e.target.value }))}
                       />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{form.organization.trim() || "—"}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Primary role</Label>
+                    {isEditing ? (
+                      <Select
+                        value={form.role || "__none__"}
+                        onValueChange={(v) =>
+                          setForm((p) => ({ ...p, role: v === "__none__" ? "" : v }))
+                        }
+                      >
+                        <SelectTrigger id="role">
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Not specified</SelectItem>
+                          {PRIMARY_ROLES.map((r) => (
+                            <SelectItem key={r} value={r}>
+                              {r}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <p className="text-sm text-muted-foreground">{form.role.trim() || "—"}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="industry">Industry or focus</Label>
+                    <Label htmlFor="industry">Sector / focus</Label>
                     {isEditing ? (
-                      <Input
-                        id="industry"
-                        placeholder="e.g. AgriTech, Circular economy"
-                        value={form.industry}
-                        onChange={(e) => setForm((p) => ({ ...p, industry: e.target.value }))}
-                      />
+                      <Select
+                        value={form.industry || "__none__"}
+                        onValueChange={(v) =>
+                          setForm((p) => ({ ...p, industry: v === "__none__" ? "" : v }))
+                        }
+                      >
+                        <SelectTrigger id="industry">
+                          <SelectValue placeholder="Select sector" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Not specified</SelectItem>
+                          {IMPACT_SECTORS.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <p className="text-sm text-muted-foreground">{form.industry.trim() || "—"}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="linkedin" className="flex items-center gap-2">
+                      <Linkedin className="h-4 w-4 text-[#0A66C2]" aria-hidden />
+                      LinkedIn
+                    </Label>
+                    {isEditing ? (
+                      <>
+                        <Input
+                          id="linkedin"
+                          type="url"
+                          inputMode="url"
+                          placeholder="linkedin.com/in/yourname"
+                          value={form.linkedin}
+                          onChange={(e) => setForm((p) => ({ ...p, linkedin: e.target.value }))}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Shown on your public community profile when you add a link.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {form.linkedin.trim() ? (
+                          <a
+                            href={form.linkedin.trim()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {form.linkedin.trim()}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2 sm:col-span-2">

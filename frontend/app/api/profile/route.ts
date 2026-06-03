@@ -4,6 +4,17 @@ import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
 import { imageRefSchema } from "@/lib/image-url-schema"
+import { isOnboardingComplete } from "@/lib/member-segmentation"
+import { buildMembershipSummary } from "@/lib/membership-profile"
+import { assignMembershipTierForUser } from "@/lib/membership-tier-resolve"
+import { maybeNotifyMembershipTierUpgrade } from "@/lib/membership-tier-notify"
+import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
+import {
+  memberSocialLinksSchema,
+  parseMemberSocialLinks,
+  socialLinksFromInput,
+  validateLinkedInInput,
+} from "@/lib/member-social-links"
 
 /**
  * Handle OPTIONS preflight for CORS
@@ -12,34 +23,53 @@ export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
 }
 
-async function resolveUserIdFromSession(session: Awaited<ReturnType<typeof auth>>) {
-  const sessionUser = session?.user
-  if (!sessionUser) return null
+const profileSelect = {
+  bio: true,
+  skills: true,
+  location: true,
+  industry: true,
+  role: true,
+  memberType: true,
+  membershipTier: true,
+  meetingRoomFreeMinutesUsed: true,
+  meetingRoomAllowancePeriodStart: true,
+  organization: true,
+  experienceLevel: true,
+  availability: true,
+  interests: true,
+  socialLinks: true,
+  updatedAt: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      createdAt: true,
+    },
+  },
+} as const
 
-  // Try by session user id first.
-  if (typeof sessionUser.id === "string") {
-    const existing = await prisma.user.findUnique({ where: { id: sessionUser.id } })
-    if (existing) return existing.id
+function formatProfileResponse<
+  T extends {
+    socialLinks?: unknown
+    membershipTier?: string | null
+    meetingRoomFreeMinutesUsed?: number
+    meetingRoomAllowancePeriodStart?: Date | null
+  },
+>(profile: T) {
+  const { membershipTier, meetingRoomFreeMinutesUsed, meetingRoomAllowancePeriodStart, ...rest } =
+    profile
+  return {
+    ...rest,
+    socialLinks: parseMemberSocialLinks(profile.socialLinks),
+    membership: buildMembershipSummary({
+      membershipTier: membershipTier ?? null,
+      meetingRoomFreeMinutesUsed: meetingRoomFreeMinutesUsed ?? 0,
+      meetingRoomAllowancePeriodStart:
+        meetingRoomAllowancePeriodStart ?? null,
+    }),
   }
-
-  // Fallback to email. Create the user if it's missing to satisfy FK constraints.
-  const email = typeof sessionUser.email === "string" ? sessionUser.email.toLowerCase().trim() : null
-  if (!email) return null
-
-  const upserted = await prisma.user.upsert({
-    where: { email },
-    create: {
-      email,
-      name: typeof sessionUser.name === "string" ? sessionUser.name : null,
-      image: typeof (sessionUser as any).image === "string" ? (sessionUser as any).image : null,
-    },
-    update: {
-      name: typeof sessionUser.name === "string" ? sessionUser.name : undefined,
-      image: typeof (sessionUser as any).image === "string" ? (sessionUser as any).image : undefined,
-    },
-  })
-
-  return upserted.id
 }
 
 const profileUpdateSchema = z.object({
@@ -50,9 +80,12 @@ const profileUpdateSchema = z.object({
   location: z.union([z.string(), z.null()]).optional(),
   industry: z.union([z.string(), z.null()]).optional(),
   role: z.union([z.string(), z.null()]).optional(),
+  memberType: z.union([z.string(), z.null()]).optional(),
+  organization: z.union([z.string(), z.null()]).optional(),
   experienceLevel: z.union([z.string(), z.null()]).optional(),
   availability: z.array(z.string()).optional(),
   interests: z.array(z.string()).optional(),
+  socialLinks: memberSocialLinksSchema,
 })
 
 /**
@@ -77,28 +110,29 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    const userEmail =
+      typeof session.user.email === "string"
+        ? session.user.email.toLowerCase().trim()
+        : null
+
+    if (userEmail) {
+      const tierResult = await assignMembershipTierForUser(userId, userEmail, {
+        defaultCommunity: true,
+      })
+      const dbUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      })
+      maybeNotifyMembershipTierUpgrade({
+        email: userEmail,
+        name: dbUser?.name,
+        result: tierResult,
+      })
+    }
+
     const profile = await prisma.memberProfile.findUnique({
       where: { userId },
-      select: {
-        bio: true,
-        skills: true,
-        location: true,
-        industry: true,
-        role: true,
-        experienceLevel: true,
-        availability: true,
-        interests: true,
-        updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            createdAt: true,
-          },
-        },
-      },
+      select: profileSelect,
     })
 
     if (!profile) {
@@ -112,26 +146,7 @@ export async function GET(request: NextRequest) {
           availability: [],
           interests: [],
         },
-        select: {
-          bio: true,
-          skills: true,
-          location: true,
-          industry: true,
-          role: true,
-          experienceLevel: true,
-          availability: true,
-          interests: true,
-          updatedAt: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-              createdAt: true,
-            },
-          },
-        },
+        select: profileSelect,
       })
       const [connections, events, projects] = await Promise.all([
         prisma.connection.count({
@@ -147,10 +162,10 @@ export async function GET(request: NextRequest) {
           where: { founderId: userId, deletedAt: null },
         }),
       ])
-      const needsOnboarding = !newProfile.bio && !newProfile.industry && !newProfile.role
+      const needsOnboarding = !isOnboardingComplete(newProfile)
       return NextResponse.json(
         {
-          profile: newProfile,
+          profile: formatProfileResponse(newProfile),
           needsOnboarding,
           stats: { connections, events, projects },
         },
@@ -173,10 +188,10 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    const needsOnboarding = !profile.bio && !profile.industry && !profile.role
+    const needsOnboarding = !isOnboardingComplete(profile)
     return NextResponse.json(
       {
-        profile,
+        profile: formatProfileResponse(profile),
         needsOnboarding,
         stats: { connections, events, projects },
       },
@@ -218,7 +233,23 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
     const validatedData = profileUpdateSchema.parse(body)
-    const { name: nameUpdate, image: imageUpdate, ...profileData } = validatedData
+    const { name: nameUpdate, image: imageUpdate, socialLinks: socialLinksInput, ...profileData } =
+      validatedData
+
+    if (socialLinksInput?.linkedin) {
+      const linkedinError = validateLinkedInInput(socialLinksInput.linkedin)
+      if (linkedinError) {
+        return NextResponse.json(
+          { error: linkedinError },
+          { status: 400, headers: corsHeaders }
+        )
+      }
+    }
+
+    const socialLinksPayload =
+      socialLinksInput !== undefined
+        ? socialLinksFromInput(socialLinksInput ?? undefined)
+        : undefined
 
     const userUpdates: { name?: string; image?: string | null } = {}
     if (nameUpdate !== undefined && nameUpdate.trim()) {
@@ -239,44 +270,25 @@ export async function PUT(request: NextRequest) {
       where: { userId },
       update: {
         ...profileData,
-        // Ensure required array fields are always present.
         skills: profileData.skills ?? [],
         availability: profileData.availability ?? [],
         interests: profileData.interests ?? [],
+        ...(socialLinksPayload !== undefined ? { socialLinks: socialLinksPayload } : {}),
         updatedAt: new Date(),
       },
       create: {
         userId,
         ...profileData,
-        // Ensure required array fields are present on create.
         skills: profileData.skills ?? [],
         availability: profileData.availability ?? [],
         interests: profileData.interests ?? [],
+        ...(socialLinksPayload !== undefined ? { socialLinks: socialLinksPayload } : {}),
       },
-      select: {
-        bio: true,
-        skills: true,
-        location: true,
-        industry: true,
-        role: true,
-        experienceLevel: true,
-        availability: true,
-        interests: true,
-        updatedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            createdAt: true,
-          },
-        },
-      },
+      select: profileSelect,
     })
 
     return NextResponse.json(
-      { message: "Profile updated successfully", profile },
+      { message: "Profile updated successfully", profile: formatProfileResponse(profile) },
       { headers: corsHeaders }
     )
   } catch (error: any) {

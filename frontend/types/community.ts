@@ -42,9 +42,14 @@ export interface CommunityMember {
   location: string | null
   industry: string | null
   role: string | null
+  memberType: string | null
+  membershipTier?: string | null
+  membershipLabel?: string | null
+  organization: string | null
   experienceLevel: string | null
   availability: string[]
   interests: string[]
+  socialLinks?: { linkedin?: string } | null
   connections: number
   followers: number
   projectsInvolved: number[]

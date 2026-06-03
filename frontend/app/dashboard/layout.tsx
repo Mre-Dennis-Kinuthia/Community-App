@@ -90,7 +90,7 @@ function DashboardLayoutContent({
     try {
       const result = await signOut({ 
         redirect: false,
-        callbackUrl: "/login" 
+        callbackUrl: "/",
       })
       
       console.log("[LOGOUT] Sign out result:", result)
@@ -98,8 +98,8 @@ function DashboardLayoutContent({
       // Show success message
       toast.success("Logged out successfully", "You have been signed out.")
       
-      // Use window.location for a full page reload to clear all state
-      window.location.href = "/login"
+      // Full reload clears client state and lands on the public marketing home
+      window.location.href = "/"
     } catch (error) {
       console.error("[LOGOUT] Logout error:", error)
       toast.error("Logout failed", "There was an error signing you out. Please try again.")

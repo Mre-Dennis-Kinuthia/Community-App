@@ -26,6 +26,13 @@ import { CheckoutGuideStrip } from "@/components/booking/checkout-guide-strip"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
 import { WorkspacePicker } from "@/components/booking/workspace-picker"
 import { getCheckoutGuideHint, isBookableForCheckout } from "@/lib/checkout-guide-hint"
+import { useMembershipBenefits } from "@/lib/hooks/use-membership"
+import {
+  applyMembershipBookingBenefits,
+  describeMeetingRoomBenefit,
+} from "@/lib/membership-booking-benefits"
+import { resolveAllowanceState, parseMembershipTier } from "@/lib/membership-tier"
+import { MembershipTierBadge } from "@/components/membership-tier-badge"
 import { useWorkspaces } from "@/lib/hooks/use-workspaces"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -60,7 +67,21 @@ function BookingPageContent() {
   }
 
   const workspaceId = workspace?.id
+  const { membership } = useMembershipBenefits()
+  const hiddenResourceTypes: ResourceType[] =
+    membership && !membership.canBookHotDesk ? ["hot-desk"] : []
+
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
+
+  useEffect(() => {
+    if (!membership || membership.canBookHotDesk) return
+    if (selectedResource === "hot-desk") {
+      setSelectedResource("meeting-room")
+      setSelectedDuration("hourly")
+      setSelectedDate(null)
+      setSelectedTime(null)
+    }
+  }, [membership, selectedResource])
 
   const getDefaultDuration = (resource: ResourceType | null): BookingDuration => {
     if (resource === "hot-desk") return "full-day"
@@ -115,10 +136,12 @@ function BookingPageContent() {
     addOns: [],
   }
 
-  const totalPrice = useMemo(() => {
-    if (!selectedResource) return 0
-    if (selectedResource === "private-office" || selectedResource === "event-space") return 0
-    if (!selectedDate) return 0
+  const bookingPricing = useMemo(() => {
+    if (!selectedResource) return { grossTotal: 0, totalPrice: 0, membershipDiscount: 0, ready: false }
+    if (selectedResource === "private-office" || selectedResource === "event-space") {
+      return { grossTotal: 0, totalPrice: 0, membershipDiscount: 0, ready: false }
+    }
+    if (!selectedDate) return { grossTotal: 0, totalPrice: 0, membershipDiscount: 0, ready: false }
 
     let hasRequiredSelections = false
     let basePrice = 0
@@ -142,7 +165,9 @@ function BookingPageContent() {
       }
     }
 
-    if (!hasRequiredSelections) return 0
+    if (!hasRequiredSelections) {
+      return { grossTotal: 0, totalPrice: 0, membershipDiscount: 0, ready: false }
+    }
 
     const addOnsPrice = selectedAddOns.reduce((sum, id) => {
       const addOn = safePricing.addOns.find((a) => a.id === id)
@@ -151,7 +176,34 @@ function BookingPageContent() {
       return sum + (addOn.price || 0)
     }, 0)
 
-    return basePrice + addOnsPrice
+    const tier = parseMembershipTier(membership?.tier ?? null)
+    const allowance = membership
+      ? resolveAllowanceState({
+          tier,
+          meetingRoomFreeMinutesUsed: membership.meetingRoom.usedMinutes,
+          meetingRoomAllowancePeriodStart: new Date(membership.meetingRoom.periodStart),
+        })
+      : resolveAllowanceState({
+          tier: null,
+          meetingRoomFreeMinutesUsed: 0,
+          meetingRoomAllowancePeriodStart: null,
+        })
+
+    const priced = applyMembershipBookingBenefits({
+      tier,
+      allowance,
+      resourceType: selectedResource,
+      meetingRoomHours: selectedMeetingRoomHours,
+      basePrice,
+      addOnsPrice,
+    })
+
+    return {
+      grossTotal: priced.listPrice,
+      totalPrice: priced.totalPrice,
+      membershipDiscount: priced.membershipDiscount,
+      ready: true,
+    }
   }, [
     selectedDate,
     selectedTime,
@@ -164,12 +216,28 @@ function BookingPageContent() {
     safePricing,
     workspace?.pricing,
     pastriesPax,
+    membership,
   ])
+
+  const totalPrice = bookingPricing.totalPrice
+  const membershipDiscount = bookingPricing.membershipDiscount
+  const meetingRoomBenefitHint = membership
+    ? describeMeetingRoomBenefit(
+        parseMembershipTier(membership.tier),
+        resolveAllowanceState({
+          tier: parseMembershipTier(membership.tier),
+          meetingRoomFreeMinutesUsed: membership.meetingRoom.usedMinutes,
+          meetingRoomAllowancePeriodStart: new Date(membership.meetingRoom.periodStart),
+        })
+      )
+    : null
 
   const isValidBooking = useMemo(() => {
     if (!selectedResource) return false
     if (selectedResource === "private-office" || selectedResource === "event-space") return false
-    if (!selectedDate || !Number.isFinite(totalPrice) || totalPrice <= 0) return false
+    if (!selectedDate || !bookingPricing.ready) return false
+    if (!Number.isFinite(totalPrice) || totalPrice < 0) return false
+    if (totalPrice === 0 && membershipDiscount <= 0) return false
     if (selectedResource === "hot-desk") return selectedDuration === "full-day"
     if (selectedResource === "meeting-room") {
       return !!selectedMeetingRoomCapacity && selectedMeetingRoomHours > 0 && !!selectedTime
@@ -183,6 +251,8 @@ function BookingPageContent() {
     selectedMeetingRoomCapacity,
     selectedMeetingRoomHours,
     totalPrice,
+    membershipDiscount,
+    bookingPricing.ready,
   ])
 
   const calculateStartTime = useMemo(() => {
@@ -233,6 +303,8 @@ function BookingPageContent() {
       basePrice,
       addOnsPrice,
       totalPrice,
+      listPrice: bookingPricing.grossTotal,
+      membershipDiscount,
       addOns: selectedAddOns,
       workspaceId: workspace.id,
     }
@@ -388,8 +460,24 @@ function BookingPageContent() {
                   title="Choose your space"
                   description="Pick a resource to see availability and pricing."
                 >
+                  {membership?.label ? (
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      <MembershipTierBadge membership={membership} />
+                      {!membership.canBookHotDesk ? (
+                        <p className="text-xs text-muted-foreground">
+                          Workspace access is included — book meeting rooms below.
+                        </p>
+                      ) : null}
+                      {meetingRoomBenefitHint ? (
+                        <p className="w-full text-xs text-muted-foreground">
+                          {meetingRoomBenefitHint}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <ResourceSelector
                     selectedResource={selectedResource}
+                    hiddenResourceTypes={hiddenResourceTypes}
                     onResourceSelect={(resource) => {
                       setSelectedResource(resource)
                       setSelectedDate(null)
@@ -578,6 +666,7 @@ function BookingPageContent() {
                       }
                       currency={safePricing.currency}
                       pastriesPax={pastriesPax}
+                      membershipDiscount={membershipDiscount}
                     />
                     <Button
                       size="lg"
@@ -585,7 +674,11 @@ function BookingPageContent() {
                       disabled={!isValidBooking}
                       onClick={handleConfirmBooking}
                     >
-                      {isValidBooking ? "Continue to checkout" : "Complete booking first"}
+                      {isValidBooking
+                        ? totalPrice === 0
+                          ? "Confirm free booking"
+                          : "Continue to checkout"
+                        : "Complete booking first"}
                     </Button>
                   </div>
                 </aside>
@@ -613,6 +706,8 @@ function BookingPageContent() {
                   duration: selectedResource === "meeting-room" ? "hourly" : selectedDuration,
                   resourceType: selectedResource,
                   totalPrice,
+                  listPrice: bookingPricing.grossTotal,
+                  membershipDiscount,
                   currency: safePricing.currency,
                 }}
                 onConfirm={handleConfirmBooking}

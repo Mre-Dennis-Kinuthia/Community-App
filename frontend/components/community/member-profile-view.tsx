@@ -18,11 +18,13 @@ import {
   Loader2,
   Pencil,
   ArrowRight,
+  Linkedin,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { thumbnailImageClassName } from "@/lib/image-display"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { Badge } from "@/components/ui/badge"
+import { MembershipTierBadge } from "@/components/membership-tier-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Breadcrumbs } from "@/components/breadcrumbs"
@@ -68,6 +70,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
   const hasSkills = member.skills.length > 0
   const hasInterests = member.interests.length > 0
   const hasAvailability = member.availability.length > 0
+  const linkedinUrl = member.socialLinks?.linkedin?.trim()
   const projects = member.projects ?? []
   const events = member.recentEvents ?? []
 
@@ -168,6 +171,14 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
 
             <div className="min-w-0 flex-1 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
+                {member.membershipLabel && member.membershipTier ? (
+                  <MembershipTierBadge
+                    membership={{
+                      tier: member.membershipTier,
+                      label: member.membershipLabel,
+                    }}
+                  />
+                ) : null}
                 {member.featured && (
                   <Badge className="bg-primary/10 text-primary border border-primary/20">
                     <Star className="mr-1 h-3 w-3" />
@@ -182,16 +193,16 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                 {member.connectionStatus === "connected" && (
                   <Badge variant="secondary">
                     <CheckCircle2 className="mr-1 h-3 w-3" />
-                    Connection
+                    Connected
                   </Badge>
                 )}
               </div>
 
               <div>
                 <h1 className="text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">{member.name}</h1>
-                {(member.role || member.industry) && (
+                {(member.role || member.organization || member.industry) && (
                   <p className="mt-1 text-base text-muted-foreground">
-                    {[member.role, member.industry].filter(Boolean).join(" · ")}
+                    {[member.role, member.organization, member.industry].filter(Boolean).join(" · ")}
                   </p>
                 )}
               </div>
@@ -258,6 +269,14 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                 </a>
               </Button>
             )}
+            {linkedinUrl ? (
+              <Button variant="outline" asChild className="sm:min-w-[120px]">
+                <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="mr-2 h-4 w-4 text-[#0A66C2]" />
+                  LinkedIn
+                </a>
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               className="sm:min-w-[120px]"
@@ -281,13 +300,21 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
         )}
 
         {member.isSelf && (
-          <div className="border-t border-border px-6 py-4 md:px-8">
+          <div className="flex flex-wrap gap-2 border-t border-border px-6 py-4 md:px-8">
             <Button asChild>
               <Link href="/profile">
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit your profile
               </Link>
             </Button>
+            {linkedinUrl ? (
+              <Button variant="outline" asChild>
+                <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="mr-2 h-4 w-4 text-[#0A66C2]" />
+                  View LinkedIn
+                </a>
+              </Button>
+            ) : null}
           </div>
         )}
       </div>

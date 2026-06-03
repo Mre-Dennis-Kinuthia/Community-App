@@ -25,6 +25,8 @@ export interface PendingBookingPayload {
   basePrice: number
   addOnsPrice: number
   totalPrice: number
+  listPrice?: number
+  membershipDiscount?: number
   addOns: string[]
   workspaceId: string
   pastriesPax?: number
@@ -219,9 +221,32 @@ export default function BookingPaymentPage() {
                   </span>
                 </div>
                 <Separator />
+                {typeof pending.listPrice === "number" &&
+                pending.listPrice > pending.totalPrice ? (
+                  <>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Subtotal</span>
+                      <span className="tabular-nums">
+                        KES {pending.listPrice.toLocaleString()}
+                      </span>
+                    </div>
+                    {(pending.membershipDiscount ?? 0) > 0 ? (
+                      <div className="flex justify-between text-sm text-primary">
+                        <span>Membership benefit</span>
+                        <span className="tabular-nums">
+                          −KES {(pending.membershipDiscount ?? 0).toLocaleString()}
+                        </span>
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
                 <div className="flex justify-between font-semibold">
                   <span>Total</span>
-                  <span className="tabular-nums">KES {pending.totalPrice.toLocaleString()}</span>
+                  <span className="tabular-nums">
+                    {pending.totalPrice <= 0
+                      ? "Free"
+                      : `KES ${pending.totalPrice.toLocaleString()}`}
+                  </span>
                 </div>
               </CardContent>
             </Card>

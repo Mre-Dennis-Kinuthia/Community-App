@@ -8,6 +8,9 @@ import {
   sendNewBookingStaffEmail,
   sendEmailInBackground,
 } from "@/lib/email"
+import { buildMembershipSummary } from "@/lib/membership-profile"
+import { applyMembershipBookingBenefits } from "@/lib/membership-booking-benefits"
+import { canBookHotDesk, resolveAllowanceState, startOfAllowanceMonth } from "@/lib/membership-tier"
 
 const bookingSchema = z.object({
   resourceType: z.enum(["hot-desk", "meeting-room", "private-office", "event-space"]),
@@ -117,6 +120,58 @@ export async function POST(request: NextRequest) {
     })
 
     const validatedData = bookingSchema.parse(body)
+
+    const memberProfile = await prisma.memberProfile.findUnique({
+      where: { userId },
+      select: {
+        membershipTier: true,
+        meetingRoomFreeMinutesUsed: true,
+        meetingRoomAllowancePeriodStart: true,
+      },
+    })
+
+    const membership = buildMembershipSummary(memberProfile)
+    const tier = membership.tier
+
+    if (
+      validatedData.resourceType === "hot-desk" &&
+      !canBookHotDesk(tier)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Hot desk booking is not available for your membership. You already have workspace access — book a meeting room instead.",
+        },
+        { status: 403 }
+      )
+    }
+
+    const allowance = resolveAllowanceState({
+      tier,
+      meetingRoomFreeMinutesUsed: memberProfile?.meetingRoomFreeMinutesUsed ?? 0,
+      meetingRoomAllowancePeriodStart:
+        memberProfile?.meetingRoomAllowancePeriodStart ?? null,
+    })
+
+    const priced = applyMembershipBookingBenefits({
+      tier,
+      allowance,
+      resourceType: validatedData.resourceType,
+      meetingRoomHours: validatedData.meetingRoomHours,
+      basePrice: validatedData.basePrice,
+      addOnsPrice: validatedData.addOnsPrice,
+    })
+
+    if (Math.abs(priced.totalPrice - validatedData.totalPrice) > 1) {
+      return NextResponse.json(
+        {
+          error: "Booking price mismatch. Please refresh the page and try again.",
+          expectedTotal: priced.totalPrice,
+          membershipDiscount: priced.membershipDiscount,
+        },
+        { status: 400 }
+      )
+    }
     
     if (validatedData.addOns.includes("pastries")) {
       const pax = validatedData.pastriesPax
@@ -272,7 +327,10 @@ export async function POST(request: NextRequest) {
         duration: validatedData.duration,
         basePrice: validatedData.basePrice,
         addOnsPrice: validatedData.addOnsPrice,
-        totalPrice: validatedData.totalPrice,
+        listPrice: priced.listPrice,
+        membershipDiscount: priced.membershipDiscount,
+        freeMeetingRoomMinutesApplied: priced.freeMeetingRoomMinutesApplied,
+        totalPrice: priced.totalPrice,
         addOns: validatedData.addOns,
         notes: validatedData.notes,
         workspaceId: validatedData.workspaceId,
@@ -290,11 +348,29 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    if (priced.freeMeetingRoomMinutesApplied > 0 && memberProfile) {
+      const periodStart = startOfAllowanceMonth()
+      const resetUsed =
+        !memberProfile.meetingRoomAllowancePeriodStart ||
+        memberProfile.meetingRoomAllowancePeriodStart.getTime() <
+          periodStart.getTime()
+      const usedBase = resetUsed ? 0 : memberProfile.meetingRoomFreeMinutesUsed
+      await prisma.memberProfile.update({
+        where: { userId },
+        data: {
+          meetingRoomFreeMinutesUsed:
+            usedBase + priced.freeMeetingRoomMinutesApplied,
+          meetingRoomAllowancePeriodStart: periodStart,
+        },
+      })
+    }
+
     console.log("[BOOKING API] Booking created successfully:", {
       id: booking.id,
       resourceType: booking.resourceType,
       date: booking.date,
       totalPrice: booking.totalPrice,
+      membershipDiscount: booking.membershipDiscount,
     })
 
     // Create notification for the user
@@ -326,6 +402,8 @@ export async function POST(request: NextRequest) {
         startTime: booking.startTime,
         endTime: booking.endTime,
         totalPrice: Number(booking.totalPrice),
+        listPrice: booking.listPrice != null ? Number(booking.listPrice) : null,
+        membershipDiscount: Number(booking.membershipDiscount ?? 0),
       }
 
       sendEmailInBackground(

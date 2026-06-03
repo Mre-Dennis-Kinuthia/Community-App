@@ -21,9 +21,17 @@ interface ResourceSelectorProps {
   onResourceSelect: (resource: ResourceType) => void
   pricing?: any // Pricing data from workspace
   currency?: string
+  hiddenResourceTypes?: ResourceType[]
 }
 
-export function ResourceSelector({ selectedResource, onResourceSelect, pricing, currency = "KES" }: ResourceSelectorProps) {
+export function ResourceSelector({
+  selectedResource,
+  onResourceSelect,
+  pricing,
+  currency = "KES",
+  hiddenResourceTypes = [],
+}: ResourceSelectorProps) {
+  const hidden = new Set(hiddenResourceTypes)
   const getStartingPrice = (type: ResourceType): number => {
     if (type === "event-space") return 0
     if (!pricing || !pricing[type]) {
@@ -89,13 +97,14 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
     },
   ]
 
-  const selected = resources.find((r) => r.type === selectedResource)
+  const visibleResources = resources.filter((r) => !hidden.has(r.type))
+  const selected = visibleResources.find((r) => r.type === selectedResource)
 
   return (
     <div className="space-y-3">
       {/* Mobile: horizontal chip row */}
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
-        {resources.map((resource) => (
+        {visibleResources.map((resource) => (
           <FilterChip
             key={resource.type}
             label={resource.label}
@@ -123,7 +132,7 @@ export function ResourceSelector({ selectedResource, onResourceSelect, pricing, 
 
       {/* Desktop: card grid */}
       <div className="hidden gap-3 md:grid md:grid-cols-2">
-        {resources.map((resource) => {
+        {visibleResources.map((resource) => {
           const isSelected = selectedResource === resource.type
           return (
             <Card

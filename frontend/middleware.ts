@@ -2,6 +2,12 @@ import { NextResponse } from "next/server"
 import NextAuth from "next-auth"
 import { authConfig } from "@/auth.config"
 import { isDeactivatedRoute } from "@/lib/feature-flags"
+import {
+  APP_HOME_PATH,
+  isAuthPagePath,
+  MARKETING_HOME_PATH,
+  resolveAuthenticatedRedirect,
+} from "@/lib/auth-routes"
 
 // Create auth function for middleware (Edge runtime) - no Prisma
 const { auth } = NextAuth(authConfig)
@@ -15,6 +21,7 @@ const publicRoutes = [
   "/privacy",
   "/terms",
   "/pay",
+  "/membership",
   "/api",
   "/setup-check",
 ]
@@ -41,16 +48,19 @@ export default auth((request) => {
   }
 
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
-  const isAuthPage =
-    pathname === "/login" ||
-    pathname === "/register" ||
-    pathname === "/forgot-password" ||
-    pathname === "/reset-password"
+  const isAuthPage = isAuthPagePath(pathname)
   const isLoggedIn = !!request.auth
 
-  // Send authenticated users through onboarding first (page redirects to dashboard when complete)
-  if (isAuthPage && isLoggedIn) {
-    return NextResponse.redirect(new URL("/onboarding", request.url))
+  // Signed-in users should use the app, not marketing or sign-in screens
+  if (
+    isLoggedIn &&
+    (isAuthPage || pathname === MARKETING_HOME_PATH)
+  ) {
+    const destination = resolveAuthenticatedRedirect(
+      request.nextUrl.searchParams.get("redirect"),
+      request.nextUrl.searchParams.get("callbackUrl")
+    )
+    return NextResponse.redirect(new URL(destination, request.url))
   }
 
   if (isAuthPage) {

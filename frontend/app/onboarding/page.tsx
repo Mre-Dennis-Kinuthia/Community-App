@@ -1,8 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ImageUpload } from "@/components/ui/image-upload"
+import { getImageDisplayUrl } from "@/lib/stored-image"
+import { getInitials } from "@/lib/utils"
+import { validateLinkedInInput } from "@/lib/member-social-links"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,49 +22,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Loader2, ArrowRight, ArrowLeft, Sparkles, Briefcase, Heart, Plus, X } from "lucide-react"
+import { Loader2, ArrowRight, ArrowLeft, Building2, Target, Linkedin } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
+import {
+  ENGAGEMENT_GOALS,
+  ENGAGEMENT_PREFERENCES,
+  IMPACT_SECTORS,
+  MEMBER_TYPES,
+  PRIMARY_ROLES,
+  memberTypeRequiresOrganization,
+  validateOnboardingStep1,
+} from "@/lib/member-segmentation"
+import { isOrganisationalRegisterIntent } from "@/lib/membership-register-intent"
+import { ORGANISATIONAL_PLAN_NAME, ORGANISATIONAL_RESPONSE_SLA } from "@/lib/membership-inquiry"
+import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
 
-const BIO_MAX_LENGTH = 500
-const EXPERIENCE_LEVELS = [
-  "Early Career",
-  "Mid-Level",
-  "Senior",
-  "Expert",
-]
-
-const AVAILABILITY_OPTIONS = [
-  "Open to Collaboration",
-  "Seeking Mentorship",
-  "Offering Mentorship",
-  "Open to Projects",
-  "Available for Events",
-]
-
-const STEP_LABELS = ["About you", "Skills & interests", "How you engage"]
+const BIO_MAX_LENGTH = 280
+const STEP_LABELS = ["Your profile", "Goals & community"] as const
+const TOTAL_STEPS = STEP_LABELS.length
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const searchParams = useSearchParams()
+  const organisationalIntent = isOrganisationalRegisterIntent(searchParams.get("intent"))
+  const organisationalNotifySent = useRef(false)
+  const { data: session, status, update: updateSession } = useSession()
   const [loading, setLoading] = useState(true)
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
+  const [stepError, setStepError] = useState<string | null>(null)
 
-  const [name, setName] = useState("")
-  const [bio, setBio] = useState("")
-  const [industry, setIndustry] = useState("")
+  const [memberType, setMemberType] = useState("")
+  const [organization, setOrganization] = useState("")
   const [role, setRole] = useState("")
-  const [experienceLevel, setExperienceLevel] = useState("")
-  const [location, setLocation] = useState("")
-  const [skills, setSkills] = useState<string[]>([])
-  const [newSkill, setNewSkill] = useState("")
-  const [interests, setInterests] = useState<string[]>([])
-  const [newInterest, setNewInterest] = useState("")
+  const [sector, setSector] = useState("")
+  const [location, setLocation] = useState("Nairobi, Kenya")
+  const [goals, setGoals] = useState<string[]>([])
   const [availability, setAvailability] = useState<string[]>([])
+  const [bio, setBio] = useState("")
+  const [profileImage, setProfileImage] = useState("")
+  const [linkedinUrl, setLinkedinUrl] = useState("")
 
   const checkProfile = useCallback(async () => {
     if (!session?.user?.id) return
@@ -68,33 +73,55 @@ export default function OnboardingPage() {
       if (!res.ok) return
       const data = await res.json()
       setNeedsOnboarding(data.needsOnboarding === true)
-      if (data.profile?.user?.name) setName(data.profile.user.name || "")
-      if (data.profile?.bio) setBio(data.profile.bio)
-      if (data.profile?.industry) setIndustry(data.profile.industry)
-      if (data.profile?.role) setRole(data.profile.role)
-      if (data.profile?.experienceLevel) setExperienceLevel(data.profile.experienceLevel)
-      if (data.profile?.location) setLocation(data.profile.location)
-      if (data.profile?.skills?.length) setSkills(data.profile.skills)
-      if (data.profile?.interests?.length) setInterests(data.profile.interests)
-      if (data.profile?.availability?.length) setAvailability(data.profile.availability)
+      const p = data.profile
+      if (p?.memberType) setMemberType(p.memberType)
+      else if (organisationalIntent) setMemberType("partner")
+      if (p?.organization) setOrganization(p.organization)
+      if (p?.role) setRole(p.role)
+      if (p?.industry) setSector(p.industry)
+      if (p?.location) setLocation(p.location)
+      if (p?.bio) setBio(p.bio)
+      if (p?.interests?.length) setGoals(p.interests)
+      else if (organisationalIntent) setGoals(["Strategic partnerships"])
+      if (p?.availability?.length) setAvailability(p.availability)
+      if (p?.user?.image) setProfileImage(p.user.image)
+      if (p?.socialLinks?.linkedin) setLinkedinUrl(p.socialLinks.linkedin)
     } catch (e) {
       console.error("Failed to fetch profile:", e)
     } finally {
       setLoading(false)
     }
-  }, [session?.user?.id])
+  }, [session?.user?.id, organisationalIntent])
+
+  useEffect(() => {
+    if (organisationalIntent) markOrganisationalSignupPending()
+  }, [organisationalIntent])
+
+  useEffect(() => {
+    if (status !== "authenticated" || !organisationalIntent || organisationalNotifySent.current) {
+      return
+    }
+    organisationalNotifySent.current = true
+    fetch("/api/membership/organisational/registration-notify", {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {})
+  }, [status, organisationalIntent])
 
   useEffect(() => {
     if (status === "loading") return
     if (status === "unauthenticated") {
-      router.replace("/login?redirect=/onboarding")
+      const onboardingPath = organisationalIntent
+        ? "/onboarding?intent=organisational"
+        : "/onboarding"
+      router.replace(`/login?redirect=${encodeURIComponent(onboardingPath)}`)
       return
     }
     if (session?.user?.id) {
-      if (session.user.name) setName(session.user.name)
+      if (session.user.image) setProfileImage(session.user.image)
       checkProfile()
     }
-  }, [status, session?.user?.id, session?.user?.name, router, checkProfile])
+  }, [status, session?.user?.id, session?.user?.image, router, checkProfile, organisationalIntent])
 
   useEffect(() => {
     if (!loading && !needsOnboarding && status === "authenticated") {
@@ -102,25 +129,11 @@ export default function OnboardingPage() {
     }
   }, [loading, needsOnboarding, status, router])
 
-  const addSkill = () => {
-    const v = newSkill.trim()
-    if (v && !skills.includes(v)) {
-      setSkills([...skills, v])
-      setNewSkill("")
-    }
+  const toggleGoal = (goal: string) => {
+    setGoals((prev) =>
+      prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]
+    )
   }
-
-  const removeSkill = (s: string) => setSkills(skills.filter((x) => x !== s))
-
-  const addInterest = () => {
-    const v = newInterest.trim()
-    if (v && !interests.includes(v)) {
-      setInterests([...interests, v])
-      setNewInterest("")
-    }
-  }
-
-  const removeInterest = (i: string) => setInterests(interests.filter((x) => x !== i))
 
   const toggleAvailability = (opt: string) => {
     setAvailability((prev) =>
@@ -128,57 +141,83 @@ export default function OnboardingPage() {
     )
   }
 
-  const totalSteps = 3
-  const canNext =
-    (step === 1 && (bio.trim() || industry || role)) ||
-    step === 2 ||
-    step === 3
-
   const firstName = session?.user?.name?.split(/\s+/)[0] || ""
-  const canSkipStep = step === 2 || step === 3
+  const displayName = session?.user?.name || "Member"
+  const avatarSrc = getImageDisplayUrl(profileImage || session?.user?.image || undefined)
+  const userInitials = getInitials(displayName, session?.user?.email)
+  const showOrganization = memberTypeRequiresOrganization(memberType)
 
   const handleNext = () => {
-    if (step < totalSteps) setStep(step + 1)
-    else handleComplete()
-  }
-
-  const handleSkip = () => {
-    if (step < totalSteps) setStep(step + 1)
-    else handleComplete()
+    setStepError(null)
+    if (step === 1) {
+      const err = validateOnboardingStep1({
+        memberType,
+        sector,
+        role,
+        organization,
+      })
+      if (err) {
+        setStepError(err)
+        return
+      }
+      setStep(2)
+      return
+    }
+    handleComplete()
   }
 
   const handleComplete = async () => {
     setSaving(true)
+    setStepError(null)
+    const linkedinError = validateLinkedInInput(linkedinUrl)
+    if (linkedinError) {
+      setStepError(linkedinError)
+      setSaving(false)
+      return
+    }
     try {
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          name: (session?.user?.name ?? name.trim()) || undefined,
-          bio: bio.trim() || undefined,
-          industry: industry || undefined,
+          ...(profileImage.trim() ? { image: profileImage.trim() } : {}),
+          memberType: memberType || undefined,
+          organization: organization.trim() || undefined,
           role: role || undefined,
-          experienceLevel: experienceLevel || undefined,
-          location: location || undefined,
-          skills,
-          interests,
+          industry: sector || undefined,
+          location: location.trim() || undefined,
+          interests: goals,
           availability,
+          bio: bio.trim() || undefined,
+          socialLinks: linkedinUrl.trim()
+            ? { linkedin: linkedinUrl.trim() }
+            : null,
         }),
       })
       if (!res.ok) {
         const err = await res.json()
-        const details = err.details ? (typeof err.details === "string" ? err.details : JSON.stringify(err.details)) : null
-        throw new Error(err.error ? (details ? `${err.error}: ${details}` : err.error) : details || "Failed to save")
+        const details = err.details
+          ? typeof err.details === "string"
+            ? err.details
+            : JSON.stringify(err.details)
+          : null
+        throw new Error(
+          err.error ? (details ? `${err.error}: ${details}` : err.error) : details || "Failed to save"
+        )
       }
-      toast.success("Profile complete!", "Your profile has been set up.")
+      toast.success("You're all set", "Your profile helps us tailor programs and connections.")
+      if (profileImage.trim()) {
+        await updateSession({ user: { image: profileImage.trim() } })
+      }
       if (typeof window !== "undefined") {
         sessionStorage.setItem("onboardingJustCompleted", "true")
         localStorage.removeItem("hasSeenWelcome")
       }
       router.replace("/dashboard")
-    } catch (e: any) {
-      toast.error("Could not save", e?.message || "Please try again.")
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Please try again."
+      toast.error("Could not save", message)
     } finally {
       setSaving(false)
     }
@@ -186,8 +225,8 @@ export default function OnboardingPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center bg-muted/30">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Loading" />
       </div>
     )
   }
@@ -197,265 +236,327 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4">
-      <div className="mx-auto max-w-xl space-y-6">
+    <div className="min-h-screen bg-muted/30 px-4 py-8 md:py-12">
+      <div className="mx-auto max-w-lg space-y-6">
         <div className="flex justify-center">
           <Logo href="/dashboard" variant="compact" />
         </div>
+
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary mb-4">
-            <Sparkles className="h-4 w-4" />
-            Welcome to Impact Hub Nairobi
-          </div>
-          <h1 className="text-2xl font-bold">
-            {firstName ? `Complete your profile, ${firstName}` : "Complete your profile"}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Step {step} of {totalSteps} · {STEP_LABELS[step - 1]}
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Member onboarding
           </p>
-          <div className="flex justify-center gap-1.5 mt-4" aria-label={`Step ${step} of ${totalSteps}`}>
-            {Array.from({ length: totalSteps }).map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "h-2 w-10 rounded-full transition-all duration-300",
-                  i + 1 <= step ? "bg-primary" : "bg-muted"
-                )}
-                title={STEP_LABELS[i]}
-              />
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            {firstName ? `Welcome, ${firstName}` : "Welcome to Impact Hub Nairobi"}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {organisationalIntent
+              ? `Complete your organisation profile for ${ORGANISATIONAL_PLAN_NAME} membership. Our partnerships team will follow up ${ORGANISATIONAL_RESPONSE_SLA}.`
+              : "A short setup so we can connect you with the right programs, people, and opportunities."}
+          </p>
+          <div
+            className="mt-5 flex justify-center gap-2"
+            role="progressbar"
+            aria-valuenow={step}
+            aria-valuemin={1}
+            aria-valuemax={TOTAL_STEPS}
+            aria-label={`Step ${step} of ${TOTAL_STEPS}`}
+          >
+            {STEP_LABELS.map((label, i) => (
+              <div key={label} className="flex flex-col items-center gap-1.5">
+                <div
+                  className={cn(
+                    "h-1.5 w-16 rounded-full transition-colors sm:w-20",
+                    i + 1 <= step ? "bg-primary" : "bg-muted"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-[10px] font-medium uppercase tracking-wider",
+                    i + 1 === step ? "text-foreground" : "text-muted-foreground"
+                  )}
+                >
+                  {label}
+                </span>
+              </div>
             ))}
           </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            {step === 1 && (
+        <Card className="border-border/90 shadow-sm">
+          <CardHeader className="pb-4">
+            {step === 1 ? (
               <>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Tell us about yourself
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Building2 className="h-5 w-5 text-primary" aria-hidden />
+                  Your profile
                 </CardTitle>
                 <CardDescription>
-                  Help others find and connect with you.
+                  Tell us who you are and where you work — used for community discovery and program matching.
                 </CardDescription>
               </>
-            )}
-            {step === 2 && (
+            ) : (
               <>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="h-5 w-5" />
-                  Skills & interests
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Target className="h-5 w-5 text-primary" aria-hidden />
+                  Goals & community
                 </CardTitle>
                 <CardDescription>
-                  Add skills and topics you care about (used for discovery).
-                </CardDescription>
-              </>
-            )}
-            {step === 3 && (
-              <>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  How can you engage?
-                </CardTitle>
-                <CardDescription>
-                  Select ways you’re open to collaborating with the community.
+                  What you want from the hub — optional details you can change anytime in Profile.
                 </CardDescription>
               </>
             )}
           </CardHeader>
-          <CardContent className="space-y-6">
-            {step === 1 && (
-              <div className="space-y-4 animate-in fade-in-0 duration-200" key="step1">
+
+          <CardContent className="space-y-5">
+            {step === 1 ? (
+              <div className="space-y-5 animate-in fade-in-0 duration-200">
+                <div className="flex flex-col items-center gap-4 rounded-md border border-border/80 bg-muted/20 px-4 py-5 sm:flex-row sm:items-start">
+                  <Avatar className="h-20 w-20 shrink-0 border-2 border-background shadow-sm">
+                    <AvatarImage src={avatarSrc} alt={displayName} />
+                    <AvatarFallback className="text-lg">{userInitials}</AvatarFallback>
+                  </Avatar>
+                  <div className="w-full min-w-0 flex-1 space-y-1">
+                    <ImageUpload
+                      label="Profile photo"
+                      description="Optional. Shown on your community profile and in the directory."
+                      value={profileImage}
+                      onChange={async (url) => {
+                        setProfileImage(url)
+                        if (url) await updateSession({ user: { image: url } })
+                      }}
+                      category="profile"
+                      previewClassName="hidden"
+                      allowClear
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    I am a… <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {MEMBER_TYPES.map((type) => (
+                      <button
+                        key={type.value}
+                        type="button"
+                        onClick={() => {
+                          setMemberType(type.value)
+                          setStepError(null)
+                        }}
+                        className={cn(
+                          "rounded-md border px-3 py-2.5 text-left text-sm transition-colors",
+                          memberType === type.value
+                            ? "border-primary bg-primary/5 font-medium text-foreground"
+                            : "border-border hover:border-foreground/25 hover:bg-muted/40"
+                        )}
+                      >
+                        {type.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {showOrganization ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="organization">
+                      Organization / institution <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="organization"
+                      placeholder="e.g. Acme Ventures, Ministry of X, University of Y"
+                      value={organization}
+                      onChange={(e) => setOrganization(e.target.value)}
+                    />
+                  </div>
+                ) : null}
+
+                <div className="space-y-2">
+                  <Label htmlFor="role">
+                    Primary role <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger id="role">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PRIMARY_ROLES.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="sector">
+                    Primary sector / focus <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={sector} onValueChange={setSector}>
+                    <SelectTrigger id="sector">
+                      <SelectValue placeholder="Select sector" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {IMPACT_SECTORS.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {!showOrganization ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="organization-optional">Organization (optional)</Label>
+                    <Input
+                      id="organization-optional"
+                      placeholder="Venture, employer, or affiliate org"
+                      value={organization}
+                      onChange={(e) => setOrganization(e.target.value)}
+                    />
+                  </div>
+                ) : null}
+
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    placeholder="City, country"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5 animate-in fade-in-0 duration-200">
+                <div className="space-y-2">
+                  <Label>What are you here for?</Label>
+                  <p className="text-xs text-muted-foreground">Select all that apply.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {ENGAGEMENT_GOALS.map((goal) => (
+                      <button
+                        key={goal}
+                        type="button"
+                        onClick={() => toggleGoal(goal)}
+                        className={cn(
+                          "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                          goals.includes(goal)
+                            ? "border-primary bg-primary/10 font-medium text-foreground"
+                            : "border-border text-muted-foreground hover:border-foreground/20"
+                        )}
+                      >
+                        {goal}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Open to</Label>
+                  <div className="flex flex-col gap-2">
+                    {ENGAGEMENT_PREFERENCES.map((opt) => (
+                      <label
+                        key={opt}
+                        className={cn(
+                          "flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 transition-colors",
+                          availability.includes(opt)
+                            ? "border-primary bg-primary/5"
+                            : "hover:bg-muted/50"
+                        )}
+                      >
+                        <Checkbox
+                          checked={availability.includes(opt)}
+                          onCheckedChange={() => toggleAvailability(opt)}
+                        />
+                        <span className="text-sm">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin" className="flex items-center gap-2">
+                    <Linkedin className="h-4 w-4 text-[#0A66C2]" aria-hidden />
+                    LinkedIn profile
+                  </Label>
+                  <Input
+                    id="linkedin"
+                    type="url"
+                    inputMode="url"
+                    placeholder="linkedin.com/in/yourname"
+                    value={linkedinUrl}
+                    onChange={(e) => {
+                      setLinkedinUrl(e.target.value)
+                      setStepError(null)
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Optional. Helps members and partners find you in the community directory.
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="bio">Short bio</Label>
-                    <span className={cn("text-xs text-muted-foreground", bio.length > BIO_MAX_LENGTH && "text-destructive")}>
+                    <Label htmlFor="bio">Short intro (optional)</Label>
+                    <span className="text-xs text-muted-foreground">
                       {bio.length}/{BIO_MAX_LENGTH}
                     </span>
                   </div>
                   <Textarea
                     id="bio"
-                    placeholder="A few lines about you, your work, and what you care about..."
+                    placeholder="One or two sentences about your work and what you're building…"
                     value={bio}
                     onChange={(e) => setBio(e.target.value.slice(0, BIO_MAX_LENGTH))}
                     rows={3}
                     className="resize-none"
                     maxLength={BIO_MAX_LENGTH}
                   />
-                  <p className="text-xs text-muted-foreground">At least one of bio, industry, or role helps others find you.</p>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="industry">Industry</Label>
-                    <Input
-                      id="industry"
-                      placeholder="e.g. EdTech, Health, FinTech"
-                      value={industry}
-                      onChange={(e) => setIndustry(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Input
-                      id="role"
-                      placeholder="e.g. Founder, Designer, Developer"
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="experience">Experience level</Label>
-                    <Select value={experienceLevel} onValueChange={setExperienceLevel}>
-                      <SelectTrigger id="experience">
-                        <SelectValue placeholder="Select (optional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {EXPERIENCE_LEVELS.map((l) => (
-                          <SelectItem key={l} value={l}>
-                            {l}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      placeholder="e.g. Nairobi, Kenya"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                    />
-                  </div>
                 </div>
               </div>
             )}
 
-            {step === 2 && (
-              <div className="space-y-4 animate-in fade-in-0 duration-200" key="step2">
-                <p className="text-sm text-muted-foreground">Optional — add as many as you like, or skip.</p>
-                <div className="space-y-2">
-                  <Label>Skills</Label>
-                  <div className="rounded-md border bg-muted/30 p-3 space-y-2">
-                    {skills.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {skills.map((s) => (
-                          <Badge key={s} variant="secondary" className="gap-1 pr-1">
-                            {s}
-                            <button type="button" onClick={() => removeSkill(s)} className="hover:text-destructive rounded-sm" aria-label={`Remove ${s}`}>
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground text-sm">Add skills to help others find you.</p>
-                    )}
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="e.g. React, Marketing, Design"
-                        value={newSkill}
-                        onChange={(e) => setNewSkill(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
-                        className="h-9 flex-1 min-w-0 text-sm"
-                      />
-                      <Button type="button" size="sm" variant="outline" onClick={addSkill} className="h-9 shrink-0">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Interests</Label>
-                  <div className="rounded-md border bg-muted/30 p-3 space-y-2">
-                    {interests.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {interests.map((i) => (
-                          <Badge key={i} variant="outline" className="gap-1 pr-1">
-                            {i}
-                            <button type="button" onClick={() => removeInterest(i)} className="hover:text-destructive rounded-sm" aria-label={`Remove ${i}`}>
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground text-sm">Add topics you care about.</p>
-                    )}
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="e.g. Sustainability, EdTech"
-                        value={newInterest}
-                        onChange={(e) => setNewInterest(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addInterest())}
-                        className="h-9 flex-1 min-w-0 text-sm"
-                      />
-                      <Button type="button" size="sm" variant="outline" onClick={addInterest} className="h-9 shrink-0">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {stepError ? (
+              <p className="text-sm text-destructive" role="alert">
+                {stepError}
+              </p>
+            ) : null}
 
-            {step === 3 && (
-              <div className="space-y-3 animate-in fade-in-0 duration-200" key="step3">
-                <p className="text-sm text-muted-foreground">Select all that apply — or skip and set later.</p>
-                <div className="flex flex-col gap-2">
-                  {AVAILABILITY_OPTIONS.map((opt) => (
-                    <label
-                      key={opt}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors",
-                        availability.includes(opt) ? "border-primary bg-primary/5" : "hover:bg-muted/50"
-                      )}
-                    >
-                      <Checkbox
-                        checked={availability.includes(opt)}
-                        onCheckedChange={() => toggleAvailability(opt)}
-                      />
-                      <span className="text-sm font-medium">{opt}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t">
+            <div className="flex items-center justify-between gap-3 border-t pt-5">
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => setStep((s) => Math.max(1, s - 1))}
+                size="sm"
+                onClick={() => {
+                  setStepError(null)
+                  setStep((s) => Math.max(1, s - 1))
+                }}
                 disabled={step === 1 || saving}
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className="mr-1.5 h-4 w-4" />
                 Back
               </Button>
               <div className="flex items-center gap-2">
-                {canSkipStep && (
+                {step === 2 ? (
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={handleSkip}
+                    size="sm"
+                    onClick={handleComplete}
                     disabled={saving}
                   >
-                    Skip for now
+                    Skip extras
                   </Button>
-                )}
-                <Button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={!canNext || saving}
-                >
+                ) : null}
+                <Button type="button" onClick={handleNext} disabled={saving}>
                   {saving ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <ArrowRight className="mr-2 h-4 w-4" />
                   )}
-                  {step === totalSteps ? "Finish" : "Next"}
+                  {step === TOTAL_STEPS ? "Finish" : "Continue"}
                 </Button>
               </div>
             </div>
@@ -463,11 +564,11 @@ export default function OnboardingPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          You can update your profile anytime from{" "}
-          <Link href="/profile" className="text-primary hover:underline">
+          Update anytime from{" "}
+          <Link href="/profile" className="font-medium text-primary hover:underline">
             Profile
           </Link>
-          .
+          . We use this information to segment programs and community features — not for public marketing lists.
         </p>
       </div>
     </div>

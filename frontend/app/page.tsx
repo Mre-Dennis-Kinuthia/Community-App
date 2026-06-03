@@ -1,6 +1,5 @@
 "use client"
 
-import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -10,14 +9,12 @@ import { Input } from "@/components/ui/input"
 import { toast } from "@/lib/toast"
 import {
   Calendar,
-  Users,
   BookOpen,
   CheckCircle2,
   ArrowRight,
   Building2,
   TrendingUp,
   ChevronDown,
-  Mail,
   MapPin,
   Twitter,
   Linkedin,
@@ -33,6 +30,13 @@ import {
 import { Logo } from "@/components/logo"
 import { LandingPartnerLogo, type LandingPartner } from "@/components/landing-partner-logo"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
+import { cn } from "@/lib/utils"
+import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
+import {
+  ORGANISATIONAL_MEMBERSHIP_PATH,
+  ORGANISATIONAL_RESPONSE_SLA,
+  STAR_CONNECT_RESPONSE_SLA,
+} from "@/lib/membership-inquiry"
 
 const NAV_LINKS = [
   { href: "#services", label: "What we do" },
@@ -100,7 +104,10 @@ const MEMBERSHIP_TIERS = [
       "Impact newsletter & updates",
       "Community channel access",
     ],
-    cta: "Join Free",
+    cta: "Create free account",
+    helper: "Register on the platform · no payment required",
+    href: "/register",
+    external: false,
     popular: false,
   },
   {
@@ -115,7 +122,10 @@ const MEMBERSHIP_TIERS = [
       "Grants & funding opportunities",
       "Strategic partnerships & growth advisory",
     ],
-    cta: "Get Started",
+    cta: "Apply for membership",
+    helper: `2-step application · we respond ${STAR_CONNECT_RESPONSE_SLA}`,
+    href: "/membership/star-connect",
+    external: false,
     popular: true,
   },
   {
@@ -130,10 +140,13 @@ const MEMBERSHIP_TIERS = [
       "Strategic visibility across platforms",
       "Dedicated partnership manager",
     ],
-    cta: "Contact Us",
+    cta: "Register on the platform",
+    helper: `Create your account · partnerships follow up ${ORGANISATIONAL_RESPONSE_SLA}`,
+    href: ORGANISATIONAL_MEMBERSHIP_PATH,
+    external: false,
     popular: false,
   },
-]
+] as const
 
 const PARTNERS: LandingPartner[] = [
   { name: "Digital Africa", logo: "/partners/digital-africa.svg", href: "https://digitalafrica.co" },
@@ -180,7 +193,7 @@ const FAQS = [
   {
     question: "How can my organization partner with Impact Hub Nairobi?",
     answer:
-      "We work with corporates, development organizations, and NGOs through co-hosted events, program co-design, sponsorships, and strategic partnerships. Reach out to our partnerships team to explore alignment.",
+      "Choose Organisational membership on this page and register on the platform — no lengthy application. Complete your profile with your institution details and our partnerships team will follow up to co-design programs, events, and bespoke engagement.",
   },
 ]
 
@@ -192,20 +205,59 @@ interface AccordionItemProps {
 }
 
 function AccordionItem({ question, answer, isOpen, onToggle }: AccordionItemProps) {
+  const panelId = `faq-${question.slice(0, 24).replace(/\W+/g, "-").toLowerCase()}`
+
   return (
-    <div className="border-b border-border">
+    <div className="border-b border-border last:border-b-0">
       <button
+        type="button"
         onClick={onToggle}
-        className="w-full py-4 flex items-center justify-between text-left group"
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        className="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors hover:text-foreground"
       >
-        <span className="font-medium text-base">{question}</span>
+        <span className="text-[15px] font-medium leading-snug text-foreground">{question}</span>
         <ChevronDown
-          className={`h-4 w-4 transition-transform text-muted-foreground ${isOpen ? "rotate-180" : ""}`}
+          className={cn(
+            "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+            isOpen && "rotate-180"
+          )}
+          aria-hidden
         />
       </button>
-      {isOpen && (
-        <div className="pb-4 text-muted-foreground leading-relaxed">{answer}</div>
-      )}
+      <div
+        id={panelId}
+        role="region"
+        hidden={!isOpen}
+        className={cn(
+          "overflow-hidden text-[15px] leading-relaxed text-muted-foreground transition-all",
+          isOpen ? "pb-5" : "h-0 pb-0"
+        )}
+      >
+        {isOpen ? answer : null}
+      </div>
+    </div>
+  )
+}
+
+function SectionHeader({
+  label,
+  title,
+  description,
+  className,
+}: {
+  label?: string
+  title: string
+  description?: string
+  className?: string
+}) {
+  return (
+    <div className={cn("mx-auto max-w-3xl text-center", className)}>
+      {label ? <p className="section-label mb-3">{label}</p> : null}
+      <h2 className="section-title text-balance">{title}</h2>
+      {description ? (
+        <p className="section-lead mx-auto mt-4 max-w-2xl text-pretty">{description}</p>
+      ) : null}
     </div>
   )
 }
@@ -264,100 +316,116 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 overflow-x-hidden border-b border-border/30 surface-header">
-        <div className="container flex h-16 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
+      <header className="landing-header sticky top-0 z-50 overflow-x-hidden">
+        <div className="container flex h-[4.25rem] min-w-0 items-center justify-between gap-4 px-4 md:px-6">
           <Logo href="/" />
 
-          <nav className="hidden md:flex items-center gap-8 text-sm">
+          <nav
+            className="hidden items-center gap-8 md:flex"
+            aria-label="Primary"
+          >
             {NAV_LINKS.map((link) => (
               <NavLink
                 key={link.href}
                 {...link}
-                className="text-foreground/70 hover:text-foreground transition-colors"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               />
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="ghost" className="hidden sm:flex text-foreground/70 hover:text-foreground">
-                Login
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link href="/login" className="hidden sm:block">
+              <Button variant="ghost" size="sm" className="text-muted-foreground">
+                Sign in
               </Button>
             </Link>
             <Link href="/register">
-              <Button className="bg-primary text-primary-foreground">Join Now</Button>
+              <Button size="sm" className="px-4">
+                Join the community
+              </Button>
             </Link>
             <Button
               variant="ghost"
               size="icon"
               className="md:hidden"
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
-              aria-label="Toggle menu"
+              aria-expanded={mobileNavOpen}
+              aria-controls="landing-mobile-nav"
+              aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
             >
               {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
 
-        {mobileNavOpen && (
-          <div className="md:hidden border-t border-border/30 bg-background">
-            <nav className="container px-4 py-4 flex flex-col gap-1">
+        {mobileNavOpen ? (
+          <div
+            id="landing-mobile-nav"
+            className="border-t border-border/70 bg-background md:hidden"
+          >
+            <nav className="container flex flex-col gap-0.5 px-4 py-4" aria-label="Mobile">
               {NAV_LINKS.map((link) => (
                 <NavLink
                   key={link.href}
                   {...link}
-                  className="px-3 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-accent rounded-md transition-colors"
+                  className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
                   onClick={() => setMobileNavOpen(false)}
                 />
               ))}
-              <div className="pt-2 mt-2 border-t border-border/30">
+              <div className="mt-3 flex flex-col gap-2 border-t border-border/70 pt-4">
                 <Link href="/login" onClick={() => setMobileNavOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    Login
+                  <Button variant="outline" className="w-full">
+                    Sign in
                   </Button>
+                </Link>
+                <Link href="/register" onClick={() => setMobileNavOpen(false)}>
+                  <Button className="w-full">Join the community</Button>
                 </Link>
               </div>
             </nav>
           </div>
-        )}
+        ) : null}
       </header>
 
-      {/* Hero */}
-      <section className="hero-wash border-b border-border">
-        <div className="container px-4 py-16 md:py-24">
-          <div className="mx-auto max-w-3xl">
-            <p className="section-label mb-4">Impact Hub Nairobi · Member platform</p>
-            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
+      <main>
+      <section className="hero-wash border-b border-border" aria-labelledby="hero-heading">
+        <div className="container px-4 py-20 md:py-28 lg:py-32">
+          <div className="landing-hero-accent mx-auto max-w-3xl">
+            <p className="section-label mb-5">Impact Hub Nairobi</p>
+            <h1
+              id="hero-heading"
+              className="text-4xl font-semibold tracking-tight text-balance text-foreground md:text-5xl lg:text-[3.25rem] lg:leading-[1.12]"
+            >
               Scaling sustainable innovation in Kenya
             </h1>
-            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-              Connect with changemakers, book workspace, join events, and access the programs that
-              support impact-driven ventures.
+            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl md:leading-relaxed">
+              The member platform for programs, workspace, events, and community — built for
+              ventures and partners driving measurable impact.
             </p>
-            <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                24,000+ entrepreneurs globally
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                100+ hubs worldwide
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                Free to join
-              </li>
+            <ul className="mt-10 grid gap-3 sm:grid-cols-3 sm:gap-4">
+              {[
+                "24,000+ entrepreneurs globally",
+                "100+ hubs worldwide",
+                "Free community membership",
+              ].map((item) => (
+                <li
+                  key={item}
+                  className="flex items-center gap-2.5 rounded-md border border-border/80 bg-background/60 px-3 py-2.5 text-sm text-muted-foreground"
+                >
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                  {item}
+                </li>
+              ))}
             </ul>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/register">
-                <Button size="lg">
-                  Join the community
+                <Button size="lg" className="w-full sm:w-auto">
+                  Create your account
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/login">
-                <Button size="lg" variant="outline">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto">
                   Sign in
                 </Button>
               </Link>
@@ -366,50 +434,60 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Impact Stats Banner */}
-      <section className="border-b border-border bg-muted/30 py-10">
+      <section className="border-b border-border bg-muted/20 py-12 md:py-14" aria-label="Global network impact">
         <div className="container px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto text-center">
-            {IMPACT_STATS.map((stat) => (
-              <div key={stat.label} className="space-y-1">
-                <p className="text-2xl font-semibold tabular-nums text-foreground md:text-3xl">{stat.value}</p>
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
+          <dl className="mx-auto grid max-w-5xl grid-cols-2 gap-8 md:grid-cols-4 md:gap-6">
+            {IMPACT_STATS.map((stat, index) => (
+              <div
+                key={stat.label}
+                className={cn(
+                  "text-center md:text-left",
+                  index > 0 && "md:border-l md:border-border/80 md:pl-6"
+                )}
+              >
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                  {stat.label}
+                </dt>
+                <dd className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-foreground md:text-3xl">
+                  {stat.value}
+                </dd>
               </div>
             ))}
-          </div>
-          <p className="mt-6 text-center text-xs text-muted-foreground max-w-2xl mx-auto">
-            Network-wide figures from Impact Hub Global. Nairobi-specific metrics are shared in programs and annual reporting.
+          </dl>
+          <p className="mx-auto mt-8 max-w-2xl text-center text-xs leading-relaxed text-muted-foreground">
+            Network-wide figures from Impact Hub Global. Nairobi-specific outcomes are reported
+            through programs and annual impact reporting.
           </p>
         </div>
       </section>
 
-      {/* Services */}
-      <section id="services" className="container px-4 py-16 md:py-24">
-        <div className="text-center space-y-4 mb-16">
-          <p className="section-label">What We Do</p>
-          <h2 className="section-title">
-            Building pathways to impact at scale
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            A unique blend of services connecting and enabling changemakers to collaborate, learn,
-            and build successful ventures that serve people and the planet.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <section id="services" className="landing-section container px-4">
+        <SectionHeader
+          label="What we do"
+          title="Building pathways to impact at scale"
+          description="Programs, advisory, spaces, and research — connecting changemakers to collaborate, learn, and build ventures that serve people and the planet."
+          className="mb-14 md:mb-16"
+        />
+        <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {SERVICES.map((service) => {
             const Icon = service.icon
             return (
-              <Card key={service.title} className="surface-card transition-colors hover:border-foreground/20 group">
-                <CardHeader>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-primary/10 rounded-lg p-2.5 group-hover:bg-primary/15 transition-colors">
-                      <Icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardTitle className="text-lg font-semibold">{service.title}</CardTitle>
+              <Card
+                key={service.title}
+                className="surface-card group border-border/90 transition-colors hover:border-foreground/25"
+              >
+                <CardHeader className="space-y-4 pb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 transition-colors group-hover:bg-primary/15">
+                    <Icon className="h-5 w-5 text-primary" aria-hidden />
                   </div>
-                  <CardDescription className="text-muted-foreground leading-relaxed">
-                    {service.description}
-                  </CardDescription>
+                  <div className="space-y-2">
+                    <CardTitle className="text-base font-semibold leading-snug">
+                      {service.title}
+                    </CardTitle>
+                    <CardDescription className="text-[15px] leading-relaxed text-muted-foreground">
+                      {service.description}
+                    </CardDescription>
+                  </div>
                 </CardHeader>
               </Card>
             )
@@ -417,194 +495,214 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Membership Tiers */}
-      <section id="membership" className="container px-4 py-16 md:py-24">
-        <div className="text-center space-y-4 mb-16">
-          <p className="section-label">Membership</p>
-          <h2 className="section-title">
-            Choose your membership
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Whether you&apos;re just getting started or ready to scale — there&apos;s a tier designed for you.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {MEMBERSHIP_TIERS.map((tier) => (
-            <Card
-              key={tier.name}
-              className={`border  bg-card relative ${
-                tier.popular ? "border-primary ring-1 ring-primary/20" : "border-border"
-              }`}
-            >
-              {tier.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground px-3 py-0.5 text-xs">
-                    Most Popular
-                  </Badge>
-                </div>
-              )}
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-xl font-semibold">{tier.name}</CardTitle>
-                <div className="pt-2">
-                  <span className="text-3xl font-semibold">{tier.price}</span>
-                  {tier.period && <span className="text-muted-foreground text-sm">{tier.period}</span>}
-                </div>
-                <CardDescription className="pt-2">{tier.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/register" className="block pt-2">
-                  <Button
-                    className={`w-full ${tier.popular ? "bg-primary text-primary-foreground" : ""}`}
-                    variant={tier.popular ? "default" : "outline"}
-                  >
-                    {tier.cta}
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
+      <section id="membership" className="landing-section-alt landing-section">
+        <div className="container px-4">
+          <SectionHeader
+            label="Membership"
+            title="Membership options"
+            description="From free community access to dedicated venture support and institutional partnerships."
+            className="mb-14 md:mb-16"
+          />
+          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3 md:gap-8">
+            {MEMBERSHIP_TIERS.map((tier) => (
+              <Card
+                key={tier.name}
+                className={cn(
+                  "relative flex flex-col border bg-card shadow-sm",
+                  tier.popular
+                    ? "border-primary shadow-md shadow-primary/5 ring-1 ring-primary/15"
+                    : "border-border"
+                )}
+              >
+                {tier.popular ? (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-primary px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground">
+                      Recommended
+                    </Badge>
+                  </div>
+                ) : null}
+                <CardHeader className="border-b border-border/60 pb-6 text-center">
+                  <CardTitle className="text-lg font-semibold">{tier.name}</CardTitle>
+                  <div className="mt-4 flex items-baseline justify-center gap-1">
+                    <span className="text-3xl font-semibold tracking-tight tabular-nums">
+                      {tier.price}
+                    </span>
+                    {tier.period ? (
+                      <span className="text-sm text-muted-foreground">{tier.period}</span>
+                    ) : null}
+                  </div>
+                  <CardDescription className="mt-3 text-sm leading-relaxed">
+                    {tier.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col gap-6 pt-6">
+                  <ul className="space-y-3 text-sm leading-relaxed">
+                    {tier.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5">
+                        <CheckCircle2
+                          className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                          aria-hidden
+                        />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-auto space-y-2">
+                    <p className="text-center text-xs text-muted-foreground leading-relaxed">
+                      {tier.helper}
+                    </p>
+                    {tier.external ? (
+                      <a href={tier.href} className="block">
+                        <Button
+                          className="w-full"
+                          variant={tier.popular ? "default" : "outline"}
+                        >
+                          {tier.cta}
+                        </Button>
+                      </a>
+                    ) : (
+                      <Link href={tier.href} className="block">
+                        <Button
+                          className="w-full"
+                          variant={tier.popular ? "default" : "outline"}
+                        >
+                          {tier.cta}
+                          {tier.popular ? (
+                            <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                          ) : null}
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Partners */}
-      <section className="container px-4 py-16 md:py-24">
-        <div className="text-center space-y-4 mb-12">
-          <p className="section-label">Our Ecosystem</p>
-          <h2 className="section-title">
-            Strategic partners
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Collaborating with organizations across sectors to build entrepreneurial communities for impact at scale.
-          </p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+      <section className="landing-section container px-4">
+        <SectionHeader
+          label="Our ecosystem"
+          title="Strategic partners"
+          description="Collaborating across sectors to strengthen entrepreneurial communities for impact at scale."
+          className="mb-12 md:mb-14"
+        />
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {PARTNERS.map((partner) => (
             <LandingPartnerLogo key={partner.name} partner={partner} />
           ))}
         </div>
-        <div className="text-center mt-8">
+        <p className="mt-10 text-center">
           <Link
             href="/partners"
-            className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:opacity-80 transition-opacity"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-opacity hover:opacity-80"
           >
-            View all partners <ArrowRight className="h-4 w-4" />
+            View all partners
+            <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
-        </div>
+        </p>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="container px-4 py-16 md:py-24">
-        <div className="text-center space-y-4 mb-16">
-          <h2 className="section-title">
-            Frequently asked questions
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to know about joining and engaging with Impact Hub Nairobi
-          </p>
-        </div>
-        <div className="max-w-3xl mx-auto space-y-2">
-          {FAQS.map((faq, index) => (
-            <AccordionItem
-              key={index}
-              question={faq.question}
-              answer={faq.answer}
-              isOpen={openFAQ === index}
-              onToggle={() => toggleFAQ(index)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Newsletter */}
-      <section className="container px-4 py-16 md:py-24">
-        <Card className="border border-border  bg-card max-w-2xl mx-auto">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl md:text-3xl font-semibold">Stay in the Loop</CardTitle>
-            <CardDescription className="text-base">
-              Weekly updates on events, programs, and stories from Kenya&apos;s most active impact community.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="flex flex-col sm:flex-row gap-3" onSubmit={handleNewsletterSubmit}>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1"
-                value={newsletterEmail}
-                onChange={(e) => setNewsletterEmail(e.target.value)}
-                required
-                disabled={newsletterLoading}
+      <section id="faq" className="landing-section-alt landing-section">
+        <div className="container px-4">
+          <SectionHeader
+            label="FAQ"
+            title="Frequently asked questions"
+            description="Guidance on joining, membership, programs, and using the platform."
+            className="mb-12 md:mb-14"
+          />
+          <div className="mx-auto max-w-3xl rounded-md border border-border bg-card px-5 shadow-sm md:px-6">
+            {FAQS.map((faq, index) => (
+              <AccordionItem
+                key={faq.question}
+                question={faq.question}
+                answer={faq.answer}
+                isOpen={openFAQ === index}
+                onToggle={() => toggleFAQ(index)}
               />
-              <Button
-                type="submit"
-                className="bg-primary text-primary-foreground "
-                disabled={newsletterLoading}
-              >
-                {newsletterLoading ? "Subscribing…" : "Subscribe"}
-                {!newsletterLoading && <ArrowRight className="ml-2 h-4 w-4" />}
-              </Button>
-            </form>
-            <p className="text-xs text-muted-foreground text-center mt-3">No spam. Unsubscribe anytime.</p>
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-16 md:py-24 bg-muted/30">
-        <div className="container px-4 text-center space-y-8">
-          <h2 className="section-title">
-            Ready to get started?
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Join a community where business and profit are used to serve people and the planet —
-            and where locally rooted solutions shape global change.
-          </p>
-          <div className="flex items-center justify-center gap-2 pt-2">
-            <Badge variant="outline" className="px-4 py-1.5">
-              <Globe className="h-3 w-3 mr-1.5" />
-              Part of the Global Impact Hub Network
-            </Badge>
+      <section className="landing-section container px-4" aria-labelledby="newsletter-heading">
+        <div className="mx-auto max-w-2xl rounded-md border border-border bg-muted/30 px-6 py-10 md:px-10 md:py-12">
+          <div className="text-center">
+            <p className="section-label mb-3">Newsletter</p>
+            <h2 id="newsletter-heading" className="section-title text-2xl md:text-3xl">
+              Impact insights
+            </h2>
+            <p className="section-lead mx-auto mt-3">
+              Periodic updates on events, programs, and stories from Kenya&apos;s impact community.
+            </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <form
+            className="mt-8 flex flex-col gap-3 sm:flex-row"
+            onSubmit={handleNewsletterSubmit}
+          >
+            <Input
+              type="email"
+              placeholder="Work email"
+              className="h-11 flex-1 bg-background"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              required
+              disabled={newsletterLoading}
+              aria-label="Email address"
+            />
+            <Button type="submit" className="h-11 sm:min-w-[140px]" disabled={newsletterLoading}>
+              {newsletterLoading ? "Subscribing…" : "Subscribe"}
+              {!newsletterLoading ? <ArrowRight className="ml-2 h-4 w-4" aria-hidden /> : null}
+            </Button>
+          </form>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            No spam. Unsubscribe anytime.
+          </p>
+        </div>
+      </section>
+
+      <section className="border-t border-border bg-primary/[0.04] py-20 md:py-24">
+        <div className="container space-y-8 px-4 text-center">
+          <SectionHeader
+            title="Ready to get started?"
+            description="Join a global network where locally rooted solutions advance people, planet, and profit — starting in Nairobi."
+          />
+          <p className="text-sm font-medium text-muted-foreground">
+            Part of the global Impact Hub network · 100+ hubs · 60+ countries
+          </p>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
             <Link href="/register">
-              <Button size="lg" className="text-base px-8 py-6 bg-primary text-primary-foreground ">
-                Join the Community
-                <ArrowRight className="ml-2 h-5 w-5" />
+              <Button size="lg" className="w-full sm:w-auto">
+                Create your account
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
             <Link href="/login">
-              <Button size="lg" variant="outline" className="text-base px-8 py-6 ">
-                Login
+              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                Sign in
               </Button>
             </Link>
           </div>
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground pt-4">
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              <span>Secure Platform</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>Free Community Tier</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4" />
-              <span>15+ Years of Impact</span>
-            </div>
-          </div>
+          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 pt-2 text-sm text-muted-foreground">
+            <li className="flex items-center gap-2">
+              <Shield className="h-4 w-4 shrink-0" aria-hidden />
+              Secure platform
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+              Free community tier
+            </li>
+            <li className="flex items-center gap-2">
+              <Award className="h-4 w-4 shrink-0" aria-hidden />
+              15+ years of impact
+            </li>
+          </ul>
         </div>
       </section>
+      </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-muted/30 py-12">
+      <footer className="border-t border-border bg-muted/40 py-14 md:py-16">
         <div className="container px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="space-y-4">
@@ -626,7 +724,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Platform</h3>
+              <h3 className="landing-footer-heading mb-4">Platform</h3>
               <ul className="space-y-2 text-sm">
                 <li><Link href="/community" className="text-muted-foreground hover:text-foreground transition-colors">Community</Link></li>
                 <li><Link href="/events" className="text-muted-foreground hover:text-foreground transition-colors">Events &amp; Programs</Link></li>
@@ -639,7 +737,7 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Learn More</h3>
+              <h3 className="landing-footer-heading mb-4">Learn more</h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <a href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -653,22 +751,16 @@ export default function HomePage() {
                 </li>
                 <li><a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQs</a></li>
                 <li><Link href="/news" className="text-muted-foreground hover:text-foreground transition-colors">News &amp; Updates</Link></li>
-                <li><Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">Login</Link></li>
+                <li><Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">Sign in</Link></li>
               </ul>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Contact</h3>
+              <h3 className="landing-footer-heading mb-4">Contact</h3>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>Ikigai Nairobi, Westlands, Nairobi, Kenya</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Mail className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="hover:text-foreground transition-colors">
-                    {HUB_CONTACT_EMAIL}
-                  </a>
                 </li>
                 <li className="flex items-start gap-2">
                   <Globe className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -680,23 +772,29 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="border-t border-border pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-              <p>&copy; 2026 Impact Hub Nairobi. All rights reserved.</p>
+          <div className="border-t border-border/80 pt-8">
+            <div className="flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
+              <p>&copy; {new Date().getFullYear()} Impact Hub Nairobi. All rights reserved.</p>
               <div className="flex gap-6">
-                <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-                <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+                <Link href="/privacy" className="transition-colors hover:text-foreground">
+                  Privacy policy
+                </Link>
+                <Link href="/terms" className="transition-colors hover:text-foreground">
+                  Terms of service
+                </Link>
               </div>
             </div>
-            <div className="text-center mt-4 text-xs text-muted-foreground">
-              <p>
-                Part of the global{" "}
-                <a href="https://impacthub.net" target="_blank" rel="noopener noreferrer" className="text-primary hover:opacity-80 hover:underline">
-                  Impact Hub network
-                </a>{" "}
-                &middot; 100+ hubs &middot; 60+ countries &middot; 15+ years of impact
-              </p>
-            </div>
+            <p className="mt-5 text-center text-xs leading-relaxed text-muted-foreground">
+              Part of the global{" "}
+              <a
+                href="https://impacthub.net"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary underline-offset-2 hover:underline"
+              >
+                Impact Hub network
+              </a>
+            </p>
           </div>
         </div>
       </footer>

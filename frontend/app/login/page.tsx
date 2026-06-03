@@ -15,6 +15,7 @@ import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { LegalLinks } from "@/components/legal-links"
+import { DEFAULT_POST_LOGIN_PATH } from "@/lib/auth-routes"
 
 function LoginForm() {
   const router = useRouter()
@@ -22,7 +23,7 @@ function LoginForm() {
   const redirect =
     searchParams.get("redirect") ??
     searchParams.get("callbackUrl") ??
-    "/onboarding"
+    DEFAULT_POST_LOGIN_PATH
   const registeredEmail = searchParams.get("email")
   const isRegistered = searchParams.get("registered") === "true"
   const [email, setEmail] = useState(registeredEmail || "")

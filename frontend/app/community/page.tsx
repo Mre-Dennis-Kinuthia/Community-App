@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { badgeClassForLabel } from "@/lib/badge-styles"
+import { MembershipTierBadge } from "@/components/membership-tier-badge"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
@@ -128,8 +129,8 @@ function CommunityPageContent() {
   // Get filter options from API response
   const allUniqueSkills = filters?.skills || []
   const locations = ["All", ...(filters?.locations || [])]
-  const industries = ["All"] // TODO: Add when industry field is added to schema
-  const roles = ["All"] // TODO: Add when role field is added to schema
+  const industries = ["All", ...(filters?.industries || [])]
+  const roles = ["All", ...(filters?.roles || [])]
 
   const filteredAndSortedMembers = members // Already filtered and sorted by API
 
@@ -594,6 +595,17 @@ function CommunityPageContent() {
                                 </Badge>
                               )}
                               <CardTitle className="truncate text-base md:text-lg">{member.name || "Anonymous"}</CardTitle>
+                              {member.membershipLabel ? (
+                                <div className="mt-1 flex justify-center md:justify-center">
+                                  <MembershipTierBadge
+                                    membership={{
+                                      tier: member.membershipTier,
+                                      label: member.membershipLabel,
+                                    }}
+                                    className="text-[10px]"
+                                  />
+                                </div>
+                              ) : null}
                               {member.role && (
                                 <p className="truncate text-sm text-muted-foreground">{member.role}</p>
                               )}
