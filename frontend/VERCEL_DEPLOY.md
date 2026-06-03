@@ -16,6 +16,19 @@
    - **Important:** Select all environments (Production, Preview, Development)
    - **Minimum length:** 32 characters
 
+3. **Google sign-in (optional)** — same OAuth client as Gmail if you already use one
+   - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+   - In [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → your OAuth client → **Authorized redirect URIs**, add:
+     - `https://YOUR-MEMBER-APP.vercel.app/api/auth/callback/google`
+     - `http://localhost:3000/api/auth/callback/google` (local dev)
+   - This is **not** the Gmail refresh-token flow; redirect URIs must include `/api/auth/callback/google`.
+   - After deploy, `/api/auth/google-enabled` returns `{ "enabled": true }` when configured.
+   - Login and register pages show **Continue with Google** only when those env vars are set.
+   - **OAuth consent screen (public legal URLs):** set `NEXT_PUBLIC_APP_URL` to your production origin, then use:
+     - Privacy policy: `https://YOUR-APP-DOMAIN/privacy`
+     - Terms of service: `https://YOUR-APP-DOMAIN/terms`
+     - See [../docs/PUBLIC_LEGAL_LINKS.md](../docs/PUBLIC_LEGAL_LINKS.md)
+
 ## How to Set Environment Variables in Vercel
 
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
@@ -103,3 +116,4 @@ Before going live, verify:
 - [ ] Can access `/api/auth/session` without 500 errors
 - [ ] Can register a new user
 - [ ] Can log in with registered credentials
+- [ ] (Optional) Google sign-in works: `/api/auth/google-enabled` → `enabled: true`, then test on `/login`

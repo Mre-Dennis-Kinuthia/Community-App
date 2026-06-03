@@ -92,6 +92,19 @@ const nextAuthConfig = {
   secret: resolvedSecret,
   events: {
     async createUser({ user }) {
+      if (!user.id) return
+
+      await prisma.memberProfile.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          skills: [],
+          availability: [],
+          interests: [],
+        },
+        update: {},
+      })
+
       if (!user.email) return
       sendEmailInBackground(
         () => sendWelcomeEmail({ to: user.email!, name: user.name }),
@@ -104,11 +117,15 @@ const nextAuthConfig = {
     },
   },
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true, // Allow linking Google account with existing email
-    }),
+    ...(process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim()
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
     Credentials({
       name: "Credentials",
       credentials: {

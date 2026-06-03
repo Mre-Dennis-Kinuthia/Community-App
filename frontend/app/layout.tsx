@@ -7,12 +7,14 @@ import { Toaster } from "@/components/ui/toaster"
 import { SkipLink } from "@/components/skip-link"
 import { PageTransition } from "@/app/components/page-transition"
 import { TopLoadingBar } from "@/app/components/top-loading-bar"
+import { getAppBaseUrl } from "@/lib/app-url"
 import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getAppBaseUrl()),
   title: "Impact Hub Nairobi Community Platform - Powered by Impact Hub Nairobi",
   description:
     "Impact Hub Nairobi's official digital platform. Access programs, resources, and community connections distributed through our network. Join Kenya's leading innovation community.",

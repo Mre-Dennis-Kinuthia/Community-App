@@ -118,6 +118,14 @@ export default function TermsPage() {
               .
             </p>
           </section>
+
+          <p className="text-muted-foreground pt-4 border-t">
+            See also our{" "}
+            <Link href="/privacy" className="text-primary hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>

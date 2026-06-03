@@ -2,16 +2,24 @@ import type { NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 
+const googleSignInEnabled = Boolean(
+  process.env.GOOGLE_CLIENT_ID?.trim() && process.env.GOOGLE_CLIENT_SECRET?.trim()
+)
+
+const googleProvider = googleSignInEnabled
+  ? Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
+    })
+  : null
+
 // This config is used by middleware (Edge runtime) and auth.ts
 export const authConfig = {
   trustHost: true,
   secret: process.env.AUTH_SECRET,
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true, // Allow linking Google account with existing email
-    }),
+    ...(googleProvider ? [googleProvider] : []),
     Credentials({
       name: "Credentials",
       credentials: {

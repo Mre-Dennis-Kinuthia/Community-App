@@ -112,6 +112,14 @@ export default function PrivacyPage() {
               .
             </p>
           </section>
+
+          <p className="text-muted-foreground pt-4 border-t">
+            See also our{" "}
+            <Link href="/terms" className="text-primary hover:underline">
+              Terms of Service
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>

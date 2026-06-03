@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button"
 import { toast } from "@/lib/toast"
 import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
 import { Logo } from "@/components/logo"
+import { LegalLinks } from "@/components/legal-links"
 
 function RegisterForm() {
   const router = useRouter()
@@ -31,6 +33,14 @@ function RegisterForm() {
     confirmPassword?: string
   }>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [googleEnabled, setGoogleEnabled] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/auth/google-enabled")
+      .then((r) => r.json())
+      .then((d: { enabled?: boolean }) => setGoogleEnabled(Boolean(d.enabled)))
+      .catch(() => setGoogleEnabled(false))
+  }, [])
 
   const validateField = (
     field: "firstName" | "lastName" | "email" | "password" | "confirmPassword",
@@ -303,7 +313,27 @@ function RegisterForm() {
                 "Create Account"
               )}
             </Button>
-            
+
+            {googleEnabled ? (
+              <>
+                <div className="relative w-full">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">Or sign up with</span>
+                  </div>
+                </div>
+                <GoogleSignInButton
+                  callbackUrl={redirect}
+                  label="Sign up with Google"
+                  disabled={isLoading}
+                />
+              </>
+            ) : null}
+
+            <LegalLinks showAgreement className="px-1" />
+
             <p className="text-center text-sm text-muted-foreground">
               Already have an account?{" "}
               <Link href="/login" className="text-primary hover:underline">
