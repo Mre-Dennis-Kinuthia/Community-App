@@ -58,11 +58,6 @@ const items = [
     icon: Sparkles,
   },
   {
-    title: "Resource library",
-    href: "/resources",
-    icon: BookOpen,
-  },
-  {
     title: "News & Updates",
     href: "/news",
     icon: Newspaper,

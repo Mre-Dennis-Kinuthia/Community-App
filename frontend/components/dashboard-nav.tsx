@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, Building2, FolderOpen, BarChart3, Sparkles } from "lucide-react"
+import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, FolderOpen, BarChart3, Sparkles } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useSidebar } from "@/components/sidebar-context"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -78,6 +78,11 @@ const navGroups: NavGroup[] = [
         href: "/news",
         icon: Newspaper,
       },
+      {
+        title: "Partners & Network",
+        href: "/partners",
+        icon: Handshake,
+      },
     ],
   },
   {
@@ -92,16 +97,6 @@ const navGroups: NavGroup[] = [
         title: "Opportunities",
         href: "/opportunities",
         icon: Sparkles,
-      },
-      {
-        title: "Resource library",
-        href: "/resources",
-        icon: BookOpen,
-      },
-      {
-        title: "Partners & Network",
-        href: "/partners",
-        icon: Handshake,
       },
     ],
   },
@@ -153,9 +148,6 @@ export function DashboardNav() {
         pathname.startsWith("/resources/opportunities") ||
         (pathname === "/resources" && resourcesTab === "programs")
       )
-    }
-    if (href === "/resources") {
-      return pathname === "/resources" && resourcesTab !== "programs"
     }
     return pathname === href || pathname.startsWith(`${href}/`)
   }
