@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Edit, Save, X, Plus, Loader2, CreditCard, Users, CalendarDays, Briefcase } from "lucide-react"
+import { Edit, Save, X, Plus, Loader2, CreditCard, Users, CalendarDays, Briefcase, AlertTriangle } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { MobilePageHeader, MobileStatsStrip, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { DashboardLayout } from "@/app/dashboard/layout"
@@ -25,7 +25,8 @@ import { toast } from "@/lib/toast"
 import { getInitials, cn } from "@/lib/utils"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { ImageUpload } from "@/components/ui/image-upload"
-import { useSession as useNextAuthSession } from "next-auth/react"
+import { useSession as useNextAuthSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 import {
@@ -93,6 +94,7 @@ function emptyForm() {
 }
 
 export default function ProfilePage() {
+  const router = useRouter()
   const { user } = useSession()
   const { update: updateSession } = useNextAuthSession()
   const [loading, setLoading] = useState(true)
@@ -101,6 +103,9 @@ export default function ProfilePage() {
   const [membership, setMembership] = useState<MembershipBenefits | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [deletePassword, setDeletePassword] = useState("")
+  const [deleteConfirmation, setDeleteConfirmation] = useState("")
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
   const [form, setForm] = useState(emptyForm())
   const [newSkill, setNewSkill] = useState("")
@@ -257,6 +262,45 @@ export default function ProfilePage() {
 
   const handleRemoveInterest = (interest: string) => {
     setForm((prev) => ({ ...prev, interests: prev.interests.filter((x) => x !== interest) }))
+  }
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== "DELETE") {
+      toast.error("Confirmation required", 'Type "DELETE" to confirm account deletion.')
+      return
+    }
+    if (!deletePassword) {
+      toast.error("Password required", "Enter your password to delete your account.")
+      return
+    }
+
+    setDeletingAccount(true)
+    try {
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          password: deletePassword,
+          confirmation: deleteConfirmation,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete account")
+      }
+
+      toast.success(
+        "Account deleted",
+        data.message || "Your account has been permanently removed."
+      )
+      await signOut({ redirect: false })
+      router.push("/login?deleted=true")
+    } catch (e) {
+      toast.error("Deletion failed", e instanceof Error ? e.message : "Please try again.")
+    } finally {
+      setDeletingAccount(false)
+    }
   }
 
   if (!user) {
@@ -797,6 +841,59 @@ export default function ProfilePage() {
             </Card>
           </aside>
         </div>
+
+        <Card className="border-destructive/40">
+          <CardHeader className="p-4 pb-3 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-lg text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Delete account
+            </CardTitle>
+            <CardDescription>
+              Permanently remove your account, profile, bookings, and sign-in access. You will receive
+              a confirmation email at {user.email}. This cannot be undone.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="delete-password">Current password</Label>
+                <Input
+                  id="delete-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  disabled={deletingAccount}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="delete-confirmation">Type DELETE to confirm</Label>
+                <Input
+                  id="delete-confirmation"
+                  value={deleteConfirmation}
+                  onChange={(e) => setDeleteConfirmation(e.target.value)}
+                  placeholder="DELETE"
+                  disabled={deletingAccount}
+                />
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={deletingAccount}
+            >
+              {deletingAccount ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting account…
+                </>
+              ) : (
+                "Permanently delete my account"
+              )}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   )

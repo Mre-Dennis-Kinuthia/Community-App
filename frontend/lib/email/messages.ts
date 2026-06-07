@@ -584,3 +584,39 @@ export async function sendWorkspaceInquiryStaffEmail(params: {
     replyTo: params.email,
   })
 }
+
+export async function sendAccountDeletedEmail(params: {
+  to: string
+  name?: string | null
+  deletedBy?: "self" | "admin"
+}): Promise<SendEmailResult> {
+  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
+  const intro =
+    params.deletedBy === "self"
+      ? "This confirms that your Impact Hub Nairobi community account was permanently deleted at your request."
+      : "This confirms that your Impact Hub Nairobi community account was permanently deleted."
+
+  const bodyHtml = `
+    <p>${greeting}</p>
+    <p>${intro}</p>
+    <p>Your profile, sign-in access, bookings, and other personal data tied to this account have been removed from our platform.</p>
+    <p>If you did not request this, contact us immediately at our support channels.</p>
+    <p style="font-size:13px;color:#71717a;">You will no longer receive community emails at this address from this account.</p>
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: "Your Impact Hub Nairobi account has been deleted",
+    html: layoutEmail({
+      preheader: "Account permanently deleted",
+      title: "Account deleted",
+      bodyHtml,
+    }),
+    text: [
+      greeting.replace(/<[^>]+>/g, ""),
+      intro,
+      "Your profile, sign-in access, bookings, and personal data tied to this account have been removed.",
+      "If you did not request this, contact our team immediately.",
+    ].join("\n\n"),
+  })
+}

@@ -24,10 +24,21 @@ function LoginForm() {
     DEFAULT_POST_LOGIN_PATH
   const registeredEmail = searchParams.get("email")
   const isRegistered = searchParams.get("registered") === "true"
+  const accountDeleted = searchParams.get("deleted") === "true"
   const [email, setEmail] = useState(registeredEmail || "")
   const [password, setPassword] = useState("")
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (accountDeleted) {
+      toast.success(
+        "Account deleted",
+        "Your account was permanently removed. Check your email for confirmation."
+      )
+      router.replace("/login")
+    }
+  }, [accountDeleted, router])
 
   useEffect(() => {
     if (isRegistered && registeredEmail) {
