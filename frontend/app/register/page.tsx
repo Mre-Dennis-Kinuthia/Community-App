@@ -12,12 +12,20 @@ import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { LegalLinks } from "@/components/legal-links"
+import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter"
 import {
   isOrganisationalRegisterIntent,
   MEMBERSHIP_REGISTER_INTENT,
 } from "@/lib/membership-register-intent"
 import { ORGANISATIONAL_PLAN_NAME } from "@/lib/membership-inquiry"
 import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
+import {
+  getPasswordValidationError,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_PWNED_MESSAGE,
+  PASSWORD_REQUIREMENTS_LINES,
+} from "@/lib/password-policy"
 
 function RegisterForm() {
   const router = useRouter()
@@ -38,6 +46,7 @@ function RegisterForm() {
     confirmPassword?: string
   }>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [passwordPwned, setPasswordPwned] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (organisationalIntent) markOrganisationalSignupPending()
@@ -78,15 +87,21 @@ function RegisterForm() {
     if (field === "password") {
       if (!value) {
         newErrors.password = "Password is required"
-      } else if (value.length < 8) {
-        newErrors.password = "Password must be at least 8 characters"
       } else {
-        delete newErrors.password
-        // Re-validate confirm password if it exists
-        if (formData.confirmPassword && formData.confirmPassword !== value) {
-          newErrors.confirmPassword = "Passwords do not match"
-        } else if (formData.confirmPassword) {
-          delete newErrors.confirmPassword
+        const passwordError = getPasswordValidationError(value, {
+          email: formData.email,
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+        })
+        if (passwordError) {
+          newErrors.password = passwordError
+        } else {
+          delete newErrors.password
+          // Re-validate confirm password if it exists
+          if (formData.confirmPassword && formData.confirmPassword !== value) {
+            newErrors.confirmPassword = "Passwords do not match"
+          } else if (formData.confirmPassword) {
+            delete newErrors.confirmPassword
+          }
         }
       }
     }
@@ -135,6 +150,12 @@ function RegisterForm() {
     if (!validate()) {
       console.log("[REGISTER FORM] Validation failed, errors:", errors)
       toast.error("Please fix the errors in the form")
+      return
+    }
+
+    if (passwordPwned) {
+      setErrors((prev) => ({ ...prev, password: PASSWORD_PWNED_MESSAGE }))
+      toast.error("Password not allowed", PASSWORD_PWNED_MESSAGE)
       return
     }
 
@@ -289,12 +310,23 @@ function RegisterForm() {
                 onChange={(e) => handleChange("password", e.target.value)}
                 onBlur={(e) => validateField("password", e.target.value)}
                 required
+                minLength={PASSWORD_MIN_LENGTH}
+                maxLength={PASSWORD_MAX_LENGTH}
                 aria-invalid={errors.password ? "true" : "false"}
-                aria-describedby={errors.password ? "password-error" : undefined}
+                aria-describedby="password-requirements password-strength password-error"
               />
-              <p className="text-xs text-muted-foreground">
-                Password must be at least 8 characters
-              </p>
+              <PasswordStrengthMeter
+                password={formData.password}
+                email={formData.email}
+                name={`${formData.firstName} ${formData.lastName}`.trim()}
+                onPwnedChange={setPasswordPwned}
+                className="pt-1"
+              />
+              <ul id="password-requirements" className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+                {PASSWORD_REQUIREMENTS_LINES.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
               {errors.password && (
                 <p id="password-error" className="text-sm text-destructive" role="alert">
                   {errors.password}

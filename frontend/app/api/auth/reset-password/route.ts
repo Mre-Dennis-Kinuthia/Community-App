@@ -3,11 +3,12 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth-utils"
 import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
+import { validatePasswordAsync } from "@/lib/password-policy"
 
 const schema = z.object({
   email: z.string().email().transform((v) => v.toLowerCase().trim()),
   token: z.string().min(1),
-  password: z.string().min(8),
+  password: z.string(),
 })
 
 /**
@@ -30,6 +31,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, token, password } = schema.parse(body)
 
+    const passwordResult = await validatePasswordAsync(password, { email })
+    if (!passwordResult.ok) {
+      return NextResponse.json({ error: passwordResult.message }, { status: 400 })
+    }
+
     const record = await prisma.verificationToken.findFirst({
       where: { identifier: email, token },
     })
@@ -48,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     if (!user?.password) {
       return NextResponse.json(
-        { error: "This account uses Google sign-in. Sign in with Google instead." },
+        { error: "This account cannot reset a password via email. Contact support." },
         { status: 400 }
       )
     }

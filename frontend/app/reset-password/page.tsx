@@ -10,6 +10,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { toast } from "@/lib/toast"
+import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter"
+import {
+  getPasswordValidationError,
+  PASSWORD_MAX_LENGTH,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_PWNED_MESSAGE,
+  PASSWORD_REQUIREMENTS_LINES,
+} from "@/lib/password-policy"
 
 function ResetPasswordForm() {
   const router = useRouter()
@@ -19,12 +27,21 @@ function ResetPasswordForm() {
 
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [passwordPwned, setPasswordPwned] = useState<boolean | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password.length < 8) {
-      toast.error("Password too short", "Use at least 8 characters.")
+    const validationError = getPasswordValidationError(password, { email })
+    if (validationError) {
+      setPasswordError(validationError)
+      toast.error("Password not strong enough", validationError)
+      return
+    }
+    if (passwordPwned) {
+      setPasswordError(PASSWORD_PWNED_MESSAGE)
+      toast.error("Password not allowed", PASSWORD_PWNED_MESSAGE)
       return
     }
     if (password !== confirm) {
@@ -91,7 +108,7 @@ function ResetPasswordForm() {
             <Logo />
           </div>
           <CardTitle>Set a new password</CardTitle>
-          <CardDescription>Choose a strong password (at least 8 characters).</CardDescription>
+          <CardDescription>Choose a strong, unique password.</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -102,10 +119,35 @@ function ResetPasswordForm() {
                 type="password"
                 autoComplete="new-password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (passwordError) setPasswordError(null)
+                }}
+                onBlur={(e) =>
+                  setPasswordError(getPasswordValidationError(e.target.value, { email }))
+                }
                 required
-                minLength={8}
+                minLength={PASSWORD_MIN_LENGTH}
+                maxLength={PASSWORD_MAX_LENGTH}
+                aria-invalid={passwordError ? "true" : "false"}
+                aria-describedby="password-requirements password-strength password-error"
               />
+              <PasswordStrengthMeter
+                password={password}
+                email={email}
+                onPwnedChange={setPasswordPwned}
+                className="pt-1"
+              />
+              <ul id="password-requirements" className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+                {PASSWORD_REQUIREMENTS_LINES.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+              {passwordError && (
+                <p id="password-error" className="text-sm text-destructive" role="alert">
+                  {passwordError}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm">Confirm password</Label>
@@ -116,7 +158,8 @@ function ResetPasswordForm() {
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 required
-                minLength={8}
+                minLength={PASSWORD_MIN_LENGTH}
+                maxLength={PASSWORD_MAX_LENGTH}
               />
             </div>
           </CardContent>

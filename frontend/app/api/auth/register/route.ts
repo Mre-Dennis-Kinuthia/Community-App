@@ -7,11 +7,12 @@ import { recordOrganisationalRegistration } from "@/lib/membership-organisationa
 import { MEMBERSHIP_REGISTER_INTENT } from "@/lib/membership-register-intent"
 import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
+import { validatePasswordAsync } from "@/lib/password-policy"
 import { z } from "zod"
 
 const registerSchema = z.object({
   email: z.string().email().transform((val) => val.toLowerCase().trim()),
-  password: z.string().min(8),
+  password: z.string(),
   name: z.string().optional(),
   membershipIntent: z.literal(MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL).optional(),
 })
@@ -41,6 +42,14 @@ export async function POST(request: NextRequest) {
     const { email, password, name, membershipIntent } = registerSchema.parse(body)
     const normalizedEmail = email.toLowerCase().trim()
     console.log("[REGISTER API] Validation passed, normalized email:", normalizedEmail)
+
+    const passwordResult = await validatePasswordAsync(password, {
+      email: normalizedEmail,
+      name: name || undefined,
+    })
+    if (!passwordResult.ok) {
+      return NextResponse.json({ error: passwordResult.message }, { status: 400 })
+    }
 
     // Check if user already exists (case-insensitive)
     console.log("[REGISTER API] Checking if user exists:", normalizedEmail)
@@ -158,7 +167,7 @@ export async function POST(request: NextRequest) {
           return "Please enter a valid email address"
         }
         if (err.path[0] === "password") {
-          return "Password must be at least 8 characters"
+          return err.message
         }
         return err.message
       })
