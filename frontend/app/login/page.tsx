@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { signIn } from "next-auth/react"
-import { GoogleSignInButton } from "@/components/auth/google-sign-in-button"
-import { googleSignInErrorMessage } from "@/lib/google-auth"
 import { toast } from "@/lib/toast"
 import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
@@ -30,23 +28,6 @@ function LoginForm() {
   const [password, setPassword] = useState("")
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
-  const [googleEnabled, setGoogleEnabled] = useState(false)
-
-  useEffect(() => {
-    fetch("/api/auth/google-enabled")
-      .then((r) => r.json())
-      .then((d: { enabled?: boolean }) => setGoogleEnabled(Boolean(d.enabled)))
-      .catch(() => setGoogleEnabled(false))
-  }, [])
-
-  useEffect(() => {
-    const authError = searchParams.get("error")
-    const msg = googleSignInErrorMessage(authError)
-    if (msg) {
-      toast.error("Sign in failed", msg)
-      router.replace(`/login?redirect=${encodeURIComponent(redirect)}`)
-    }
-  }, [searchParams, redirect, router])
 
   useEffect(() => {
     if (isRegistered && registeredEmail) {
@@ -226,20 +207,6 @@ function LoginForm() {
                 "Sign In"
               )}
             </Button>
-            
-            {googleEnabled ? (
-              <>
-                <div className="relative w-full">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-                  </div>
-                </div>
-                <GoogleSignInButton callbackUrl={redirect} disabled={isLoading} />
-              </>
-            ) : null}
             <LegalLinks showAgreement className="px-1" />
 
             <p className="text-center text-sm text-muted-foreground">
