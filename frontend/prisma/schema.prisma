@@ -61,6 +61,7 @@ model User {
   password  String?   // hashed password (if using credentials)
   emailVerified DateTime?
   image     String?
+  lastActiveAt DateTime? @map("last_active_at")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

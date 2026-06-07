@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "tsx scripts/migrate-deploy.ts",
     "db:apply-stored-images": "tsx scripts/apply-stored-images-table.ts",
+    "db:apply-user-last-active-at": "tsx scripts/apply-user-last-active-at.ts",
     "db:apply-membership-links": "tsx scripts/apply-membership-payment-links-table.ts",
     "db:apply-community-opportunities": "tsx scripts/apply-community-opportunities-table.ts",
     "db:studio": "prisma studio",

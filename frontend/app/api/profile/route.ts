@@ -9,6 +9,7 @@ import { buildMembershipSummary } from "@/lib/membership-profile"
 import { assignMembershipTierForUser } from "@/lib/membership-tier-resolve"
 import { maybeNotifyMembershipTierUpgrade } from "@/lib/membership-tier-notify"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
+import { touchMemberLastActiveInBackground } from "@/lib/member-activity"
 import {
   memberSocialLinksSchema,
   parseMemberSocialLinks,
@@ -109,6 +110,8 @@ export async function GET(request: NextRequest) {
         { status: 401, headers: corsHeaders }
       )
     }
+
+    touchMemberLastActiveInBackground(userId)
 
     const userEmail =
       typeof session.user.email === "string"

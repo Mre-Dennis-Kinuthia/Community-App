@@ -6,6 +6,7 @@ import { verifyPassword } from "@/lib/auth-utils"
 import { sendWelcomeEmail, sendNewAccountStaffEmail, sendEmailInBackground } from "@/lib/email"
 import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
+import { touchMemberLastActiveInBackground } from "@/lib/member-activity"
 import { authConfig } from "./auth.config"
 import { randomBytes } from "crypto"
 
@@ -191,6 +192,8 @@ const nextAuthConfig = {
           email: user.email,
           name: user.name,
         })
+
+        touchMemberLastActiveInBackground(user.id)
 
         // Return user object (Auth.js will use this to create session)
         return {

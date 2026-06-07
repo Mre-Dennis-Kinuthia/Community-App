@@ -41,6 +41,11 @@ function DashboardLayoutContent({
   const [redirectingToOnboarding, setRedirectingToOnboarding] = useState(false)
   const [profileImage, setProfileImage] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (status !== "authenticated" || !user?.id) return
+    void fetch("/api/me/activity", { method: "POST", credentials: "include" })
+  }, [status, user?.id])
+
   // Block dashboard until onboarding is verified; redirect if needed
   useEffect(() => {
     if (status === "loading" || !user?.id) return
