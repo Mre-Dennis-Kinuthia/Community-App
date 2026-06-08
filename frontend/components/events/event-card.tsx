@@ -32,6 +32,8 @@ interface EventCardProps {
     priceLabel?: string | null
     slug?: string
     shortCode?: string
+    registrationProvider?: string | null
+    lumaEventUrl?: string | null
   }
   onClick?: () => void
   onRegister?: (eventId: number | string) => void
@@ -87,7 +89,11 @@ export function EventCard({
     (!isFull || event.waitlistEnabled)
 
   const registerLabel =
-    isFull && event.waitlistEnabled ? "Waitlist" : "Register"
+    event.registrationProvider === "luma"
+      ? "Luma"
+      : isFull && event.waitlistEnabled
+        ? "Waitlist"
+        : "Register"
 
   const eventUrl = getEventPublicUrl({
     id: String(event.id),

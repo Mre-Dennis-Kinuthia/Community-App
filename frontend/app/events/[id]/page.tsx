@@ -34,6 +34,13 @@ import {
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { EventPublicLayout } from "@/components/events/event-public-layout"
 import { EventSharePanel } from "@/components/events/event-share-panel"
+import {
+  EventCalendarActions,
+  openGoogleCalendarLink,
+} from "@/components/events/event-calendar-actions"
+import { LumaRegistration } from "@/components/events/luma-registration"
+import { getEventCalendarLinks } from "@/lib/event-calendar"
+import { isLumaRegistration } from "@/lib/luma"
 import { isEventCuid } from "@/lib/event-slug"
 
 interface EventDetailPageProps {
@@ -64,6 +71,10 @@ interface EventData {
   registrationQuestions?: unknown
   slug?: string | null
   shortCode?: string | null
+  timezone?: string | null
+  registrationProvider?: string | null
+  lumaEventUrl?: string | null
+  lumaEventId?: string | null
 }
 
 type UserRegistration = {
@@ -137,6 +148,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   const confirmedCount = event?.confirmedCount ?? 0
   const isFull = event?.capacity != null && confirmedCount >= event.capacity
   const registrationRequired = event?.registrationRequired !== false
+  const isLumaEvent = event ? isLumaRegistration(event.registrationProvider) : false
   const registrationStatus = userRegistration?.status
   const isRegistered =
     registrationStatus === "registered" || registrationStatus === "attended"
@@ -149,7 +161,8 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     !isRegistered &&
     !isWaitlisted &&
     !isPendingApproval &&
-    (!isFull || event.waitlistEnabled)
+    (!isFull || event.waitlistEnabled) &&
+    (!isLumaEvent || Boolean(event.lumaEventUrl))
 
   const eventTz = event ? eventTimezone(event.timezone) : eventTimezone()
   const questions = parseRegistrationQuestions(event?.registrationQuestions)
@@ -160,6 +173,25 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         onlineUrl: event.onlineUrl,
         location: event.location,
       })
+    : null
+
+  const calendarLinks = event
+    ? getEventCalendarLinks(
+        {
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          startDate: event.startDate,
+          endDate: event.endDate,
+          timezone: event.timezone,
+          location: event.location,
+          locationType: event.locationType,
+          onlineUrl: event.onlineUrl,
+          slug: event.slug,
+          shortCode: event.shortCode,
+        },
+        id
+      )
     : null
 
   useEffect(() => {
@@ -206,13 +238,18 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         setEvent(refreshed.event)
         setUserRegistration(refreshed.userRegistration ?? null)
       }
-      toast.success(
-        data.registration?.status === "pending"
-          ? "Application submitted — the organizer will review it."
-          : data.registration?.status === "waitlisted"
-            ? "You're on the waitlist."
-            : "You're registered for this event."
-      )
+      if (data.registration?.status === "registered" && data.calendarLinks?.google) {
+        openGoogleCalendarLink(data.calendarLinks.google)
+        toast.success("You're registered — opening Google Calendar to save the event.")
+      } else {
+        toast.success(
+          data.registration?.status === "pending"
+            ? "Application submitted — the organizer will review it."
+            : data.registration?.status === "waitlisted"
+              ? "You're on the waitlist."
+              : "You're registered for this event."
+        )
+      }
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Failed to register")
     } finally {
@@ -222,6 +259,10 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
 
   const handleRegister = () => {
     if (!event || !canRegister) return
+    if (isLumaEvent && event.lumaEventUrl) {
+      window.open(event.lumaEventUrl, "_blank", "noopener,noreferrer")
+      return
+    }
     if (!user?.email) {
       toast.info("Log in to register for this event.")
       router.push(
@@ -258,8 +299,11 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     }
   }
 
-  const registerLabel =
-    isFull && event?.waitlistEnabled ? "Join waitlist" : "Register"
+  const registerLabel = isLumaEvent
+    ? "Register on Luma"
+    : isFull && event?.waitlistEnabled
+      ? "Join waitlist"
+      : "Register"
 
   return (
     <EventPublicLayout>
@@ -415,6 +459,27 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                   </section>
                 )}
 
+                {isLumaEvent && event.lumaEventUrl && (
+                  <section className="rounded-xl border p-5 bg-muted/20 space-y-3">
+                    <h2 className="font-semibold">Registration on Luma</h2>
+                    <p className="text-sm text-muted-foreground">
+                      This event is hosted on Luma. Register there to secure your spot and receive
+                      Luma updates.
+                    </p>
+                    <LumaRegistration event={event} />
+                  </section>
+                )}
+
+                {isRegistered && calendarLinks && (
+                  <section className="rounded-xl border p-5 space-y-3">
+                    <h2 className="font-semibold">Add to your calendar</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Save this event so you do not miss it.
+                    </p>
+                    <EventCalendarActions links={calendarLinks} />
+                  </section>
+                )}
+
                 {isRegistered && ticket && (
                   <section className="rounded-xl border p-6 flex flex-col sm:flex-row items-center gap-6 bg-muted/30">
                     <img
@@ -488,7 +553,11 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                       </div>
                     )}
 
-                    {canRegister && (
+                    {canRegister && isLumaEvent && (
+                      <LumaRegistration event={event} />
+                    )}
+
+                    {canRegister && !isLumaEvent && (
                       <Button className="w-full" size="lg" onClick={handleRegister} disabled={registering}>
                         {registering ? (
                           <>
@@ -547,7 +616,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                       </p>
                     )}
 
-                    {!user && canRegister && (
+                    {!user && canRegister && !isLumaEvent && (
                       <p className="text-xs text-center text-muted-foreground">
                         <Link href={`/login?redirect=${encodeURIComponent(`/events/${event.id}`)}`} className="underline">
                           Log in

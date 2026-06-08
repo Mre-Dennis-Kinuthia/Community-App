@@ -15,6 +15,7 @@
     "db:apply-user-last-active-at": "tsx scripts/apply-user-last-active-at.ts",
     "db:apply-membership-links": "tsx scripts/apply-membership-payment-links-table.ts",
     "db:apply-community-opportunities": "tsx scripts/apply-community-opportunities-table.ts",
+    "db:apply-event-luma-fields": "tsx scripts/apply-event-luma-fields.ts",
     "db:studio": "prisma studio",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",

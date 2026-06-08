@@ -30,6 +30,7 @@ import {
 import { formatEventPrice, isPaidEvent, parseRegistrationQuestions } from "@/lib/event-questions"
 import { eventCalendarDate, formatEventTime24 } from "@/lib/event-datetime"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
+import { openGoogleCalendarLink } from "@/components/events/event-calendar-actions"
 
 interface Event {
   id: number | string
@@ -57,6 +58,10 @@ interface Event {
   currency?: string | null
   priceLabel?: string | null
   registrationQuestions?: unknown
+  registrationProvider?: string | null
+  lumaEventUrl?: string | null
+  slug?: string
+  shortCode?: string
 }
 
 export default function EventsPage() {
@@ -138,6 +143,8 @@ export default function EventsPage() {
         currency: event.currency,
         priceLabel,
         registrationQuestions: event.registrationQuestions,
+        registrationProvider: event.registrationProvider || "platform",
+        lumaEventUrl: event.lumaEventUrl || null,
         slug: event.slug,
         shortCode: event.shortCode,
       }
@@ -256,7 +263,10 @@ export default function EventsPage() {
       setRegDialogOpen(false)
       setPendingRegistration(null)
       await mutateEvents()
-      if (data.registration?.status === "pending") {
+      if (data.registration?.status === "registered" && data.calendarLinks?.google) {
+        openGoogleCalendarLink(data.calendarLinks.google)
+        toast.success("You're registered — opening Google Calendar to save the event.")
+      } else if (data.registration?.status === "pending") {
         toast.success("Application submitted — the organizer will review it.")
       } else if (data.registration?.status === "waitlisted") {
         toast.success("You're on the waitlist — we'll notify you if a spot opens up.")
@@ -281,6 +291,11 @@ export default function EventsPage() {
       event.status === "Pending" ||
       (event.status === "Full" && !event.waitlistEnabled)
     ) {
+      return
+    }
+
+    if (event.registrationProvider === "luma" && event.lumaEventUrl) {
+      window.open(event.lumaEventUrl, "_blank", "noopener,noreferrer")
       return
     }
 

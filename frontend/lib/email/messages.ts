@@ -38,6 +38,7 @@ export async function sendEventRegistrationEmail(params: {
   eventTimezone?: string | null
   eventUrl: string
   status: "registered" | "waitlisted" | "pending"
+  calendarGoogleUrl?: string
 }): Promise<SendEmailResult> {
   const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const when = formatEventWhen(params.eventStartDate, params.eventTimezone)
@@ -63,11 +64,22 @@ export async function sendEventRegistrationEmail(params: {
             detail: "You are confirmed for this event. See the event page for details and your ticket.",
           }
 
+  const calendarBlock =
+    params.status === "registered" && params.calendarGoogleUrl
+      ? `<p style="margin:20px 0 0;">
+          <a href="${escapeHtml(params.calendarGoogleUrl)}"
+             style="display:inline-block;background:#1a73e8;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600;">
+            Add to Google Calendar
+          </a>
+        </p>`
+      : ""
+
   const bodyHtml = `
     <p>${greeting}</p>
     <p>${escapeHtml(copy.detail)}</p>
     <p><strong>${escapeHtml(params.eventTitle)}</strong><br />
     ${escapeHtml(when)}</p>
+    ${calendarBlock}
   `
 
   return sendEmail({

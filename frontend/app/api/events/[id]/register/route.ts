@@ -13,6 +13,8 @@ import {
 } from "@/lib/event-questions"
 import { findEventByPublicParam } from "@/lib/event-slug"
 import { getEventPublicUrl } from "@/lib/event-url"
+import { getEventCalendarLinks } from "@/lib/event-calendar"
+import { isLumaRegistration } from "@/lib/luma"
 import { sendEventRegistrationEmail, sendEventRegistrationCancelledEmail, sendEventRegistrationStaffEmail, sendEmailInBackground } from "@/lib/email"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
@@ -155,6 +157,16 @@ export async function POST(
       )
     }
 
+    if (isLumaRegistration(event.registrationProvider)) {
+      return NextResponse.json(
+        {
+          error: "Registration is handled on Luma",
+          lumaEventUrl: event.lumaEventUrl,
+        },
+        { status: 400, headers: corsHeaders(request) }
+      )
+    }
+
     const existingRegistration = await prisma.eventRegistration.findFirst({
       where: {
         eventId,
@@ -221,6 +233,23 @@ export async function POST(
       shortCode: event.shortCode,
     })
 
+    const calendarLinks = getEventCalendarLinks(
+      {
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        startDate: event.startDate,
+        endDate: event.endDate,
+        timezone: event.timezone,
+        location: event.location,
+        locationType: event.locationType,
+        onlineUrl: event.onlineUrl,
+        slug: event.slug,
+        shortCode: event.shortCode,
+      },
+      resolvedParams.id
+    )
+
     sendEmailInBackground(
       () =>
         sendEventRegistrationEmail({
@@ -231,6 +260,7 @@ export async function POST(
           eventTimezone: event.timezone,
           eventUrl,
           status,
+          calendarGoogleUrl: status === "registered" ? calendarLinks.google : undefined,
         }),
       "event-registration"
     )
@@ -267,6 +297,7 @@ export async function POST(
           checkInCode: registration.checkInCode,
           paymentStatus: registration.paymentStatus,
         },
+        calendarLinks: status === "registered" ? calendarLinks : undefined,
       },
       { status: 201, headers: corsHeaders(request) }
     )

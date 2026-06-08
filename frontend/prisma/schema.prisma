@@ -202,7 +202,7 @@ model AdminUser {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  password  String   // hashed password
+  password  String?  // hashed password; null until invite is accepted
   role      String   // super_admin, content_manager, community_manager, programs_manager, finance_ops
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -283,6 +283,9 @@ model Event {
   registrationQuestions Json?
   reminderHoursBefore  Int?
   reminderSentAt       DateTime?
+  registrationProvider String   @default("platform") // platform, luma
+  lumaEventUrl         String?
+  lumaEventId          String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   deletedAt            DateTime?
@@ -295,6 +298,8 @@ model Event {
   @@index([visibility])
   @@index([slug])
   @@index([shortCode])
+  @@index([lumaEventId])
+  @@index([registrationProvider])
   @@map("events")
 }
 
