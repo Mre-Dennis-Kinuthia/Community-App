@@ -18,7 +18,6 @@ import { User, Settings, LogOut, ChevronLeft, ChevronRight, Loader2 } from "luci
 import { signOut } from "next-auth/react"
 import { useState, useEffect, Suspense } from "react"
 import { Logo } from "@/components/logo"
-import { MobileNav } from "@/components/mobile-nav"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { NotificationCenter } from "@/components/notification-center"
 import { GlobalSearch } from "@/components/global-search"
@@ -131,7 +130,6 @@ function DashboardLayoutContent({
       <header className="surface-header z-50 flex h-16 shrink-0 overflow-x-hidden border-b border-border">
         <div className="container flex h-full min-w-0 items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex min-w-0 shrink items-center gap-4">
-            <MobileNav />
             <Logo href="/dashboard" />
           </div>
           <div className="flex shrink-0 items-center gap-2">

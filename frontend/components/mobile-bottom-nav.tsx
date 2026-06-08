@@ -1,75 +1,77 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, Users, Newspaper, MapPin } from "lucide-react"
+import { MobileMoreSheet } from "@/components/mobile-more-sheet"
+import {
+  isMoreNavActive,
+  isNavItemActive,
+  MOBILE_MORE_TRIGGER,
+  MOBILE_PRIMARY_NAV,
+} from "@/lib/mobile-nav-items"
 
-const navItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Book",
-    href: "/booking",
-    icon: MapPin,
-  },
-  {
-    title: "Community",
-    href: "/community",
-    icon: Users,
-  },
-  {
-    title: "Events",
-    href: "/events",
-    icon: Calendar,
-  },
-  {
-    title: "News",
-    href: "/news",
-    icon: Newspaper,
-  },
-]
+const HIDDEN_PATHS = new Set(["/", "/login", "/register"])
 
 export function MobileBottomNav() {
   const pathname = usePathname()
+  const [moreOpen, setMoreOpen] = useState(false)
 
-  // Only show on authenticated pages, not on login/register/landing
-  if (pathname === "/" || pathname === "/login" || pathname === "/register") {
+  if (HIDDEN_PATHS.has(pathname)) {
     return null
   }
 
+  const moreActive = isMoreNavActive(pathname) || moreOpen
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background border-t border-border md:hidden transition-colors duration-200 ease-out pb-[env(safe-area-inset-bottom)]">
-      <div className="grid grid-cols-5 h-16">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors duration-200 ease-out active:bg-muted/50 min-h-[44px]",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              )}
-            >
-              <Icon
+    <>
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden pb-[env(safe-area-inset-bottom)]"
+        aria-label="Primary"
+      >
+        <div className="grid h-16 grid-cols-5">
+          {MOBILE_PRIMARY_NAV.map((item) => {
+            const Icon = item.icon
+            const isActive = isNavItemActive(pathname, item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
                 className={cn(
-                  "h-5 w-5 transition-colors duration-200 ease-out",
+                  "flex min-h-[44px] flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors active:bg-muted/50",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}
-              />
-              <span>{item.title}</span>
-            </Link>
-          )
-        })}
-      </div>
-    </nav>
+              >
+                <Icon
+                  className={cn("h-5 w-5", isActive ? "text-primary" : "text-muted-foreground")}
+                  aria-hidden
+                />
+                <span>{item.title}</span>
+              </Link>
+            )
+          })}
+
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            className={cn(
+              "flex min-h-[44px] flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors active:bg-muted/50",
+              moreActive ? "text-primary" : "text-muted-foreground"
+            )}
+            aria-expanded={moreOpen}
+            aria-haspopup="dialog"
+          >
+            <MOBILE_MORE_TRIGGER.icon
+              className={cn("h-5 w-5", moreActive ? "text-primary" : "text-muted-foreground")}
+              aria-hidden
+            />
+            <span>{MOBILE_MORE_TRIGGER.title}</span>
+          </button>
+        </div>
+      </nav>
+
+      <MobileMoreSheet open={moreOpen} onOpenChange={setMoreOpen} />
+    </>
   )
 }
-
