@@ -13,22 +13,22 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#A6192E",
-          borderRadius: 40,
+          background: "#802B2B",
         }}
       >
-        <svg width="120" height="120" viewBox="0 0 48 48" fill="none">
-          <circle cx="24" cy="24" r="4.25" fill="white" />
-          <circle cx="24" cy="11.5" r="2.75" fill="white" />
-          <circle cx="13.5" cy="33.5" r="2.75" fill="white" />
-          <circle cx="34.5" cy="33.5" r="2.75" fill="white" />
-          <path
-            d="M24 14.25V19.75M16.1 31.35L20.4 26.65M31.9 31.35L27.6 26.65"
-            stroke="white"
-            strokeWidth="2.25"
-            strokeLinecap="round"
-          />
-        </svg>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            color: "white",
+            fontFamily: "Arial, sans-serif",
+            lineHeight: 1,
+            paddingLeft: 18,
+          }}
+        >
+          <span style={{ fontSize: 22, fontWeight: 400, letterSpacing: "0.02em" }}>IMPACT</span>
+          <span style={{ fontSize: 52, fontWeight: 700, marginTop: 6 }}>HUB</span>
+        </div>
       </div>
     ),
     { ...size }

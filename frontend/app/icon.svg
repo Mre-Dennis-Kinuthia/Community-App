@@ -1,8 +1,5 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="180" height="180" rx="40" fill="#A6192E"/>
-  <circle cx="90" cy="90" r="16" fill="white"/>
-  <circle cx="90" cy="43" r="10.5" fill="white"/>
-  <circle cx="51" cy="126" r="10.5" fill="white"/>
-  <circle cx="129" cy="126" r="10.5" fill="white"/>
-  <path d="M90 53.5V74M60.4 117.5L76.5 100M119.6 117.5L103.5 100" stroke="white" stroke-width="8.5" stroke-linecap="round"/>
+<svg width="151" height="151" viewBox="0 0 151 151" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="151" height="151" fill="#802B2B"/>
+  <text x="16" y="48" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" letter-spacing="0.02em">IMPACT</text>
+  <text x="16" y="112" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700" letter-spacing="-0.02em">HUB</text>
 </svg>

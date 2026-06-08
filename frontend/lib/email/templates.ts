@@ -1,3 +1,5 @@
+import { getAppBaseUrl } from "@/lib/app-url"
+import { getBrandLogoUrl } from "@/lib/brand"
 import { eventTimezone } from "@/lib/event-datetime"
 
 export function escapeHtml(text: string): string {
@@ -23,6 +25,13 @@ export function formatEventWhen(
     minute: "2-digit",
     hour12: true,
   }).format(new Date(startDate))
+}
+
+function emailLogoHeader(): string {
+  const logoUrl = getBrandLogoUrl()
+  return `<a href="${escapeHtml(getAppBaseUrl())}" style="display:inline-block;text-decoration:none;">
+    <img src="${escapeHtml(logoUrl)}" alt="Impact Hub Nairobi" width="220" height="auto" style="display:block;max-width:220px;height:auto;border:0;" />
+  </a>`
 }
 
 export function layoutEmail(params: {
@@ -56,9 +65,9 @@ export function layoutEmail(params: {
       <td align="center">
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:8px;border:1px solid #e4e4e7;">
           <tr>
-            <td style="padding:28px 28px 8px;border-bottom:3px solid #A6192E;">
-              <p style="margin:0;font-size:13px;font-weight:600;color:#A6192E;letter-spacing:0.02em;">Impact Hub Nairobi</p>
-              <h1 style="margin:8px 0 0;font-size:22px;line-height:1.3;color:#18181b;">${escapeHtml(title)}</h1>
+            <td style="padding:28px 28px 16px;border-bottom:3px solid #802B2B;">
+              ${emailLogoHeader()}
+              <h1 style="margin:16px 0 0;font-size:22px;line-height:1.3;color:#18181b;">${escapeHtml(title)}</h1>
             </td>
           </tr>
           <tr>
