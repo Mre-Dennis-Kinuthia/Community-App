@@ -6,7 +6,7 @@ import {
 import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl } from "@/lib/app-url"
 import { formatEventWhen, layoutEmail, escapeHtml } from "./templates"
 import { getEmailStaffTo } from "./config"
-import { sendEmail, type SendEmailResult } from "./send"
+import { sendEmail, type EmailAttachment, type SendEmailResult } from "./send"
 
 export async function sendPasswordResetEmail(params: {
   to: string
@@ -38,7 +38,7 @@ export async function sendEventRegistrationEmail(params: {
   eventTimezone?: string | null
   eventUrl: string
   status: "registered" | "waitlisted" | "pending"
-  calendarGoogleUrl?: string
+  calendarInvite?: { content: string; filename: string }
 }): Promise<SendEmailResult> {
   const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const when = formatEventWhen(params.eventStartDate, params.eventTimezone)
@@ -61,26 +61,27 @@ export async function sendEventRegistrationEmail(params: {
         : {
             subject: `You are registered — ${params.eventTitle}`,
             title: "Registration confirmed",
-            detail: "You are confirmed for this event. See the event page for details and your ticket.",
+            detail:
+              "You are confirmed for this event. A calendar invite is attached — open it to add the event to your calendar (Google Calendar, Apple Calendar, Outlook, etc.).",
           }
-
-  const calendarBlock =
-    params.status === "registered" && params.calendarGoogleUrl
-      ? `<p style="margin:20px 0 0;">
-          <a href="${escapeHtml(params.calendarGoogleUrl)}"
-             style="display:inline-block;background:#1a73e8;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:6px;font-weight:600;">
-            Add to Google Calendar
-          </a>
-        </p>`
-      : ""
 
   const bodyHtml = `
     <p>${greeting}</p>
     <p>${escapeHtml(copy.detail)}</p>
     <p><strong>${escapeHtml(params.eventTitle)}</strong><br />
     ${escapeHtml(when)}</p>
-    ${calendarBlock}
   `
+
+  const attachments: EmailAttachment[] | undefined =
+    params.status === "registered" && params.calendarInvite
+      ? [
+          {
+            filename: params.calendarInvite.filename,
+            content: params.calendarInvite.content,
+            contentType: "text/calendar; method=REQUEST; charset=UTF-8",
+          },
+        ]
+      : undefined
 
   return sendEmail({
     to: params.to,
@@ -93,6 +94,7 @@ export async function sendEventRegistrationEmail(params: {
       ctaUrl: params.eventUrl,
     }),
     text: `${copy.title}\n${params.eventTitle}\n${when}\n${params.eventUrl}`,
+    attachments,
   })
 }
 
@@ -104,6 +106,7 @@ export async function sendEventApplicationDecisionEmail(params: {
   eventTimezone?: string | null
   eventUrl: string
   decision: "approved" | "rejected" | "promoted"
+  calendarInvite?: { content: string; filename: string }
 }): Promise<SendEmailResult> {
   const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const when = formatEventWhen(params.eventStartDate, params.eventTimezone)
@@ -120,12 +123,14 @@ export async function sendEventApplicationDecisionEmail(params: {
         ? {
             subject: `Spot available — ${params.eventTitle}`,
             title: "You are now registered",
-            detail: "A spot opened up and you have been moved from the waitlist. You are confirmed for this event.",
+            detail:
+              "A spot opened up and you have been moved from the waitlist. A calendar invite is attached — open it to add the event to your calendar.",
           }
         : {
             subject: `Application approved — ${params.eventTitle}`,
             title: "Application approved",
-            detail: "Your application has been approved. You are confirmed for this event.",
+            detail:
+              "Your application has been approved. A calendar invite is attached — open it to add the event to your calendar.",
           }
 
   const bodyHtml = `
@@ -134,6 +139,17 @@ export async function sendEventApplicationDecisionEmail(params: {
     <p><strong>${escapeHtml(params.eventTitle)}</strong><br />
     ${escapeHtml(when)}</p>
   `
+
+  const attachments: EmailAttachment[] | undefined =
+    params.decision !== "rejected" && params.calendarInvite
+      ? [
+          {
+            filename: params.calendarInvite.filename,
+            content: params.calendarInvite.content,
+            contentType: "text/calendar; method=REQUEST; charset=UTF-8",
+          },
+        ]
+      : undefined
 
   return sendEmail({
     to: params.to,
@@ -146,6 +162,7 @@ export async function sendEventApplicationDecisionEmail(params: {
       ctaUrl: params.eventUrl,
     }),
     text: `${copy.title}\n${params.eventTitle}\n${when}\n${params.eventUrl}`,
+    attachments,
   })
 }
 

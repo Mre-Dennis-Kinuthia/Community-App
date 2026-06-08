@@ -13,7 +13,11 @@ import {
 } from "@/lib/event-questions"
 import { findEventByPublicParam } from "@/lib/event-slug"
 import { getEventPublicUrl } from "@/lib/event-url"
-import { getEventCalendarLinks } from "@/lib/event-calendar"
+import {
+  buildIcsInviteContent,
+  getEventCalendarLinks,
+  icsFilenameForEvent,
+} from "@/lib/event-calendar"
 import { isLumaRegistration } from "@/lib/luma"
 import { sendEventRegistrationEmail, sendEventRegistrationCancelledEmail, sendEventRegistrationStaffEmail, sendEmailInBackground } from "@/lib/email"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
@@ -233,22 +237,32 @@ export async function POST(
       shortCode: event.shortCode,
     })
 
-    const calendarLinks = getEventCalendarLinks(
-      {
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        startDate: event.startDate,
-        endDate: event.endDate,
-        timezone: event.timezone,
-        location: event.location,
-        locationType: event.locationType,
-        onlineUrl: event.onlineUrl,
-        slug: event.slug,
-        shortCode: event.shortCode,
-      },
-      resolvedParams.id
-    )
+    const calendarEvent = {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      startDate: event.startDate,
+      endDate: event.endDate,
+      timezone: event.timezone,
+      location: event.location,
+      locationType: event.locationType,
+      onlineUrl: event.onlineUrl,
+      slug: event.slug,
+      shortCode: event.shortCode,
+    }
+    const calendarLinks = getEventCalendarLinks(calendarEvent, resolvedParams.id)
+    const calendarInvite =
+      status === "registered"
+        ? {
+            content: buildIcsInviteContent(calendarEvent, {
+              attendeeEmail: email,
+              attendeeName: name,
+              organizerEmail: event.organizerEmail,
+              organizerName: event.organizerName,
+            }),
+            filename: icsFilenameForEvent(event.title),
+          }
+        : undefined
 
     sendEmailInBackground(
       () =>
@@ -260,7 +274,7 @@ export async function POST(
           eventTimezone: event.timezone,
           eventUrl,
           status,
-          calendarGoogleUrl: status === "registered" ? calendarLinks.google : undefined,
+          calendarInvite,
         }),
       "event-registration"
     )
@@ -298,6 +312,7 @@ export async function POST(
           paymentStatus: registration.paymentStatus,
         },
         calendarLinks: status === "registered" ? calendarLinks : undefined,
+        calendarInvite,
       },
       { status: 201, headers: corsHeaders(request) }
     )

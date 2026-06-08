@@ -1,12 +1,15 @@
 import type { SendEmailResult } from "./send"
 import { getEmailFrom } from "./config"
 
+import type { EmailAttachment } from "./send"
+
 export async function sendResendEmail(params: {
   to: string | string[]
   subject: string
   html: string
   text?: string
   replyTo?: string
+  attachments?: EmailAttachment[]
 }): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY?.trim()
   const from = getEmailFrom()
@@ -31,6 +34,11 @@ export async function sendResendEmail(params: {
       html: params.html,
       text: params.text,
       reply_to: params.replyTo,
+      attachments: (params.attachments ?? []).map((file) => ({
+        filename: file.filename,
+        content: Buffer.from(file.content, "utf8").toString("base64"),
+        content_type: file.contentType ?? "application/octet-stream",
+      })),
     }),
   })
 

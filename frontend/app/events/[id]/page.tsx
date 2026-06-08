@@ -34,10 +34,8 @@ import {
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { EventPublicLayout } from "@/components/events/event-public-layout"
 import { EventSharePanel } from "@/components/events/event-share-panel"
-import {
-  EventCalendarActions,
-  openGoogleCalendarLink,
-} from "@/components/events/event-calendar-actions"
+import { EventCalendarActions } from "@/components/events/event-calendar-actions"
+import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
 import { LumaRegistration } from "@/components/events/luma-registration"
 import { getEventCalendarLinks } from "@/lib/event-calendar"
 import { isLumaRegistration } from "@/lib/luma"
@@ -238,9 +236,9 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         setEvent(refreshed.event)
         setUserRegistration(refreshed.userRegistration ?? null)
       }
-      if (data.registration?.status === "registered" && data.calendarLinks?.google) {
-        openGoogleCalendarLink(data.calendarLinks.google)
-        toast.success("You're registered — opening Google Calendar to save the event.")
+      if (data.registration?.status === "registered") {
+        void autoImportFromRegistrationResponse(data)
+        toast.success("You're registered — calendar invite saved. Check your calendar app or email.")
       } else {
         toast.success(
           data.registration?.status === "pending"
@@ -471,10 +469,11 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                 )}
 
                 {isRegistered && calendarLinks && (
-                  <section className="rounded-xl border p-5 space-y-3">
-                    <h2 className="font-semibold">Add to your calendar</h2>
+                  <section className="rounded-xl border p-5 space-y-3 bg-muted/20">
+                    <h2 className="font-semibold">On your calendar</h2>
                     <p className="text-sm text-muted-foreground">
-                      Save this event so you do not miss it.
+                      A calendar invite was sent when you registered. Use these options if you need
+                      to add it again.
                     </p>
                     <EventCalendarActions links={calendarLinks} />
                   </section>

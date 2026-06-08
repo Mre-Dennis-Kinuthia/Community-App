@@ -9,6 +9,12 @@ import {
 
 export type SendEmailResult = { ok: true; id?: string } | { ok: false; error: string }
 
+export type EmailAttachment = {
+  filename: string
+  content: string
+  contentType?: string
+}
+
 export type EmailProvider = "smtp" | "resend"
 
 export type EmailTask = () => Promise<SendEmailResult>
@@ -58,6 +64,7 @@ export async function sendEmail(params: {
   html: string
   text?: string
   replyTo?: string
+  attachments?: EmailAttachment[]
 }): Promise<SendEmailResult> {
   const provider = getEmailProvider()
   if (!provider) {

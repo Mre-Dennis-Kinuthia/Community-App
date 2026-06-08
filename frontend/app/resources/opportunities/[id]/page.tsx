@@ -147,10 +147,11 @@ export default function OpportunityDetailPage({
             </div>
 
             <Card className="border-border">
-              <CardContent className="prose prose-sm max-w-none pt-6 dark:prose-invert">
-                <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                  {opportunity.content}
-                </div>
+              <CardContent className="pt-6">
+                <div
+                  className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-semibold prose-a:text-primary prose-a:underline-offset-2"
+                  dangerouslySetInnerHTML={{ __html: opportunity.content }}
+                />
               </CardContent>
             </Card>
 

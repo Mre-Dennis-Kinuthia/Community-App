@@ -30,7 +30,7 @@ import {
 import { formatEventPrice, isPaidEvent, parseRegistrationQuestions } from "@/lib/event-questions"
 import { eventCalendarDate, formatEventTime24 } from "@/lib/event-datetime"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
-import { openGoogleCalendarLink } from "@/components/events/event-calendar-actions"
+import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
 
 interface Event {
   id: number | string
@@ -263,9 +263,9 @@ export default function EventsPage() {
       setRegDialogOpen(false)
       setPendingRegistration(null)
       await mutateEvents()
-      if (data.registration?.status === "registered" && data.calendarLinks?.google) {
-        openGoogleCalendarLink(data.calendarLinks.google)
-        toast.success("You're registered — opening Google Calendar to save the event.")
+      if (data.registration?.status === "registered") {
+        void autoImportFromRegistrationResponse(data)
+        toast.success("You're registered — calendar invite saved. Check your calendar app or email.")
       } else if (data.registration?.status === "pending") {
         toast.success("Application submitted — the organizer will review it.")
       } else if (data.registration?.status === "waitlisted") {

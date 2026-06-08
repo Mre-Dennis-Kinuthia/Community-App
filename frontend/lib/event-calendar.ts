@@ -134,11 +134,14 @@ export function getOutlookCalendarUrl(event: EventCalendarInput): string {
   return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`
 }
 
-export function buildIcsContent(event: EventCalendarInput): string {
-  const { title, location, description, timeZone, start, end, eventUrl } =
-    buildEventCalendarDetails(event)
-  const uid = `event-${event.id}@impact-hub-nairobi`
-  const now = formatIcsUtc(new Date())
+export interface IcsInviteOptions {
+  attendeeEmail?: string | null
+  attendeeName?: string | null
+  organizerEmail?: string | null
+  organizerName?: string | null
+}
+
+function icsDateTimes(start: Date, end: Date, timeZone: string) {
   const dtStart = formatCalendarLocalDate(start, timeZone).replace(
     /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
     "$1$2$3T$4$5$6"
@@ -147,13 +150,33 @@ export function buildIcsContent(event: EventCalendarInput): string {
     /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
     "$1$2$3T$4$5$6"
   )
+  return { dtStart, dtEnd }
+}
 
-  return [
+export function buildIcsContent(event: EventCalendarInput): string {
+  return buildIcsInviteContent(event)
+}
+
+/** Calendar invite (.ics) — email clients and OS calendar apps import this automatically. */
+export function buildIcsInviteContent(
+  event: EventCalendarInput,
+  options?: IcsInviteOptions
+): string {
+  const { title, location, description, timeZone, start, end, eventUrl } =
+    buildEventCalendarDetails(event)
+  const uid = `event-${event.id}@impact-hub-nairobi`
+  const now = formatIcsUtc(new Date())
+  const { dtStart, dtEnd } = icsDateTimes(start, end, timeZone)
+  const organizerEmail = options?.organizerEmail?.trim() || "events@impacthubnairobi.org"
+  const organizerName = options?.organizerName?.trim() || "Impact Hub Nairobi"
+  const attendeeEmail = options?.attendeeEmail?.trim().toLowerCase()
+
+  const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//Impact Hub Nairobi//Community Platform//EN",
     "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
+    "METHOD:REQUEST",
     "BEGIN:VEVENT",
     `UID:${uid}`,
     `DTSTAMP:${now}`,
@@ -163,9 +186,31 @@ export function buildIcsContent(event: EventCalendarInput): string {
     `DESCRIPTION:${escapeIcsText(description)}`,
     `LOCATION:${escapeIcsText(location)}`,
     `URL:${eventUrl}`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n")
+    `ORGANIZER;CN=${escapeIcsText(organizerName)}:mailto:${organizerEmail}`,
+    "STATUS:CONFIRMED",
+    "SEQUENCE:0",
+    "TRANSP:OPAQUE",
+  ]
+
+  if (attendeeEmail) {
+    const attendeeName = options?.attendeeName?.trim()
+    const cn = attendeeName ? `;CN=${escapeIcsText(attendeeName)}` : ""
+    lines.push(
+      `ATTENDEE${cn};CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;RSVP=FALSE:mailto:${attendeeEmail}`
+    )
+  }
+
+  lines.push("END:VEVENT", "END:VCALENDAR")
+  return lines.join("\r\n")
+}
+
+export function icsFilenameForEvent(title: string): string {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60)
+  return `${slug || "event"}.ics`
 }
 
 export function getEventCalendarLinks(

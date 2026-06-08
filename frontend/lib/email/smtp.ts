@@ -10,12 +10,15 @@ export {
   isDisallowedSmtpHost,
 } from "./smtp-transport"
 
+import type { EmailAttachment } from "./send"
+
 export async function sendSmtpEmail(params: {
   to: string | string[]
   subject: string
   html: string
   text?: string
   replyTo?: string
+  attachments?: EmailAttachment[]
 }): Promise<SendEmailResult> {
   const transport = await createSmtpTransport()
   if (!transport) {
@@ -39,6 +42,11 @@ export async function sendSmtpEmail(params: {
       html: params.html,
       text: params.text,
       replyTo: params.replyTo,
+      attachments: (params.attachments ?? []).map((file) => ({
+        filename: file.filename,
+        content: file.content,
+        contentType: file.contentType ?? "application/octet-stream",
+      })),
     })
     return { ok: true, id: info.messageId }
   } catch (error) {
