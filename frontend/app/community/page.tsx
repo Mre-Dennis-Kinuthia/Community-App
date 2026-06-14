@@ -26,6 +26,10 @@ import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
 import { DirectoryMemberCard } from "@/components/community/directory-member-card"
 import { DirectoryPillSearch } from "@/components/community/directory-pill-search"
 import {
+  getRecommendedMembers,
+  RECOMMENDED_PREVIEW_LIMIT,
+} from "@/lib/community-recommendations"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -127,11 +131,40 @@ function CommunityPageContent() {
 
   const filteredAndSortedMembers = members // Already filtered and sorted by API
 
+  const hasActiveFilters = selectedIndustry !== "All" || selectedRole !== "All" || selectedExperience !== "All" || selectedAvailability !== "All" || selectedLocation !== "All" || selectedSkills.length > 0 || sortBy !== "newest" || showFeatured
+
+  const showRecommendationSection =
+    activeTab === "all" && !hasActiveFilters && !debouncedSearch
+
+  const { members: recommendationCandidates } = useCommunityMembers({
+    limit: 50,
+    sort: "most_connected",
+    enabled: showRecommendationSection,
+  })
+
   const featuredMembers = useMemo(() => {
     return members.filter(m => m.featured)
   }, [members])
 
-  const hasActiveFilters = selectedIndustry !== "All" || selectedRole !== "All" || selectedExperience !== "All" || selectedAvailability !== "All" || selectedLocation !== "All" || selectedSkills.length > 0 || sortBy !== "newest" || showFeatured
+  const recommendationPool = useMemo(
+    () => getRecommendedMembers(recommendationCandidates, myConnections),
+    [recommendationCandidates, myConnections]
+  )
+
+  const recommendedPreview = useMemo(
+    () => recommendationPool.slice(0, RECOMMENDED_PREVIEW_LIMIT),
+    [recommendationPool]
+  )
+
+  const recommendedPreviewIds = useMemo(
+    () => new Set(recommendedPreview.map((m) => m.id)),
+    [recommendedPreview]
+  )
+
+  const membersForGrid = useMemo(() => {
+    if (hasActiveFilters) return filteredAndSortedMembers
+    return filteredAndSortedMembers.filter((m) => !recommendedPreviewIds.has(m.id))
+  }, [filteredAndSortedMembers, hasActiveFilters, recommendedPreviewIds])
 
   const clearFilters = () => {
     setSelectedIndustry("All")
@@ -165,14 +198,9 @@ function CommunityPageContent() {
     sortBy !== "newest",
   ].filter(Boolean).length
 
-  const recommendedMembers = useMemo(() => {
-    if (featuredMembers.length > 0) return featuredMembers
-    return members.filter((m) => !myConnections.includes(m.id)).slice(0, 12)
-  }, [featuredMembers, members, myConnections])
-
   const memberGrid = (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      {filteredAndSortedMembers.map((member) => (
+      {membersForGrid.map((member) => (
         <DirectoryMemberCard key={member.id} member={member} />
       ))}
     </div>
@@ -311,25 +339,31 @@ function CommunityPageContent() {
           </TabsList>
 
           <TabsContent value="all" className="space-y-4 mt-2 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
-            {/* Recommended contacts — mobile carousel */}
-            {!hasActiveFilters && recommendedMembers.length > 0 && (
+            {showRecommendationSection && recommendedPreview.length > 0 && (
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold md:text-lg">Recommended</h2>
-                  <Link
-                    href="/community/recommendations"
-                    className="text-sm font-medium text-primary hover:underline"
-                  >
-                    View all ({pagination?.total ?? recommendedMembers.length})
-                  </Link>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-semibold md:text-lg">Recommended</h2>
+                    <p className="text-xs text-muted-foreground">
+                      People you may want to connect with
+                    </p>
+                  </div>
+                  {recommendationPool.length > RECOMMENDED_PREVIEW_LIMIT ? (
+                    <Link
+                      href="/community/recommendations"
+                      className="shrink-0 text-sm font-medium text-primary hover:underline"
+                    >
+                      View all ({recommendationPool.length})
+                    </Link>
+                  ) : null}
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
-                  {recommendedMembers.map((member) => (
+                  {recommendedPreview.map((member) => (
                     <DirectoryMemberCard key={member.id} member={member} carousel />
                   ))}
                 </div>
-                <div className="hidden gap-3 md:grid md:grid-cols-3 lg:grid-cols-5">
-                  {recommendedMembers.map((member) => (
+                <div className="hidden gap-3 md:grid md:grid-cols-3 lg:grid-cols-6">
+                  {recommendedPreview.map((member) => (
                     <DirectoryMemberCard key={member.id} member={member} />
                   ))}
                 </div>
@@ -554,7 +588,7 @@ function CommunityPageContent() {
               </Card>
             ) : (
               <>
-                {!hasActiveFilters && recommendedMembers.length > 0 && (
+                {showRecommendationSection && recommendedPreview.length > 0 && (
                   <div className="pt-2 md:border-t md:pt-4">
                     <h2 className="mb-3 text-base font-semibold md:mb-4 md:text-lg">All members</h2>
                   </div>

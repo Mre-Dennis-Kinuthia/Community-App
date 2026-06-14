@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, Users } from "lucide-react"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Button } from "@/components/ui/button"
 import { RecommendationProfileCard } from "@/components/community/recommendation-profile-card"
+import { getRecommendedMembers } from "@/lib/community-recommendations"
 import { useCommunityMembers } from "@/lib/hooks/use-community"
 import { toast } from "@/lib/toast"
 
@@ -20,12 +21,10 @@ function RecommendationsContent() {
     sort: "most_connected",
   })
 
-  const recommendations = useMemo(() => {
-    const connected = new Set(userConnections)
-    return members.filter(
-      (member) => !connected.has(member.id) && !skippedIds.includes(member.id)
-    )
-  }, [members, userConnections, skippedIds])
+  const recommendations = useMemo(
+    () => getRecommendedMembers(members, userConnections, { excludeIds: skippedIds }),
+    [members, userConnections, skippedIds]
+  )
 
   const current = recommendations[0]
 
