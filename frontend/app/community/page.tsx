@@ -4,19 +4,13 @@ import { Suspense, useState, useMemo, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
-  Search, 
-  X, 
   Users, 
-  Star,
-  UserPlus,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  SlidersHorizontal,
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { cn } from "@/lib/utils"
@@ -124,10 +118,7 @@ function CommunityPageContent() {
   }, [activeTab, debouncedSearch, selectedIndustry, selectedRole, selectedExperience, selectedAvailability, selectedLocation, selectedSkills, sortBy, showFeatured, page, router])
 
   // Get filter options from API response
-  const allUniqueSkills = filters?.skills || []
   const locations = ["All", ...(filters?.locations || [])]
-  const industries = ["All", ...(filters?.industries || [])]
-  const roles = ["All", ...(filters?.roles || [])]
 
   const filteredAndSortedMembers = members // Already filtered and sorted by API
 
@@ -141,10 +132,6 @@ function CommunityPageContent() {
     sort: "most_connected",
     enabled: showRecommendationSection,
   })
-
-  const featuredMembers = useMemo(() => {
-    return members.filter(m => m.featured)
-  }, [members])
 
   const recommendationPool = useMemo(
     () => getRecommendedMembers(recommendationCandidates, myConnections),
@@ -206,6 +193,73 @@ function CommunityPageContent() {
     </div>
   )
 
+  const filterSheet = (
+    <MobileFilterSheet
+      open={filterSheetOpen}
+      onOpenChange={setFilterSheetOpen}
+      activeCount={advancedFilterCount}
+      onClear={clearFilters}
+      hideTrigger
+    >
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Experience</p>
+          <FilterChipRow>
+            {experienceLevels.map((level) => (
+              <FilterChip
+                key={level}
+                label={level}
+                active={selectedExperience === level}
+                onClick={() => setSelectedExperience(level)}
+              />
+            ))}
+          </FilterChipRow>
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Availability</p>
+          <FilterChipRow>
+            {availabilityOptions.map((avail) => (
+              <FilterChip
+                key={avail}
+                label={avail === "All" ? "All" : avail.replace("Open to ", "").replace("Offering ", "")}
+                active={selectedAvailability === avail}
+                onClick={() => setSelectedAvailability(avail)}
+              />
+            ))}
+          </FilterChipRow>
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Location</p>
+          <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+            <SelectTrigger className="h-11 rounded-xl">
+              <SelectValue placeholder="Location" />
+            </SelectTrigger>
+            <SelectContent>
+              {locations.map((location) => (
+                <SelectItem key={location} value={location}>{location}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sort by</p>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="h-11 rounded-xl">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest First</SelectItem>
+              <SelectItem value="oldest">Oldest First</SelectItem>
+              <SelectItem value="most_connected">Most Connected</SelectItem>
+              <SelectItem value="most_active">Most Active</SelectItem>
+              <SelectItem value="alphabetical">Alphabetical</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </MobileFilterSheet>
+  )
+
   return (
     <DashboardLayout>
       <div className="space-y-5 md:space-y-8">
@@ -221,20 +275,51 @@ function CommunityPageContent() {
             </p>
           </div>
 
-          <div className="space-y-3 md:hidden">
+          <div className="flex gap-2">
             <DirectoryPillSearch
+              className="flex-1"
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder="Search members…"
             />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="relative h-11 w-11 shrink-0 rounded-full"
+              onClick={() => setFilterSheetOpen(true)}
+              aria-label="Open filters"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {advancedFilterCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                  {advancedFilterCount}
+                </span>
+              ) : null}
+            </Button>
+          </div>
+
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setActiveTab(activeTab === "connections" ? "all" : "connections")}
+              onClick={() => setActiveTab("all")}
               className={cn(
-                "flex h-11 w-full items-center justify-center gap-2 rounded-full border text-sm font-medium transition-colors",
+                "flex h-10 flex-1 items-center justify-center gap-2 rounded-full border text-sm font-medium transition-colors",
+                activeTab === "all"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-muted/30 text-foreground hover:bg-muted/50"
+              )}
+            >
+              All members
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("connections")}
+              className={cn(
+                "flex h-10 flex-1 items-center justify-center gap-2 rounded-full border text-sm font-medium transition-colors",
                 activeTab === "connections"
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-border bg-muted/30 text-foreground"
+                  : "border-border bg-muted/30 text-foreground hover:bg-muted/50"
               )}
             >
               <Users className="h-4 w-4" />
@@ -246,99 +331,29 @@ function CommunityPageContent() {
               ) : null}
             </button>
           </div>
+
+          {filterSheet}
+
+          {activeTab === "all" && (
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                {pagination?.total ?? 0} member{(pagination?.total ?? 0) !== 1 ? "s" : ""}
+                {activeFilterCount > 0 && ` · ${activeFilterCount} filter${activeFilterCount !== 1 ? "s" : ""}`}
+              </span>
+              {hasActiveFilters ? (
+                <button type="button" onClick={clearFilters} className="font-medium text-primary">
+                  Clear
+                </button>
+              ) : null}
+            </div>
+          )}
         </div>
 
-        <div className="hidden gap-3 md:grid md:grid-cols-4">
-          <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
-            <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Members
-              </CardTitle>
-              <Users className="h-4 w-4 text-primary/70" />
-            </CardHeader>
-            <CardContent className="pt-1 pb-3">
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-semibold tracking-tight">
-                  {isLoading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  ) : (
-                    pagination?.total || 0
-                  )}
-                </div>
-                {!isLoading && (
-                  <p className="text-[11px] text-muted-foreground">
-                    {pagination?.total === 1 ? "member in the hub" : "members in the hub"}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
-            <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Featured Members
-              </CardTitle>
-              <Star className="h-4 w-4 text-primary/70" />
-            </CardHeader>
-            <CardContent className="pt-1 pb-3">
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-semibold tracking-tight">
-                  {featuredMembers.length}
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Curated community champions
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
-            <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                My Connections
-              </CardTitle>
-              <UserPlus className="h-4 w-4 text-primary/70" />
-            </CardHeader>
-            <CardContent className="pt-1 pb-3">
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-semibold tracking-tight">
-                  {myConnections.length}
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  People you&apos;re directly connected to
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border  transition-all hover:bg-muted/30 hover:border-primary/40">
-            <CardHeader className="py-2 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Connections
-              </CardTitle>
-              <Users className="h-4 w-4 text-primary/70" />
-            </CardHeader>
-            <CardContent className="pt-1 pb-3">
-              <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-semibold tracking-tight">
-                  {members.reduce((sum, m) => sum + (m.connections || 0), 0)}
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Relationships across the whole community
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="hidden w-full max-w-md grid-cols-2 md:grid">
-            <TabsTrigger value="all">All Members</TabsTrigger>
-            <TabsTrigger value="connections">My Connections ({myConnections.length})</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="space-y-4 mt-2 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
+        {activeTab === "all" ? (
+          <div
+            className="space-y-6 transition-opacity duration-200 ease-in-out"
+            style={{ opacity: isFiltering ? 0.6 : 1 }}
+          >
             {showRecommendationSection && recommendedPreview.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
@@ -357,12 +372,7 @@ function CommunityPageContent() {
                     </Link>
                   ) : null}
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
-                  {recommendedPreview.map((member) => (
-                    <DirectoryMemberCard key={member.id} member={member} carousel />
-                  ))}
-                </div>
-                <div className="hidden gap-3 md:grid md:grid-cols-3 lg:grid-cols-6">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {recommendedPreview.map((member) => (
                     <DirectoryMemberCard key={member.id} member={member} />
                   ))}
@@ -370,191 +380,6 @@ function CommunityPageContent() {
               </div>
             )}
 
-            {/* Mobile filters — sheet only (search is in header) */}
-            <div className="space-y-3 md:hidden">
-              <div className="flex items-center justify-end">
-                <MobileFilterSheet
-                  open={filterSheetOpen}
-                  onOpenChange={setFilterSheetOpen}
-                  activeCount={advancedFilterCount}
-                  onClear={clearFilters}
-                >
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Experience</p>
-                      <FilterChipRow>
-                        {experienceLevels.map((level) => (
-                          <FilterChip
-                            key={level}
-                            label={level}
-                            active={selectedExperience === level}
-                            onClick={() => setSelectedExperience(level)}
-                          />
-                        ))}
-                      </FilterChipRow>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Availability</p>
-                      <FilterChipRow>
-                        {availabilityOptions.map((avail) => (
-                          <FilterChip
-                            key={avail}
-                            label={avail === "All" ? "All" : avail.replace("Open to ", "").replace("Offering ", "")}
-                            active={selectedAvailability === avail}
-                            onClick={() => setSelectedAvailability(avail)}
-                          />
-                        ))}
-                      </FilterChipRow>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Location</p>
-                      <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                        <SelectTrigger className="h-11 rounded-xl">
-                          <SelectValue placeholder="Location" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {locations.map((location) => (
-                            <SelectItem key={location} value={location}>{location}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Sort by</p>
-                      <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="h-11 rounded-xl">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="newest">Newest First</SelectItem>
-                          <SelectItem value="oldest">Oldest First</SelectItem>
-                          <SelectItem value="most_connected">Most Connected</SelectItem>
-                          <SelectItem value="most_active">Most Active</SelectItem>
-                          <SelectItem value="alphabetical">Alphabetical</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </MobileFilterSheet>
-              </div>
-
-              {locations.length > 1 && (
-                <FilterChipRow>
-                  {locations.slice(0, 6).map((location) => (
-                    <FilterChip
-                      key={location}
-                      label={location}
-                      active={selectedLocation === location}
-                      onClick={() => setSelectedLocation(location)}
-                    />
-                  ))}
-                </FilterChipRow>
-              )}
-
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>
-                  {pagination?.total ?? 0} member{(pagination?.total ?? 0) !== 1 ? "s" : ""}
-                  {activeFilterCount > 0 && ` · ${activeFilterCount} filter${activeFilterCount !== 1 ? "s" : ""}`}
-                </span>
-                {hasActiveFilters && (
-                  <button type="button" onClick={clearFilters} className="font-medium text-primary">
-                    Clear
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Desktop filters */}
-            <div className="hidden space-y-4 md:block">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="pl-10 shadow-sm"
-                    placeholder="Search by name, skill, role, or interest..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                {activeFilterCount > 0 && (
-                  <Badge variant="secondary" className="hidden md:flex">
-                    {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-                  </Badge>
-                )}
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="most_connected">Most Connected</SelectItem>
-                    <SelectItem value="most_active">Most Active</SelectItem>
-                    <SelectItem value="alphabetical">Alphabetical</SelectItem>
-                  </SelectContent>
-                </Select>
-                {hasActiveFilters && (
-                  <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm">
-                    <X className="mr-2 h-4 w-4" />
-                    Clear
-                  </Button>
-                )}
-              </div>
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:flex-wrap">
-                <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                  <SelectTrigger className="w-full md:w-[150px] shadow-sm">
-                    <SelectValue placeholder="Industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {industries.map((industry) => (
-                      <SelectItem key={industry} value={industry}>{industry}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedRole} onValueChange={setSelectedRole}>
-                  <SelectTrigger className="w-full md:w-[150px] shadow-sm">
-                    <SelectValue placeholder="Role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map((role) => (
-                      <SelectItem key={role} value={role}>{role}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedExperience} onValueChange={setSelectedExperience}>
-                  <SelectTrigger className="w-full md:w-[150px] shadow-sm">
-                    <SelectValue placeholder="Experience" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {experienceLevels.map((level) => (
-                      <SelectItem key={level} value={level}>{level}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedAvailability} onValueChange={setSelectedAvailability}>
-                  <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-                    <SelectValue placeholder="Availability" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availabilityOptions.map((avail) => (
-                      <SelectItem key={avail} value={avail}>{avail}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger className="w-full md:w-[150px] shadow-sm">
-                    <SelectValue placeholder="Location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {locations.map((location) => (
-                      <SelectItem key={location} value={location}>{location}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Members Grid */}
             {isLoading ? (
               <Card className="py-12">
                 <CardContent className="flex flex-col items-center justify-center text-center">
@@ -621,14 +446,12 @@ function CommunityPageContent() {
                 )}
               </>
             )}
-          </TabsContent>
-
-          <TabsContent value="connections" className="space-y-4 mt-2 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
-            {activeTab === "connections" && (
-              <p className="text-sm text-muted-foreground md:hidden">
-                People you&apos;re directly connected with in the hub.
-              </p>
-            )}
+          </div>
+        ) : (
+          <div
+            className="space-y-6 transition-opacity duration-200 ease-in-out"
+            style={{ opacity: isFiltering ? 0.6 : 1 }}
+          >
             {isLoading ? (
               <Card className="py-12">
                 <CardContent className="flex flex-col items-center justify-center text-center">
@@ -660,8 +483,8 @@ function CommunityPageContent() {
             ) : (
               memberGrid
             )}
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   )

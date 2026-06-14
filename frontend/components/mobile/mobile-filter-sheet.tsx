@@ -20,6 +20,7 @@ interface MobileFilterSheetProps {
   onApply?: () => void
   children: React.ReactNode
   triggerClassName?: string
+  hideTrigger?: boolean
 }
 
 export function MobileFilterSheet({
@@ -31,9 +32,11 @@ export function MobileFilterSheet({
   onApply,
   children,
   triggerClassName,
+  hideTrigger = false,
 }: MobileFilterSheetProps) {
   return (
     <>
+      {!hideTrigger && (
       <Button
         type="button"
         variant="outline"
@@ -52,6 +55,7 @@ export function MobileFilterSheet({
           </span>
         )}
       </Button>
+      )}
 
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="bottom" className="max-h-[85vh] rounded-t-2xl px-0 pb-[env(safe-area-inset-bottom)]">
