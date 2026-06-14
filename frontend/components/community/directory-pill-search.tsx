@@ -13,27 +13,27 @@ type DirectoryPillSearchProps = {
 export function DirectoryPillSearch({
   value,
   onChange,
-  placeholder = "All contacts",
+  placeholder = "Search members…",
   className,
 }: DirectoryPillSearchProps) {
   return (
     <div className={cn("relative", className)}>
-      <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--cd-green)]" />
+      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-12 w-full rounded-full border-2 border-[var(--cd-green)] bg-white pl-12 pr-11 text-sm text-[var(--cd-green)] placeholder:text-[var(--cd-green)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--cd-green)]/25"
+        className="h-11 w-full rounded-full border border-border bg-background pl-11 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
       />
       {value.length > 0 ? (
         <button
           type="button"
           onClick={() => onChange("")}
-          className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[var(--cd-green)]/60 hover:bg-[var(--cd-green)]/5 hover:text-[var(--cd-green)]"
+          className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
           aria-label="Clear search"
         >
-          <X className="h-4 w-4" />
+          <X className="h-3.5 w-3.5" />
         </button>
       ) : null}
     </div>

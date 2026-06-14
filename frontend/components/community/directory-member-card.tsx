@@ -3,22 +3,22 @@
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getImageDisplayUrl } from "@/lib/stored-image"
-import { getInitials } from "@/lib/utils"
-import { cn } from "@/lib/utils"
+import { cn, getInitials } from "@/lib/utils"
 import type { CommunityMember } from "@/types/community"
 
 type DirectoryMemberCardProps = {
   member: CommunityMember
   className?: string
-  compact?: boolean
   asLink?: boolean
+  /** Fixed width for horizontal carousels; grid layouts omit this. */
+  carousel?: boolean
 }
 
 export function DirectoryMemberCard({
   member,
   className,
-  compact = false,
   asLink = true,
+  carousel = false,
 }: DirectoryMemberCardProps) {
   const avatarUrl = getImageDisplayUrl(member.avatar || member.image)
   const initials = getInitials(member.name, member.email)
@@ -26,45 +26,37 @@ export function DirectoryMemberCard({
   const content = (
     <div
       className={cn(
-        "flex flex-col items-center rounded-2xl border-2 border-[var(--cd-green)] bg-white px-4 py-5 text-center shadow-sm transition-shadow hover:shadow-md",
-        compact ? "w-[9.5rem] shrink-0" : "w-full",
+        "flex h-[11.5rem] flex-col items-center rounded-xl border border-border bg-card px-3 py-4 text-center transition-colors hover:border-primary/40 hover:bg-muted/20",
+        carousel ? "w-[9.5rem]" : "w-full",
         className
       )}
     >
-      <Avatar className={cn("border border-[var(--cd-green)]/20", compact ? "h-16 w-16" : "h-24 w-24")}>
+      <Avatar className="h-16 w-16 shrink-0">
         {avatarUrl ? <AvatarImage src={avatarUrl} alt={member.name || "Member"} /> : null}
-        <AvatarFallback className="bg-[var(--cd-green)]/10 text-base font-semibold text-[var(--cd-green)]">
-          {initials}
-        </AvatarFallback>
+        <AvatarFallback className="text-sm font-medium">{initials}</AvatarFallback>
       </Avatar>
 
-      <h3
-        className={cn(
-          "mt-3 font-semibold leading-tight text-[var(--cd-green)]",
-          compact ? "text-sm line-clamp-2" : "text-lg"
-        )}
-      >
-        {member.name || "Anonymous"}
-      </h3>
-
-      {member.organization ? (
-        <p className={cn("mt-1 text-[var(--cd-green)]/80", compact ? "text-[11px] line-clamp-2" : "text-sm")}>
-          {member.organization}
+      <div className="mt-3 flex w-full flex-1 flex-col items-center">
+        <h3 className="line-clamp-2 min-h-[2.5rem] w-full text-sm font-semibold leading-tight text-foreground">
+          {member.name || "Anonymous"}
+        </h3>
+        <p className="mt-1 line-clamp-1 w-full min-h-[1rem] text-xs text-muted-foreground">
+          {member.organization || "\u00A0"}
         </p>
-      ) : null}
-
-      {member.role ? (
-        <p className={cn("text-[var(--cd-green)]/65", compact ? "text-[10px] line-clamp-1" : "text-xs")}>
-          {member.role}
+        <p className="line-clamp-1 w-full min-h-[1rem] text-[11px] text-muted-foreground/80">
+          {member.role || "\u00A0"}
         </p>
-      ) : null}
+      </div>
     </div>
   )
 
   if (!asLink) return content
 
   return (
-    <Link href={`/community/${member.id}`} className="block shrink-0">
+    <Link
+      href={`/community/${member.id}`}
+      className={cn("block shrink-0", carousel ? "w-[9.5rem]" : "w-full")}
+    >
       {content}
     </Link>
   )

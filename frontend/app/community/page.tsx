@@ -1,31 +1,25 @@
 "use client"
 
-import { Suspense, useState, useMemo, useEffect, useCallback, Fragment } from "react"
+import { Suspense, useState, useMemo, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getImageDisplayUrl } from "@/lib/stored-image"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   Search, 
-  Mail, 
   X, 
   Users, 
   Star,
   UserPlus,
-  CheckCircle2,
-  Heart,
   Loader2,
   AlertCircle
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { badgeClassForLabel } from "@/lib/badge-styles"
-import { MembershipTierBadge } from "@/components/membership-tier-badge"
+import { cn } from "@/lib/utils"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
@@ -39,7 +33,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useCommunityMembers } from "@/lib/hooks/use-community"
-import { CommunityMember } from "@/types/community"
 
 const experienceLevels = ["All", "Early Career", "Mid-Level", "Senior", "Expert"]
 const availabilityOptions = ["All", "Open to Collaboration", "Seeking Mentorship", "Offering Mentorship", "Open to Partnerships", "Looking for Volunteers"]
@@ -165,8 +158,6 @@ function CommunityPageContent() {
     searchQuery.length > 0,
   ].filter(Boolean).length
 
-  const badgeFor = (label: string) => badgeClassForLabel(label)
-
   const advancedFilterCount = [
     selectedExperience !== "All",
     selectedAvailability !== "All",
@@ -179,20 +170,25 @@ function CommunityPageContent() {
     return members.filter((m) => !myConnections.includes(m.id)).slice(0, 12)
   }, [featuredMembers, members, myConnections])
 
+  const memberGrid = (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {filteredAndSortedMembers.map((member) => (
+        <DirectoryMemberCard key={member.id} member={member} />
+      ))}
+    </div>
+  )
+
   return (
     <DashboardLayout>
-      <div className="community-directory space-y-5 md:space-y-10">
+      <div className="space-y-5 md:space-y-8">
         <div className="hidden md:block">
           <Breadcrumbs items={[{ label: "Community" }]} />
         </div>
 
-        {/* Mobile header — clean connect-style layout */}
-        <div className="community-pattern-bg -mx-4 space-y-5 px-4 py-5 md:mx-0 md:rounded-none md:bg-transparent md:p-0">
-          <div className="space-y-2 md:space-y-1">
-            <h1 className="text-xl font-bold text-[var(--cd-green)] md:text-3xl md:font-semibold md:text-foreground">
-              Community Directory
-            </h1>
-            <p className="text-sm leading-relaxed text-[var(--cd-green)]/75 md:max-w-2xl md:text-base md:text-muted-foreground">
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Community Directory</h1>
+            <p className="text-sm text-muted-foreground md:text-base max-w-2xl">
               Connect with social entrepreneurs, innovators, and changemakers in the hub.
             </p>
           </div>
@@ -201,33 +197,27 @@ function CommunityPageContent() {
             <DirectoryPillSearch
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="All contacts"
+              placeholder="Search members…"
             />
             <button
               type="button"
               onClick={() => setActiveTab(activeTab === "connections" ? "all" : "connections")}
-              className={`flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-[var(--cd-green)] text-sm font-semibold transition-colors ${
+              className={cn(
+                "flex h-11 w-full items-center justify-center gap-2 rounded-full border text-sm font-medium transition-colors",
                 activeTab === "connections"
-                  ? "bg-[var(--cd-yellow)] text-[var(--cd-green)]"
-                  : "bg-[var(--cd-yellow)]/90 text-[var(--cd-green)]"
-              }`}
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-muted/30 text-foreground"
+              )}
             >
-              <Users className="h-5 w-5" />
-              My contacts
+              <Users className="h-4 w-4" />
+              My connections
               {myConnections.length > 0 ? (
-                <span className="rounded-full bg-[var(--cd-green)]/10 px-2 py-0.5 text-xs">
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs tabular-nums">
                   {myConnections.length}
                 </span>
               ) : null}
             </button>
           </div>
-        </div>
-
-        <div className="hidden space-y-1 md:block">
-          <h1 className="sr-only">Community</h1>
-          <p className="text-sm text-muted-foreground md:text-base max-w-2xl">
-            Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions.
-          </p>
         </div>
 
         <div className="hidden gap-3 md:grid md:grid-cols-4">
@@ -323,42 +313,24 @@ function CommunityPageContent() {
           <TabsContent value="all" className="space-y-4 mt-2 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
             {/* Recommended contacts — mobile carousel */}
             {!hasActiveFilters && recommendedMembers.length > 0 && (
-              <div className="space-y-3 md:space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold text-[var(--cd-green)] md:text-2xl md:font-semibold md:text-foreground">
-                    Recommended contacts
-                  </h2>
+                  <h2 className="text-base font-semibold md:text-lg">Recommended</h2>
                   <Link
                     href="/community/recommendations"
-                    className="text-sm font-medium text-[var(--cd-green)] hover:underline md:text-primary"
+                    className="text-sm font-medium text-primary hover:underline"
                   >
                     View all ({pagination?.total ?? recommendedMembers.length})
                   </Link>
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-0 lg:grid-cols-4">
+                <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
                   {recommendedMembers.map((member) => (
-                    <DirectoryMemberCard key={member.id} member={member} compact className="md:hidden" />
+                    <DirectoryMemberCard key={member.id} member={member} carousel />
                   ))}
-                  {featuredMembers.map((member) => (
-                    <Link key={member.id} href={`/community/${member.id}`} className="hidden md:block">
-                      <Card className="flex h-full cursor-pointer flex-col transition-all hover:border-primary/50 border-border ring-1 ring-primary/10">
-                        <CardHeader className="p-4 text-center">
-                          <Avatar className="mx-auto h-20 w-20">
-                            {getImageDisplayUrl(member.avatar || member.image) ? (
-                              <AvatarImage
-                                src={getImageDisplayUrl(member.avatar || member.image)}
-                                alt={member.name || "Member"}
-                              />
-                            ) : null}
-                            <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-0.5 mt-2">
-                            <CardTitle className="text-lg line-clamp-1">{member.name}</CardTitle>
-                            <p className="text-xs text-muted-foreground line-clamp-1">{member.role}</p>
-                          </div>
-                        </CardHeader>
-                      </Card>
-                    </Link>
+                </div>
+                <div className="hidden gap-3 md:grid md:grid-cols-3 lg:grid-cols-5">
+                  {recommendedMembers.map((member) => (
+                    <DirectoryMemberCard key={member.id} member={member} />
                   ))}
                 </div>
               </div>
@@ -583,125 +555,11 @@ function CommunityPageContent() {
             ) : (
               <>
                 {!hasActiveFilters && recommendedMembers.length > 0 && (
-                  <div className="pt-2 md:pt-4 md:border-t">
-                    <h2 className="text-base font-bold text-[var(--cd-green)] mb-3 md:text-2xl md:font-semibold md:text-foreground md:mb-4">
-                      All Members
-                    </h2>
+                  <div className="pt-2 md:border-t md:pt-4">
+                    <h2 className="mb-3 text-base font-semibold md:mb-4 md:text-lg">All members</h2>
                   </div>
                 )}
-                <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-4">
-                  {filteredAndSortedMembers.map((member) => {
-                    const isConnected = myConnections.includes(member.id)
-                    return (
-                      <Fragment key={member.id}>
-                        <div className="md:hidden">
-                          <DirectoryMemberCard member={member} />
-                        </div>
-                        <Link href={`/community/${member.id}`} className="hidden md:block">
-                          <Card className="flex h-full cursor-pointer flex-col border-border transition-all hover:border-primary/50 hover:bg-muted/30">
-                            <CardHeader className="text-center">
-                              <Avatar className="mx-auto h-20 w-20">
-                                {getImageDisplayUrl(member.avatar || member.image) ? (
-                                  <AvatarImage
-                                    src={getImageDisplayUrl(member.avatar || member.image)}
-                                    alt={member.name || "Member"}
-                                  />
-                                ) : null}
-                                <AvatarFallback>{member.name?.charAt(0) || "?"}</AvatarFallback>
-                              </Avatar>
-                              <div className="space-y-1 mt-3">
-                                {member.featured && (
-                                  <Badge className="bg-primary/10 text-primary border-primary/20">
-                                    <Star className="mr-1 h-3 w-3" />
-                                    Featured
-                                  </Badge>
-                                )}
-                                <CardTitle className="text-lg">{member.name || "Anonymous"}</CardTitle>
-                                {member.membershipLabel ? (
-                                  <MembershipTierBadge
-                                    membership={{
-                                      tier: member.membershipTier,
-                                      label: member.membershipLabel,
-                                    }}
-                                    className="text-[10px]"
-                                  />
-                                ) : null}
-                                {member.role && (
-                                  <p className="text-sm text-muted-foreground">{member.role}</p>
-                                )}
-                                {member.industry && (
-                                  <p className="text-xs text-muted-foreground">{member.industry}</p>
-                                )}
-                              </div>
-                            </CardHeader>
-                            <CardContent className="flex-1 space-y-3 text-center">
-                              <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-3 w-3" />
-                                  <span>{member.connections || 0}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Heart className="h-3 w-3" />
-                                  <span>{member.followers || 0}</span>
-                                </div>
-                              </div>
-                              {member.experienceLevel && (
-                                <Badge className={`${badgeFor(member.experienceLevel)} text-xs`} variant="outline">
-                                  {member.experienceLevel}
-                                </Badge>
-                              )}
-                              {isConnected && (
-                                <Badge variant="default" className="text-xs">
-                                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                                  Connected
-                                </Badge>
-                              )}
-                            </CardContent>
-                            <CardFooter className="grid grid-cols-2 gap-2 border-t p-4">
-                              {member.email && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="w-full gap-2"
-                                  onClick={(e) => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    window.location.href = `mailto:${member.email}`
-                                  }}
-                                >
-                                  <Mail className="h-4 w-4" />
-                                  Email
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full gap-2"
-                                onClick={async (e) => {
-                                  e.preventDefault()
-                                  e.stopPropagation()
-                                  try {
-                                    const response = await fetch("/api/connections", {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ toUserId: member.id }),
-                                    })
-                                    if (response.ok) window.location.reload()
-                                  } catch (error) {
-                                    console.error("Failed to send connection request:", error)
-                                  }
-                                }}
-                              >
-                                <UserPlus className="h-4 w-4" />
-                                {isConnected ? "Connected" : "Connect"}
-                              </Button>
-                            </CardFooter>
-                          </Card>
-                        </Link>
-                      </Fragment>
-                    )
-                  })}
-                </div>
+                {memberGrid}
 
                 {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
@@ -733,7 +591,7 @@ function CommunityPageContent() {
 
           <TabsContent value="connections" className="space-y-4 mt-2 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
             {activeTab === "connections" && (
-              <p className="text-sm text-[var(--cd-green)]/70 md:hidden">
+              <p className="text-sm text-muted-foreground md:hidden">
                 People you&apos;re directly connected with in the hub.
               </p>
             )}
@@ -766,85 +624,7 @@ function CommunityPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-4">
-                {filteredAndSortedMembers.map((member) => (
-                  <Fragment key={member.id}>
-                    <div className="md:hidden">
-                      <DirectoryMemberCard member={member} />
-                    </div>
-                    <Link href={`/community/${member.id}`} className="hidden md:block">
-                      <Card className="flex h-full cursor-pointer flex-col border-border transition-all hover:border-primary/50 hover:bg-muted/30">
-                      <CardHeader className="text-center">
-                            <Avatar className="mx-auto h-20 w-20">
-                              {getImageDisplayUrl(member.avatar || member.image) ? (
-                                <AvatarImage
-                                  src={getImageDisplayUrl(member.avatar || member.image)}
-                                  alt={member.name || "Member"}
-                                />
-                              ) : null}
-                              <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                          <div className="space-y-1 mt-3">
-                            <CardTitle className="text-lg">{member.name || "Anonymous"}</CardTitle>
-                            {member.role && (
-                              <p className="text-sm font-medium text-muted-foreground">{member.role}</p>
-                            )}
-                            {member.industry && (
-                              <p className="text-xs text-muted-foreground">{member.industry}</p>
-                            )}
-                          </div>
-                      </CardHeader>
-                      <CardContent className="flex-1 text-center space-y-3">
-                        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            <span>{member.connections}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Heart className="h-3 w-3" />
-                            <span>{member.followers}</span>
-                          </div>
-                        </div>
-                        <Badge variant="default" className="text-xs">
-                          <CheckCircle2 className="mr-1 h-3 w-3" />
-                          Connected
-                        </Badge>
-                      </CardContent>
-                      <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
-                        {member.email && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full gap-2"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
-                              window.location.href = `mailto:${member.email}`
-                            }}
-                          >
-                            <Mail className="h-4 w-4" />
-                            Email
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full gap-2"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            // Already connected, show profile
-                          }}
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                          View
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                    </Link>
-                  </Fragment>
-                ))}
-              </div>
+              memberGrid
             )}
           </TabsContent>
         </Tabs>
