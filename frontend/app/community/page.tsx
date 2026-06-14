@@ -185,13 +185,15 @@ function CommunityPageContent() {
     sortBy !== "newest",
   ].filter(Boolean).length
 
-  const memberGrid = (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      {membersForGrid.map((member) => (
+  const renderGrid = (list: typeof members, className?: string) => (
+    <div className={cn("grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5", className)}>
+      {list.map((member) => (
         <DirectoryMemberCard key={member.id} member={member} />
       ))}
     </div>
   )
+
+  const memberGrid = renderGrid(membersForGrid)
 
   const filterSheet = (
     <MobileFilterSheet
@@ -355,10 +357,10 @@ function CommunityPageContent() {
             style={{ opacity: isFiltering ? 0.6 : 1 }}
           >
             {showRecommendationSection && recommendedPreview.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-3 md:hidden">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-base font-semibold md:text-lg">Recommended</h2>
+                    <h2 className="text-base font-semibold">Recommended</h2>
                     <p className="text-xs text-muted-foreground">
                       People you may want to connect with
                     </p>
@@ -372,14 +374,9 @@ function CommunityPageContent() {
                     </Link>
                   ) : null}
                 </div>
-                <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
+                <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {recommendedPreview.map((member) => (
                     <DirectoryMemberCard key={member.id} member={member} carousel />
-                  ))}
-                </div>
-                <div className="hidden gap-3 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                  {recommendedPreview.map((member) => (
-                    <DirectoryMemberCard key={member.id} member={member} />
                   ))}
                 </div>
               </div>
@@ -419,11 +416,13 @@ function CommunityPageContent() {
             ) : (
               <>
                 {showRecommendationSection && recommendedPreview.length > 0 && (
-                  <div className="pt-2 md:border-t md:pt-4">
-                    <h2 className="mb-3 text-base font-semibold md:mb-4 md:text-lg">All members</h2>
+                  <div className="pt-2 md:hidden">
+                    <h2 className="mb-3 text-base font-semibold">All members</h2>
                   </div>
                 )}
-                {memberGrid}
+                {/* Mobile excludes recommended (shown above); desktop shows everyone */}
+                {renderGrid(membersForGrid, "md:hidden")}
+                {renderGrid(filteredAndSortedMembers, "hidden md:grid")}
 
                 {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
