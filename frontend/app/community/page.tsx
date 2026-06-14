@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useMemo, useEffect, useCallback } from "react"
+import { Suspense, useState, useMemo, useEffect, useCallback, Fragment } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
@@ -28,9 +28,9 @@ import { badgeClassForLabel } from "@/lib/badge-styles"
 import { MembershipTierBadge } from "@/components/membership-tier-badge"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
-import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
 import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
-import { UnderlineTabs } from "@/components/mobile/underline-tabs"
+import { DirectoryMemberCard } from "@/components/community/directory-member-card"
+import { DirectoryPillSearch } from "@/components/community/directory-pill-search"
 import {
   Select,
   SelectContent,
@@ -174,38 +174,60 @@ function CommunityPageContent() {
     sortBy !== "newest",
   ].filter(Boolean).length
 
+  const recommendedMembers = useMemo(() => {
+    if (featuredMembers.length > 0) return featuredMembers
+    return members.filter((m) => !myConnections.includes(m.id)).slice(0, 12)
+  }, [featuredMembers, members, myConnections])
+
   return (
     <DashboardLayout>
-      <div className="space-y-5 md:space-y-10">
+      <div className="community-directory space-y-5 md:space-y-10">
         <div className="hidden md:block">
           <Breadcrumbs items={[{ label: "Community" }]} />
         </div>
 
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Community</h1>
-          <p className="hidden text-sm text-muted-foreground sm:block md:text-base max-w-2xl">
-            Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions.
-          </p>
+        {/* Mobile header — clean connect-style layout */}
+        <div className="community-pattern-bg -mx-4 space-y-5 px-4 py-5 md:mx-0 md:rounded-none md:bg-transparent md:p-0">
+          <div className="space-y-2 md:space-y-1">
+            <h1 className="text-xl font-bold text-[var(--cd-green)] md:text-3xl md:font-semibold md:text-foreground">
+              Community Directory
+            </h1>
+            <p className="text-sm leading-relaxed text-[var(--cd-green)]/75 md:max-w-2xl md:text-base md:text-muted-foreground">
+              Connect with social entrepreneurs, innovators, and changemakers in the hub.
+            </p>
+          </div>
+
+          <div className="space-y-3 md:hidden">
+            <DirectoryPillSearch
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="All contacts"
+            />
+            <button
+              type="button"
+              onClick={() => setActiveTab(activeTab === "connections" ? "all" : "connections")}
+              className={`flex h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-[var(--cd-green)] text-sm font-semibold transition-colors ${
+                activeTab === "connections"
+                  ? "bg-[var(--cd-yellow)] text-[var(--cd-green)]"
+                  : "bg-[var(--cd-yellow)]/90 text-[var(--cd-green)]"
+              }`}
+            >
+              <Users className="h-5 w-5" />
+              My contacts
+              {myConnections.length > 0 ? (
+                <span className="rounded-full bg-[var(--cd-green)]/10 px-2 py-0.5 text-xs">
+                  {myConnections.length}
+                </span>
+              ) : null}
+            </button>
+          </div>
         </div>
 
-        {/* Stats — horizontal scroll on mobile, grid on desktop */}
-        <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
-          {[
-            { label: "Members", value: pagination?.total ?? 0, icon: Users },
-            { label: "Featured", value: featuredMembers.length, icon: Star },
-            { label: "Connections", value: myConnections.length, icon: UserPlus },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="flex min-w-[7.5rem] shrink-0 flex-col rounded-xl border border-border/60 bg-muted/20 px-4 py-3"
-            >
-              <stat.icon className="mb-1 h-3.5 w-3.5 text-primary/70" />
-              <span className="text-xl font-semibold tabular-nums leading-none">
-                {isLoading ? "—" : stat.value}
-              </span>
-              <span className="mt-1 text-[11px] text-muted-foreground">{stat.label}</span>
-            </div>
-          ))}
+        <div className="hidden space-y-1 md:block">
+          <h1 className="sr-only">Community</h1>
+          <p className="text-sm text-muted-foreground md:text-base max-w-2xl">
+            Connect with social entrepreneurs, innovators, and changemakers building sustainable solutions.
+          </p>
         </div>
 
         <div className="hidden gap-3 md:grid md:grid-cols-4">
@@ -292,36 +314,36 @@ function CommunityPageContent() {
           </Card>
         </div>
 
-        <UnderlineTabs
-          className="md:hidden"
-          items={[
-            { value: "all", label: "All members" },
-            { value: "connections", label: `Connections (${myConnections.length})` },
-          ]}
-          value={activeTab}
-          onChange={setActiveTab}
-        />
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="hidden w-full max-w-md grid-cols-2 md:grid">
             <TabsTrigger value="all">All Members</TabsTrigger>
             <TabsTrigger value="connections">My Connections ({myConnections.length})</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="all" className="space-y-4 mt-4 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
-            {/* Featured — compact on mobile */}
-            {!hasActiveFilters && featuredMembers.length > 0 && (
+          <TabsContent value="all" className="space-y-4 mt-2 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
+            {/* Recommended contacts — mobile carousel */}
+            {!hasActiveFilters && recommendedMembers.length > 0 && (
               <div className="space-y-3 md:space-y-4">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-primary md:h-5 md:w-5" />
-                  <h2 className="text-lg font-semibold md:text-2xl">Featured</h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-bold text-[var(--cd-green)] md:text-2xl md:font-semibold md:text-foreground">
+                    Recommended contacts
+                  </h2>
+                  <Link
+                    href="/community/recommendations"
+                    className="text-sm font-medium text-[var(--cd-green)] hover:underline md:text-primary"
+                  >
+                    View all ({pagination?.total ?? recommendedMembers.length})
+                  </Link>
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-0 lg:grid-cols-4">
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-0 lg:grid-cols-4">
+                  {recommendedMembers.map((member) => (
+                    <DirectoryMemberCard key={member.id} member={member} compact className="md:hidden" />
+                  ))}
                   {featuredMembers.map((member) => (
-                    <Link key={member.id} href={`/community/${member.id}`} className="block w-[11rem] shrink-0 md:w-auto">
+                    <Link key={member.id} href={`/community/${member.id}`} className="hidden md:block">
                       <Card className="flex h-full cursor-pointer flex-col transition-all hover:border-primary/50 border-border ring-1 ring-primary/10">
                         <CardHeader className="p-4 text-center">
-                          <Avatar className="mx-auto h-14 w-14 md:h-20 md:w-20">
+                          <Avatar className="mx-auto h-20 w-20">
                             {getImageDisplayUrl(member.avatar || member.image) ? (
                               <AvatarImage
                                 src={getImageDisplayUrl(member.avatar || member.image)}
@@ -331,7 +353,7 @@ function CommunityPageContent() {
                             <AvatarFallback>{(member.name || "?").charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <div className="space-y-0.5 mt-2">
-                            <CardTitle className="text-sm md:text-lg line-clamp-1">{member.name}</CardTitle>
+                            <CardTitle className="text-lg line-clamp-1">{member.name}</CardTitle>
                             <p className="text-xs text-muted-foreground line-clamp-1">{member.role}</p>
                           </div>
                         </CardHeader>
@@ -342,15 +364,9 @@ function CommunityPageContent() {
               </div>
             )}
 
-            {/* Mobile filters */}
+            {/* Mobile filters — sheet only (search is in header) */}
             <div className="space-y-3 md:hidden">
-              <div className="flex gap-2">
-                <MobileSearchBar
-                  className="flex-1"
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                  placeholder="Search members…"
-                />
+              <div className="flex items-center justify-end">
                 <MobileFilterSheet
                   open={filterSheetOpen}
                   onOpenChange={setFilterSheetOpen}
@@ -566,37 +582,42 @@ function CommunityPageContent() {
               </Card>
             ) : (
               <>
-                {!hasActiveFilters && featuredMembers.length > 0 && (
-                  <div className="pt-4 border-t">
-                    <h2 className="text-xl md:text-2xl font-semibold mb-4">All Members</h2>
+                {!hasActiveFilters && recommendedMembers.length > 0 && (
+                  <div className="pt-2 md:pt-4 md:border-t">
+                    <h2 className="text-base font-bold text-[var(--cd-green)] mb-3 md:text-2xl md:font-semibold md:text-foreground md:mb-4">
+                      All Members
+                    </h2>
                   </div>
                 )}
-                <div className="space-y-2 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-4">
+                <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:grid-cols-4">
                   {filteredAndSortedMembers.map((member) => {
                     const isConnected = myConnections.includes(member.id)
                     return (
-                      <Link key={member.id} href={`/community/${member.id}`}>
-                        <Card className="flex cursor-pointer flex-row items-center gap-3 border-border/80 p-3 transition-colors hover:border-primary/40 hover:bg-muted/20 md:flex-col md:p-0 md:text-center">
-                          <Avatar className="h-12 w-12 shrink-0 md:mx-auto md:mt-4 md:h-20 md:w-20">
-                            {(member.avatar || member.image) ? (
-                              <AvatarImage
-                                src={member.avatar || member.image}
-                                alt={member.name}
-                              />
-                            ) : null}
-                            <AvatarFallback>{member.name?.charAt(0) || "?"}</AvatarFallback>
-                          </Avatar>
-                          <div className="min-w-0 flex-1 md:w-full">
-                            <div className="md:px-4 md:pb-2">
-                              {member.featured && (
-                                <Badge className="mb-1 hidden bg-primary/10 text-primary border-primary/20 md:inline-flex">
-                                  <Star className="mr-1 h-3 w-3" />
-                                  Featured
-                                </Badge>
-                              )}
-                              <CardTitle className="truncate text-base md:text-lg">{member.name || "Anonymous"}</CardTitle>
-                              {member.membershipLabel ? (
-                                <div className="mt-1 flex justify-center md:justify-center">
+                      <Fragment key={member.id}>
+                        <div className="md:hidden">
+                          <DirectoryMemberCard member={member} />
+                        </div>
+                        <Link href={`/community/${member.id}`} className="hidden md:block">
+                          <Card className="flex h-full cursor-pointer flex-col border-border transition-all hover:border-primary/50 hover:bg-muted/30">
+                            <CardHeader className="text-center">
+                              <Avatar className="mx-auto h-20 w-20">
+                                {getImageDisplayUrl(member.avatar || member.image) ? (
+                                  <AvatarImage
+                                    src={getImageDisplayUrl(member.avatar || member.image)}
+                                    alt={member.name || "Member"}
+                                  />
+                                ) : null}
+                                <AvatarFallback>{member.name?.charAt(0) || "?"}</AvatarFallback>
+                              </Avatar>
+                              <div className="space-y-1 mt-3">
+                                {member.featured && (
+                                  <Badge className="bg-primary/10 text-primary border-primary/20">
+                                    <Star className="mr-1 h-3 w-3" />
+                                    Featured
+                                  </Badge>
+                                )}
+                                <CardTitle className="text-lg">{member.name || "Anonymous"}</CardTitle>
+                                {member.membershipLabel ? (
                                   <MembershipTierBadge
                                     membership={{
                                       tier: member.membershipTier,
@@ -604,16 +625,16 @@ function CommunityPageContent() {
                                     }}
                                     className="text-[10px]"
                                   />
-                                </div>
-                              ) : null}
-                              {member.role && (
-                                <p className="truncate text-sm text-muted-foreground">{member.role}</p>
-                              )}
-                              {member.industry && (
-                                <p className="hidden truncate text-xs text-muted-foreground md:block">{member.industry}</p>
-                              )}
-                            </div>
-                            <CardContent className="hidden flex-1 space-y-3 p-4 pt-0 text-center md:block">
+                                ) : null}
+                                {member.role && (
+                                  <p className="text-sm text-muted-foreground">{member.role}</p>
+                                )}
+                                {member.industry && (
+                                  <p className="text-xs text-muted-foreground">{member.industry}</p>
+                                )}
+                              </div>
+                            </CardHeader>
+                            <CardContent className="flex-1 space-y-3 text-center">
                               <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
                                 <div className="flex items-center gap-1">
                                   <Users className="h-3 w-3" />
@@ -636,62 +657,48 @@ function CommunityPageContent() {
                                 </Badge>
                               )}
                             </CardContent>
-                          </div>
-                          <div className="shrink-0 md:hidden">
-                            {isConnected ? (
-                              <CheckCircle2 className="h-5 w-5 text-primary" />
-                            ) : (
-                              <UserPlus className="h-5 w-5 text-muted-foreground" />
-                            )}
-                          </div>
-                          <CardFooter className="hidden w-full grid-cols-2 gap-2 border-t p-4 md:grid">
-                            {member.email && (
+                            <CardFooter className="grid grid-cols-2 gap-2 border-t p-4">
+                              {member.email && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full gap-2"
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    window.location.href = `mailto:${member.email}`
+                                  }}
+                                >
+                                  <Mail className="h-4 w-4" />
+                                  Email
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 className="w-full gap-2"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.preventDefault()
                                   e.stopPropagation()
-                                  window.location.href = `mailto:${member.email}`
+                                  try {
+                                    const response = await fetch("/api/connections", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ toUserId: member.id }),
+                                    })
+                                    if (response.ok) window.location.reload()
+                                  } catch (error) {
+                                    console.error("Failed to send connection request:", error)
+                                  }
                                 }}
                               >
-                                <Mail className="h-4 w-4" />
-                                Email
+                                <UserPlus className="h-4 w-4" />
+                                {isConnected ? "Connected" : "Connect"}
                               </Button>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full gap-2"
-                              onClick={async (e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                try {
-                                  const response = await fetch("/api/connections", {
-                                    method: "POST",
-                                    headers: {
-                                      "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify({
-                                      toUserId: member.id,
-                                    }),
-                                  })
-                                  if (response.ok) {
-                                    // Refresh page or update state
-                                    window.location.reload()
-                                  }
-                                } catch (error) {
-                                  console.error("Failed to send connection request:", error)
-                                }
-                              }}
-                            >
-                              <UserPlus className="h-4 w-4" />
-                              {isConnected ? "Connected" : "Connect"}
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      </Link>
+                            </CardFooter>
+                          </Card>
+                        </Link>
+                      </Fragment>
                     )
                   })}
                 </div>
@@ -724,7 +731,12 @@ function CommunityPageContent() {
             )}
           </TabsContent>
 
-          <TabsContent value="connections" className="space-y-6 mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
+          <TabsContent value="connections" className="space-y-4 mt-2 md:space-y-6 md:mt-6 transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
+            {activeTab === "connections" && (
+              <p className="text-sm text-[var(--cd-green)]/70 md:hidden">
+                People you&apos;re directly connected with in the hub.
+              </p>
+            )}
             {isLoading ? (
               <Card className="py-12">
                 <CardContent className="flex flex-col items-center justify-center text-center">
@@ -754,10 +766,14 @@ function CommunityPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-4">
                 {filteredAndSortedMembers.map((member) => (
-                  <Link key={member.id} href={`/community/${member.id}`}>
-                    <Card className="flex flex-col cursor-pointer transition-all hover:bg-muted/30 hover:border-primary/50 border-border h-full">
+                  <Fragment key={member.id}>
+                    <div className="md:hidden">
+                      <DirectoryMemberCard member={member} />
+                    </div>
+                    <Link href={`/community/${member.id}`} className="hidden md:block">
+                      <Card className="flex h-full cursor-pointer flex-col border-border transition-all hover:border-primary/50 hover:bg-muted/30">
                       <CardHeader className="text-center">
                             <Avatar className="mx-auto h-20 w-20">
                               {getImageDisplayUrl(member.avatar || member.image) ? (
@@ -825,7 +841,8 @@ function CommunityPageContent() {
                         </Button>
                       </CardFooter>
                     </Card>
-                  </Link>
+                    </Link>
+                  </Fragment>
                 ))}
               </div>
             )}

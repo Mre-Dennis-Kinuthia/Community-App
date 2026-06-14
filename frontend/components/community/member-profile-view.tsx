@@ -145,7 +145,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
   }
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-4 overflow-x-hidden md:space-y-6">
+    <div className="community-directory mx-auto w-full max-w-5xl space-y-4 overflow-x-hidden md:space-y-6">
       <MobileBreadcrumbsHidden>
         <Breadcrumbs
           items={[
@@ -156,10 +156,10 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
       </MobileBreadcrumbsHidden>
 
       {/* Hero */}
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="border-b border-border bg-muted/30 px-4 py-5 md:px-8 md:py-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
-            <Avatar className="h-20 w-20 shrink-0 border-2 border-background shadow-sm sm:h-24 md:h-28 sm:w-24 md:w-28">
+      <div className="overflow-hidden rounded-2xl border-2 border-[var(--cd-green)] bg-white md:rounded-lg md:border md:border-border md:bg-card">
+        <div className="border-b border-[var(--cd-green)]/15 bg-white px-4 py-6 text-center md:border-border md:bg-muted/30 md:px-8 md:py-8 md:text-left">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6 md:items-start">
+            <Avatar className="h-24 w-24 shrink-0 border-2 border-[var(--cd-green)]/20 shadow-sm sm:h-24 md:h-28 sm:w-24 md:w-28 md:border-background">
               <AvatarImage
                 src={getImageDisplayUrl(member.avatar) || undefined}
                 alt={member.name}
@@ -199,9 +199,9 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
               </div>
 
               <div>
-                <h1 className="text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">{member.name}</h1>
+                <h1 className="text-xl font-bold text-[var(--cd-green)] sm:text-2xl md:text-3xl md:font-semibold md:text-foreground">{member.name}</h1>
                 {(member.role || member.organization || member.industry) && (
-                  <p className="mt-1 text-base text-muted-foreground">
+                  <p className="mt-1 text-base text-[var(--cd-green)]/75 md:text-muted-foreground">
                     {[member.role, member.organization, member.industry].filter(Boolean).join(" · ")}
                   </p>
                 )}
@@ -244,9 +244,9 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
         </div>
 
         {!member.isSelf && (
-          <div className="flex flex-col gap-2 border-t border-border px-4 py-3 sm:flex-row sm:flex-wrap md:px-8 md:py-4">
+          <div className="flex flex-col gap-2 border-t border-[var(--cd-green)]/15 px-4 py-3 sm:flex-row sm:flex-wrap md:border-border md:px-8 md:py-4">
             <Button
-              className="w-full sm:w-auto sm:min-w-[120px]"
+              className="h-11 w-full rounded-full bg-[var(--cd-navy)] text-[var(--cd-yellow)] hover:bg-[var(--cd-navy)]/90 sm:w-auto sm:min-w-[120px] sm:rounded-md md:bg-primary md:text-primary-foreground"
               disabled={
                 connectLoading ||
                 member.connectionStatus === "connected" ||
