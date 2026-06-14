@@ -2,6 +2,7 @@
 
 import { Linkedin } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { cn, getInitials } from "@/lib/utils"
@@ -26,11 +27,13 @@ export function RecommendationProfileCard({
   const initials = getInitials(member.name, member.email)
   const bio = member.fullBio || member.bio
   const linkedinUrl = member.socialLinks?.linkedin?.trim()
+  const hasSkills = member.skills.length > 0
+  const hasInterests = member.interests.length > 0
 
   return (
     <article
       className={cn(
-        "flex flex-col rounded-xl border border-border bg-card p-6 shadow-sm",
+        "flex flex-col rounded-xl border border-border bg-card px-5 py-6",
         className
       )}
     >
@@ -40,14 +43,14 @@ export function RecommendationProfileCard({
           <AvatarFallback className="text-2xl font-medium">{initials}</AvatarFallback>
         </Avatar>
 
-        <h2 className="mt-4 text-xl font-semibold text-foreground">{member.name || "Anonymous"}</h2>
+        <h2 className="mt-4 text-xl font-semibold">{member.name || "Anonymous"}</h2>
 
         {member.organization ? (
           <p className="mt-1 text-sm text-muted-foreground">{member.organization}</p>
         ) : null}
 
         {member.role ? (
-          <p className="text-sm text-muted-foreground">{member.role}</p>
+          <p className="text-sm text-muted-foreground/80">{member.role}</p>
         ) : null}
 
         {linkedinUrl ? (
@@ -64,16 +67,42 @@ export function RecommendationProfileCard({
       </div>
 
       {bio ? (
-        <p className="mt-5 text-left text-sm leading-relaxed text-muted-foreground">{bio}</p>
+        <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{bio}</p>
       ) : (
-        <p className="mt-5 text-left text-sm italic text-muted-foreground">No bio provided yet.</p>
+        <p className="mt-5 text-sm italic text-muted-foreground/60">No bio yet.</p>
       )}
 
+      {hasSkills ? (
+        <div className="mt-4 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Skills</p>
+          <div className="flex flex-wrap gap-1.5">
+            {member.skills.map((skill) => (
+              <Badge key={skill} variant="secondary" className="text-xs font-normal">
+                {skill}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {hasInterests ? (
+        <div className="mt-3 space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Interests</p>
+          <div className="flex flex-wrap gap-1.5">
+            {member.interests.map((interest) => (
+              <Badge key={interest} variant="outline" className="text-xs font-normal">
+                {interest}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-6 grid grid-cols-2 gap-3">
-        <Button type="button" variant="outline" onClick={onIgnore}>
+        <Button type="button" variant="outline" className="h-11 rounded-full" onClick={onIgnore}>
           Skip
         </Button>
-        <Button type="button" onClick={onContact} disabled={contactLoading}>
+        <Button type="button" className="h-11 rounded-full" onClick={onContact} disabled={contactLoading}>
           {contactLoading ? "Sending…" : "Connect"}
         </Button>
       </div>

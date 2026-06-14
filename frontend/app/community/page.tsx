@@ -269,10 +269,10 @@ function CommunityPageContent() {
           <Breadcrumbs items={[{ label: "Community" }]} />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Community Directory</h1>
-            <p className="text-sm text-muted-foreground md:text-base max-w-2xl">
+            <h1 className="text-2xl font-semibold tracking-tight">Community Directory</h1>
+            <p className="hidden text-sm text-muted-foreground sm:block max-w-2xl">
               Connect with social entrepreneurs, innovators, and changemakers in the hub.
             </p>
           </div>
@@ -359,18 +359,13 @@ function CommunityPageContent() {
             {showRecommendationSection && recommendedPreview.length > 0 && (
               <div className="space-y-3 md:hidden">
                 <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-base font-semibold">Recommended</h2>
-                    <p className="text-xs text-muted-foreground">
-                      People you may want to connect with
-                    </p>
-                  </div>
+                  <h2 className="text-base font-semibold">Recommended</h2>
                   {recommendationPool.length > RECOMMENDED_PREVIEW_LIMIT ? (
                     <Link
                       href="/community/recommendations"
                       className="shrink-0 text-sm font-medium text-primary hover:underline"
                     >
-                      View all ({recommendationPool.length})
+                      View all
                     </Link>
                   ) : null}
                 </div>
@@ -416,9 +411,7 @@ function CommunityPageContent() {
             ) : (
               <>
                 {showRecommendationSection && recommendedPreview.length > 0 && (
-                  <div className="pt-2 md:hidden">
-                    <h2 className="mb-3 text-base font-semibold">All members</h2>
-                  </div>
+                  <h2 className="mb-3 text-base font-semibold md:hidden">All members</h2>
                 )}
                 {/* Mobile excludes recommended (shown above); desktop shows everyone */}
                 {renderGrid(membersForGrid, "md:hidden")}
