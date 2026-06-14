@@ -372,7 +372,12 @@ function CommunityPageContent() {
                     </Link>
                   ) : null}
                 </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
+                  {recommendedPreview.map((member) => (
+                    <DirectoryMemberCard key={member.id} member={member} carousel />
+                  ))}
+                </div>
+                <div className="hidden gap-3 md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {recommendedPreview.map((member) => (
                     <DirectoryMemberCard key={member.id} member={member} />
                   ))}
