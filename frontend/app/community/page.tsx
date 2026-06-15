@@ -271,7 +271,7 @@ function CommunityPageContent() {
 
         <div className="space-y-3">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Community Directory</h1>
+            <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Community Directory</h1>
             <p className="hidden text-sm text-muted-foreground sm:block max-w-2xl">
               Connect with social entrepreneurs, innovators, and changemakers in the hub.
             </p>
@@ -288,7 +288,7 @@ function CommunityPageContent() {
               type="button"
               variant="outline"
               size="icon"
-              className="relative h-11 w-11 shrink-0 rounded-full"
+              className="relative h-10 w-10 shrink-0 rounded-full md:h-11 md:w-11"
               onClick={() => setFilterSheetOpen(true)}
               aria-label="Open filters"
             >
@@ -306,7 +306,7 @@ function CommunityPageContent() {
               type="button"
               onClick={() => setActiveTab("all")}
               className={cn(
-                "flex h-10 flex-1 items-center justify-center gap-2 rounded-full border text-sm font-medium transition-colors",
+                "flex h-9 flex-1 items-center justify-center gap-2 rounded-full border text-xs font-medium transition-colors md:h-10 md:text-sm",
                 activeTab === "all"
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border bg-muted/30 text-foreground hover:bg-muted/50"
@@ -318,7 +318,7 @@ function CommunityPageContent() {
               type="button"
               onClick={() => setActiveTab("connections")}
               className={cn(
-                "flex h-10 flex-1 items-center justify-center gap-2 rounded-full border text-sm font-medium transition-colors",
+                "flex h-9 flex-1 items-center justify-center gap-2 rounded-full border text-xs font-medium transition-colors md:h-10 md:text-sm",
                 activeTab === "connections"
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border bg-muted/30 text-foreground hover:bg-muted/50"
@@ -359,7 +359,7 @@ function CommunityPageContent() {
             {showRecommendationSection && recommendedPreview.length > 0 && (
               <div className="space-y-3 md:hidden">
                 <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-base font-semibold">Recommended</h2>
+                  <h2 className="text-sm font-semibold">Recommended</h2>
                   {recommendationPool.length > RECOMMENDED_PREVIEW_LIMIT ? (
                     <Link
                       href="/community/recommendations"
@@ -411,7 +411,7 @@ function CommunityPageContent() {
             ) : (
               <>
                 {showRecommendationSection && recommendedPreview.length > 0 && (
-                  <h2 className="mb-3 text-base font-semibold md:hidden">All members</h2>
+                  <h2 className="mb-3 text-sm font-semibold md:hidden">All members</h2>
                 )}
                 {/* Mobile excludes recommended (shown above); desktop shows everyone */}
                 {renderGrid(membersForGrid, "md:hidden")}

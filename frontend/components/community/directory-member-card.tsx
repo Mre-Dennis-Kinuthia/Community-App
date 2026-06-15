@@ -26,24 +26,24 @@ export function DirectoryMemberCard({
   const content = (
     <div
       className={cn(
-        "flex h-[11.5rem] flex-col items-center rounded-xl border border-border bg-card px-3 py-4 text-center transition-colors hover:border-primary/40 hover:bg-muted/20",
+        "flex h-[10.5rem] flex-col items-center rounded-xl border border-border bg-card px-3 py-3 text-center transition-colors hover:border-primary/40 hover:bg-muted/20 md:h-[11.5rem] md:py-4",
         carousel ? "w-[9.5rem]" : "w-full",
         className
       )}
     >
-      <Avatar className="h-16 w-16 shrink-0">
+        <Avatar className="h-14 w-14 shrink-0 md:h-16 md:w-16">
         {avatarUrl ? <AvatarImage src={avatarUrl} alt={member.name || "Member"} /> : null}
         <AvatarFallback className="text-sm font-medium">{initials}</AvatarFallback>
       </Avatar>
 
       <div className="mt-3 flex w-full flex-1 flex-col items-center">
-        <h3 className="line-clamp-2 min-h-[2.5rem] w-full text-sm font-semibold leading-tight text-foreground">
+        <h3 className="line-clamp-2 min-h-[2.25rem] w-full text-xs font-semibold leading-tight text-foreground md:text-sm md:min-h-[2.5rem]">
           {member.name || "Anonymous"}
         </h3>
-        <p className="mt-1 line-clamp-1 w-full min-h-[1rem] text-xs text-muted-foreground">
+        <p className="mt-1 line-clamp-1 w-full min-h-[0.875rem] text-[10px] text-muted-foreground md:text-xs md:min-h-[1rem]">
           {member.organization || "\u00A0"}
         </p>
-        <p className="line-clamp-1 w-full min-h-[1rem] text-[11px] text-muted-foreground/80">
+        <p className="line-clamp-1 w-full min-h-[0.875rem] text-[10px] text-muted-foreground/80 md:min-h-[1rem]">
           {member.role || "\u00A0"}
         </p>
       </div>

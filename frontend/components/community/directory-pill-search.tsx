@@ -24,7 +24,7 @@ export function DirectoryPillSearch({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-11 w-full rounded-full border border-border bg-background pl-11 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
+        className="h-10 w-full rounded-full border border-border bg-background pl-11 pr-10 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 md:h-11 md:text-sm"
       />
       {value.length > 0 ? (
         <button

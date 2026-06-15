@@ -68,7 +68,7 @@ function RecommendationsContent() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-lg font-semibold">Recommendations</h1>
+        <h1 className="text-base font-semibold">Recommendations</h1>
         <div className="w-9" aria-hidden />
       </header>
 

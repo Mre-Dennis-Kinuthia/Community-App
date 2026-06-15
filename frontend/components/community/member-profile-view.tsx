@@ -61,7 +61,7 @@ function TagList({ items, variant = "secondary" }: { items: string[]; variant?: 
   return (
     <div className="flex flex-wrap justify-center gap-1.5 sm:justify-start">
       {items.map((item) => (
-        <Badge key={item} variant={variant} className="text-xs font-normal">
+        <Badge key={item} variant={variant} className="text-[10px] font-normal md:text-xs">
           {item}
         </Badge>
       ))}
@@ -164,12 +164,12 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="px-5 py-6 md:px-8 md:py-8">
           <div className="flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:gap-6 md:text-left">
-            <Avatar className="h-28 w-28 shrink-0 md:h-24 md:w-24 lg:h-28 lg:w-28">
+            <Avatar className="h-24 w-24 shrink-0 md:h-24 md:w-24 lg:h-28 lg:w-28">
               <AvatarImage
                 src={getImageDisplayUrl(member.avatar) || undefined}
                 alt={member.name}
               />
-              <AvatarFallback className="text-2xl">{getInitials(member.name, member.email)}</AvatarFallback>
+              <AvatarFallback className="text-lg md:text-2xl">{getInitials(member.name, member.email)}</AvatarFallback>
             </Avatar>
 
             <div className="flex min-w-0 flex-1 flex-col items-center space-y-3 md:items-start">
@@ -191,15 +191,15 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                 {isConnected ? <Badge variant="secondary">Connected</Badge> : null}
               </div>
 
-              <div className="space-y-1">
-                <h1 className="text-xl font-semibold tracking-tight md:text-2xl lg:text-3xl">
+              <div className="space-y-0.5">
+                <h1 className="text-lg font-semibold tracking-tight md:text-2xl lg:text-3xl">
                   {member.name}
                 </h1>
                 {member.organization ? (
-                  <p className="text-sm text-muted-foreground">{member.organization}</p>
+                  <p className="text-xs text-muted-foreground md:text-sm">{member.organization}</p>
                 ) : null}
                 {member.role ? (
-                  <p className="text-sm text-muted-foreground/80">{member.role}</p>
+                  <p className="text-xs text-muted-foreground/80 md:text-sm">{member.role}</p>
                 ) : null}
               </div>
 
@@ -216,11 +216,11 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
               ) : null}
 
               {hasAbout ? (
-                <p className="max-w-2xl text-left text-sm leading-relaxed text-muted-foreground md:text-center lg:text-left">
+                <p className="max-w-2xl text-left text-xs leading-relaxed text-muted-foreground md:text-sm md:text-center lg:text-left">
                   {bio}
                 </p>
               ) : (
-                <p className="text-sm italic text-muted-foreground/60 md:hidden">No bio yet.</p>
+                <p className="text-xs italic text-muted-foreground/60 md:hidden">No bio yet.</p>
               )}
 
               {hasSkills ? (
@@ -262,7 +262,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
             {/* Mobile — two clean pill buttons */}
             <div className="grid grid-cols-2 gap-3 border-t border-border px-5 py-4 md:hidden">
               <Button
-                className="h-11 rounded-full"
+                className="h-10 rounded-full text-xs"
                 disabled={connectLoading || isConnected || member.connectionStatus === "pending_sent"}
                 onClick={handleConnect}
               >
@@ -270,7 +270,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
               </Button>
               <Button
                 variant="outline"
-                className="h-11 rounded-full"
+                className="h-10 rounded-full text-xs"
                 disabled={followLoading}
                 onClick={handleFollow}
               >

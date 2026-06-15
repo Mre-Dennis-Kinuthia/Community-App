@@ -38,19 +38,19 @@ export function RecommendationProfileCard({
       )}
     >
       <div className="flex flex-col items-center text-center">
-        <Avatar className="h-28 w-28">
+        <Avatar className="h-24 w-24">
           {avatarUrl ? <AvatarImage src={avatarUrl} alt={member.name || "Member"} /> : null}
-          <AvatarFallback className="text-2xl font-medium">{initials}</AvatarFallback>
+          <AvatarFallback className="text-lg font-medium">{initials}</AvatarFallback>
         </Avatar>
 
-        <h2 className="mt-4 text-xl font-semibold">{member.name || "Anonymous"}</h2>
+        <h2 className="mt-3 text-lg font-semibold">{member.name || "Anonymous"}</h2>
 
         {member.organization ? (
-          <p className="mt-1 text-sm text-muted-foreground">{member.organization}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{member.organization}</p>
         ) : null}
 
         {member.role ? (
-          <p className="text-sm text-muted-foreground/80">{member.role}</p>
+          <p className="text-xs text-muted-foreground/80">{member.role}</p>
         ) : null}
 
         {linkedinUrl ? (
@@ -67,9 +67,9 @@ export function RecommendationProfileCard({
       </div>
 
       {bio ? (
-        <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{bio}</p>
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{bio}</p>
       ) : (
-        <p className="mt-5 text-sm italic text-muted-foreground/60">No bio yet.</p>
+        <p className="mt-4 text-xs italic text-muted-foreground/60">No bio yet.</p>
       )}
 
       {hasSkills ? (
@@ -99,10 +99,10 @@ export function RecommendationProfileCard({
       ) : null}
 
       <div className="mt-6 grid grid-cols-2 gap-3">
-        <Button type="button" variant="outline" className="h-11 rounded-full" onClick={onIgnore}>
+        <Button type="button" variant="outline" className="h-10 rounded-full text-xs" onClick={onIgnore}>
           Skip
         </Button>
-        <Button type="button" className="h-11 rounded-full" onClick={onContact} disabled={contactLoading}>
+        <Button type="button" className="h-10 rounded-full text-xs" onClick={onContact} disabled={contactLoading}>
           {contactLoading ? "Sending…" : "Connect"}
         </Button>
       </div>
