@@ -20,6 +20,7 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { NewsArticleContent } from "@/components/news/news-article-content"
 
 interface NewsTag {
   id: string
@@ -187,11 +188,10 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
         />
       </div>
 
-      <div className="min-h-[100svh] bg-background">
-        {/* Medium-style Article */}
-        <article className="max-w-3xl mx-auto px-4 py-8 md:px-6 md:py-12">
+      <div className="min-h-[100svh] bg-background pb-10">
+        <article className="news-article-shell px-4 py-5 md:px-6 md:py-10">
           {/* Back Button */}
-          <div className="mb-8">
+          <div className="mb-5 md:mb-8">
             <Button
               variant="ghost"
               onClick={() => router.back()}
@@ -203,57 +203,44 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           {/* Article Header */}
-          <header className="mb-12">
-            <h1 
-              className="text-3xl md:text-4xl font-semibold mb-4 leading-tight"
-            >
-              {newsItem.title}
-            </h1>
-            
+          <header className="mb-8 md:mb-10">
+            <h1 className="news-article-title mb-3">{newsItem.title}</h1>
+
             {newsItem.excerpt && (
-              <p 
-                className="text-xl text-muted-foreground mb-6 italic"
-                style={{ fontFamily: "Georgia, serif" }}
-              >
-                {newsItem.excerpt}
-              </p>
+              <p className="news-article-deck mb-5">{newsItem.excerpt}</p>
             )}
 
             {/* Meta Information */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground border-t border-b border-border py-4">
+            <div className="news-article-meta flex flex-wrap items-center gap-x-3 gap-y-2 border-y border-border py-3">
               {newsItem.author && (
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
+                <div className="flex items-center gap-1.5">
+                  <User className="h-3.5 w-3.5 shrink-0" />
                   <span>By {newsItem.author.name || newsItem.author.email}</span>
                 </div>
               )}
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span>{format(displayDate, "MMMM d, yyyy")}</span>
               </div>
               {newsItem.readingTimeMinutes && (
-                <>
-                  <span>•</span>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>{newsItem.readingTimeMinutes} min read</span>
-                  </div>
-                </>
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 shrink-0" />
+                  <span>{newsItem.readingTimeMinutes} min read</span>
+                </div>
               )}
               {newsItem.viewCount > 0 && (
-                <>
-                  <span>•</span>
-                  <div className="flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    <span>{newsItem.viewCount} {newsItem.viewCount === 1 ? 'view' : 'views'}</span>
-                  </div>
-                </>
+                <div className="flex items-center gap-1.5">
+                  <Eye className="h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    {newsItem.viewCount} {newsItem.viewCount === 1 ? "view" : "views"}
+                  </span>
+                </div>
               )}
             </div>
 
             {/* Category and Tags */}
             {(newsItem.category || newsItem.tags.length > 0) && (
-              <div className="flex flex-wrap items-center gap-2 mt-4">
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 {newsItem.category && (
                   <Link href={`/news?categoryId=${newsItem.category.id}`}>
                     <Badge
@@ -278,38 +265,19 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Featured Image */}
           {newsItem.imageUrl && (
-            <div className="mb-12 -mx-6 overflow-hidden rounded-lg transition-shadow duration-300 ease-out">
+            <div className="mb-8 overflow-hidden rounded-md md:mb-10">
               <img
                 src={newsItem.imageUrl}
                 alt={newsItem.title}
-                className="w-full h-auto rounded-lg transition-transform duration-500 ease-out"
+                className="h-auto w-full"
               />
             </div>
           )}
 
-          {/* Article Content - Medium Style */}
-          <div 
-            className="prose prose-lg max-w-none"
-            style={{
-              fontFamily: "Georgia, serif",
-              fontSize: "21px",
-              lineHeight: "1.8",
-              color: "inherit",
-            }}
-          >
-            <div 
-              className="article-content"
-              dangerouslySetInnerHTML={{ __html: newsItem.content }}
-              style={{
-                fontFamily: "Georgia, serif",
-                fontSize: "21px",
-                lineHeight: "1.8",
-              }}
-            />
-          </div>
+          <NewsArticleContent html={newsItem.content} />
 
           {/* Article Footer */}
-          <footer className="mt-16 pt-8 border-t border-border">
+          <footer className="mt-10 border-t border-border pt-6 md:mt-14 md:pt-8">
             <div className="flex items-center justify-between">
               <Button
                 variant="outline"
@@ -323,15 +291,15 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </footer>
 
           {/* Comments Section */}
-          <section className="mt-16 pt-8 border-t border-border">
-            <h2 className="text-3xl font-bold mb-8 flex items-center gap-2" style={{ fontFamily: "Georgia, serif" }}>
-              <MessageSquare className="h-6 w-6" />
+          <section className="mt-10 border-t border-border pt-6 md:mt-14 md:pt-8">
+            <h2 className="news-section-title mb-5 flex items-center gap-2 md:mb-6">
+              <MessageSquare className="h-4 w-4 shrink-0" />
               Comments {comments.length > 0 && `(${comments.length})`}
             </h2>
 
             {/* Comment Form */}
-            <div className="mb-12 p-6 border border-border rounded-lg bg-background/50">
-              <h3 className="text-lg font-semibold mb-4">Leave a Comment</h3>
+            <div className="mb-8 rounded-lg border border-border bg-muted/20 p-4 md:mb-10 md:p-5">
+              <h3 className="mb-3 text-sm font-semibold md:text-base">Leave a comment</h3>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault()
@@ -387,23 +355,25 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
             {/* Comments List */}
             {comments.length === 0 ? (
-              <p className="text-muted-foreground">No comments yet. Be the first to comment!</p>
+              <p className="text-sm text-muted-foreground">No comments yet. Be the first to comment!</p>
             ) : (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="border-b border-border pb-6 last:border-0">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="h-5 w-5 text-primary" />
+                  <div key={comment.id} className="border-b border-border pb-5 last:border-0">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 md:h-9 md:w-9">
+                        <User className="h-4 w-4 text-primary" />
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-semibold">{comment.authorName}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {format(new Date(comment.createdAt), "MMMM d, yyyy 'at' h:mm a")}
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                          <span className="text-sm font-semibold">{comment.authorName}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {format(new Date(comment.createdAt), "MMM d, yyyy")}
                           </span>
                         </div>
-                        <p className="text-foreground whitespace-pre-wrap">{comment.content}</p>
+                        <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap md:text-[0.9375rem]">
+                          {comment.content}
+                        </p>
                         
                         {/* Replies */}
                         {comment.replies && comment.replies.length > 0 && (
@@ -437,111 +407,6 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </section>
         </article>
       </div>
-
-      {/* Medium-style Typography CSS */}
-      <style jsx global>{`
-        .article-content {
-          font-family: Georgia, serif;
-          font-size: 21px;
-          line-height: 1.8;
-          color: inherit;
-        }
-        
-        .article-content p {
-          margin-bottom: 1.5rem;
-          font-size: 21px;
-          line-height: 1.8;
-        }
-        
-        .article-content h1,
-        .article-content h2,
-        .article-content h3 {
-          font-family: Georgia, serif;
-          font-weight: 700;
-          margin-top: 2rem;
-          margin-bottom: 1rem;
-        }
-        
-        .article-content h1 {
-          font-size: 2.5rem;
-          line-height: 1.2;
-        }
-        
-        .article-content h2 {
-          font-size: 2rem;
-          line-height: 1.3;
-        }
-        
-        .article-content h3 {
-          font-size: 1.5rem;
-          line-height: 1.4;
-        }
-        
-        .article-content img {
-          max-width: 100%;
-          height: auto;
-          margin: 2rem 0;
-          border-radius: 8px;
-        }
-        
-        .article-content a {
-          color: #2563eb;
-          text-decoration: underline;
-          text-underline-offset: 2px;
-        }
-        
-        .article-content a:hover {
-          color: #1d4ed8;
-        }
-        
-        .article-content strong {
-          font-weight: 700;
-        }
-        
-        .article-content em {
-          font-style: italic;
-        }
-        
-        .article-content ul,
-        .article-content ol {
-          margin: 1.5rem 0;
-          padding-left: 2rem;
-        }
-        
-        .article-content li {
-          margin-bottom: 0.5rem;
-          line-height: 1.8;
-        }
-        
-        .article-content blockquote {
-          border-left: 3px solid #e5e7eb;
-          padding-left: 1.5rem;
-          margin: 1.5rem 0;
-          font-style: italic;
-          color: #6b7280;
-        }
-        
-        .article-content code {
-          background-color: #f3f4f6;
-          padding: 0.2rem 0.4rem;
-          border-radius: 4px;
-          font-size: 0.9em;
-          font-family: 'Courier New', monospace;
-        }
-        
-        .article-content pre {
-          background-color: #f3f4f6;
-          padding: 1rem;
-          border-radius: 8px;
-          overflow-x: auto;
-          margin: 1.5rem 0;
-        }
-        
-        .article-content pre code {
-          background: none;
-          padding: 0;
-        }
-      `}</style>
     </DashboardLayout>
   )
 }

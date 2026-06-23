@@ -25,6 +25,7 @@ import { toast } from "@/lib/toast"
 import { getInitials, cn } from "@/lib/utils"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { ImageUpload } from "@/components/ui/image-upload"
+import { PresetAvatarPicker } from "@/components/profile/preset-avatar-picker"
 import { useSession as useNextAuthSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useSession } from "@/lib/use-session"
@@ -410,8 +411,15 @@ export default function ProfilePage() {
                         placeholder="Your name"
                       />
                     </div>
+                    <PresetAvatarPicker
+                      value={form.image}
+                      onChange={async (path) => {
+                        setForm((p) => ({ ...p, image: path }))
+                        await updateSession({ user: { image: path } })
+                      }}
+                    />
                     <ImageUpload
-                      label="Profile photo"
+                      label="Or upload a photo"
                       description="JPEG, PNG, WebP, or GIF. Max 2MB. Stored securely on the platform."
                       value={form.image}
                       onChange={async (url) => {
@@ -449,7 +457,7 @@ export default function ProfilePage() {
                   </a>
                 ) : !isEditing ? (
                   <p className="text-xs text-muted-foreground pt-1">
-                    Edit your profile to add a photo or LinkedIn link.
+                    Edit your profile to pick an avatar, add a photo, or link LinkedIn.
                   </p>
                 ) : null}
               </div>

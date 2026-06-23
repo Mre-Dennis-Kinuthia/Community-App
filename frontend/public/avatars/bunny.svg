@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Bunny avatar">
+  <circle cx="64" cy="64" r="64" fill="#FFF0F6"/>
+  <ellipse cx="44" cy="34" rx="10" ry="28" fill="#FBB6CE" transform="rotate(-12 44 34)"/>
+  <ellipse cx="84" cy="34" rx="10" ry="28" fill="#FBB6CE" transform="rotate(12 84 34)"/>
+  <ellipse cx="44" cy="36" rx="6" ry="20" fill="#FED7E2" transform="rotate(-12 44 36)"/>
+  <ellipse cx="84" cy="36" rx="6" ry="20" fill="#FED7E2" transform="rotate(12 84 36)"/>
+  <ellipse cx="64" cy="78" rx="36" ry="32" fill="#FFFAF0"/>
+  <circle cx="50" cy="72" r="5" fill="#2D3748"/>
+  <circle cx="78" cy="72" r="5" fill="#2D3748"/>
+  <circle cx="52" cy="70" r="1.5" fill="#FFFFFF"/>
+  <circle cx="80" cy="70" r="1.5" fill="#FFFFFF"/>
+  <ellipse cx="64" cy="84" rx="4" ry="3" fill="#F687B3"/>
+  <path d="M58 90 Q64 94 70 90" fill="none" stroke="#2D3748" stroke-width="2" stroke-linecap="round"/>
+</svg>

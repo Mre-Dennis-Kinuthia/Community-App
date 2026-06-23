@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Owl avatar">
+  <circle cx="64" cy="64" r="64" fill="#EBF4FF"/>
+  <ellipse cx="64" cy="74" rx="40" ry="36" fill="#805AD5"/>
+  <ellipse cx="64" cy="80" rx="28" ry="22" fill="#E9D8FD"/>
+  <circle cx="48" cy="68" r="14" fill="#FFFAF0"/>
+  <circle cx="80" cy="68" r="14" fill="#FFFAF0"/>
+  <circle cx="48" cy="68" r="7" fill="#2D3748"/>
+  <circle cx="80" cy="68" r="7" fill="#2D3748"/>
+  <circle cx="50" cy="66" r="2" fill="#FFFFFF"/>
+  <circle cx="82" cy="66" r="2" fill="#FFFFFF"/>
+  <path d="M64 84 L58 92 L70 92 Z" fill="#F6AD55"/>
+  <path d="M36 50 Q64 30 92 50" fill="none" stroke="#6B46C1" stroke-width="3" stroke-linecap="round"/>
+</svg>

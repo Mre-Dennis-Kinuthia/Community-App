@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ImageUpload } from "@/components/ui/image-upload"
+import { PresetAvatarPicker } from "@/components/profile/preset-avatar-picker"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { getInitials } from "@/lib/utils"
 import { validateLinkedInInput } from "@/lib/member-social-links"
@@ -316,9 +317,16 @@ function OnboardingContent() {
                     <AvatarImage src={avatarSrc} alt={displayName} />
                     <AvatarFallback className="text-lg">{userInitials}</AvatarFallback>
                   </Avatar>
-                  <div className="w-full min-w-0 flex-1 space-y-1">
+                  <div className="w-full min-w-0 flex-1 space-y-4">
+                    <PresetAvatarPicker
+                      value={profileImage}
+                      onChange={async (path) => {
+                        setProfileImage(path)
+                        await updateSession({ user: { image: path } })
+                      }}
+                    />
                     <ImageUpload
-                      label="Profile photo"
+                      label="Or upload a photo"
                       description="Optional. Shown on your community profile and in the directory."
                       value={profileImage}
                       onChange={async (url) => {

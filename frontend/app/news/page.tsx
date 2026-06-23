@@ -161,7 +161,7 @@ export default function NewsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-4 md:space-y-6">
-        <div className="mx-auto w-full max-w-5xl space-y-4 md:space-y-6">
+        <div className="news-feed-shell mx-auto w-full space-y-4 md:space-y-6">
           <MobileBreadcrumbsHidden>
             <Breadcrumbs items={[{ label: "News & Updates" }]} />
           </MobileBreadcrumbsHidden>
@@ -315,7 +315,7 @@ export default function NewsPage() {
 
           {/* Article Grid */}
           {!loading && !error && news.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
+            <div className="flex flex-col gap-5 md:gap-6">
               {news.map((item) => {
                 const displayDate = getDisplayDate(item)
                 const preview = item.excerpt || stripHtml(item.content)
@@ -323,13 +323,13 @@ export default function NewsPage() {
                 return (
                   <article
                     key={item.id}
-                    className={`group flex flex-col rounded-md border border-border bg-card overflow-hidden transition-all duration-200 ease-out hover:shadow-md hover:border-border ${
+                    className={`group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 ease-out hover:border-border hover:shadow-sm sm:flex-row ${
                       item.isPinned ? "ring-2 ring-primary ring-offset-2" : ""
                     }`}
                   >
-                    <Link href={`/news/${item.id}`} className="flex flex-col flex-1">
+                    <Link href={`/news/${item.id}`} className="flex flex-1 flex-col sm:flex-row">
                       {/* Featured Image */}
-                      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                      <div className="relative aspect-[16/10] shrink-0 overflow-hidden bg-muted sm:aspect-auto sm:w-36 sm:min-h-[7.5rem] md:w-44">
                         {item.imageUrl ? (
                           <img
                             src={item.imageUrl}
@@ -361,10 +361,10 @@ export default function NewsPage() {
                       </div>
 
                       {/* Card content */}
-                      <div className="flex flex-1 flex-col p-5">
+                      <div className="flex min-w-0 flex-1 flex-col p-4 md:p-5">
                         {/* Category and Tags */}
                         {(item.category || (item.tags?.length ?? 0) > 0) && (
-                          <div className="flex flex-wrap items-center gap-2 mb-3">
+                          <div className="mb-2 flex flex-wrap items-center gap-1.5">
                             {item.category && (
                               <Link
                                 href={categoryId === item.category.id ? "/news" : `/news?categoryId=${item.category.id}`}
@@ -399,23 +399,17 @@ export default function NewsPage() {
                           </div>
                         )}
 
-                        <h2
-                          className="text-xl font-bold leading-snug group-hover:text-primary transition-colors duration-200 ease-out line-clamp-2 mb-2"
-                          style={{ fontFamily: "Georgia, serif" }}
-                        >
+                        <h2 className="news-feed-card-title group-hover:text-primary mb-1.5 line-clamp-2 transition-colors duration-200 ease-out">
                           {item.title}
                         </h2>
 
                         {preview && (
-                          <p
-                            className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1 mb-4"
-                            style={{ fontFamily: "Georgia, serif" }}
-                          >
+                          <p className="news-feed-card-excerpt line-clamp-2 mb-3 flex-1">
                             {preview}
                           </p>
                         )}
 
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-auto pt-3 border-t border-border">
+                        <div className="news-feed-card-meta mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2.5">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3.5 w-3.5 shrink-0" />
                             <span>{format(displayDate, "MMM d, yyyy")}</span>
@@ -432,9 +426,9 @@ export default function NewsPage() {
                               <span>{item.viewCount}</span>
                             </div>
                           )}
-                          <span className="ml-auto flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-[gap] duration-200 ease-out">
+                          <span className="ml-auto flex items-center gap-1 font-medium text-primary transition-[gap] duration-200 ease-out group-hover:gap-1.5">
                             Read
-                            <ArrowRight className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+                            <ArrowRight className="h-3 w-3 shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
                           </span>
                         </div>
                       </div>

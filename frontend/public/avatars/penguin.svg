@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Penguin avatar">
+  <circle cx="64" cy="64" r="64" fill="#E6FFFA"/>
+  <ellipse cx="64" cy="78" rx="34" ry="38" fill="#2D3748"/>
+  <ellipse cx="64" cy="82" rx="22" ry="26" fill="#FFFAF0"/>
+  <circle cx="50" cy="68" r="6" fill="#FFFAF0"/>
+  <circle cx="78" cy="68" r="6" fill="#FFFAF0"/>
+  <circle cx="50" cy="68" r="3" fill="#2D3748"/>
+  <circle cx="78" cy="68" r="3" fill="#2D3748"/>
+  <circle cx="51" cy="67" r="1" fill="#FFFFFF"/>
+  <circle cx="79" cy="67" r="1" fill="#FFFFFF"/>
+  <path d="M58 88 L64 98 L70 88 Z" fill="#F6AD55"/>
+  <ellipse cx="64" cy="28" rx="28" ry="12" fill="#2D3748"/>
+</svg>
