@@ -11,6 +11,10 @@ import {
 import { buildMembershipSummary } from "@/lib/membership-profile"
 import { applyMembershipBookingBenefits } from "@/lib/membership-booking-benefits"
 import { canBookHotDesk, resolveAllowanceState, startOfAllowanceMonth } from "@/lib/membership-tier"
+import {
+  buildBookingCalendarInvite,
+  getBookingCalendarLinks,
+} from "@/lib/booking-calendar"
 
 const bookingSchema = z.object({
   resourceType: z.enum(["hot-desk", "meeting-room", "private-office", "event-space"]),
@@ -119,7 +123,11 @@ export async function POST(request: NextRequest) {
       totalPrice: body.totalPrice,
     })
 
-    const validatedData = bookingSchema.parse(body)
+    const parsed = bookingSchema.parse(body)
+    const validatedData =
+      parsed.resourceType === "meeting-room"
+        ? parsed
+        : { ...parsed, addOns: [] as string[], addOnsPrice: 0, pastriesPax: undefined }
 
     const memberProfile = await prisma.memberProfile.findUnique({
       where: { userId },
@@ -395,6 +403,25 @@ export async function POST(request: NextRequest) {
     if (booking.user?.email) {
       const memberEmail = booking.user.email
       const memberName = booking.user.name
+      const isMeetingRoom = booking.resourceType === "meeting-room"
+      const calendarInput = {
+        id: booking.id,
+        resourceType: booking.resourceType,
+        date: booking.date,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        addOns: booking.addOns,
+        addOnsPrice: booking.addOnsPrice,
+        pastriesPax: validatedData.pastriesPax,
+      }
+      const calendarInvite = isMeetingRoom
+        ? buildBookingCalendarInvite(calendarInput, {
+            attendeeEmail: memberEmail,
+            attendeeName: memberName,
+          })
+        : null
+      const calendarLinks = isMeetingRoom ? getBookingCalendarLinks(calendarInput) : null
+
       const bookingEmailParams = {
         bookingId: booking.id,
         resourceType: booking.resourceType,
@@ -404,6 +431,10 @@ export async function POST(request: NextRequest) {
         totalPrice: Number(booking.totalPrice),
         listPrice: booking.listPrice != null ? Number(booking.listPrice) : null,
         membershipDiscount: Number(booking.membershipDiscount ?? 0),
+        addOns: booking.addOns,
+        addOnsPrice: booking.addOnsPrice,
+        pastriesPax: validatedData.pastriesPax,
+        calendarInvite: calendarInvite ?? undefined,
       }
 
       sendEmailInBackground(
@@ -430,6 +461,27 @@ export async function POST(request: NextRequest) {
       console.warn("[BOOKING API] No member email — confirmation not sent:", booking.id)
     }
 
+    const isMeetingRoomBooking = booking.resourceType === "meeting-room"
+    const responseCalendarInput = {
+      id: booking.id,
+      resourceType: booking.resourceType,
+      date: booking.date,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      addOns: booking.addOns,
+      addOnsPrice: booking.addOnsPrice,
+      pastriesPax: validatedData.pastriesPax,
+    }
+    const responseCalendarInvite = isMeetingRoomBooking
+      ? buildBookingCalendarInvite(responseCalendarInput, {
+          attendeeEmail: booking.user?.email,
+          attendeeName: booking.user?.name,
+        })
+      : null
+    const responseCalendarLinks = isMeetingRoomBooking
+      ? getBookingCalendarLinks(responseCalendarInput)
+      : null
+
     return NextResponse.json(
       {
         message: "Booking confirmed successfully",
@@ -443,7 +495,11 @@ export async function POST(request: NextRequest) {
           totalPrice: booking.totalPrice,
           status: booking.status,
           createdAt: booking.createdAt,
+          addOns: booking.addOns,
+          addOnsPrice: booking.addOnsPrice,
         },
+        calendarInvite: responseCalendarInvite ?? undefined,
+        calendarLinks: responseCalendarLinks ?? undefined,
       },
       { status: 201 }
     )

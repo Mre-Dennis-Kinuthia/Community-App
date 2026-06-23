@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, CalendarIcon, Clock, Building2, ArrowRight, Loader2 } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
+import { autoImportEventToCalendar } from "@/lib/event-calendar-client"
+import { resolveBookingAddOns } from "@/lib/booking-add-ons"
 
 interface BookingDetails {
   id: string
@@ -22,6 +24,8 @@ interface BookingDetails {
   status: string
   paymentStatus?: string
   createdAt: string
+  addOns?: string[]
+  addOnsPrice?: number
 }
 
 function SuccessContent() {
@@ -31,6 +35,8 @@ function SuccessContent() {
   const [booking, setBooking] = useState<BookingDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [calendarImported, setCalendarImported] = useState(false)
 
   useEffect(() => {
     if (!bookingId) {
@@ -58,6 +64,22 @@ function SuccessContent() {
 
     fetchBooking()
   }, [bookingId])
+
+  useEffect(() => {
+    if (!booking || booking.resourceType !== "meeting-room" || calendarImported) return
+
+    let cancelled = false
+    ;(async () => {
+      const imported = await autoImportEventToCalendar({
+        icsPath: `/api/bookings/${booking.id}/calendar.ics`,
+      })
+      if (!cancelled && imported) setCalendarImported(true)
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [booking, calendarImported])
 
   const getResourceName = (type: string) => {
     switch (type) {
@@ -122,6 +144,10 @@ function SuccessContent() {
 
   const bookingDate = new Date(booking.date)
   const isPaymentPending = !!booking.paymentStatus && booking.paymentStatus.toLowerCase() !== "paid"
+  const resolvedAddOns = resolveBookingAddOns({
+    addOnIds: booking.addOns ?? [],
+    addOnsPrice: booking.addOnsPrice,
+  })
 
   return (
     <DashboardLayout>
@@ -211,6 +237,24 @@ function SuccessContent() {
                   </span>
                 </div>
               </div>
+
+              {resolvedAddOns.length > 0 && (
+                <div className="pt-4 border-t space-y-2">
+                  <p className="text-sm font-medium">Add-ons</p>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    {resolvedAddOns.map((item) => (
+                      <li key={item.id}>
+                        {item.name}
+                        {item.detail ? ` (${item.detail})` : ""}
+                        {" — "}
+                        {item.lineTotal === 0
+                          ? "Included"
+                          : `KES ${item.lineTotal.toLocaleString()}`}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -221,8 +265,18 @@ function SuccessContent() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                You'll receive a confirmation email with all the details of your booking.
+                You'll receive a confirmation email with all the details of your booking
+                {booking.resourceType === "meeting-room"
+                  ? ", including a calendar invite you can add to your calendar."
+                  : "."}
               </p>
+              {booking.resourceType === "meeting-room" && (
+                <p className="text-sm text-muted-foreground">
+                  {calendarImported
+                    ? "A calendar file was saved to your device — open it to add this meeting to your calendar."
+                    : "If your browser did not prompt you, use the calendar file attached to your confirmation email."}
+                </p>
+              )}
               <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
                 <li>Arrive at Impact Hub Nairobi on your booked date and time</li>
                 <li>Check in at the reception desk</li>

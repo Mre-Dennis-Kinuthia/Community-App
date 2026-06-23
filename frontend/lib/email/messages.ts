@@ -3,6 +3,7 @@ import {
   formatBookingTimeRange,
   formatResourceType,
 } from "@/lib/booking-format"
+import { formatBookingAddOnsHtml, formatBookingAddOnsPlainText } from "@/lib/booking-add-ons"
 import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl } from "@/lib/app-url"
 import { formatEventWhen, layoutEmail, escapeHtml } from "./templates"
 import { getEmailStaffTo } from "./config"
@@ -260,19 +261,39 @@ export async function sendBookingConfirmationEmail(params: {
   totalPrice: number
   listPrice?: number | null
   membershipDiscount?: number | null
+  addOns?: string[]
+  addOnsPrice?: number
+  pastriesPax?: number
+  calendarInvite?: { content: string; filename: string }
 }): Promise<SendEmailResult> {
   const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const resource = formatResourceType(params.resourceType)
   const when = formatBookingDate(params.date)
   const time = formatBookingTimeRange(params.startTime, params.endTime)
   const bookingUrl = getDashboardBookingUrl(params.bookingId)
+  const isMeetingRoom = params.resourceType === "meeting-room"
+  const addOnsHtml = formatBookingAddOnsHtml({
+    addOnIds: params.addOns ?? [],
+    addOnsPrice: params.addOnsPrice,
+    pastriesPax: params.pastriesPax,
+  })
+  const addOnsText = formatBookingAddOnsPlainText({
+    addOnIds: params.addOns ?? [],
+    addOnsPrice: params.addOnsPrice,
+    pastriesPax: params.pastriesPax,
+  })
 
   const bodyHtml = `
     <p>${greeting}</p>
-    <p>Your workspace booking is confirmed.</p>
+    <p>Your workspace booking is confirmed.${
+      isMeetingRoom && params.calendarInvite
+        ? " A calendar invite is attached — open it to add the booking to your calendar."
+        : ""
+    }</p>
     <p><strong>${escapeHtml(resource)}</strong><br />
     ${escapeHtml(when)}<br />
     ${escapeHtml(time)}</p>
+    ${addOnsHtml}
     ${
       (params.membershipDiscount ?? 0) > 0
         ? `<p><strong>Subtotal:</strong> KES ${(params.listPrice ?? params.totalPrice).toLocaleString("en-KE")}<br />
@@ -287,6 +308,17 @@ export async function sendBookingConfirmationEmail(params: {
       ? `\nMembership benefit: −KES ${params.membershipDiscount!.toLocaleString("en-KE")}`
       : ""
 
+  const attachments =
+    isMeetingRoom && params.calendarInvite
+      ? [
+          {
+            filename: params.calendarInvite.filename,
+            content: params.calendarInvite.content,
+            contentType: "text/calendar; method=REQUEST; charset=UTF-8",
+          },
+        ]
+      : undefined
+
   return sendEmail({
     to: params.to,
     subject: `Booking confirmed — ${resource}`,
@@ -297,7 +329,8 @@ export async function sendBookingConfirmationEmail(params: {
       ctaLabel: "View booking",
       ctaUrl: bookingUrl,
     }),
-    text: `Booking confirmed\n${resource}\n${when}\n${time}${discountLine}\nTotal: KES ${params.totalPrice.toLocaleString("en-KE")}\n${bookingUrl}`,
+    text: `Booking confirmed\n${resource}\n${when}\n${time}\nAdd-ons:\n${addOnsText}${discountLine}\nTotal: KES ${params.totalPrice.toLocaleString("en-KE")}\n${bookingUrl}`,
+    attachments,
   })
 }
 
@@ -482,6 +515,9 @@ export async function sendNewBookingStaffEmail(params: {
   endTime?: string | null
   totalPrice: number
   notes?: string | null
+  addOns?: string[]
+  addOnsPrice?: number
+  pastriesPax?: number
 }): Promise<SendEmailResult> {
   const resource = formatResourceType(params.resourceType)
   const when = formatBookingDate(params.date)
@@ -489,6 +525,16 @@ export async function sendNewBookingStaffEmail(params: {
   const memberLabel = params.memberName
     ? `${escapeHtml(params.memberName)} (${escapeHtml(params.memberEmail)})`
     : escapeHtml(params.memberEmail)
+  const addOnsHtml = formatBookingAddOnsHtml({
+    addOnIds: params.addOns ?? [],
+    addOnsPrice: params.addOnsPrice,
+    pastriesPax: params.pastriesPax,
+  })
+  const addOnsText = formatBookingAddOnsPlainText({
+    addOnIds: params.addOns ?? [],
+    addOnsPrice: params.addOnsPrice,
+    pastriesPax: params.pastriesPax,
+  })
 
   const bodyHtml = `
     <p>A new workspace booking was created.</p>
@@ -498,6 +544,7 @@ export async function sendNewBookingStaffEmail(params: {
     <strong>Time:</strong> ${escapeHtml(time)}<br />
     <strong>Total:</strong> KES ${params.totalPrice.toLocaleString("en-KE")}<br />
     <strong>Reference:</strong> ${escapeHtml(params.bookingId)}</p>
+    ${addOnsHtml}
     ${params.notes ? `<p><strong>Notes:</strong> ${escapeHtml(params.notes)}</p>` : ""}
   `
 
@@ -505,7 +552,7 @@ export async function sendNewBookingStaffEmail(params: {
     subject: `[Booking] New ${resource} — ${params.memberEmail}`,
     title: "New booking",
     bodyHtml,
-    text: `New booking\nMember: ${params.memberName ?? params.memberEmail}\n${resource}\n${when}\n${time}\nKES ${params.totalPrice}`,
+    text: `New booking\nMember: ${params.memberName ?? params.memberEmail}\n${resource}\n${when}\n${time}\nAdd-ons:\n${addOnsText}\nKES ${params.totalPrice}`,
     replyTo: params.memberEmail,
   })
 }

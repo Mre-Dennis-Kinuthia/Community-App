@@ -169,12 +169,15 @@ function BookingPageContent() {
       return { grossTotal: 0, totalPrice: 0, membershipDiscount: 0, ready: false }
     }
 
-    const addOnsPrice = selectedAddOns.reduce((sum, id) => {
-      const addOn = safePricing.addOns.find((a) => a.id === id)
-      if (!addOn) return sum
-      if (id === "pastries") return sum + (addOn.price || 0) * Math.max(1, pastriesPax)
-      return sum + (addOn.price || 0)
-    }, 0)
+    const addOnsPrice =
+      selectedResource === "meeting-room"
+        ? selectedAddOns.reduce((sum, id) => {
+            const addOn = safePricing.addOns.find((a) => a.id === id)
+            if (!addOn) return sum
+            if (id === "pastries") return sum + (addOn.price || 0) * Math.max(1, pastriesPax)
+            return sum + (addOn.price || 0)
+          }, 0)
+        : 0
 
     const tier = parseMembershipTier(membership?.tier ?? null)
     const allowance = membership
@@ -288,12 +291,17 @@ function BookingPageContent() {
       selectedResource === "meeting-room" && selectedMeetingRoomCapacity
         ? getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity) * selectedMeetingRoomHours
         : (safePricing.options.find((opt) => opt.type === selectedDuration)?.price ?? 0)
-    const addOnsPrice = selectedAddOns.reduce((sum, id) => {
-      const addOn = safePricing.addOns.find((a) => a.id === id)
-      if (!addOn) return sum
-      if (id === "pastries") return sum + (addOn.price || 0) * Math.max(1, pastriesPax)
-      return sum + (addOn.price || 0)
-    }, 0)
+    const meetingRoomAddOns =
+      selectedResource === "meeting-room" ? selectedAddOns : []
+    const addOnsPrice =
+      meetingRoomAddOns.length > 0
+        ? meetingRoomAddOns.reduce((sum, id) => {
+            const addOn = safePricing.addOns.find((a) => a.id === id)
+            if (!addOn) return sum
+            if (id === "pastries") return sum + (addOn.price || 0) * Math.max(1, pastriesPax)
+            return sum + (addOn.price || 0)
+          }, 0)
+        : 0
 
     const payload: Record<string, unknown> = {
       resourceType: selectedResource,
@@ -305,10 +313,10 @@ function BookingPageContent() {
       totalPrice,
       listPrice: bookingPricing.grossTotal,
       membershipDiscount,
-      addOns: selectedAddOns,
+      addOns: meetingRoomAddOns,
       workspaceId: workspace.id,
     }
-    if (selectedAddOns.includes("pastries")) {
+    if (meetingRoomAddOns.includes("pastries")) {
       payload.pastriesPax = Math.max(1, pastriesPax)
     }
     if (selectedResource === "meeting-room" && selectedMeetingRoomCapacity) {
@@ -359,8 +367,7 @@ function BookingPageContent() {
     selectedResource === "meeting-room" && !!selectedDate && !!selectedMeetingRoomCapacity
 
   const canPickAddOns =
-    (selectedResource === "hot-desk" && !!selectedDate) ||
-    (selectedResource === "meeting-room" && !!selectedDate && !!selectedTime)
+    selectedResource === "meeting-room" && !!selectedDate && !!selectedTime
 
   const showCheckoutGuide = isBookableForCheckout(selectedResource)
   const checkoutGuideHint = getCheckoutGuideHint({
@@ -611,39 +618,41 @@ function BookingPageContent() {
                       </p>
                     )}
 
-                    <BookingStep
-                      step={selectedResource === "meeting-room" ? 5 : 3}
-                      title="Add-ons (optional)"
-                      description="Extras you can add to your booking."
-                    >
-                      <div
-                        className={cn(!canPickAddOns && "pointer-events-none opacity-50")}
-                        aria-disabled={!canPickAddOns}
+                    {selectedResource === "meeting-room" && (
+                      <BookingStep
+                        step={5}
+                        title="Add-ons (optional)"
+                        description="Extras you can add to your meeting room booking."
                       >
-                        {!canPickAddOns ? (
-                          <p className="mb-3 text-sm text-muted-foreground">
-                            Complete date{selectedResource === "meeting-room" ? " and time" : ""} first.
-                          </p>
-                        ) : null}
-                        <AddOnSelector
-                          addOns={safePricing.addOns}
-                          selectedAddOns={selectedAddOns}
-                          onToggle={handleAddOnToggle}
-                        />
-                        {selectedAddOns.includes("pastries") && canPickAddOns && (
-                          <div className="mt-4 max-w-xs space-y-2">
-                            <Label htmlFor="pastries-pax">Guests (PAX)</Label>
-                            <Input
-                              id="pastries-pax"
-                              type="number"
-                              min={1}
-                              value={pastriesPax}
-                              onChange={(e) => setPastriesPax(Number(e.target.value) || 1)}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </BookingStep>
+                        <div
+                          className={cn(!canPickAddOns && "pointer-events-none opacity-50")}
+                          aria-disabled={!canPickAddOns}
+                        >
+                          {!canPickAddOns ? (
+                            <p className="mb-3 text-sm text-muted-foreground">
+                              Complete date and time first.
+                            </p>
+                          ) : null}
+                          <AddOnSelector
+                            addOns={safePricing.addOns}
+                            selectedAddOns={selectedAddOns}
+                            onToggle={handleAddOnToggle}
+                          />
+                          {selectedAddOns.includes("pastries") && canPickAddOns && (
+                            <div className="mt-4 max-w-xs space-y-2">
+                              <Label htmlFor="pastries-pax">Guests (PAX)</Label>
+                              <Input
+                                id="pastries-pax"
+                                type="number"
+                                min={1}
+                                value={pastriesPax}
+                                onChange={(e) => setPastriesPax(Number(e.target.value) || 1)}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </BookingStep>
+                    )}
                   </>
                 )}
               </div>
@@ -655,7 +664,9 @@ function BookingPageContent() {
                       compact
                       pricing={safePricing}
                       selectedDuration={selectedDuration}
-                      selectedAddOns={selectedAddOns}
+                      selectedAddOns={
+                        selectedResource === "meeting-room" ? selectedAddOns : []
+                      }
                       resourceType={selectedResource}
                       meetingRoomCapacity={selectedMeetingRoomCapacity}
                       meetingRoomHours={selectedMeetingRoomHours}
