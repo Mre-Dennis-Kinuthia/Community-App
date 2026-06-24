@@ -18,6 +18,7 @@ import {
 import { format } from "date-fns"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { NewsArticleContent } from "@/components/news/news-article-content"
@@ -188,10 +189,19 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
         />
       </div>
 
-      <div className="min-h-[100svh] bg-background pb-10">
-        <article className="news-article-shell px-4 py-5 md:px-6 md:py-10">
+      <div className="news-article-canvas min-h-[100svh] pb-10">
+        <article className="news-article-panel">
+          <div className="news-article-shell px-4 py-5 md:px-0 md:py-0">
+          <div className="mb-4 hidden md:block">
+            <Breadcrumbs
+              items={[
+                { label: "News & Updates", href: "/news" },
+                { label: newsItem.title },
+              ]}
+            />
+          </div>
           {/* Back Button */}
-          <div className="mb-5 md:mb-8">
+          <div className="mb-5 md:mb-6">
             <Button
               variant="ghost"
               onClick={() => router.back()}
@@ -265,7 +275,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Featured Image */}
           {newsItem.imageUrl && (
-            <div className="mb-8 overflow-hidden rounded-md md:mb-10">
+            <div className="news-article-featured-image">
               <img
                 src={newsItem.imageUrl}
                 alt={newsItem.title}
@@ -298,7 +308,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
             </h2>
 
             {/* Comment Form */}
-            <div className="mb-8 rounded-lg border border-border bg-muted/20 p-4 md:mb-10 md:p-5">
+            <div className="news-comments-panel mb-8 md:mb-10">
               <h3 className="mb-3 text-sm font-semibold md:text-base">Leave a comment</h3>
               <form
                 onSubmit={async (e) => {
@@ -405,6 +415,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             )}
           </section>
+          </div>
         </article>
       </div>
     </DashboardLayout>

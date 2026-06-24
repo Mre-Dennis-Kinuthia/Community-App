@@ -19,19 +19,19 @@ import {
   Star,
   Tag
 } from "lucide-react"
-import { format, formatDistanceToNow } from "date-fns"
+import { format } from "date-fns"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
-import { PillTabs } from "@/components/mobile/pill-tabs"
 import {
   MobilePageHeader,
   MobileFilterMeta,
   MobileBreadcrumbsHidden,
 } from "@/components/mobile/mobile-page-shell"
+import { cn } from "@/lib/utils"
 
 interface NewsTag {
   id: string
@@ -160,8 +160,118 @@ export default function NewsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 md:space-y-6">
-        <div className="news-feed-shell mx-auto w-full space-y-4 md:space-y-6">
+      <div className="news-feed-layout">
+        {(uniqueCategories.length > 0 || uniqueTags.length > 0) && (
+          <aside className="news-feed-sidebar" aria-label="Filter articles">
+            <p className="news-feed-sidebar-label">Browse</p>
+            <nav className="news-feed-sidebar-nav">
+              <button
+                type="button"
+                className="news-feed-sidebar-link"
+                data-active={!categoryId && !tagId ? "true" : "false"}
+                onClick={() => {
+                  setCategoryFilter("")
+                  setTagFilter("")
+                }}
+              >
+                All articles
+              </button>
+            </nav>
+            {uniqueCategories.length > 0 && (
+              <div className="mt-6">
+                <p className="news-feed-sidebar-label">Categories</p>
+                <nav className="news-feed-sidebar-nav">
+                  {uniqueCategories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      className="news-feed-sidebar-link"
+                      data-active={categoryId === cat.id ? "true" : "false"}
+                      onClick={() => setCategoryFilter(categoryId === cat.id ? "" : cat.id)}
+                    >
+                      {cat.name}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            )}
+            {uniqueTags.length > 0 && (
+              <div className="mt-6">
+                <p className="news-feed-sidebar-label">Topics</p>
+                <nav className="news-feed-sidebar-nav">
+                  {uniqueTags.slice(0, 12).map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      className="news-feed-sidebar-link"
+                      data-active={tagId === tag.id ? "true" : "false"}
+                      onClick={() => setTagFilter(tagId === tag.id ? "" : tag.id)}
+                    >
+                      #{tag.name}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+            )}
+            <p className="mt-8 text-xs text-muted-foreground">
+              {loading ? "Loading…" : `${news.length} article${news.length === 1 ? "" : "s"}`}
+            </p>
+          </aside>
+        )}
+
+        <div className="news-feed-main space-y-4 md:space-y-6">
+          <div className="news-feed-masthead">
+            <Breadcrumbs items={[{ label: "News & Updates" }]} />
+            <div className="news-feed-masthead-row">
+              <div className="min-w-0">
+                <h1 className="news-feed-masthead-title">News & updates</h1>
+                <p className="news-feed-masthead-desc">
+                  Stories, announcements, and insights from Impact Hub Nairobi.
+                </p>
+              </div>
+              <div className="news-feed-masthead-search relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search articles…"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && applySearch()}
+                  className="border-border bg-background pl-9 pr-9"
+                />
+                {hasActiveFilters && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    aria-label="Clear filters"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">Active:</span>
+                {searchQuery && (
+                  <Badge variant="secondary" className="font-normal">
+                    &quot;{searchQuery}&quot;
+                  </Badge>
+                )}
+                {activeCategoryName && <Badge variant="outline">{activeCategoryName}</Badge>}
+                {activeTagName && <Badge variant="outline">{activeTagName}</Badge>}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={clearFilters}
+                >
+                  Clear all
+                </Button>
+              </div>
+            )}
+          </div>
+
           <MobileBreadcrumbsHidden>
             <Breadcrumbs items={[{ label: "News & Updates" }]} />
           </MobileBreadcrumbsHidden>
@@ -169,9 +279,10 @@ export default function NewsPage() {
           <MobilePageHeader
             title="News & updates"
             description="Stories, announcements, and insights from Impact Hub Nairobi."
+            className="md:hidden"
           />
 
-          <div className="space-y-3">
+          <div className="space-y-3 md:hidden">
             <MobileSearchBar
               value={searchInput}
               onChange={(v) => {
@@ -230,59 +341,6 @@ export default function NewsPage() {
             />
           </div>
 
-          <div className="hidden md:block">
-            <div className="flex max-w-md flex-col gap-2 sm:flex-row">
-              <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search articles..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && applySearch()}
-                  className="border-border bg-background pl-9 pr-9"
-                />
-                {hasActiveFilters && (
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    aria-label="Clear filters"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              <Button type="button" variant="secondary" size="icon" className="shrink-0" onClick={() => applySearch()} aria-label="Search">
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {hasActiveFilters && (
-            <div className="hidden flex-wrap items-center gap-2 md:flex">
-                <span className="text-sm text-muted-foreground">Filters:</span>
-                {searchQuery && (
-                  <Badge variant="secondary" className="font-normal">
-                    Search: &quot;{searchQuery}&quot;
-                  </Badge>
-                )}
-                {activeCategoryName && (
-                  <Badge variant="outline">{activeCategoryName}</Badge>
-                )}
-                {activeTagName && (
-                  <Badge variant="outline">{activeTagName}</Badge>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs text-muted-foreground hover:text-foreground"
-                  onClick={clearFilters}
-                >
-                  Clear all
-                </Button>
-              </div>
-            )}
-
           {loading && (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -315,7 +373,7 @@ export default function NewsPage() {
 
           {/* Article Grid */}
           {!loading && !error && news.length > 0 && (
-            <div className="flex flex-col gap-5 md:gap-6">
+            <div className="news-feed-list">
               {news.map((item) => {
                 const displayDate = getDisplayDate(item)
                 const preview = item.excerpt || stripHtml(item.content)
@@ -323,13 +381,13 @@ export default function NewsPage() {
                 return (
                   <article
                     key={item.id}
-                    className={`group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 ease-out hover:border-border hover:shadow-sm sm:flex-row ${
-                      item.isPinned ? "ring-2 ring-primary ring-offset-2" : ""
-                    }`}
+                    className={cn(
+                      "news-feed-card group",
+                      item.isPinned && "ring-2 ring-primary ring-offset-2"
+                    )}
                   >
-                    <Link href={`/news/${item.id}`} className="flex flex-1 flex-col sm:flex-row">
-                      {/* Featured Image */}
-                      <div className="relative aspect-[16/10] shrink-0 overflow-hidden bg-muted sm:aspect-auto sm:w-36 sm:min-h-[7.5rem] md:w-44">
+                    <Link href={`/news/${item.id}`} className="flex flex-col md:flex-row">
+                      <div className="news-feed-card-media">
                         {item.imageUrl ? (
                           <img
                             src={item.imageUrl}
@@ -360,8 +418,7 @@ export default function NewsPage() {
                         )}
                       </div>
 
-                      {/* Card content */}
-                      <div className="flex min-w-0 flex-1 flex-col p-4 md:p-5">
+                      <div className="news-feed-card-body">
                         {/* Category and Tags */}
                         {(item.category || (item.tags?.length ?? 0) > 0) && (
                           <div className="mb-2 flex flex-wrap items-center gap-1.5">
