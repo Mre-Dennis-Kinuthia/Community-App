@@ -146,7 +146,7 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="news-page flex min-h-[50vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </DashboardLayout>
@@ -156,19 +156,15 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
   if (error || !newsItem) {
     return (
       <DashboardLayout>
-        <div className="min-h-[100svh] bg-background">
-          <div className="max-w-4xl mx-auto px-4 py-12 md:px-6 md:py-20">
-            <div className="text-center">
-              <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground mb-4 text-lg">
-                {error || "News item not found"}
-              </p>
-              <Button onClick={() => router.push("/news")} variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to News
-              </Button>
-            </div>
-          </div>
+        <div className="news-page py-16 text-center">
+          <Newspaper className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+          <p className="mb-4 text-lg text-muted-foreground">
+            {error || "News item not found"}
+          </p>
+          <Button onClick={() => router.push("/news")} variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to News
+          </Button>
         </div>
       </DashboardLayout>
     )
@@ -189,73 +185,65 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
         />
       </div>
 
-      <div className="news-article-canvas min-h-[100svh] pb-10">
-        <article className="news-article-panel">
-          <div className="news-article-shell px-4 py-5 md:px-0 md:py-0">
-          <div className="mb-4 hidden md:block">
-            <Breadcrumbs
-              items={[
-                { label: "News & Updates", href: "/news" },
-                {
-                  label:
-                    newsItem.title.length > 48
-                      ? `${newsItem.title.slice(0, 48)}…`
-                      : newsItem.title,
-                },
-              ]}
-            />
-          </div>
-          {/* Back Button */}
-          <div className="mb-5 md:mb-6">
+      <div className="news-page pb-10">
+        <article>
+          <header className="news-article-header">
+            <div className="mb-4 hidden md:block">
+              <Breadcrumbs
+                items={[
+                  { label: "News & Updates", href: "/news" },
+                  {
+                    label:
+                      newsItem.title.length > 48
+                        ? `${newsItem.title.slice(0, 48)}…`
+                        : newsItem.title,
+                  },
+                ]}
+              />
+            </div>
+
             <Button
               variant="ghost"
               onClick={() => router.back()}
-              className="group text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground"
+              className="group -ml-2 mb-4 text-muted-foreground hover:text-foreground"
             >
-              <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-200 ease-out group-hover:-translate-x-0.5" />
+              <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
               Back
             </Button>
-          </div>
 
-          {/* Article Header */}
-          <header className="mb-8 md:mb-10">
-            <h1 className="news-article-title mb-3">{newsItem.title}</h1>
+            <h1 className="news-article-title">{newsItem.title}</h1>
 
             {newsItem.excerpt && (
-              <p className="news-article-deck mb-5">{newsItem.excerpt}</p>
+              <p className="news-article-deck">{newsItem.excerpt}</p>
             )}
 
-            {/* Meta Information */}
-            <div className="news-article-meta flex flex-wrap items-center gap-x-3 gap-y-2 border-y border-border py-3">
+            <div className="news-article-meta">
               {newsItem.author && (
-                <div className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5">
                   <User className="h-3.5 w-3.5 shrink-0" />
-                  <span>By {newsItem.author.name || newsItem.author.email}</span>
-                </div>
+                  By {newsItem.author.name || newsItem.author.email}
+                </span>
               )}
-              <div className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
-                <span>{format(displayDate, "MMMM d, yyyy")}</span>
-              </div>
+                {format(displayDate, "MMMM d, yyyy")}
+              </span>
               {newsItem.readingTimeMinutes && (
-                <div className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5 shrink-0" />
-                  <span>{newsItem.readingTimeMinutes} min read</span>
-                </div>
+                  {newsItem.readingTimeMinutes} min read
+                </span>
               )}
               {newsItem.viewCount > 0 && (
-                <div className="flex items-center gap-1.5">
+                <span className="flex items-center gap-1.5">
                   <Eye className="h-3.5 w-3.5 shrink-0" />
-                  <span>
-                    {newsItem.viewCount} {newsItem.viewCount === 1 ? "view" : "views"}
-                  </span>
-                </div>
+                  {newsItem.viewCount} {newsItem.viewCount === 1 ? "view" : "views"}
+                </span>
               )}
             </div>
 
-            {/* Category and Tags */}
             {(newsItem.category || newsItem.tags.length > 0) && (
-              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <div className="news-article-tags">
                 {newsItem.category && (
                   <Link href={`/news?categoryId=${newsItem.category.id}`}>
                     <Badge
@@ -278,7 +266,6 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
             )}
           </header>
 
-          {/* Featured Image */}
           {newsItem.imageUrl && (
             <div className="news-article-featured-image">
               <img
@@ -291,29 +278,25 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
 
           <NewsArticleContent html={newsItem.content} />
 
-          {/* Article Footer */}
-          <footer className="mt-10 border-t border-border pt-6 md:mt-14 md:pt-8">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/news")}
-                className="text-muted-foreground transition-colors duration-200 ease-out hover:text-foreground"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-200 ease-out" />
-                Back to News
-              </Button>
-            </div>
+          <footer className="news-article-footer">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/news")}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to News
+            </Button>
           </footer>
 
-          {/* Comments Section */}
-          <section className="mt-10 border-t border-border pt-6 md:mt-14 md:pt-8">
-            <h2 className="news-section-title mb-5 flex items-center gap-2 md:mb-6">
+          <section className="news-article-comments">
+            <h2 className="news-section-title flex items-center gap-2">
               <MessageSquare className="h-4 w-4 shrink-0" />
               Comments {comments.length > 0 && `(${comments.length})`}
             </h2>
 
             {/* Comment Form */}
-            <div className="news-comments-panel mb-8 md:mb-10">
+            <div className="news-comments-panel">
               <h3 className="mb-3 text-sm font-semibold md:text-base">Leave a comment</h3>
               <form
                 onSubmit={async (e) => {
@@ -420,7 +403,6 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             )}
           </section>
-          </div>
         </article>
       </div>
     </DashboardLayout>
