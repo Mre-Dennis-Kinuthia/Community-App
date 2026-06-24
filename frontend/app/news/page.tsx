@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useEffect } from "react"
 import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
@@ -29,7 +29,6 @@ import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
 import {
   MobilePageHeader,
   MobileFilterMeta,
-  MobileBreadcrumbsHidden,
 } from "@/components/mobile/mobile-page-shell"
 import { cn } from "@/lib/utils"
 
@@ -161,63 +160,61 @@ export default function NewsPage() {
   return (
     <DashboardLayout>
       <div className="news-feed-layout">
-        {(uniqueCategories.length > 0 || uniqueTags.length > 0) && (
-          <aside className="news-feed-sidebar" aria-label="Filter articles">
-            <p className="news-feed-sidebar-label">Browse</p>
-            <nav className="news-feed-sidebar-nav">
-              <button
-                type="button"
-                className="news-feed-sidebar-link"
-                data-active={!categoryId && !tagId ? "true" : "false"}
-                onClick={() => {
-                  setCategoryFilter("")
-                  setTagFilter("")
-                }}
-              >
-                All articles
-              </button>
-            </nav>
-            {uniqueCategories.length > 0 && (
-              <div className="mt-6">
-                <p className="news-feed-sidebar-label">Categories</p>
-                <nav className="news-feed-sidebar-nav">
-                  {uniqueCategories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      className="news-feed-sidebar-link"
-                      data-active={categoryId === cat.id ? "true" : "false"}
-                      onClick={() => setCategoryFilter(categoryId === cat.id ? "" : cat.id)}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
-                </nav>
-              </div>
-            )}
-            {uniqueTags.length > 0 && (
-              <div className="mt-6">
-                <p className="news-feed-sidebar-label">Topics</p>
-                <nav className="news-feed-sidebar-nav">
-                  {uniqueTags.slice(0, 12).map((tag) => (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      className="news-feed-sidebar-link"
-                      data-active={tagId === tag.id ? "true" : "false"}
-                      onClick={() => setTagFilter(tagId === tag.id ? "" : tag.id)}
-                    >
-                      #{tag.name}
-                    </button>
-                  ))}
-                </nav>
-              </div>
-            )}
-            <p className="mt-8 text-xs text-muted-foreground">
-              {loading ? "Loading…" : `${news.length} article${news.length === 1 ? "" : "s"}`}
-            </p>
-          </aside>
-        )}
+        <aside className="news-feed-sidebar" aria-label="Filter articles">
+          <p className="news-feed-sidebar-label">Browse</p>
+          <nav className="news-feed-sidebar-nav">
+            <button
+              type="button"
+              className="news-feed-sidebar-link"
+              data-active={!categoryId && !tagId ? "true" : "false"}
+              onClick={() => {
+                setCategoryFilter("")
+                setTagFilter("")
+              }}
+            >
+              All articles
+            </button>
+          </nav>
+          {uniqueCategories.length > 0 && (
+            <div className="mt-6">
+              <p className="news-feed-sidebar-label">Categories</p>
+              <nav className="news-feed-sidebar-nav">
+                {uniqueCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className="news-feed-sidebar-link"
+                    data-active={categoryId === cat.id ? "true" : "false"}
+                    onClick={() => setCategoryFilter(categoryId === cat.id ? "" : cat.id)}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          )}
+          {uniqueTags.length > 0 && (
+            <div className="mt-6">
+              <p className="news-feed-sidebar-label">Topics</p>
+              <nav className="news-feed-sidebar-nav">
+                {uniqueTags.slice(0, 12).map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    className="news-feed-sidebar-link"
+                    data-active={tagId === tag.id ? "true" : "false"}
+                    onClick={() => setTagFilter(tagId === tag.id ? "" : tag.id)}
+                  >
+                    #{tag.name}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          )}
+          <p className="mt-8 text-xs text-muted-foreground">
+            {loading ? "Loading…" : `${news.length} article${news.length === 1 ? "" : "s"}`}
+          </p>
+        </aside>
 
         <div className="news-feed-main space-y-4 md:space-y-6">
           <div className="news-feed-masthead">
@@ -271,10 +268,6 @@ export default function NewsPage() {
               </div>
             )}
           </div>
-
-          <MobileBreadcrumbsHidden>
-            <Breadcrumbs items={[{ label: "News & Updates" }]} />
-          </MobileBreadcrumbsHidden>
 
           <MobilePageHeader
             title="News & updates"
@@ -386,20 +379,19 @@ export default function NewsPage() {
                       item.isPinned && "ring-2 ring-primary ring-offset-2"
                     )}
                   >
-                    <Link href={`/news/${item.id}`} className="flex flex-col md:flex-row">
-                      <div className="news-feed-card-media">
+                    <div className="news-feed-card-link">
+                      <Link href={`/news/${item.id}`} className="news-feed-card-media">
                         {item.imageUrl ? (
                           <img
                             src={item.imageUrl}
                             alt={item.title}
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
                             <Newspaper className="h-12 w-12 text-muted-foreground/50" />
                           </div>
                         )}
-                        {/* Badges overlay */}
                         {(item.isPinned || item.isFeatured) && (
                           <div className="absolute top-2 left-2 flex gap-2">
                             {item.isPinned && (
@@ -416,17 +408,18 @@ export default function NewsPage() {
                             )}
                           </div>
                         )}
-                      </div>
+                      </Link>
 
                       <div className="news-feed-card-body">
-                        {/* Category and Tags */}
                         {(item.category || (item.tags?.length ?? 0) > 0) && (
                           <div className="mb-2 flex flex-wrap items-center gap-1.5">
                             {item.category && (
-                              <Link
-                                href={categoryId === item.category.id ? "/news" : `/news?categoryId=${item.category.id}`}
-                                onClick={(e) => e.stopPropagation()}
+                              <button
+                                type="button"
                                 className="inline-block transition-opacity duration-200 ease-out hover:opacity-80"
+                                onClick={() =>
+                                  setCategoryFilter(categoryId === item.category!.id ? "" : item.category!.id)
+                                }
                               >
                                 <Badge
                                   variant="outline"
@@ -435,14 +428,16 @@ export default function NewsPage() {
                                 >
                                   {item.category.name}
                                 </Badge>
-                              </Link>
+                              </button>
                             )}
                             {(item.tags ?? []).slice(0, 2).map((postTag) => (
-                              <Link
+                              <button
                                 key={postTag.tag.id}
-                                href={tagId === postTag.tag.id ? "/news" : `/news?tagId=${postTag.tag.id}`}
-                                onClick={(e) => e.stopPropagation()}
+                                type="button"
                                 className="inline-block transition-opacity duration-200 ease-out hover:opacity-80"
+                                onClick={() =>
+                                  setTagFilter(tagId === postTag.tag.id ? "" : postTag.tag.id)
+                                }
                               >
                                 <Badge
                                   variant="outline"
@@ -451,45 +446,47 @@ export default function NewsPage() {
                                   <Tag className="h-3 w-3" />
                                   {postTag.tag.name}
                                 </Badge>
-                              </Link>
+                              </button>
                             ))}
                           </div>
                         )}
 
-                        <h2 className="news-feed-card-title group-hover:text-primary mb-1.5 line-clamp-2 transition-colors duration-200 ease-out">
-                          {item.title}
-                        </h2>
+                        <Link href={`/news/${item.id}`} className="flex min-h-0 flex-1 flex-col">
+                          <h2 className="news-feed-card-title group-hover:text-primary mb-1.5 line-clamp-2 transition-colors duration-200 ease-out">
+                            {item.title}
+                          </h2>
 
-                        {preview && (
-                          <p className="news-feed-card-excerpt line-clamp-2 mb-3 flex-1">
-                            {preview}
-                          </p>
-                        )}
+                          {preview && (
+                            <p className="news-feed-card-excerpt line-clamp-2 mb-3 flex-1">
+                              {preview}
+                            </p>
+                          )}
 
-                        <div className="news-feed-card-meta mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2.5">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 shrink-0" />
-                            <span>{format(displayDate, "MMM d, yyyy")}</span>
+                          <div className="news-feed-card-meta mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-2.5">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5 shrink-0" />
+                              <span>{format(displayDate, "MMM d, yyyy")}</span>
+                            </div>
+                            {item.readingTimeMinutes && (
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5 shrink-0" />
+                                <span>{item.readingTimeMinutes} min</span>
+                              </div>
+                            )}
+                            {item.viewCount > 0 && (
+                              <div className="flex items-center gap-1">
+                                <Eye className="h-3.5 w-3.5 shrink-0" />
+                                <span>{item.viewCount}</span>
+                              </div>
+                            )}
+                            <span className="ml-auto flex items-center gap-1 font-medium text-primary transition-[gap] duration-200 ease-out group-hover:gap-1.5">
+                              Read
+                              <ArrowRight className="h-3 w-3 shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+                            </span>
                           </div>
-                          {item.readingTimeMinutes && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5 shrink-0" />
-                              <span>{item.readingTimeMinutes} min</span>
-                            </div>
-                          )}
-                          {item.viewCount > 0 && (
-                            <div className="flex items-center gap-1">
-                              <Eye className="h-3.5 w-3.5 shrink-0" />
-                              <span>{item.viewCount}</span>
-                            </div>
-                          )}
-                          <span className="ml-auto flex items-center gap-1 font-medium text-primary transition-[gap] duration-200 ease-out group-hover:gap-1.5">
-                            Read
-                            <ArrowRight className="h-3 w-3 shrink-0 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
-                          </span>
-                        </div>
+                        </Link>
                       </div>
-                    </Link>
+                    </div>
                   </article>
                 )
               })}

@@ -196,7 +196,12 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
             <Breadcrumbs
               items={[
                 { label: "News & Updates", href: "/news" },
-                { label: newsItem.title },
+                {
+                  label:
+                    newsItem.title.length > 48
+                      ? `${newsItem.title.slice(0, 48)}…`
+                      : newsItem.title,
+                },
               ]}
             />
           </div>
