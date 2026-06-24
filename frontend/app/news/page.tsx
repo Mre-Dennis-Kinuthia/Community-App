@@ -25,6 +25,12 @@ import { Badge } from "@/components/ui/badge"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
+import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
+import {
+  MobilePageHeader,
+  MobileFilterMeta,
+  MobileBreadcrumbsHidden,
+} from "@/components/mobile/mobile-page-shell"
 import { cn } from "@/lib/utils"
 
 interface NewsTag {
@@ -153,97 +159,127 @@ export default function NewsPage() {
 
   return (
     <DashboardLayout>
-      <div className="news-page">
-        <header className="news-page-header">
+      <div className="mx-auto w-full max-w-5xl space-y-4 overflow-x-hidden md:space-y-6">
+        <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "News & Updates" }]} />
-          <h1 className="news-page-title">News & updates</h1>
-          <p className="news-page-desc">
-            Stories, announcements, and insights from Impact Hub Nairobi.
-          </p>
+        </MobileBreadcrumbsHidden>
 
-          <div className="news-page-toolbar">
-            <div className="news-page-search relative w-full sm:w-auto">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search articles…"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && applySearch()}
-                className="border-border bg-background pl-9 pr-9"
-              />
-              {hasActiveFilters && (
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  aria-label="Clear filters"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
-            </div>
-            <Button type="button" size="sm" className="h-9 shrink-0 px-4 sm:hidden" onClick={() => applySearch()}>
+        <MobilePageHeader
+          title="News & updates"
+          description="Stories, announcements, and insights from Impact Hub Nairobi."
+        />
+
+        {/* Mobile search */}
+        <div className="space-y-3 md:hidden">
+          <MobileSearchBar
+            value={searchInput}
+            onChange={(v) => {
+              setSearchInput(v)
+              if (!v.trim() && searchQuery) applySearch("")
+            }}
+            placeholder="Search articles…"
+          />
+          <div className="flex gap-2">
+            <Button type="button" size="sm" className="h-9 rounded-lg px-4" onClick={() => applySearch()}>
               Search
             </Button>
-            <p className="news-page-count hidden sm:block">
-              {loading ? "Loading…" : `${news.length} article${news.length === 1 ? "" : "s"}`}
-            </p>
-          </div>
-
-          {(uniqueCategories.length > 0 || uniqueTags.length > 0) && (
-            <FilterChipRow className="mt-3">
-              <FilterChip
-                label="All"
-                active={!categoryId && !tagId}
-                onClick={() => {
-                  setCategoryFilter("")
-                  setTagFilter("")
-                }}
-              />
-              {uniqueCategories.map((cat) => (
-                <FilterChip
-                  key={cat.id}
-                  label={cat.name}
-                  active={categoryId === cat.id}
-                  onClick={() => setCategoryFilter(categoryId === cat.id ? "" : cat.id)}
-                />
-              ))}
-              {uniqueTags.slice(0, 8).map((tag) => (
-                <FilterChip
-                  key={tag.id}
-                  label={`#${tag.name}`}
-                  active={tagId === tag.id}
-                  onClick={() => setTagFilter(tagId === tag.id ? "" : tag.id)}
-                />
-              ))}
-            </FilterChipRow>
-          )}
-
-          {hasActiveFilters && (
-            <div className="news-page-active-filters">
-              <span className="text-sm text-muted-foreground">Active:</span>
-              {searchQuery && (
-                <Badge variant="secondary" className="font-normal">
-                  &quot;{searchQuery}&quot;
-                </Badge>
-              )}
-              {activeCategoryName && <Badge variant="outline">{activeCategoryName}</Badge>}
-              {activeTagName && <Badge variant="outline">{activeTagName}</Badge>}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs text-muted-foreground hover:text-foreground"
-                onClick={clearFilters}
-              >
-                Clear all
+            {hasActiveFilters && (
+              <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg" onClick={clearFilters}>
+                Clear
               </Button>
-            </div>
-          )}
+            )}
+          </div>
+          <MobileFilterMeta
+            count={news.length}
+            countLabel="articles"
+            filterCount={[searchQuery, categoryId, tagId].filter(Boolean).length}
+            hasFilters={!!hasActiveFilters}
+            onClear={clearFilters}
+          />
+        </div>
 
-          <p className="news-page-count mt-3 sm:hidden">
+        {/* Desktop search */}
+        <div className="hidden md:block">
+          <div className="relative max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search articles…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && applySearch()}
+              className="border-border bg-background pl-9 pr-9 shadow-sm"
+            />
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-label="Clear filters"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {(uniqueCategories.length > 0 || uniqueTags.length > 0) && (
+          <FilterChipRow>
+            <FilterChip
+              label="All"
+              active={!categoryId && !tagId}
+              onClick={() => {
+                setCategoryFilter("")
+                setTagFilter("")
+              }}
+            />
+            {uniqueCategories.map((cat) => (
+              <FilterChip
+                key={cat.id}
+                label={cat.name}
+                active={categoryId === cat.id}
+                onClick={() => setCategoryFilter(categoryId === cat.id ? "" : cat.id)}
+              />
+            ))}
+            {uniqueTags.slice(0, 8).map((tag) => (
+              <FilterChip
+                key={tag.id}
+                label={`#${tag.name}`}
+                active={tagId === tag.id}
+                onClick={() => setTagFilter(tagId === tag.id ? "" : tag.id)}
+              />
+            ))}
+          </FilterChipRow>
+        )}
+
+        {hasActiveFilters && (
+          <div className="hidden flex-wrap items-center gap-2 md:flex">
+            <span className="text-sm text-muted-foreground">Active:</span>
+            {searchQuery && (
+              <Badge variant="secondary" className="font-normal">
+                &quot;{searchQuery}&quot;
+              </Badge>
+            )}
+            {activeCategoryName && <Badge variant="outline">{activeCategoryName}</Badge>}
+            {activeTagName && <Badge variant="outline">{activeTagName}</Badge>}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+              onClick={clearFilters}
+            >
+              Clear all
+            </Button>
+            <span className="ml-auto text-sm text-muted-foreground">
+              {loading ? "Loading…" : `${news.length} article${news.length === 1 ? "" : "s"}`}
+            </span>
+          </div>
+        )}
+
+        {!hasActiveFilters && (
+          <p className="hidden text-sm text-muted-foreground md:block">
             {loading ? "Loading…" : `${news.length} article${news.length === 1 ? "" : "s"}`}
           </p>
-        </header>
+        )}
 
         {loading && (
           <div className="flex items-center justify-center py-16">
