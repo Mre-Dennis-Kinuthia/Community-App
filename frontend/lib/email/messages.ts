@@ -13,11 +13,17 @@ import { sendEmail, type EmailAttachment, type SendEmailResult } from "./send"
 export async function sendPasswordResetEmail(params: {
   to: string
   resetUrl: string
+  name?: string | null
+  initiatedByAdmin?: boolean
 }): Promise<SendEmailResult> {
+  const intro = params.initiatedByAdmin
+    ? "An <strong>Impact Hub Nairobi</strong> administrator sent you a link to reset your community platform password."
+    : "You requested a password reset for your <strong>Impact Hub Nairobi</strong> account."
+
   const bodyHtml = `
-    ${emailGreeting()}
-    ${emailParagraph("You requested a password reset for your <strong>Impact Hub Nairobi</strong> account.")}
-    ${emailMutedNote("If you did not request this, you can safely ignore this email. The link expires in 1 hour.")}
+    ${emailGreeting(params.name)}
+    ${emailParagraph(intro)}
+    ${emailMutedNote("If you did not expect this, you can safely ignore this email. The link expires in 1 hour.")}
   `
   return sendEmail({
     to: params.to,

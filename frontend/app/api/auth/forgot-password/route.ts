@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { randomBytes } from "crypto"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
-import { sendPasswordResetEmail } from "@/lib/email"
+import { issuePasswordResetForEmail } from "@/lib/password-reset"
 import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
 
 const schema = z.object({
@@ -34,40 +32,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email } = schema.parse(body)
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true, email: true, password: true },
-    })
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.AUTH_URL ||
+      request.nextUrl.origin
 
-    if (user?.password) {
-      const token = randomBytes(32).toString("hex")
-      const expires = new Date(Date.now() + 60 * 60 * 1000)
+    const result = await issuePasswordResetForEmail(email, { baseUrl })
 
-      await prisma.verificationToken.deleteMany({
-        where: { identifier: email },
-      })
-
-      await prisma.verificationToken.create({
-        data: { identifier: email, token, expires },
-      })
-
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        process.env.AUTH_URL ||
-        request.nextUrl.origin
-      const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
-
-      const emailResult = await sendPasswordResetEmail({ to: email, resetUrl })
-      if (!emailResult.ok) {
-        console.error("[FORGOT PASSWORD] Email not sent:", emailResult.error)
-      } else if (process.env.NODE_ENV === "development") {
-        console.log("[FORGOT PASSWORD] Reset email sent to", email)
+    if (process.env.NODE_ENV === "development") {
+      if (result.ok && result.emailed) {
+        console.log("[FORGOT PASSWORD] Reset email sent to", result.email)
+      } else if (result.ok && result.reason === "google_only") {
+        console.warn(
+          "[FORGOT PASSWORD] No email sent — Google-only account:",
+          email
+        )
       }
-    } else if (process.env.NODE_ENV === "development") {
-      console.warn(
-        "[FORGOT PASSWORD] No email sent — user missing or no password (Google-only accounts cannot reset via email):",
-        email
-      )
     }
 
     return NextResponse.json({ message: GENERIC_MESSAGE })
