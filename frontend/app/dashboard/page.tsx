@@ -19,6 +19,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { WelcomeModal } from "@/components/welcome-modal"
+import { DashboardSpaceWidget } from "@/components/dashboard-space-widget"
+import {
+  DashboardDeliveriesWidget,
+  DashboardVisitorsWidget,
+} from "@/components/dashboard-front-desk-widgets"
+import { DashboardAnnouncements } from "@/components/dashboard-announcements"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
 
@@ -187,6 +193,14 @@ export default function DashboardPage() {
             { label: "Connections", value: statsWithDefaults.userConnections, icon: CheckCircle2 },
           ]}
         />
+
+        <DashboardAnnouncements />
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <DashboardSpaceWidget />
+          <DashboardVisitorsWidget />
+          <DashboardDeliveriesWidget />
+        </div>
 
         {/* Getting Started Card for New Users */}
         {showGettingStarted && (

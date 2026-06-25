@@ -29,6 +29,7 @@ export interface PendingBookingPayload {
   membershipDiscount?: number
   addOns: string[]
   workspaceId: string
+  spaceAssetId?: string
   pastriesPax?: number
   meetingRoomHours?: number
   meetingRoomCapacity?: "1-4" | "1-10" | "1-35"
@@ -103,6 +104,7 @@ export default function BookingPaymentPage() {
         totalPrice: pending.totalPrice,
         addOns: pending.addOns,
         workspaceId: pending.workspaceId,
+        ...(pending.spaceAssetId && { spaceAssetId: pending.spaceAssetId }),
         ...(pending.pastriesPax && { pastriesPax: pending.pastriesPax }),
         ...(pending.meetingRoomHours && { meetingRoomHours: pending.meetingRoomHours }),
         ...(pending.meetingRoomCapacity && { meetingRoomCapacity: pending.meetingRoomCapacity }),

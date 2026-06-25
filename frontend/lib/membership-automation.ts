@@ -6,6 +6,8 @@ import {
   fulfillMembershipPayment,
   generateMembershipPayToken,
 } from "@/lib/membership-billing"
+import { syncMembershipTierForPaidPlan } from "@/lib/membership-tier-sync"
+import { queueMembershipTierRecognitionEmail } from "@/lib/membership-tier-notify"
 import { sendMembershipPaymentLinkEmail } from "@/lib/email/membership-payment-link"
 import { sendMembershipRenewalReminderEmail } from "@/lib/email/membership-renewal"
 import { notifyMembershipActivated } from "@/lib/membership-notifications"
@@ -318,6 +320,16 @@ export async function completeMembershipPaymentById(prisma: PrismaClient, paymen
     where: { id: payment.userId },
     select: { email: true, name: true },
   })
+
+  const tierSync = await syncMembershipTierForPaidPlan(prisma, payment.userId, plan)
+  if (tierSync.changed && tierSync.tier && user?.email) {
+    queueMembershipTierRecognitionEmail({
+      email: user.email,
+      name: user.name,
+      tier: tierSync.tier,
+    })
+  }
+
   if (user?.email) {
     notifyMembershipActivated({
       memberEmail: user.email,

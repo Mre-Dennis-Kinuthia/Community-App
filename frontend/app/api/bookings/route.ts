@@ -11,6 +11,7 @@ import {
 import { buildMembershipSummary } from "@/lib/membership-profile"
 import { applyMembershipBookingBenefits } from "@/lib/membership-booking-benefits"
 import { canBookHotDesk, resolveAllowanceState, startOfAllowanceMonth } from "@/lib/membership-tier"
+import { hasAssetBookingConflict } from "@/lib/space/availability"
 import {
   buildBookingCalendarInvite,
   getBookingCalendarLinks,
@@ -30,6 +31,7 @@ const bookingSchema = z.object({
   addOns: z.array(z.string()).default([]),
   notes: z.string().optional(),
   workspaceId: z.string().default("impact-hub-nairobi"),
+  spaceAssetId: z.string().optional(),
 })
 
 async function resolveUserIdFromSession(session: Awaited<ReturnType<typeof auth>>) {
@@ -323,6 +325,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (validatedData.spaceAssetId) {
+      const asset = await prisma.spaceAsset.findUnique({
+        where: { id: validatedData.spaceAssetId },
+      })
+      if (!asset || !asset.isBookable || asset.status === "maintenance") {
+        return NextResponse.json(
+          { error: "Selected space is not available for booking." },
+          { status: 400 }
+        )
+      }
+      const assetConflict = await hasAssetBookingConflict(prisma, {
+        spaceAssetId: validatedData.spaceAssetId,
+        dateStart: startOfDay,
+        dateEnd: endOfDay,
+        startTime,
+        endTime,
+      })
+      if (assetConflict) {
+        return NextResponse.json(
+          { error: "This space is already booked for the selected time." },
+          { status: 409 }
+        )
+      }
+    }
+
     // Create booking
     console.log("[BOOKING API] Creating booking...")
     const booking = await prisma.workspaceBooking.create({
@@ -342,6 +369,7 @@ export async function POST(request: NextRequest) {
         addOns: validatedData.addOns,
         notes: validatedData.notes,
         workspaceId: validatedData.workspaceId,
+        spaceAssetId: validatedData.spaceAssetId ?? null,
         status: "confirmed", // Auto-confirm for now
         paymentStatus: "pending", // Payment integration can be added later
       },
@@ -399,6 +427,9 @@ export async function POST(request: NextRequest) {
       userId: userId,
       ...notificationParams,
     })
+
+    const { syncAccessForBooking } = await import("@/lib/integrations/access-control")
+    await syncAccessForBooking(booking).catch((err) => console.error("[ACCESS BOOKING]", err))
 
     if (booking.user?.email) {
       const memberEmail = booking.user.email

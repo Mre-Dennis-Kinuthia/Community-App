@@ -6,7 +6,6 @@ import {
 } from "@/lib/membership-tier"
 import { MEMBERSHIP_REGISTER_INTENT } from "@/lib/membership-register-intent"
 
-const STAR_CONNECT_TICKET_CATEGORY = "membership-inquiry"
 const ORGANISATIONAL_TICKET_CATEGORY = "organisational-registration"
 
 function normalizeEmail(email: string): string {
@@ -39,31 +38,20 @@ export async function detectMembershipTierFromEmail(
 ): Promise<MembershipTier | null> {
   const normalized = normalizeEmail(email)
 
-  const [orgTickets, starTickets] = await Promise.all([
-    prisma.supportTicket.findMany({
-      where: { category: ORGANISATIONAL_TICKET_CATEGORY },
-      orderBy: { createdAt: "desc" },
-      take: 40,
-      select: { member: true, description: true },
-    }),
-    prisma.supportTicket.findMany({
-      where: { category: STAR_CONNECT_TICKET_CATEGORY },
-      orderBy: { createdAt: "desc" },
-      take: 40,
-      select: { member: true, description: true },
-    }),
-  ])
+  const orgTickets = await prisma.supportTicket.findMany({
+    where: { category: ORGANISATIONAL_TICKET_CATEGORY },
+    orderBy: { createdAt: "desc" },
+    take: 40,
+    select: { member: true, description: true },
+  })
 
   if (
     orgTickets.some((t) => ticketMatchesEmail(t.member, t.description, normalized))
   ) {
     return MEMBERSHIP_TIERS.ORGANISATIONAL
   }
-  if (
-    starTickets.some((t) => ticketMatchesEmail(t.member, t.description, normalized))
-  ) {
-    return MEMBERSHIP_TIERS.STAR_CONNECT
-  }
+
+  // Star Connect tier is set when membership payment completes (see membership-tier-sync).
   return null
 }
 

@@ -11,6 +11,8 @@ import {
   BookOpen,
   FolderOpen,
   User,
+  UserRound,
+  Package,
   MoreHorizontal,
   type LucideIcon,
 } from "lucide-react"
@@ -38,6 +40,8 @@ export const MOBILE_MORE_NAV: MobileNavItem[] = [
   { title: "Projects", href: "/projects", icon: Lightbulb },
   { title: "Investments", href: "/investments", icon: BarChart3 },
   { title: "My bookings", href: "/dashboard/bookings", icon: BookOpen },
+  { title: "My visitors", href: "/dashboard/visitors", icon: UserRound },
+  { title: "My packages", href: "/dashboard/deliveries", icon: Package },
   { title: "My projects", href: "/dashboard/projects", icon: FolderOpen },
   { title: "Profile", href: "/profile", icon: User },
 ].filter((item) => isNavHrefEnabled(item.href))

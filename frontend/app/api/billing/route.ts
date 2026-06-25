@@ -83,7 +83,11 @@ export async function GET(request: NextRequest) {
       {
         subscription: subscriptionJson,
         paymentMethods,
-        invoices,
+        invoices: invoices.map((inv) => ({
+          ...inv,
+          amount: Number(inv.amount),
+          pdfUrl: inv.pdfUrl ?? `/api/billing/invoices/${inv.id}/pdf`,
+        })),
       },
       { headers: corsHeaders }
     )

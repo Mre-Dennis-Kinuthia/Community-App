@@ -25,7 +25,9 @@ import { AddOnSelector } from "@/components/booking/add-on-selector"
 import { CheckoutGuideStrip } from "@/components/booking/checkout-guide-strip"
 import { StickyBookingSummary } from "@/components/booking/sticky-booking-summary"
 import { WorkspacePicker } from "@/components/booking/workspace-picker"
+import { AssetSelector } from "@/components/booking/asset-selector"
 import { getCheckoutGuideHint, isBookableForCheckout } from "@/lib/checkout-guide-hint"
+import { isFeatureEnabled } from "@/lib/feature-flags"
 import { useMembershipBenefits } from "@/lib/hooks/use-membership"
 import {
   applyMembershipBookingBenefits,
@@ -114,6 +116,7 @@ function BookingPageContent() {
   const [selectedMeetingRoomHours, setSelectedMeetingRoomHours] = useState(1)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [pastriesPax, setPastriesPax] = useState(1)
+  const [selectedSpaceAssetId, setSelectedSpaceAssetId] = useState<string | null>(null)
 
   const { pricing } = usePricing(
     workspaceId,
@@ -322,6 +325,9 @@ function BookingPageContent() {
     if (selectedResource === "meeting-room" && selectedMeetingRoomCapacity) {
       payload.meetingRoomHours = selectedMeetingRoomHours
       payload.meetingRoomCapacity = selectedMeetingRoomCapacity
+    }
+    if (selectedSpaceAssetId) {
+      payload.spaceAssetId = selectedSpaceAssetId
     }
 
     try {
@@ -617,6 +623,33 @@ function BookingPageContent() {
                         Hot desk bookings are <span className="font-medium text-foreground">full day</span> from 09:00.
                       </p>
                     )}
+
+                    {isFeatureEnabled("spaceInventory") &&
+                      selectedDate &&
+                      selectedResource &&
+                      (selectedResource === "hot-desk" || selectedTime) && (
+                        <BookingStep
+                          step={selectedResource === "meeting-room" ? 5 : 3}
+                          title="Choose your space"
+                          description="Pick a specific desk or room when available."
+                        >
+                          <AssetSelector
+                            resourceType={selectedResource}
+                            date={localCalendarDayToISO(selectedDate)}
+                            startTime={calculateStartTime}
+                            duration={
+                              selectedResource === "meeting-room" ? "hourly" : selectedDuration
+                            }
+                            meetingRoomHours={
+                              selectedResource === "meeting-room"
+                                ? selectedMeetingRoomHours
+                                : undefined
+                            }
+                            selectedAssetId={selectedSpaceAssetId}
+                            onSelect={setSelectedSpaceAssetId}
+                          />
+                        </BookingStep>
+                      )}
 
                     {selectedResource === "meeting-room" && (
                       <BookingStep

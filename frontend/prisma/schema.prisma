@@ -70,6 +70,12 @@ model User {
   sessions  Session[]
   accounts  Account[]
   bookings  WorkspaceBooking[]
+  deskAssignments DeskAssignment[]
+  checkIns  CheckIn[]
+  hostedVisitors Visitor[] @relation("HostedVisitors")
+  deliveries Delivery[]
+  maintenanceTicketsReported MaintenanceTicket[] @relation("ReportedMaintenance")
+  surveyResponses SurveyResponse[]
   notifications Notification[]
   subscriptions Subscription[]
   membershipPaymentLinks MembershipPaymentLink[]
@@ -230,6 +236,8 @@ model NewsPost {
   // Featured and pinned
   isFeatured Boolean @default(false)
   isPinned   Boolean @default(false)
+  announcementType AnnouncementType @default(normal) @map("announcement_type")
+  pinUntil         DateTime? @map("pin_until")
   featuredOrder Int? // Order for featured posts carousel
   
   // Analytics
@@ -252,6 +260,7 @@ model NewsPost {
   @@index([categoryId])
   @@index([isFeatured, publishedAt])
   @@index([isPinned, publishedAt])
+  @@index([announcementType, publishedAt])
   @@index([slug])
   @@map("news_posts")
 }
@@ -508,6 +517,8 @@ model WorkspaceBooking {
   
   // Booking details
   resourceType  String   // hot-desk, meeting-room, private-office
+  spaceAssetId  String?  @map("space_asset_id")
+  spaceAsset    SpaceAsset? @relation(fields: [spaceAssetId], references: [id], onDelete: SetNull)
   date          DateTime
   startTime     String   // e.g., "09:00"
   duration      String   // hourly, half-day, full-day
@@ -540,6 +551,7 @@ model WorkspaceBooking {
   @@index([userId])
   @@index([date])
   @@index([status])
+  @@index([spaceAssetId])
 }
 
 // ============================================
@@ -572,7 +584,418 @@ model Workspace {
   updatedAt         DateTime @updatedAt
   deletedAt         DateTime?
 
+  locations         Location[]
+
   @@map("workspaces")
+  @@index([isActive])
+}
+
+// ============================================
+// SPACE INVENTORY & OPERATIONS
+// ============================================
+
+enum ZoneType {
+  open_area
+  private_wing
+  meeting_area
+  other
+}
+
+enum SpaceAssetType {
+  hot_desk
+  dedicated_desk
+  meeting_room
+  private_office
+  phone_booth
+  event_space
+}
+
+enum SpaceAssetStatus {
+  available
+  occupied
+  maintenance
+  reserved
+}
+
+enum DeskAssignmentType {
+  permanent
+  hot_desk_pool
+}
+
+enum DeskAssignmentStatus {
+  active
+  ended
+}
+
+enum CheckInMethod {
+  app
+  admin
+  qr
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  address     String?
+  timezone    String   @default("Africa/Nairobi")
+  isActive    Boolean  @default(true)
+  workspaceId String?  @map("workspace_id")
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  floors      Floor[]
+  checkIns    CheckIn[]
+  visitors    Visitor[]
+  deliveries  Delivery[]
+  maintenanceTickets MaintenanceTicket[]
+  cleaningSchedules CleaningSchedule[]
+  utilities   UtilityInventory[]
+
+  @@map("locations")
+  @@index([isActive])
+  @@index([workspaceId])
+}
+
+model Floor {
+  id               String   @id @default(cuid())
+  locationId       String   @map("location_id")
+  location         Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  name             String
+  level            Int
+  floorPlanImageUrl String? @map("floor_plan_image_url")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  zones            Zone[]
+
+  @@map("floors")
+  @@index([locationId])
+}
+
+model Zone {
+  id        String   @id @default(cuid())
+  floorId   String   @map("floor_id")
+  floor     Floor    @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  name      String
+  type      ZoneType @default(other)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assets    SpaceAsset[]
+  cleaningSchedules CleaningSchedule[]
+
+  @@map("zones")
+  @@index([floorId])
+}
+
+model SpaceAsset {
+  id          String           @id @default(cuid())
+  zoneId      String           @map("zone_id")
+  zone        Zone             @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  type        SpaceAssetType
+  capacity    Int              @default(1)
+  amenities   Json?
+  status      SpaceAssetStatus @default(available)
+  isBookable  Boolean          @default(true) @map("is_bookable")
+  metadata    Json?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  bookings    WorkspaceBooking[]
+  assignments DeskAssignment[]
+  maintenanceTickets MaintenanceTicket[]
+
+  @@unique([zoneId, slug])
+  @@map("space_assets")
+  @@index([zoneId])
+  @@index([type])
+  @@index([status])
+  @@index([isBookable])
+}
+
+model DeskAssignment {
+  id           String               @id @default(cuid())
+  userId       String               @map("user_id")
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  spaceAssetId String               @map("space_asset_id")
+  spaceAsset   SpaceAsset           @relation(fields: [spaceAssetId], references: [id], onDelete: Cascade)
+  startDate    DateTime             @map("start_date")
+  endDate      DateTime?            @map("end_date")
+  type         DeskAssignmentType   @default(permanent)
+  status       DeskAssignmentStatus @default(active)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@map("desk_assignments")
+  @@index([userId])
+  @@index([spaceAssetId])
+  @@index([status])
+}
+
+model CheckIn {
+  id           String        @id @default(cuid())
+  userId       String        @map("user_id")
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId   String        @map("location_id")
+  location     Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  checkedInAt  DateTime      @default(now()) @map("checked_in_at")
+  checkedOutAt DateTime?     @map("checked_out_at")
+  method       CheckInMethod @default(app)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("check_ins")
+  @@index([userId])
+  @@index([locationId])
+  @@index([checkedInAt])
+}
+
+enum VisitorStatus {
+  expected
+  checked_in
+  checked_out
+  cancelled
+}
+
+enum DeliveryStatus {
+  received
+  notified
+  picked_up
+}
+
+model Visitor {
+  id         String        @id @default(cuid())
+  name       String
+  email      String?
+  phone      String?
+  company    String?
+  hostUserId String        @map("host_user_id")
+  host       User          @relation("HostedVisitors", fields: [hostUserId], references: [id], onDelete: Cascade)
+  expectedAt DateTime      @map("expected_at")
+  purpose    String?
+  status     VisitorStatus @default(expected)
+  locationId String        @map("location_id")
+  location   Location      @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdBy  String?       @map("created_by")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  checkIns   VisitorCheckIn[]
+
+  @@map("visitors")
+  @@index([hostUserId])
+  @@index([expectedAt])
+  @@index([status])
+  @@index([locationId])
+}
+
+model VisitorCheckIn {
+  id           String    @id @default(cuid())
+  visitorId    String    @map("visitor_id")
+  visitor      Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  checkedInAt  DateTime  @default(now()) @map("checked_in_at")
+  checkedOutAt DateTime? @map("checked_out_at")
+  checkedInBy  String?   @map("checked_in_by")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("visitor_check_ins")
+  @@index([visitorId])
+  @@index([checkedInAt])
+}
+
+model Delivery {
+  id              String         @id @default(cuid())
+  recipientUserId String         @map("recipient_user_id")
+  recipient       User           @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+  carrier         String?
+  trackingNumber  String?        @map("tracking_number")
+  description     String
+  status          DeliveryStatus @default(received)
+  receivedAt      DateTime       @default(now()) @map("received_at")
+  pickedUpAt      DateTime?      @map("picked_up_at")
+  receivedBy      String?        @map("received_by")
+  locationId      String         @map("location_id")
+  location        Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@map("deliveries")
+  @@index([recipientUserId])
+  @@index([status])
+  @@index([locationId])
+  @@index([receivedAt])
+}
+
+// ============================================
+// OPERATIONS & FACILITIES
+// ============================================
+
+enum MaintenanceCategory {
+  internet
+  cleaning
+  printer
+  hvac
+  other
+}
+
+enum MaintenancePriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum MaintenanceStatus {
+  open
+  in_progress
+  resolved
+  cancelled
+}
+
+enum CleaningFrequency {
+  daily
+  weekly
+}
+
+enum SurveyStatus {
+  draft
+  active
+  closed
+}
+
+enum AnnouncementType {
+  normal
+  pinned
+  urgent
+}
+
+model MaintenanceTicket {
+  id           String              @id @default(cuid())
+  title        String
+  description  String              @db.Text
+  category     MaintenanceCategory
+  priority     MaintenancePriority   @default(medium)
+  status       MaintenanceStatus     @default(open)
+  locationId   String                @map("location_id")
+  location     Location              @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  spaceAssetId String?               @map("space_asset_id")
+  spaceAsset   SpaceAsset?           @relation(fields: [spaceAssetId], references: [id], onDelete: SetNull)
+  assignedTo   String?               @map("assigned_to")
+  reportedBy   String?               @map("reported_by")
+  reporter     User?                 @relation("ReportedMaintenance", fields: [reportedBy], references: [id], onDelete: SetNull)
+  resolvedAt   DateTime?             @map("resolved_at")
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@map("maintenance_tickets")
+  @@index([status])
+  @@index([priority])
+  @@index([locationId])
+  @@index([reportedBy])
+  @@index([createdAt])
+}
+
+model Vendor {
+  id           String   @id @default(cuid())
+  name         String
+  contactEmail String?  @map("contact_email")
+  contactPhone String?  @map("contact_phone")
+  serviceType  String   @map("service_type")
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  cleaningSchedules CleaningSchedule[]
+
+  @@map("vendors")
+  @@index([serviceType])
+}
+
+model CleaningSchedule {
+  id               String            @id @default(cuid())
+  locationId       String            @map("location_id")
+  location         Location          @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  zoneId           String?           @map("zone_id")
+  zone             Zone?             @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  frequency        CleaningFrequency
+  dayOfWeek        Int?              @map("day_of_week")
+  assignedVendorId String?           @map("assigned_vendor_id")
+  vendor           Vendor?           @relation(fields: [assignedVendorId], references: [id], onDelete: SetNull)
+  notes            String?           @db.Text
+  isActive         Boolean           @default(true) @map("is_active")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@map("cleaning_schedules")
+  @@index([locationId])
+  @@index([isActive])
+}
+
+model UtilityInventory {
+  id             String    @id @default(cuid())
+  locationId     String    @map("location_id")
+  location       Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  itemType       String    @map("item_type")
+  name           String
+  serialNumber   String?   @map("serial_number")
+  lastServicedAt DateTime? @map("last_serviced_at")
+  nextServiceDue DateTime? @map("next_service_due")
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("utility_inventory")
+  @@index([locationId])
+  @@index([nextServiceDue])
+}
+
+model Survey {
+  id             String       @id @default(cuid())
+  title          String
+  questions      Json
+  status         SurveyStatus @default(draft)
+  targetAudience String?      @map("target_audience")
+  startsAt       DateTime?    @map("starts_at")
+  endsAt         DateTime?    @map("ends_at")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  responses SurveyResponse[]
+
+  @@map("surveys")
+  @@index([status])
+}
+
+model SurveyResponse {
+  id        String   @id @default(cuid())
+  surveyId  String   @map("survey_id")
+  survey    Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([surveyId, userId])
+  @@map("survey_responses")
+  @@index([surveyId])
+  @@index([userId])
+}
+
+model AccessControlIntegration {
+  id        String   @id @default(cuid())
+  provider  String
+  config    Json     @default("{}")
+  isActive  Boolean  @default(false) @map("is_active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("access_control_integrations")
   @@index([isActive])
 }
 
@@ -710,6 +1133,7 @@ model Invoice {
   dueDate         DateTime?
   paidAt          DateTime?
   pdfUrl          String?
+  lastReminderAt  DateTime? @map("last_reminder_at")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 

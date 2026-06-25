@@ -3,17 +3,31 @@
  */
 export const FEATURE_FLAGS = {
   programsAndResources: true,
-  myProjects: false,
-  investmentsDealflow: false,
-  projectsAndInitiatives: false,
+  myProjects: true,
+  investmentsDealflow: true,
+  projectsAndInitiatives: true,
+  // Workspace platform expansion
+  spaceInventory: true,
+  visitorManagement: true,
+  deliveryManagement: true,
+  operationsModule: true,
+  accessControl: true,
+  advancedReporting: true,
 } as const
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS
+
+/** Whether a platform feature flag is enabled */
+export function isFeatureEnabled(flag: FeatureFlagKey): boolean {
+  return FEATURE_FLAGS[flag]
+}
 
 const NAV_HREF_FLAGS: Record<string, FeatureFlagKey> = {
   "/resources": "programsAndResources",
   "/opportunities": "programsAndResources",
   "/dashboard/projects": "myProjects",
+  "/dashboard/visitors": "visitorManagement",
+  "/dashboard/deliveries": "deliveryManagement",
   "/investments": "investmentsDealflow",
   "/projects": "projectsAndInitiatives",
 }
@@ -39,6 +53,12 @@ export function isDeactivatedRoute(pathname: string): boolean {
   }
   if (!FEATURE_FLAGS.projectsAndInitiatives) {
     if (pathname === "/projects" || pathname.startsWith("/projects/")) return true
+  }
+  if (!FEATURE_FLAGS.visitorManagement) {
+    if (pathname === "/dashboard/visitors" || pathname.startsWith("/dashboard/visitors/")) return true
+  }
+  if (!FEATURE_FLAGS.deliveryManagement) {
+    if (pathname === "/dashboard/deliveries" || pathname.startsWith("/dashboard/deliveries/")) return true
   }
   return false
 }
