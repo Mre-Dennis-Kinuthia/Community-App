@@ -4,12 +4,10 @@ import { useState, useMemo, useEffect, useRef, Suspense } from "react"
 import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   FileText, 
   Download, 
@@ -47,6 +45,14 @@ import {
   MobileBreadcrumbsHidden,
   MobileSearchFilterRow,
 } from "@/components/mobile/mobile-page-shell"
+import { FilterBar, FilterBarItem } from "@/components/design/filter-bar"
+import { EmptyState } from "@/components/design/empty-state"
+import {
+  DataList,
+  DataListRow,
+  DataListPrimary,
+  DataListMeta,
+} from "@/components/design/data-list"
 
 // Opportunities fetched from API (scouted external programs, grants, roles, etc.)
 const resourceCategories: any[] = []
@@ -305,130 +311,96 @@ function ResourcesPageContent() {
         </div>
 
         {/* Desktop search & filters */}
-        <Card className="hidden border-border md:block w-full overflow-x-hidden">
-          <CardContent className="pt-4 w-full">
-            <div className="space-y-3 w-full min-w-0">
-              {/* Search */}
+        <div className="hidden md:block">
+          <FilterBar className="rounded-md border border-border bg-card p-4">
+            <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder={activeTab === "programs"
-                    ? "Search opportunities, tags, sources…"
-                    : "Search resources, templates, guides…"}
+                  placeholder={
+                    activeTab === "programs"
+                      ? "Search opportunities…"
+                      : "Search resources…"
+                  }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 shadow-sm"
+                  className="h-9 pl-8"
                 />
               </div>
-
-              {/* Filters */}
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 w-full min-w-0">
-                {activeTab === "programs" ? (
-                  <>
-                    <div className="min-w-0">
-                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All tags" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All tags</SelectItem>
-                          {uniqueOpportunityTags.map((tag) => (
-                            <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="min-w-0">
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All status</SelectItem>
-                          {opportunityStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {OPPORTUNITY_STATUS_LABELS[status]}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {hasActiveFilters ? (
-                      <div className="min-w-0">
-                        <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm w-full">
-                          <X className="mr-2 h-4 w-4" />
-                          Clear
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="hidden lg:block min-w-0" />
-                        <div className="hidden lg:block min-w-0" />
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <div className="min-w-0">
-                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Categories" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {resourceCategoryNames.map((category) => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="min-w-0">
-                      <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="shadow-sm w-full">
-                          <SelectValue placeholder="All Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          {uniqueResourceTypes.map((type) => (
-                            <SelectItem key={type} value={type.toLowerCase()}>{type}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {hasActiveFilters ? (
-                      <div className="min-w-0">
-                        <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm w-full">
-                          <X className="mr-2 h-4 w-4" />
-                          Clear
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="hidden lg:block min-w-0" />
-                    )}
-                    {/* Placeholder to maintain grid layout */}
-                    <div className="hidden lg:block min-w-0" />
-                  </>
-                )}
-              </div>
-
-              {/* Filter Summary */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {activeFilterCount > 0 && (
-                    <Badge variant="secondary">
-                      {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-                    </Badge>
-                  )}
-                  <span className="text-sm text-muted-foreground">
-                    {activeTab === "programs"
-                      ? `${filteredOpportunities.length} opportunit${filteredOpportunities.length !== 1 ? "ies" : "y"} found`
-                      : `${filteredResources.length} resource${filteredResources.length !== 1 ? "s" : ""} found`}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </FilterBarItem>
+            {activeTab === "programs" ? (
+              <>
+                <FilterBarItem>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="h-9 w-36">
+                      <SelectValue placeholder="Tags" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All tags</SelectItem>
+                      {uniqueOpportunityTags.map((tag) => (
+                        <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FilterBarItem>
+                <FilterBarItem>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-9 w-36">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All status</SelectItem>
+                      {opportunityStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {OPPORTUNITY_STATUS_LABELS[status]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FilterBarItem>
+              </>
+            ) : (
+              <>
+                <FilterBarItem>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="h-9 w-40">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All categories</SelectItem>
+                      {resourceCategoryNames.map((category) => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FilterBarItem>
+                <FilterBarItem>
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="h-9 w-32">
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All types</SelectItem>
+                      {uniqueResourceTypes.map((type) => (
+                        <SelectItem key={type} value={type.toLowerCase()}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FilterBarItem>
+              </>
+            )}
+            {hasActiveFilters ? (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear
+              </Button>
+            ) : null}
+          </FilterBar>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {activeTab === "programs"
+              ? `${filteredOpportunities.length} opportunities`
+              : `${filteredResources.length} resources`}
+          </p>
+        </div>
 
         {/* Opportunities Tab */}
         <div
@@ -437,34 +409,24 @@ function ResourcesPageContent() {
           aria-hidden={activeTab !== "programs"}
         >
             {isLoadingOpportunities ? (
-              <Card className="border-border">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground text-center">Loading opportunities…</p>
-                </CardContent>
-              </Card>
+              <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading opportunities…
+              </div>
             ) : opportunitiesErrorMsg ? (
-              <Card className="border-border">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-center">{opportunitiesErrorMsg}</p>
-                </CardContent>
-              </Card>
+              <EmptyState title="Could not load opportunities" description={opportunitiesErrorMsg} />
             ) : filteredOpportunities.length === 0 ? (
-              <Card className="border-border">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    No opportunities match your filters yet. Check back soon — our team scouts new
-                    programs regularly.
-                  </p>
-                  {hasActiveFilters ? (
-                    <Button variant="outline" onClick={clearFilters} className="mt-4">
+              <EmptyState
+                title="No opportunities found"
+                description="Check back soon — our team scouts new programs regularly."
+                action={
+                  hasActiveFilters ? (
+                    <Button variant="outline" onClick={clearFilters}>
                       Clear filters
                     </Button>
-                  ) : null}
-                </CardContent>
-              </Card>
+                  ) : undefined
+                }
+              />
             ) : (
               <div className="grid w-full min-w-0 grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
                 {filteredOpportunities.map((item) => (
@@ -487,114 +449,101 @@ function ResourcesPageContent() {
           aria-hidden={activeTab !== "resources"}
         >
             {isLoadingResources ? (
-              <Card className="border-border ">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground text-center">Loading resources...</p>
-                </CardContent>
-              </Card>
+              <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading resources…
+              </div>
             ) : resourcesErrorMsg ? (
-              <Card className="border-border ">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-center">{resourcesErrorMsg}</p>
-                  <Button variant="outline" onClick={() => window.location.reload()} className="mt-4">
+              <EmptyState
+                title="Could not load resources"
+                description={resourcesErrorMsg}
+                action={
+                  <Button variant="outline" onClick={() => window.location.reload()}>
                     Retry
                   </Button>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : filteredResources.length === 0 ? (
-              <Card className="border-border ">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    No resources found matching your filters.
-                  </p>
-                  <Button variant="outline" onClick={clearFilters} className="mt-4">
-                    Clear Filters
+              <EmptyState
+                title="No resources found"
+                action={
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear filters
                   </Button>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
-              <div className="grid gap-6 md:grid-cols-3 w-full min-w-0">
-                {filteredResources.map((resource) => (
-                  <Card key={resource.id} className="flex flex-col border-border ">
-                    <CardHeader>
-                      <CardTitle className="text-lg">{resource.title}</CardTitle>
-                      {resource.description && (
-                        <CardDescription className="text-sm">{resource.description}</CardDescription>
-                      )}
-                    </CardHeader>
-                    <CardContent className="flex-1 space-y-3">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] ${typeColors[resource.type] || ""}`}>
-                          {resource.type}
-                        </span>
-                        {resource.category && (
-                          <>
-                            <span>•</span>
-                            <span>{resource.category}</span>
-                          </>
-                        )}
+              <>
+                <div className="grid gap-4 md:hidden">
+                  {filteredResources.map((resource) => (
+                    <div key={resource.id} className="rounded-md border border-border bg-card p-4">
+                      <p className="font-medium">{resource.title}</p>
+                      {resource.description ? (
+                        <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                          {resource.description}
+                        </p>
+                      ) : null}
+                      <div className="mt-3 flex gap-2">
+                        {resource.url ? (
+                          <Button variant="outline" size="sm" onClick={() => window.open(resource.url, "_blank")}>
+                            Open
+                          </Button>
+                        ) : null}
                       </div>
-                      {resource.tags && resource.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {resource.tags.slice(0, 3).map((tag: string, idx: number) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                      <div className="flex gap-2 pt-2">
-                        {resource.url && (
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden md:block">
+                  <DataList>
+                    {filteredResources.map((resource) => (
+                      <DataListRow key={resource.id} showChevron={false}>
+                        <DataListPrimary
+                          title={resource.title}
+                          subtitle={resource.description?.slice(0, 80) || undefined}
+                        />
+                        <DataListMeta className="capitalize">{resource.type}</DataListMeta>
+                        {resource.category ? (
+                          <DataListMeta>{resource.category}</DataListMeta>
+                        ) : null}
+                        {resource.url ? (
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1"
                             onClick={() => window.open(resource.url, "_blank")}
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Open Link
+                            Open
                           </Button>
-                        )}
-                        {resource.fileUrl && (
+                        ) : null}
+                        {resource.fileUrl ? (
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex-1"
-                            onClick={() => {
-                              const link = document.createElement("a")
-                              link.href = resource.fileUrl
-                              link.download = resource.title
-                              link.click()
-                            }}
+                            onClick={() => window.open(resource.fileUrl, "_blank")}
                           >
-                            <Download className="mr-2 h-4 w-4" />
                             Download
                           </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                        ) : null}
+                      </DataListRow>
+                    ))}
+                  </DataList>
+                </div>
+              </>
             )}
 
-            <Card className="bg-primary/5 border-border">
-              <CardHeader>
-                <CardTitle>Can't find what you're looking for?</CardTitle>
-                <CardDescription>Suggest a resource or template for the community library.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  onClick={() => alert("Resource suggestion form would open here")}
-                  variant="outline"
-                >
-                  Suggest Resource
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="rounded-md border border-dashed border-border bg-muted/20 p-4 text-sm">
+              <p className="font-medium">Can&apos;t find what you&apos;re looking for?</p>
+              <p className="mt-1 text-muted-foreground">
+                Suggest a resource or template for the community library.
+              </p>
+              <Button
+                className="mt-3"
+                variant="outline"
+                size="sm"
+                onClick={() => alert("Resource suggestion form would open here")}
+              >
+                Suggest resource
+              </Button>
+            </div>
         </div>
       </div>
     </DashboardLayout>

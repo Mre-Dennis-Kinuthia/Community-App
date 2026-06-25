@@ -6,10 +6,9 @@ import Link from "next/link"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { 
-  Users, 
+import {
+  Users,
   Loader2,
-  AlertCircle,
   SlidersHorizontal,
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
@@ -31,6 +30,17 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useCommunityMembers } from "@/lib/hooks/use-community"
+import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
+import {
+  DataList,
+  DataListRow,
+  DataListPrimary,
+  DataListMeta,
+} from "@/components/design/data-list"
+import { EmptyState } from "@/components/design/empty-state"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getImageDisplayUrl } from "@/lib/stored-image"
+import { getInitials } from "@/lib/utils"
 
 const experienceLevels = ["All", "Early Career", "Mid-Level", "Senior", "Expert"]
 const availabilityOptions = ["All", "Open to Collaboration", "Seeking Mentorship", "Offering Mentorship", "Open to Partnerships", "Looking for Volunteers"]
@@ -185,6 +195,31 @@ function CommunityPageContent() {
     sortBy !== "newest",
   ].filter(Boolean).length
 
+  const renderMemberList = (list: typeof members, className?: string) => (
+    <div className={className}>
+      <DataList>
+        {list.map((member) => {
+          const avatarUrl = getImageDisplayUrl(member.avatar || member.image)
+          return (
+            <DataListRow key={member.id} href={`/community/${member.id}`}>
+              <Avatar className="h-8 w-8 shrink-0">
+                {avatarUrl ? <AvatarImage src={avatarUrl} alt={member.name || "Member"} /> : null}
+                <AvatarFallback className="text-xs">
+                  {getInitials(member.name, member.email)}
+                </AvatarFallback>
+              </Avatar>
+              <DataListPrimary
+                title={member.name || member.email}
+                subtitle={member.organization || member.role || undefined}
+              />
+              {member.role ? <DataListMeta>{member.role}</DataListMeta> : null}
+            </DataListRow>
+          )
+        })}
+      </DataList>
+    </div>
+  )
+
   const renderGrid = (list: typeof members, className?: string) => (
     <div className={cn("grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5", className)}>
       {list.map((member) => (
@@ -334,6 +369,18 @@ function CommunityPageContent() {
             </button>
           </div>
 
+          <div className="hidden md:block">
+            <MetricCardGrid className="sm:grid-cols-3">
+              <MetricCard label="Members" value={pagination?.total ?? 0} icon={Users} />
+              <MetricCard label="Your connections" value={myConnections.length} icon={Users} />
+              <MetricCard
+                label="Showing"
+                value={filteredAndSortedMembers.length}
+                description="On this page"
+              />
+            </MetricCardGrid>
+          </div>
+
           {filterSheet}
 
           {activeTab === "all" && (
@@ -378,44 +425,37 @@ function CommunityPageContent() {
             )}
 
             {isLoading ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground">Loading members...</p>
-                </CardContent>
-              </Card>
+              <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading members…
+              </div>
             ) : error ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-                  <p className="text-lg font-medium text-destructive">Error loading members</p>
-                  <p className="text-sm text-muted-foreground mt-2 mb-4">{error}</p>
+              <EmptyState
+                title="Error loading members"
+                description={error}
+                action={
                   <Button variant="outline" onClick={() => window.location.reload()}>
                     Retry
                   </Button>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : filteredAndSortedMembers.length === 0 ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium text-muted-foreground">No members found</p>
-                  <p className="text-sm text-muted-foreground mt-2 mb-4">
-                    Try adjusting your search or filters to find community members
-                  </p>
+              <EmptyState
+                title="No members found"
+                description="Try adjusting your search or filters."
+                action={
                   <Button variant="outline" onClick={clearFilters}>
-                    Clear Filters
+                    Clear filters
                   </Button>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
               <>
                 {showRecommendationSection && recommendedPreview.length > 0 && (
                   <h2 className="mb-3 text-sm font-semibold md:hidden">All members</h2>
                 )}
-                {/* Mobile excludes recommended (shown above); desktop shows everyone */}
                 {renderGrid(membersForGrid, "md:hidden")}
-                {renderGrid(filteredAndSortedMembers, "hidden md:grid")}
+                {renderMemberList(filteredAndSortedMembers, "hidden md:block")}
 
                 {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
@@ -450,35 +490,29 @@ function CommunityPageContent() {
             style={{ opacity: isFiltering ? 0.6 : 1 }}
           >
             {isLoading ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                  <p className="text-muted-foreground">Loading connections...</p>
-                </CardContent>
-              </Card>
+              <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading connections…
+              </div>
             ) : error ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-                  <p className="text-lg font-medium text-destructive">Error loading connections</p>
-                  <p className="text-sm text-muted-foreground mt-2 mb-4">{error}</p>
-                </CardContent>
-              </Card>
+              <EmptyState title="Error loading connections" description={error} />
             ) : filteredAndSortedMembers.length === 0 ? (
-              <Card className="py-12">
-                <CardContent className="flex flex-col items-center justify-center text-center">
-                  <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium text-muted-foreground">No connections found</p>
-                  <p className="text-sm text-muted-foreground mt-2 mb-4">
-                    Start connecting with community members to build your network
-                  </p>
+              <EmptyState
+                title="No connections found"
+                description="Start connecting with community members."
+                action={
                   <Button variant="outline" onClick={() => setActiveTab("all")}>
-                    Browse All Members
+                    Browse all members
                   </Button>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
-              memberGrid
+              <>
+                <div className="md:hidden">{memberGrid}</div>
+                <div className="hidden md:block">
+                  {renderMemberList(filteredAndSortedMembers)}
+                </div>
+              </>
             )}
           </div>
         )}

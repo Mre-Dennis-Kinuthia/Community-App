@@ -31,6 +31,8 @@ import {
   MobileFilterMeta,
   MobileBreadcrumbsHidden,
 } from "@/components/mobile/mobile-page-shell"
+import { FilterBar, FilterBarItem } from "@/components/design/filter-bar"
+import { EmptyState } from "@/components/design/empty-state"
 import { cn } from "@/lib/utils"
 
 interface NewsTag {
@@ -200,26 +202,25 @@ export default function NewsPage() {
 
         {/* Desktop search */}
         <div className="hidden md:block">
-          <div className="relative max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search articles…"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && applySearch()}
-              className="border-border bg-background pl-9 pr-9 shadow-sm"
-            />
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                aria-label="Clear filters"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
+          <FilterBar>
+            <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search articles…"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && applySearch()}
+                  className="h-9 pl-8"
+                />
+              </div>
+            </FilterBarItem>
+            {hasActiveFilters ? (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            ) : null}
+          </FilterBar>
         </div>
 
         {(uniqueCategories.length > 0 || uniqueTags.length > 0) && (
@@ -281,35 +282,38 @@ export default function NewsPage() {
           </p>
         )}
 
-        {loading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading news…
           </div>
-        )}
+        ) : null}
 
-        {error && !loading && (
-          <div className="py-16 text-center">
-            <Newspaper className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="mb-4 text-muted-foreground">{error}</p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Retry
-            </Button>
-          </div>
-        )}
-
-        {!loading && !error && news.length === 0 && (
-          <div className="py-16 text-center">
-            <Newspaper className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-            <p className="text-muted-foreground">
-              {hasActiveFilters ? "No articles match your filters. Try clearing them." : "No articles available yet."}
-            </p>
-            {hasActiveFilters && (
-              <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                Clear filters
+        {error && !loading ? (
+          <EmptyState
+            title="Could not load news"
+            description={error}
+            action={
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                Retry
               </Button>
-            )}
-          </div>
-        )}
+            }
+          />
+        ) : null}
+
+        {!loading && !error && news.length === 0 ? (
+          <EmptyState
+            title={hasActiveFilters ? "No articles match your filters" : "No articles yet"}
+            description={hasActiveFilters ? "Try clearing filters." : undefined}
+            action={
+              hasActiveFilters ? (
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : null}
 
         {!loading && !error && news.length > 0 && (
           <div className="news-feed-list">
