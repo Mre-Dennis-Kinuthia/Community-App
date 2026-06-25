@@ -1,6 +1,13 @@
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type SendEmailResult } from "./send"
-import { escapeHtml, layoutEmail } from "./templates"
+import {
+  escapeHtml,
+  layoutEmail,
+  emailGreeting,
+  emailParagraph,
+  emailDetailCard,
+  emailMutedNote,
+} from "./templates"
 import { getAppBaseUrl } from "@/lib/app-url"
 import {
   ORGANISATIONAL_DISCOVERY_CALL_URL,
@@ -44,16 +51,14 @@ export async function sendOrganisationalRegistrationStaffEmail(
   }).format(new Date())
 
   const bodyHtml = `
-    <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">
-      New <strong>${escapeHtml(ORGANISATIONAL_PLAN_NAME)}</strong> member registered on the platform.
-      Please follow up ${escapeHtml(ORGANISATIONAL_RESPONSE_SLA)} to discuss scope and pricing.
-    </p>
-    <p style="margin:0 0 16px;font-size:13px;color:#71717a;">${escapeHtml(submitted)} (Nairobi)</p>
-    <p><strong>Member:</strong> ${memberLabel(params)}</p>
-    <p style="margin:16px 0 0;font-size:13px;color:#3f3f46;">
-      Optional partnership call:
-      <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}">Community Office Hours</a>
-    </p>
+    ${emailParagraph(
+      `New <strong>${escapeHtml(ORGANISATIONAL_PLAN_NAME)}</strong> member registered on the platform. Please follow up ${escapeHtml(ORGANISATIONAL_RESPONSE_SLA)} to discuss scope and pricing.`
+    )}
+    ${emailMutedNote(`${escapeHtml(submitted)} (Nairobi)`)}
+    ${emailDetailCard([{ label: "Member", value: memberLabel(params) }], { title: "Registration" })}
+    ${emailMutedNote(
+      `Optional partnership call: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">Community Office Hours</a>`
+    )}
   `
 
   return sendEmail({
@@ -62,6 +67,7 @@ export async function sendOrganisationalRegistrationStaffEmail(
     html: layoutEmail({
       preheader: `New ${ORGANISATIONAL_PLAN_NAME} registration`,
       title: "Organisational registration",
+      eyebrow: "Membership",
       bodyHtml,
     }),
     text: buildOrganisationalRegistrationPlainText(params),
@@ -73,16 +79,24 @@ export async function sendOrganisationalRegistrationWelcomeEmail(
   params: OrganisationalRegistrationPayload
 ): Promise<SendEmailResult> {
   const firstName = params.name?.trim().split(/\s+/)[0]
-  const greeting = firstName ? `Hi ${escapeHtml(firstName)},` : "Hi,"
   const appUrl = getAppBaseUrl()
   const onboardingUrl = `${appUrl}/onboarding?intent=organisational`
 
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>Welcome to Impact Hub Nairobi. Your account for <strong>${escapeHtml(ORGANISATIONAL_PLAN_NAME)}</strong> membership is ready.</p>
-    <p>Sign in and complete your profile (including your organisation) so our partnerships team can tailor your engagement. We typically respond ${escapeHtml(ORGANISATIONAL_RESPONSE_SLA)}.</p>
-    <p>You may also book a short call to discuss partnership scope:</p>
-    <p style="margin:8px 0 0;font-size:14px;"><a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}">${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}</a></p>
+    ${emailGreeting(firstName)}
+    ${emailParagraph(
+      `Welcome to Impact Hub Nairobi. Your account for <strong>${escapeHtml(ORGANISATIONAL_PLAN_NAME)}</strong> membership is ready.`
+    )}
+    ${emailParagraph(
+      `Sign in and complete your profile (including your organisation) so our partnerships team can tailor your engagement. We typically respond ${escapeHtml(ORGANISATIONAL_RESPONSE_SLA)}.`
+    )}
+    ${emailDetailCard(
+      [{ label: "Next step", value: "Complete your organisation profile" }],
+      { title: "Getting started" }
+    )}
+    ${emailMutedNote(
+      `You may also book a short call: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">Community Office Hours</a>`
+    )}
   `
 
   return sendEmail({
@@ -91,6 +105,7 @@ export async function sendOrganisationalRegistrationWelcomeEmail(
     html: layoutEmail({
       preheader: `Complete your profile — we respond ${ORGANISATIONAL_RESPONSE_SLA}`,
       title: "You're registered",
+      eyebrow: "Membership",
       bodyHtml,
       ctaLabel: "Complete your profile",
       ctaUrl: onboardingUrl,

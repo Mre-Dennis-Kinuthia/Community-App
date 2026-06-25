@@ -1,6 +1,13 @@
 import { getEmailFrom } from "./config"
 import { sendEmail, type SendEmailResult } from "./send"
-import { escapeHtml, layoutEmail } from "./templates"
+import {
+  escapeHtml,
+  layoutEmail,
+  emailGreeting,
+  emailParagraph,
+  emailDetailCard,
+  emailMutedNote,
+} from "./templates"
 import { getCommunityOpportunityUrl } from "@/lib/app-url"
 
 export async function sendCommunityOpportunityEmail(params: {
@@ -12,22 +19,21 @@ export async function sendCommunityOpportunityEmail(params: {
   opportunityId: string
   applyUrl: string
 }): Promise<SendEmailResult> {
-  const greeting = params.name?.trim().split(/\s+/)[0]
-    ? `Hi ${escapeHtml(params.name.trim().split(/\s+/)[0])},`
-    : "Hi,"
   const detailUrl = getCommunityOpportunityUrl(params.opportunityId)
   const summary = params.summary?.trim()
-  const sourceLine = params.source?.trim()
-    ? `<p style="margin:0 0 12px;font-size:13px;color:#71717a;">Source: ${escapeHtml(params.source.trim())}</p>`
-    : ""
+  const rows = [
+    { label: "Opportunity", value: escapeHtml(params.title) },
+    ...(params.source?.trim()
+      ? [{ label: "Source", value: escapeHtml(params.source.trim()) }]
+      : []),
+    ...(summary ? [{ label: "Summary", value: escapeHtml(summary) }] : []),
+  ]
 
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>We've scouted a new opportunity that may be relevant for your impact journey.</p>
-    <p><strong>${escapeHtml(params.title)}</strong></p>
-    ${sourceLine}
-    ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
-    <p style="font-size:13px;color:#71717a;">Applications are hosted externally — review details on the platform first.</p>
+    ${emailGreeting(params.name)}
+    ${emailParagraph("We've scouted a new opportunity that may be relevant for your impact journey.")}
+    ${emailDetailCard(rows, { title: "Program details" })}
+    ${emailMutedNote("Applications are hosted externally — review details on the platform first.")}
   `
 
   return sendEmail({
@@ -35,15 +41,16 @@ export async function sendCommunityOpportunityEmail(params: {
     to: params.to,
     subject: `New opportunity: ${params.title}`,
     html: layoutEmail({
+      preheader: params.title,
       title: "New community opportunity",
+      eyebrow: "Programs",
       bodyHtml,
       ctaLabel: "View & apply",
       ctaUrl: detailUrl,
     }),
     text: [
-      greeting.replace(/<[^>]+>/g, ""),
       `New opportunity: ${params.title}`,
-      sourceLine ? `Source: ${params.source}` : "",
+      params.source ? `Source: ${params.source}` : "",
       summary ?? "",
       detailUrl,
     ]

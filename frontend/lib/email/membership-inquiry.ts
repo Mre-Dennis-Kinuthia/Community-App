@@ -1,6 +1,14 @@
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type SendEmailResult } from "./send"
-import { escapeHtml, layoutEmail } from "./templates"
+import {
+  escapeHtml,
+  layoutEmail,
+  emailGreeting,
+  emailParagraph,
+  emailDetailCard,
+  emailMutedNote,
+  emailHighlightBox,
+} from "./templates"
 import {
   STAR_CONNECT_DISCOVERY_CALL_URL,
   STAR_CONNECT_PLAN_NAME,
@@ -29,14 +37,6 @@ export type StarConnectInquiryPayload = {
   message?: string
 }
 
-function detailRow(label: string, value: string): string {
-  if (!value.trim()) return ""
-  return `<tr>
-    <td style="padding:8px 12px 8px 0;vertical-align:top;font-size:13px;color:#71717a;width:150px;">${escapeHtml(label)}</td>
-    <td style="padding:8px 0;font-size:14px;color:#18181b;line-height:1.5;">${escapeHtml(value)}</td>
-  </tr>`
-}
-
 function buildStaffBodyHtml(params: StarConnectInquiryPayload): string {
   const submitted = new Intl.DateTimeFormat("en-KE", {
     dateStyle: "medium",
@@ -45,44 +45,39 @@ function buildStaffBodyHtml(params: StarConnectInquiryPayload): string {
   }).format(new Date())
 
   const rows = [
-    detailRow("Applicant", params.fullName),
-    detailRow("Email", params.email),
-    detailRow("Phone", params.phone),
-    detailRow("Location", params.location),
-    detailRow("LinkedIn", params.linkedinUrl ?? "—"),
-    detailRow("Website", params.websiteUrl ?? "—"),
-    detailRow("Organization", params.organization),
-    detailRow("About the venture", params.ventureDescription),
-    detailRow("Role", params.role),
-    detailRow("Sector", params.sector),
-    detailRow("Stage", params.ventureStage),
-    detailRow("Looking for", params.primaryNeeds.join(" · ")),
-    detailRow("Workspace", params.workspaceNeed),
-    detailRow("Start timing", params.targetStart),
-    detailRow("Support needed", params.supportNeeded),
-    detailRow("How they heard", params.howHeard ?? "—"),
-    detailRow("Referral", params.referralName ?? "—"),
-  ].join("")
-
-  const notes = params.message?.trim()
-    ? `<p style="margin:16px 0 8px;font-size:13px;font-weight:600;color:#3f3f46;">Notes</p>
-       <p style="margin:0;font-size:14px;line-height:1.6;">${escapeHtml(params.message.trim())}</p>`
-    : ""
+    { label: "Applicant", value: escapeHtml(params.fullName) },
+    { label: "Email", value: escapeHtml(params.email) },
+    { label: "Phone", value: escapeHtml(params.phone) },
+    { label: "Location", value: escapeHtml(params.location) },
+    { label: "LinkedIn", value: escapeHtml(params.linkedinUrl?.trim() || "—") },
+    { label: "Website", value: escapeHtml(params.websiteUrl?.trim() || "—") },
+    { label: "Organization", value: escapeHtml(params.organization) },
+    { label: "Venture", value: escapeHtml(params.ventureDescription) },
+    { label: "Role", value: escapeHtml(params.role) },
+    { label: "Sector", value: escapeHtml(params.sector) },
+    { label: "Stage", value: escapeHtml(params.ventureStage) },
+    { label: "Looking for", value: escapeHtml(params.primaryNeeds.join(" · ")) },
+    { label: "Workspace", value: escapeHtml(params.workspaceNeed) },
+    { label: "Start timing", value: escapeHtml(params.targetStart) },
+    { label: "Support needed", value: escapeHtml(params.supportNeeded) },
+    { label: "How they heard", value: escapeHtml(params.howHeard?.trim() || "—") },
+    { label: "Referral", value: escapeHtml(params.referralName?.trim() || "—") },
+  ]
 
   return `
-    <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">
-      New <strong>${escapeHtml(STAR_CONNECT_PLAN_NAME)}</strong> membership request — please follow up ${escapeHtml(STAR_CONNECT_RESPONSE_SLA)}.
-    </p>
-    <p style="margin:0 0 16px;font-size:13px;color:#71717a;">${escapeHtml(submitted)} (Nairobi) · ${escapeHtml(STAR_CONNECT_PRICE_LABEL)}</p>
-    <table cellpadding="0" cellspacing="0" style="width:100%;border:1px solid #e4e4e7;border-radius:6px;background:#fafafa;">
-      <tbody>${rows}</tbody>
-    </table>
-    ${notes}
-    <p style="margin:16px 0 0;font-size:13px;color:#3f3f46;">
-      Encourage applicant to book a discovery call:
-      <a href="${escapeHtml(STAR_CONNECT_DISCOVERY_CALL_URL)}">Community Office Hours</a>
-      · Reply-To: applicant email above
-    </p>
+    ${emailParagraph(
+      `New <strong>${escapeHtml(STAR_CONNECT_PLAN_NAME)}</strong> membership request — please follow up ${escapeHtml(STAR_CONNECT_RESPONSE_SLA)}.`
+    )}
+    ${emailMutedNote(`${escapeHtml(submitted)} (Nairobi) · ${escapeHtml(STAR_CONNECT_PRICE_LABEL)}`)}
+    ${emailDetailCard(rows, { title: "Application details" })}
+    ${
+      params.message?.trim()
+        ? emailHighlightBox(`<strong>Notes</strong><br />${escapeHtml(params.message.trim())}`)
+        : ""
+    }
+    ${emailMutedNote(
+      `Encourage applicant to book a discovery call: <a href="${escapeHtml(STAR_CONNECT_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">Community Office Hours</a>`
+    )}
   `
 }
 
@@ -119,6 +114,7 @@ export async function sendStarConnectInquiryStaffEmail(
     html: layoutEmail({
       preheader: `New ${STAR_CONNECT_PLAN_NAME} request`,
       title: "Membership request — Star Connect",
+      eyebrow: "Membership",
       bodyHtml: buildStaffBodyHtml(params),
     }),
     text: buildStarConnectInquiryPlainText(params),
@@ -130,12 +126,20 @@ export async function sendStarConnectInquiryConfirmationEmail(
   params: Pick<StarConnectInquiryPayload, "fullName" | "email">
 ): Promise<SendEmailResult> {
   const firstName = params.fullName.split(/\s+/)[0] || params.fullName
+
   const bodyHtml = `
-    <p>Hi ${escapeHtml(firstName)},</p>
-    <p>Thanks for applying for <strong>${escapeHtml(STAR_CONNECT_PLAN_NAME)}</strong> (${escapeHtml(STAR_CONNECT_PRICE_LABEL)}).</p>
-    <p>We are reviewing your request and will reply <strong>${escapeHtml(STAR_CONNECT_RESPONSE_SLA)}</strong> on business days.</p>
-    <p>Please book a short <strong>discovery call</strong> so we can prepare and confirm next steps:</p>
-    <p style="margin:8px 0 0;font-size:14px;"><a href="${escapeHtml(STAR_CONNECT_DISCOVERY_CALL_URL)}">${escapeHtml(STAR_CONNECT_DISCOVERY_CALL_URL)}</a></p>
+    ${emailGreeting(firstName)}
+    ${emailParagraph(
+      `Thanks for applying for <strong>${escapeHtml(STAR_CONNECT_PLAN_NAME)}</strong> (${escapeHtml(STAR_CONNECT_PRICE_LABEL)}).`
+    )}
+    ${emailParagraph(
+      `We are reviewing your request and will reply <strong>${escapeHtml(STAR_CONNECT_RESPONSE_SLA)}</strong> on business days.`
+    )}
+    ${emailDetailCard(
+      [{ label: "Next step", value: "Book a short discovery call" }],
+      { title: "What happens next" }
+    )}
+    ${emailMutedNote("This helps us prepare and confirm next steps.")}
   `
 
   return sendEmail({
@@ -144,6 +148,7 @@ export async function sendStarConnectInquiryConfirmationEmail(
     html: layoutEmail({
       preheader: `Response ${STAR_CONNECT_RESPONSE_SLA}`,
       title: "Request received",
+      eyebrow: "Membership",
       bodyHtml,
       ctaLabel: "Book discovery call",
       ctaUrl: STAR_CONNECT_DISCOVERY_CALL_URL,

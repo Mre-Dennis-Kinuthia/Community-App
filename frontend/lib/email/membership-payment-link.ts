@@ -1,5 +1,13 @@
 import { sendEmail, type SendEmailResult } from "./send"
-import { escapeHtml, layoutEmail } from "./templates"
+import {
+  escapeHtml,
+  layoutEmail,
+  emailGreeting,
+  emailParagraph,
+  emailDetailCard,
+  emailMutedNote,
+  emailHighlightBox,
+} from "./templates"
 
 function getAppBaseUrl(): string {
   const url =
@@ -21,9 +29,6 @@ export async function sendMembershipPaymentLinkEmail(params: {
   expiresAt: Date
   adminNote?: string | null
 }): Promise<SendEmailResult> {
-  const greeting = params.recipientName
-    ? `Hi ${escapeHtml(params.recipientName)},`
-    : "Hi,"
   const amountLabel = `${params.currency} ${params.amount.toLocaleString()}`
   const intervalLabel = params.interval === "yearly" ? "year" : "month"
   const expires = params.expiresAt.toLocaleDateString("en-KE", {
@@ -32,17 +37,27 @@ export async function sendMembershipPaymentLinkEmail(params: {
     year: "numeric",
   })
 
-  const noteBlock = params.adminNote?.trim()
-    ? `<p><strong>Note from our team:</strong> ${escapeHtml(params.adminNote.trim())}</p>`
-    : ""
-
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>You have been invited to complete your <strong>${escapeHtml(params.planName)}</strong> membership at Impact Hub Nairobi.</p>
-    <p><strong>Amount:</strong> ${escapeHtml(amountLabel)} per ${escapeHtml(intervalLabel)}</p>
-    <p>This secure payment link expires on <strong>${escapeHtml(expires)}</strong>.</p>
-    ${noteBlock}
-    <p>If you do not yet have a community account, you can create one when you open the link using the same email address.</p>
+    ${emailGreeting(params.recipientName)}
+    ${emailParagraph(
+      `You have been invited to complete your <strong>${escapeHtml(params.planName)}</strong> membership at Impact Hub Nairobi.`
+    )}
+    ${emailDetailCard(
+      [
+        { label: "Plan", value: escapeHtml(params.planName) },
+        { label: "Amount", value: `${escapeHtml(amountLabel)} per ${escapeHtml(intervalLabel)}` },
+        { label: "Expires", value: escapeHtml(expires) },
+      ],
+      { title: "Payment details" }
+    )}
+    ${
+      params.adminNote?.trim()
+        ? emailHighlightBox(`<strong>Note from our team</strong><br />${escapeHtml(params.adminNote.trim())}`)
+        : ""
+    }
+    ${emailMutedNote(
+      "If you do not yet have a community account, you can create one when you open the link using the same email address."
+    )}
   `
 
   return sendEmail({
@@ -51,6 +66,7 @@ export async function sendMembershipPaymentLinkEmail(params: {
     html: layoutEmail({
       preheader: `Pay ${amountLabel} for ${params.planName}`,
       title: "Membership payment",
+      eyebrow: "Membership",
       bodyHtml,
       ctaLabel: "Pay membership",
       ctaUrl: params.payUrl,

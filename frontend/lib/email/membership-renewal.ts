@@ -1,6 +1,12 @@
 import { sendEmail } from "./send"
-import { layoutEmail } from "./templates"
-import { escapeHtml } from "./templates"
+import {
+  layoutEmail,
+  escapeHtml,
+  emailGreeting,
+  emailParagraph,
+  emailDetailCard,
+  emailMutedNote,
+} from "./templates"
 
 export async function sendMembershipRenewalReminderEmail(params: {
   to: string
@@ -11,7 +17,6 @@ export async function sendMembershipRenewalReminderEmail(params: {
   renewDate: Date
   billingUrl: string
 }) {
-  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const when = params.renewDate.toLocaleDateString("en-KE", {
     day: "numeric",
     month: "long",
@@ -20,10 +25,17 @@ export async function sendMembershipRenewalReminderEmail(params: {
   const amountLabel = `${params.currency} ${params.amount.toLocaleString()}`
 
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>Your <strong>${escapeHtml(params.planName)}</strong> membership renews on <strong>${escapeHtml(when)}</strong>.</p>
-    <p>Expected amount: ${escapeHtml(amountLabel)}.</p>
-    <p>Update your plan or payment details before the renewal date if needed.</p>
+    ${emailGreeting(params.name)}
+    ${emailParagraph(`Your <strong>${escapeHtml(params.planName)}</strong> membership renews on <strong>${escapeHtml(when)}</strong>.`)}
+    ${emailDetailCard(
+      [
+        { label: "Plan", value: escapeHtml(params.planName) },
+        { label: "Renews", value: escapeHtml(when) },
+        { label: "Expected amount", value: escapeHtml(amountLabel) },
+      ],
+      { title: "Renewal" }
+    )}
+    ${emailMutedNote("Update your plan or payment details before the renewal date if needed.")}
   `
 
   return sendEmail({
@@ -32,6 +44,7 @@ export async function sendMembershipRenewalReminderEmail(params: {
     html: layoutEmail({
       preheader: `Renewal on ${when}`,
       title: "Renewal reminder",
+      eyebrow: "Billing",
       bodyHtml,
       ctaLabel: "Manage billing",
       ctaUrl: params.billingUrl,

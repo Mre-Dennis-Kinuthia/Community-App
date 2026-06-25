@@ -6,7 +6,7 @@ import {
 import { formatBookingAddOnsHtml, formatBookingAddOnsPlainText } from "@/lib/booking-add-ons"
 import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl } from "@/lib/app-url"
 import { formatHubDateTime } from "@/lib/space/hub-timezone"
-import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph, emailDetailCard, emailMutedNote } from "./templates"
+import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph, emailDetailCard, emailMutedNote, emailHighlightBox } from "./templates"
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type EmailAttachment, type SendEmailResult } from "./send"
 
@@ -25,6 +25,7 @@ export async function sendPasswordResetEmail(params: {
     html: layoutEmail({
       preheader: "Password reset link",
       title: "Reset your password",
+      eyebrow: "Account",
       bodyHtml,
       ctaLabel: "Reset password",
       ctaUrl: params.resetUrl,
@@ -116,7 +117,6 @@ export async function sendEventApplicationDecisionEmail(params: {
   decision: "approved" | "rejected" | "promoted"
   calendarInvite?: { content: string; filename: string }
 }): Promise<SendEmailResult> {
-  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const when = formatEventWhen(params.eventStartDate, params.eventTimezone)
 
   const copy =
@@ -142,10 +142,15 @@ export async function sendEventApplicationDecisionEmail(params: {
           }
 
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>${escapeHtml(copy.detail)}</p>
-    <p><strong>${escapeHtml(params.eventTitle)}</strong><br />
-    ${escapeHtml(when)}</p>
+    ${emailGreeting(params.name)}
+    ${emailParagraph(escapeHtml(copy.detail))}
+    ${emailDetailCard(
+      [
+        { label: "Event", value: escapeHtml(params.eventTitle) },
+        { label: "When", value: escapeHtml(when) },
+      ],
+      { title: "Event details" }
+    )}
   `
 
   const attachments: EmailAttachment[] | undefined =
@@ -165,6 +170,7 @@ export async function sendEventApplicationDecisionEmail(params: {
     html: layoutEmail({
       preheader: copy.title,
       title: copy.title,
+      eyebrow: "Events",
       bodyHtml,
       ctaLabel: params.decision === "rejected" ? "View events" : "View event",
       ctaUrl: params.eventUrl,
@@ -182,11 +188,10 @@ export async function sendEventBlastEmail(params: {
   eventTitle: string
   eventUrl: string
 }): Promise<SendEmailResult> {
-  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>${escapeHtml(params.message).replace(/\n/g, "<br />")}</p>
-    <p style="margin-top:16px;color:#71717a;font-size:13px;">Regarding: <strong>${escapeHtml(params.eventTitle)}</strong></p>
+    ${emailGreeting(params.name)}
+    ${emailHighlightBox(escapeHtml(params.message).replace(/\n/g, "<br />"))}
+    ${emailMutedNote(`Regarding: <strong>${escapeHtml(params.eventTitle)}</strong>`)}
   `
 
   return sendEmail({
@@ -195,6 +200,7 @@ export async function sendEventBlastEmail(params: {
     html: layoutEmail({
       preheader: params.blastTitle,
       title: params.blastTitle,
+      eyebrow: "Events",
       bodyHtml,
       ctaLabel: "Open event",
       ctaUrl: params.eventUrl,
@@ -211,13 +217,17 @@ export async function sendEventReminderEmail(params: {
   eventTimezone?: string | null
   eventUrl: string
 }): Promise<SendEmailResult> {
-  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const when = formatEventWhen(params.eventStartDate, params.eventTimezone)
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>This is a reminder that you are registered for an upcoming event.</p>
-    <p><strong>${escapeHtml(params.eventTitle)}</strong><br />
-    ${escapeHtml(when)}</p>
+    ${emailGreeting(params.name)}
+    ${emailParagraph("This is a reminder that you are registered for an upcoming event.")}
+    ${emailDetailCard(
+      [
+        { label: "Event", value: escapeHtml(params.eventTitle) },
+        { label: "When", value: escapeHtml(when) },
+      ],
+      { title: "Event details" }
+    )}
   `
 
   return sendEmail({
@@ -226,6 +236,7 @@ export async function sendEventReminderEmail(params: {
     html: layoutEmail({
       preheader: "Event starting soon",
       title: "Event reminder",
+      eyebrow: "Events",
       bodyHtml,
       ctaLabel: "View event",
       ctaUrl: params.eventUrl,
@@ -240,9 +251,9 @@ export async function sendWorkspaceInquiryConfirmationEmail(params: {
   inquiryLabel: string
 }): Promise<SendEmailResult> {
   const bodyHtml = `
-    <p>Hi ${escapeHtml(params.name)},</p>
-    <p>We received your <strong>${escapeHtml(params.inquiryLabel)}</strong> request.</p>
-    <p>Our team will contact you shortly to discuss availability and pricing.</p>
+    ${emailGreeting(params.name)}
+    ${emailParagraph(`We received your <strong>${escapeHtml(params.inquiryLabel)}</strong> request.`)}
+    ${emailParagraph("Our team will contact you shortly to discuss availability and pricing.")}
   `
 
   return sendEmail({
@@ -251,6 +262,7 @@ export async function sendWorkspaceInquiryConfirmationEmail(params: {
     html: layoutEmail({
       preheader: "Inquiry received",
       title: "Thank you for your inquiry",
+      eyebrow: "Workspace",
       bodyHtml,
     }),
     text: `We received your ${params.inquiryLabel} request. Our team will contact you soon.`,
@@ -360,19 +372,23 @@ export async function sendBookingCancelledEmail(params: {
   startTime: string
   endTime?: string | null
 }): Promise<SendEmailResult> {
-  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const resource = formatResourceType(params.resourceType)
   const when = formatBookingDate(params.date)
   const time = formatBookingTimeRange(params.startTime, params.endTime)
   const bookingsUrl = `${getAppBaseUrl()}/dashboard/bookings`
 
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>Your workspace booking has been cancelled.</p>
-    <p><strong>${escapeHtml(resource)}</strong><br />
-    ${escapeHtml(when)}<br />
-    ${escapeHtml(time)}</p>
-    <p>If you have questions, reply to this email or contact our team.</p>
+    ${emailGreeting(params.name)}
+    ${emailParagraph("Your workspace booking has been cancelled.")}
+    ${emailDetailCard(
+      [
+        { label: "Space", value: escapeHtml(resource) },
+        { label: "Date", value: escapeHtml(when) },
+        { label: "Time", value: escapeHtml(time) },
+      ],
+      { title: "Cancelled booking" }
+    )}
+    ${emailMutedNote("If you have questions, reply to this email or contact our team.")}
   `
 
   return sendEmail({
@@ -381,6 +397,7 @@ export async function sendBookingCancelledEmail(params: {
     html: layoutEmail({
       preheader: "Your booking was cancelled",
       title: "Booking cancelled",
+      eyebrow: "Workspace",
       bodyHtml,
       ctaLabel: "My bookings",
       ctaUrl: bookingsUrl,
@@ -397,14 +414,18 @@ export async function sendEventRegistrationCancelledEmail(params: {
   eventTimezone?: string | null
   eventUrl: string
 }): Promise<SendEmailResult> {
-  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const when = formatEventWhen(params.eventStartDate, params.eventTimezone)
 
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>Your registration has been cancelled for the following event.</p>
-    <p><strong>${escapeHtml(params.eventTitle)}</strong><br />
-    ${escapeHtml(when)}</p>
+    ${emailGreeting(params.name)}
+    ${emailParagraph("Your registration has been cancelled for the following event.")}
+    ${emailDetailCard(
+      [
+        { label: "Event", value: escapeHtml(params.eventTitle) },
+        { label: "When", value: escapeHtml(when) },
+      ],
+      { title: "Event details" }
+    )}
   `
 
   return sendEmail({
@@ -413,6 +434,7 @@ export async function sendEventRegistrationCancelledEmail(params: {
     html: layoutEmail({
       preheader: "Event registration cancelled",
       title: "Registration cancelled",
+      eyebrow: "Events",
       bodyHtml,
       ctaLabel: "Browse events",
       ctaUrl: `${getAppBaseUrl()}/events`,
@@ -455,8 +477,9 @@ export async function sendNewsletterSubscribeEmail(params: {
   const appUrl = getAppBaseUrl()
 
   const bodyHtml = `
-    <p>Thanks for subscribing to Impact Hub Nairobi updates.</p>
-    <p>You will receive news and announcements about events, programs, and the community.</p>
+    ${emailGreeting()}
+    ${emailParagraph("Thanks for subscribing to <strong>Impact Hub Nairobi</strong> updates.")}
+    ${emailParagraph("You will receive news and announcements about events, programs, and the community.")}
   `
 
   return sendEmail({
@@ -465,6 +488,7 @@ export async function sendNewsletterSubscribeEmail(params: {
     html: layoutEmail({
       preheader: "Subscription confirmed",
       title: "Subscription confirmed",
+      eyebrow: "Newsletter",
       bodyHtml,
       ctaLabel: "Visit our site",
       ctaUrl: appUrl,
@@ -480,15 +504,19 @@ export async function sendNewsArticleEmail(params: {
   excerpt?: string | null
   postId: string
 }): Promise<SendEmailResult> {
-  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const articleUrl = getNewsArticleUrl(params.postId)
   const excerpt = params.excerpt?.trim()
 
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>A new article has been published on Impact Hub Nairobi.</p>
-    <p><strong>${escapeHtml(params.title)}</strong></p>
-    ${excerpt ? `<p>${escapeHtml(excerpt)}</p>` : ""}
+    ${emailGreeting(params.name)}
+    ${emailParagraph("A new article has been published on Impact Hub Nairobi.")}
+    ${emailDetailCard(
+      [
+        { label: "Article", value: escapeHtml(params.title) },
+        ...(excerpt ? [{ label: "Preview", value: escapeHtml(excerpt) }] : []),
+      ],
+      { title: "Community news" }
+    )}
   `
 
   return sendEmail({
@@ -497,6 +525,7 @@ export async function sendNewsArticleEmail(params: {
     html: layoutEmail({
       preheader: params.title,
       title: "New community update",
+      eyebrow: "News",
       bodyHtml,
       ctaLabel: "Read article",
       ctaUrl: articleUrl,
@@ -511,12 +540,14 @@ async function sendStaffAlertEmail(params: {
   bodyHtml: string
   text: string
   replyTo?: string
+  eyebrow?: string
 }): Promise<SendEmailResult> {
   return sendEmail({
     to: getEmailStaffTo(),
     subject: params.subject,
     html: layoutEmail({
       title: params.title,
+      eyebrow: params.eyebrow ?? "Staff alert",
       bodyHtml: params.bodyHtml,
     }),
     text: params.text,
@@ -556,20 +587,26 @@ export async function sendNewBookingStaffEmail(params: {
   })
 
   const bodyHtml = `
-    <p>A new workspace booking was created.</p>
-    <p><strong>Member:</strong> ${memberLabel}<br />
-    <strong>Resource:</strong> ${escapeHtml(resource)}<br />
-    <strong>Date:</strong> ${escapeHtml(when)}<br />
-    <strong>Time:</strong> ${escapeHtml(time)}<br />
-    <strong>Total:</strong> KES ${params.totalPrice.toLocaleString("en-KE")}<br />
-    <strong>Reference:</strong> ${escapeHtml(params.bookingId)}</p>
+    ${emailParagraph("A new workspace booking was created.")}
+    ${emailDetailCard(
+      [
+        { label: "Member", value: memberLabel },
+        { label: "Resource", value: escapeHtml(resource) },
+        { label: "Date", value: escapeHtml(when) },
+        { label: "Time", value: escapeHtml(time) },
+        { label: "Total", value: `KES ${params.totalPrice.toLocaleString("en-KE")}` },
+        { label: "Reference", value: escapeHtml(params.bookingId) },
+      ],
+      { title: "Booking details" }
+    )}
     ${addOnsHtml}
-    ${params.notes ? `<p><strong>Notes:</strong> ${escapeHtml(params.notes)}</p>` : ""}
+    ${params.notes ? emailHighlightBox(`<strong>Notes</strong><br />${escapeHtml(params.notes)}`) : ""}
   `
 
   return sendStaffAlertEmail({
     subject: `[Booking] New ${resource} — ${params.memberEmail}`,
     title: "New booking",
+    eyebrow: "Workspace",
     bodyHtml,
     text: `New booking\nMember: ${params.memberName ?? params.memberEmail}\n${resource}\n${when}\n${time}\nAdd-ons:\n${addOnsText}\nKES ${params.totalPrice}`,
     replyTo: params.memberEmail,
@@ -585,13 +622,14 @@ export async function sendNewAccountStaffEmail(params: {
     : escapeHtml(params.email)
 
   const bodyHtml = `
-    <p>A new member account was created.</p>
-    <p><strong>Member:</strong> ${memberLabel}</p>
+    ${emailParagraph("A new member account was created.")}
+    ${emailDetailCard([{ label: "Member", value: memberLabel }], { title: "New account" })}
   `
 
   return sendStaffAlertEmail({
     subject: `[Account] New member — ${params.email}`,
     title: "New account",
+    eyebrow: "Community",
     bodyHtml,
     text: `New account: ${params.name ?? params.email} (${params.email})`,
     replyTo: params.email,
@@ -618,16 +656,22 @@ export async function sendEventRegistrationStaffEmail(params: {
         : "Registered"
 
   const bodyHtml = `
-    <p>New event registration.</p>
-    <p><strong>Member:</strong> ${memberLabel}<br />
-    <strong>Status:</strong> ${escapeHtml(statusLabel)}<br />
-    <strong>Event:</strong> ${escapeHtml(params.eventTitle)}<br />
-    ${escapeHtml(when)}</p>
+    ${emailParagraph("New event registration.")}
+    ${emailDetailCard(
+      [
+        { label: "Member", value: memberLabel },
+        { label: "Status", value: escapeHtml(statusLabel) },
+        { label: "Event", value: escapeHtml(params.eventTitle) },
+        { label: "When", value: escapeHtml(when) },
+      ],
+      { title: "Registration" }
+    )}
   `
 
   return sendStaffAlertEmail({
     subject: `[Event] ${statusLabel} — ${params.eventTitle}`,
     title: "Event registration",
+    eyebrow: "Events",
     bodyHtml,
     text: `Event registration (${statusLabel})\n${params.memberName ?? params.memberEmail}\n${params.eventTitle}\n${when}`,
     replyTo: params.memberEmail,
@@ -638,13 +682,14 @@ export async function sendNewsletterSubscribeStaffEmail(params: {
   email: string
 }): Promise<SendEmailResult> {
   const bodyHtml = `
-    <p>Someone subscribed to the newsletter.</p>
-    <p><strong>Email:</strong> ${escapeHtml(params.email)}</p>
+    ${emailParagraph("Someone subscribed to the newsletter.")}
+    ${emailDetailCard([{ label: "Email", value: escapeHtml(params.email) }], { title: "Subscriber" })}
   `
 
   return sendStaffAlertEmail({
     subject: `[Newsletter] New subscriber — ${params.email}`,
     title: "Newsletter signup",
+    eyebrow: "Newsletter",
     bodyHtml,
     text: `Newsletter subscriber: ${params.email}`,
     replyTo: params.email,
@@ -661,11 +706,16 @@ export async function sendWorkspaceInquiryStaffEmail(params: {
   const staffTo = getEmailStaffTo()
 
   const bodyHtml = `
-    <p><strong>${escapeHtml(params.inquiryLabel)}</strong></p>
-    <p><strong>Name:</strong> ${escapeHtml(params.name)}<br />
-    <strong>Email:</strong> ${escapeHtml(params.email)}<br />
-    <strong>Phone:</strong> ${escapeHtml(params.phone)}</p>
-    <pre style="white-space:pre-wrap;font-family:inherit;background:#f4f4f5;padding:12px;border-radius:6px;font-size:13px;">${escapeHtml(params.details)}</pre>
+    ${emailParagraph(`<strong>${escapeHtml(params.inquiryLabel)}</strong>`)}
+    ${emailDetailCard(
+      [
+        { label: "Name", value: escapeHtml(params.name) },
+        { label: "Email", value: escapeHtml(params.email) },
+        { label: "Phone", value: escapeHtml(params.phone) },
+      ],
+      { title: "Inquiry details" }
+    )}
+    ${emailHighlightBox(escapeHtml(params.details).replace(/\n/g, "<br />"))}
   `
 
   return sendEmail({
@@ -673,6 +723,7 @@ export async function sendWorkspaceInquiryStaffEmail(params: {
     subject: `[Workspace] ${params.inquiryLabel} — ${params.name}`,
     html: layoutEmail({
       title: "New workspace inquiry",
+      eyebrow: "Workspace",
       bodyHtml,
     }),
     text: `${params.inquiryLabel}\n${params.name}\n${params.email}\n${params.phone}\n\n${params.details}`,
@@ -685,18 +736,20 @@ export async function sendAccountDeletedEmail(params: {
   name?: string | null
   deletedBy?: "self" | "admin"
 }): Promise<SendEmailResult> {
-  const greeting = params.name ? `Hi ${escapeHtml(params.name)},` : "Hi,"
   const intro =
     params.deletedBy === "self"
       ? "This confirms that your Impact Hub Nairobi community account was permanently deleted at your request."
       : "This confirms that your Impact Hub Nairobi community account was permanently deleted."
 
   const bodyHtml = `
-    <p>${greeting}</p>
-    <p>${intro}</p>
-    <p>Your profile, sign-in access, bookings, and other personal data tied to this account have been removed from our platform.</p>
-    <p>If you did not request this, contact us immediately at our support channels.</p>
-    <p style="font-size:13px;color:#71717a;">You will no longer receive community emails at this address from this account.</p>
+    ${emailGreeting(params.name)}
+    ${emailParagraph(intro)}
+    ${emailParagraph(
+      "Your profile, sign-in access, bookings, and other personal data tied to this account have been removed from our platform."
+    )}
+    ${emailMutedNote(
+      "If you did not request this, contact us immediately. You will no longer receive community emails at this address from this account."
+    )}
   `
 
   return sendEmail({
@@ -705,10 +758,10 @@ export async function sendAccountDeletedEmail(params: {
     html: layoutEmail({
       preheader: "Account permanently deleted",
       title: "Account deleted",
+      eyebrow: "Account",
       bodyHtml,
     }),
     text: [
-      greeting.replace(/<[^>]+>/g, ""),
       intro,
       "Your profile, sign-in access, bookings, and personal data tied to this account have been removed.",
       "If you did not request this, contact our team immediately.",

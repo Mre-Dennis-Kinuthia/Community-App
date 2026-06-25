@@ -1,6 +1,11 @@
 import { sendEmail, type SendEmailResult } from "./send"
 import { getEmailStaffTo } from "./config"
-import { escapeHtml, layoutEmail } from "./templates"
+import {
+  escapeHtml,
+  layoutEmail,
+  emailParagraph,
+  emailDetailCard,
+} from "./templates"
 
 function getAdminMembershipUrl(): string {
   const base =
@@ -35,19 +40,20 @@ export async function sendNewMembershipStaffEmail(params: {
     params.source === "payment_link" ? "Payment link" : "Self-serve billing"
   const methodLabel = params.method.replace(/_/g, " ")
   const adminUrl = getAdminMembershipUrl()
-  const adminCta = adminUrl
-    ? `<p><a href="${escapeHtml(adminUrl)}">Open membership dashboard</a></p>`
-    : ""
 
   const bodyHtml = `
-    <p>A member completed a membership payment.</p>
-    <p><strong>Member:</strong> ${memberLabel}<br />
-    <strong>Plan:</strong> ${escapeHtml(params.planName)}<br />
-    <strong>Amount:</strong> ${escapeHtml(amountLabel)}<br />
-    <strong>Method:</strong> ${escapeHtml(methodLabel)}<br />
-    <strong>Source:</strong> ${escapeHtml(sourceLabel)}<br />
-    <strong>Active until:</strong> ${escapeHtml(until)}</p>
-    ${adminCta}
+    ${emailParagraph("A member completed a membership payment.")}
+    ${emailDetailCard(
+      [
+        { label: "Member", value: memberLabel },
+        { label: "Plan", value: escapeHtml(params.planName) },
+        { label: "Amount", value: escapeHtml(amountLabel) },
+        { label: "Method", value: escapeHtml(methodLabel) },
+        { label: "Source", value: escapeHtml(sourceLabel) },
+        { label: "Active until", value: escapeHtml(until) },
+      ],
+      { title: "Payment received" }
+    )}
   `
 
   return sendEmail({
@@ -55,7 +61,10 @@ export async function sendNewMembershipStaffEmail(params: {
     subject: `[Membership] ${params.planName} — ${params.memberEmail}`,
     html: layoutEmail({
       title: "New membership payment",
+      eyebrow: "Staff alert",
       bodyHtml,
+      ctaLabel: adminUrl ? "Open membership dashboard" : undefined,
+      ctaUrl: adminUrl || undefined,
     }),
     text: `New membership: ${params.memberName ?? params.memberEmail}\nPlan: ${params.planName}\n${amountLabel}\n${sourceLabel}\nUntil: ${until}`,
     replyTo: params.memberEmail,
