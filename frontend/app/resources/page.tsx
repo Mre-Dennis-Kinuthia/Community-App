@@ -466,12 +466,12 @@ function ResourcesPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid w-full min-w-0 items-stretch gap-4 md:grid-cols-2 md:gap-6">
+              <div className="grid w-full min-w-0 grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
                 {filteredOpportunities.map((item) => (
                   <Link
                     key={item.id}
                     href={`/resources/opportunities/${item.id}`}
-                    className="block h-full min-w-0"
+                    className="block h-full min-w-0 max-w-full overflow-hidden touch-manipulation active:opacity-95"
                   >
                     <OpportunityPreviewCard item={item} className="cursor-pointer" />
                   </Link>

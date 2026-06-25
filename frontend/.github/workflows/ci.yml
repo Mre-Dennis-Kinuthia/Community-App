@@ -35,4 +35,4 @@ jobs:
             exit 1
           fi
 
-      - run: npx eslint .
+      - run: npm run lint
