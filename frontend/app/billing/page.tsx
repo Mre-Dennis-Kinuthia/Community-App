@@ -49,6 +49,14 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
+import {
+  DataList,
+  DataListRow,
+  DataListPrimary,
+  DataListMeta,
+} from "@/components/design/data-list"
+import { StatusDot } from "@/components/design/status-dot"
+import { EmptyState } from "@/components/design/empty-state"
 
 const MEMBERSHIP_EMAIL = `mailto:${HUB_CONTACT_EMAIL}?subject=Impact%20Hub%20Nairobi%20%E2%80%94%20Billing`
 
@@ -94,11 +102,11 @@ interface Invoice {
   pdfUrl: string | null
 }
 
-function invoiceStatusClass(status: string) {
+function invoiceStatusVariant(status: string): "success" | "warning" | "neutral" {
   const s = status.toLowerCase()
-  if (s === "paid" || s === "succeeded") return badgePrimary
-  if (s === "open" || s === "pending" || s === "draft") return badgeNeutral
-  return badgeClassForLabel(status)
+  if (s === "paid" || s === "succeeded") return "success"
+  if (s === "open" || s === "pending" || s === "draft") return "warning"
+  return "neutral"
 }
 
 function normalizeSubscription(raw: unknown): Subscription | null {
@@ -823,104 +831,38 @@ export default function BillingPage() {
         </section>
 
         {/* Invoices */}
-        <Card className="border-border">
+        <Card className="border-border shadow-none">
           <CardHeader className="p-4 pb-2 md:p-6 md:pb-3">
-            <CardTitle className="text-sm md:text-base">Invoices</CardTitle>
+            <CardTitle className="text-sm font-medium md:text-base">Invoices</CardTitle>
             <CardDescription className="text-xs">Recent bills on your account.</CardDescription>
           </CardHeader>
-          <CardContent className="px-0 sm:px-6">
+          <CardContent className="px-4 pb-4 md:px-6">
             {isLoading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : invoices.length === 0 ? (
-              <div className="px-6 py-12 text-center sm:px-0">
-                <Receipt className="mx-auto h-10 w-10 text-muted-foreground/60 mb-3" />
-                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                  No invoices yet. When membership generates a bill, it will appear here with a receipt link
-                  when available.
-                </p>
-              </div>
+              <EmptyState
+                icon={Receipt}
+                title="No invoices yet"
+                description="When membership generates a bill, it will appear here with a receipt link when available."
+              />
             ) : (
-              <ul className="space-y-2 px-4 pb-4 md:hidden">
+              <DataList>
                 {invoices.map((invoice) => (
-                  <li
-                    key={invoice.id}
-                    className="rounded-xl border border-border/80 p-3"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{invoice.invoiceNumber}</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {format(new Date(invoice.createdAt), "MMM d, yyyy")}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        <span className="text-xs font-medium tabular-nums">
-                          {invoice.currency} {invoice.amount.toLocaleString()}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={cn("text-[10px]", invoiceStatusClass(invoice.status))}
-                        >
-                          {invoice.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    {invoice.pdfUrl ? (
-                      <div className="mt-2 flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 flex-1 text-xs"
-                          onClick={() => window.open(invoice.pdfUrl!, "_blank")}
-                        >
-                          <ExternalLink className="mr-1 h-3.5 w-3.5" />
-                          Open
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 flex-1 text-xs"
-                          onClick={() => {
-                            const link = document.createElement("a")
-                            link.href = invoice.pdfUrl!
-                            link.download = `${invoice.invoiceNumber}.pdf`
-                            link.click()
-                          }}
-                        >
-                          <Download className="mr-1 h-3.5 w-3.5" />
-                          PDF
-                        </Button>
-                      </div>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {!isLoading && invoices.length > 0 && (
-              <div className="hidden divide-y divide-border border-t border-border md:block">
-                {invoices.map((invoice) => (
-                  <div
-                    key={invoice.id}
-                    className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <p className="text-sm font-medium truncate">{invoice.invoiceNumber}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(invoice.createdAt), "MMM d, yyyy")}
-                        {invoice.paidAt
-                          ? ` · Paid ${format(new Date(invoice.paidAt), "MMM d, yyyy")}`
-                          : null}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-                      <span className="text-sm font-medium tabular-nums">
+                  <DataListRow key={invoice.id} showChevron={false}>
+                    <DataListPrimary
+                      title={invoice.invoiceNumber}
+                      subtitle={format(new Date(invoice.createdAt), "MMM d, yyyy")}
+                    />
+                    <div className="flex items-center gap-3">
+                      <DataListMeta mono className="hidden sm:inline">
                         {invoice.currency} {invoice.amount.toLocaleString()}
-                      </span>
-                      <Badge variant="outline" className={invoiceStatusClass(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
+                      </DataListMeta>
+                      <StatusDot
+                        label={invoice.status}
+                        variant={invoiceStatusVariant(invoice.status)}
+                      />
                       {invoice.pdfUrl ? (
                         <div className="flex gap-1">
                           <Button
@@ -929,8 +871,8 @@ export default function BillingPage() {
                             className="h-8"
                             onClick={() => window.open(invoice.pdfUrl!, "_blank")}
                           >
-                            <ExternalLink className="mr-1.5 h-4 w-4" />
-                            Open
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:ml-1.5">Open</span>
                           </Button>
                           <Button
                             variant="ghost"
@@ -943,15 +885,15 @@ export default function BillingPage() {
                               link.click()
                             }}
                           >
-                            <Download className="mr-1.5 h-4 w-4" />
-                            PDF
+                            <Download className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:ml-1.5">PDF</span>
                           </Button>
                         </div>
                       ) : null}
                     </div>
-                  </div>
+                  </DataListRow>
                 ))}
-              </div>
+              </DataList>
             )}
           </CardContent>
         </Card>
