@@ -17,7 +17,7 @@ const opportunityStatusColors: Record<string, string> = {
 
 const MAX_TAGS = 3
 const TITLE_MAX = 90
-const SUMMARY_MAX = 160
+const SUMMARY_MAX = 140
 const SOURCE_MAX = 48
 const TAG_MAX = 24
 
@@ -39,58 +39,73 @@ export function OpportunityPreviewCard({ item, className }: OpportunityPreviewCa
   return (
     <Card
       className={cn(
-        "flex h-full min-h-[280px] flex-col overflow-hidden border-border transition-all hover:border-primary/30 hover:bg-muted/20",
+        "flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden border-border transition-colors",
+        "active:bg-muted/30 md:min-h-[280px] md:hover:border-primary/30 md:hover:bg-muted/20",
         className
       )}
     >
       {flier ? (
-        <div className="aspect-[16/9] w-full shrink-0 overflow-hidden border-b border-border bg-muted">
+        <div className="aspect-[16/9] w-full shrink-0 overflow-hidden border-b border-border bg-muted sm:aspect-[2/1]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={flier} alt="" className="h-full w-full object-cover" loading="lazy" />
         </div>
       ) : null}
 
-      <CardHeader className="min-w-0 space-y-2 pb-2">
+      <CardHeader className="min-w-0 space-y-2 px-3 pb-2 pt-3 sm:px-4 sm:pt-4">
         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
           {item.featured ? (
-            <Badge className="shrink-0 bg-primary/10 text-primary border-primary/20">Featured</Badge>
+            <Badge className="shrink-0 bg-primary/10 text-primary border-primary/20 text-[10px] sm:text-xs">
+              Featured
+            </Badge>
           ) : null}
-          <Badge className={cn("shrink-0", opportunityStatusColors[item.status] ?? "")}>
+          <Badge
+            className={cn(
+              "shrink-0 text-[10px] sm:text-xs",
+              opportunityStatusColors[item.status] ?? ""
+            )}
+          >
             {statusLabel}
           </Badge>
           {source ? (
-            <Badge variant="secondary" className="max-w-full truncate text-xs font-normal">
+            <Badge
+              variant="secondary"
+              className="hidden min-w-0 max-w-full truncate text-[10px] font-normal sm:inline-flex sm:text-xs"
+            >
               {source}
             </Badge>
           ) : null}
         </div>
 
-        <CardTitle className="line-clamp-2 break-words text-base leading-snug md:text-lg">
+        <CardTitle className="line-clamp-2 break-words text-[15px] leading-snug sm:text-base md:text-lg">
           {title}
         </CardTitle>
 
+        {source ? (
+          <p className="truncate text-[11px] text-muted-foreground sm:hidden">{source}</p>
+        ) : null}
+
         {summary ? (
-          <CardDescription className="line-clamp-2 text-sm leading-relaxed">
+          <CardDescription className="line-clamp-2 text-xs leading-relaxed sm:text-sm">
             {summary}
           </CardDescription>
         ) : null}
       </CardHeader>
 
-      <CardContent className="mt-auto flex min-w-0 flex-1 flex-col gap-3 pt-0">
+      <CardContent className="mt-auto flex min-w-0 flex-1 flex-col gap-2.5 px-3 pb-3 pt-0 sm:gap-3 sm:px-4 sm:pb-4">
         {tags.length > 0 ? (
           <div className="flex min-w-0 flex-wrap gap-1">
             {tags.map((tag) => (
               <Badge
                 key={tag}
                 variant="outline"
-                className="max-w-[9rem] truncate text-xs font-normal"
+                className="max-w-[7.5rem] truncate text-[10px] font-normal sm:max-w-[9rem] sm:text-xs"
                 title={tag}
               >
                 {opportunityCardText(tag, TAG_MAX) ?? tag}
               </Badge>
             ))}
             {extraTags > 0 ? (
-              <Badge variant="outline" className="text-xs font-normal">
+              <Badge variant="outline" className="text-[10px] font-normal sm:text-xs">
                 +{extraTags}
               </Badge>
             ) : null}
@@ -100,14 +115,14 @@ export function OpportunityPreviewCard({ item, className }: OpportunityPreviewCa
         )}
 
         {item.deadline ? (
-          <p className="truncate text-xs text-muted-foreground">
+          <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
             Apply by {format(new Date(item.deadline), "MMM d, yyyy")}
           </p>
         ) : null}
 
         <Badge
           variant={item.status === "open" ? "default" : "secondary"}
-          className="w-full justify-center py-2 text-center text-xs font-medium"
+          className="w-full justify-center py-2.5 text-center text-[11px] font-medium sm:py-2 sm:text-xs"
         >
           {item.status === "open" ? "View & apply →" : "View details →"}
         </Badge>
