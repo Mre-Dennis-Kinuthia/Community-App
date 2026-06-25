@@ -5,6 +5,7 @@ import {
 } from "@/lib/booking-format"
 import { formatBookingAddOnsHtml, formatBookingAddOnsPlainText } from "@/lib/booking-add-ons"
 import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl } from "@/lib/app-url"
+import { formatHubDateTime } from "@/lib/space/hub-timezone"
 import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph, emailDetailCard, emailMutedNote } from "./templates"
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type EmailAttachment, type SendEmailResult } from "./send"
@@ -758,6 +759,54 @@ export async function sendVisitorRegisteredEmail(params: {
       ctaUrl: params.dashboardUrl ?? `${appUrl}/dashboard/visitors`,
     }),
     text: `Visitor ${params.visitorName} expected on ${when}.`,
+  })
+}
+
+export async function sendVisitorRegisteredStaffEmail(params: {
+  visitorName: string
+  hostName?: string | null
+  hostEmail?: string | null
+  expectedAt: Date
+  locationName?: string | null
+  company?: string | null
+  purpose?: string | null
+  registeredBy: "member" | "admin"
+  frontDeskUrl?: string
+}): Promise<SendEmailResult> {
+  const when = formatHubDateTime(params.expectedAt)
+  const hostLabel = params.hostName
+    ? `${params.hostName}${params.hostEmail ? ` (${params.hostEmail})` : ""}`
+    : params.hostEmail || "Unknown host"
+  const registeredByLabel =
+    params.registeredBy === "member" ? "Member pre-registration" : "Front desk walk-in"
+
+  const rows = [
+    { label: "Guest", value: escapeHtml(params.visitorName) },
+    { label: "Host", value: escapeHtml(hostLabel) },
+    { label: "Expected", value: escapeHtml(when) },
+  ]
+  if (params.locationName) rows.push({ label: "Hub", value: escapeHtml(params.locationName) })
+  if (params.company) rows.push({ label: "Company", value: escapeHtml(params.company) })
+  if (params.purpose) rows.push({ label: "Purpose", value: escapeHtml(params.purpose) })
+
+  const bodyHtml = `
+    ${emailParagraph(`A new visitor has been registered via <strong>${escapeHtml(registeredByLabel)}</strong>.`)}
+    ${emailDetailCard(rows, { title: "Front desk alert" })}
+    ${emailMutedNote("Please have reception ready for this guest at the expected time.")}
+  `
+
+  return sendEmail({
+    to: getEmailStaffTo(),
+    subject: `[Front desk] Visitor registered — ${params.visitorName}`,
+    html: layoutEmail({
+      preheader: `${params.visitorName} expected ${when}`,
+      title: "New visitor registered",
+      eyebrow: "Front desk",
+      bodyHtml,
+      ctaLabel: params.frontDeskUrl ? "Open front desk" : undefined,
+      ctaUrl: params.frontDeskUrl || undefined,
+    }),
+    text: `New visitor: ${params.visitorName}\nHost: ${hostLabel}\nExpected: ${when}`,
   })
 }
 

@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
-import { createNotification } from "@/lib/notifications"
-import { sendEmailInBackground } from "@/lib/email/send"
-import { sendVisitorRegisteredEmail } from "@/lib/email/messages"
+import { notifyVisitorRegistered } from "@/lib/space/visitor-notify"
 import { LocationResolutionError, resolveLocationId } from "@/lib/space/locations"
 import { z } from "zod"
 
@@ -23,39 +21,6 @@ async function resolveUserId(session: Awaited<ReturnType<typeof auth>>) {
   if (!session?.user?.id) return null
   const user = await prisma.user.findUnique({ where: { id: session.user.id } })
   return user?.id ?? null
-}
-
-async function notifyHostVisitorRegistered(
-  hostUserId: string,
-  visitorName: string,
-  expectedAt: Date
-) {
-  const host = await prisma.user.findUnique({
-    where: { id: hostUserId },
-    select: { email: true, name: true },
-  })
-
-  await createNotification({
-    userId: hostUserId,
-    title: "Visitor registered",
-    message: `${visitorName} is expected on ${expectedAt.toLocaleString("en-KE")}.`,
-    type: "info",
-    category: "visitor",
-    actionUrl: "/dashboard",
-  })
-
-  if (host?.email) {
-    sendEmailInBackground(
-      () =>
-        sendVisitorRegisteredEmail({
-          to: host.email!,
-          hostName: host.name,
-          visitorName,
-          expectedAt,
-        }),
-      "visitor-registered"
-    )
-  }
 }
 
 export async function GET() {
@@ -117,10 +82,21 @@ export async function POST(request: NextRequest) {
         createdBy: userId,
         status: "expected",
       },
-      include: { location: { select: { id: true, name: true } } },
+      include: {
+        location: { select: { id: true, name: true } },
+        host: { select: { id: true, name: true, email: true } },
+      },
     })
 
-    await notifyHostVisitorRegistered(userId, visitor.name, visitor.expectedAt)
+    await notifyVisitorRegistered({
+      id: visitor.id,
+      name: visitor.name,
+      company: visitor.company,
+      purpose: visitor.purpose,
+      expectedAt: visitor.expectedAt,
+      hostUserId: userId,
+      location: visitor.location,
+    })
 
     return NextResponse.json({ visitor }, { status: 201 })
   } catch (error) {
