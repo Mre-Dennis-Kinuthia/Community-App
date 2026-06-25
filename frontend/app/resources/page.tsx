@@ -34,9 +34,8 @@ import {
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import Link from "next/link"
 import { Loader2 } from "lucide-react"
-import { format } from "date-fns"
-import { getImageDisplayUrl } from "@/lib/stored-image"
-import { OPPORTUNITY_STATUS_LABELS, type OpportunityStatus } from "@/lib/community-opportunity"
+import { OPPORTUNITY_STATUS_LABELS } from "@/lib/community-opportunity"
+import { OpportunityPreviewCard } from "@/components/opportunities/opportunity-preview-card"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
@@ -57,11 +56,6 @@ const typeColors: Record<string, string> = {
   DOCX: "bg-muted text-muted-foreground border border-border",
   Link: "bg-muted text-muted-foreground border border-border",
   Video: "bg-muted text-muted-foreground border border-border",
-}
-
-const opportunityStatusColors: Record<string, string> = {
-  open: "bg-primary/10 text-primary border-primary/20",
-  closed: "bg-muted text-muted-foreground border border-border",
 }
 
 function ResourcesPageContent() {
@@ -472,65 +466,16 @@ function ResourcesPageContent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 w-full min-w-0">
-                {filteredOpportunities.map((item) => {
-                  const flier = item.flierUrl ? getImageDisplayUrl(item.flierUrl) : undefined
-                  const statusLabel =
-                    OPPORTUNITY_STATUS_LABELS[item.status as OpportunityStatus] ?? item.status
-                  return (
-                    <Link key={item.id} href={`/resources/opportunities/${item.id}`}>
-                      <Card className="border-border h-full transition-all hover:border-primary/30 hover:bg-muted/20 cursor-pointer overflow-hidden">
-                        {flier ? (
-                          <div className="aspect-[2/1] w-full overflow-hidden border-b border-border">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={flier} alt="" className="h-full w-full object-cover" loading="lazy" />
-                          </div>
-                        ) : null}
-                        <CardHeader className="pb-2">
-                          <div className="flex flex-wrap gap-2">
-                            {item.featured ? (
-                              <Badge className="bg-primary/10 text-primary border-primary/20">
-                                Featured
-                              </Badge>
-                            ) : null}
-                            <Badge className={opportunityStatusColors[item.status] ?? ""}>
-                              {statusLabel}
-                            </Badge>
-                            {item.source ? (
-                              <Badge variant="secondary" className="text-xs">
-                                {item.source}
-                              </Badge>
-                            ) : null}
-                          </div>
-                          <CardTitle className="text-lg leading-snug">{item.title}</CardTitle>
-                          {item.summary ? (
-                            <CardDescription className="line-clamp-2">{item.summary}</CardDescription>
-                          ) : null}
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div className="flex flex-wrap gap-1">
-                            {(item.tags ?? []).slice(0, 4).map((tag: string) => (
-                              <Badge key={tag} variant="outline" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                          {item.deadline ? (
-                            <p className="text-xs text-muted-foreground">
-                              Apply by {format(new Date(item.deadline), "MMM d, yyyy")}
-                            </p>
-                          ) : null}
-                          <Badge
-                            variant={item.status === "open" ? "default" : "secondary"}
-                            className="w-full justify-center py-2"
-                          >
-                            {item.status === "open" ? "View & apply →" : "View details →"}
-                          </Badge>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  )
-                })}
+              <div className="grid w-full min-w-0 items-stretch gap-4 md:grid-cols-2 md:gap-6">
+                {filteredOpportunities.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`/resources/opportunities/${item.id}`}
+                    className="block h-full min-w-0"
+                  >
+                    <OpportunityPreviewCard item={item} className="cursor-pointer" />
+                  </Link>
+                ))}
               </div>
             )}
         </div>

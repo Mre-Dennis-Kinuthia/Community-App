@@ -70,3 +70,25 @@ export function opportunityApplyEnabled(status: string, deadline: Date | null): 
   if (!deadline) return true
   return deadline.getTime() >= Date.now()
 }
+
+/** Strip HTML and clamp text for compact card previews. */
+export function opportunityCardText(
+  value: string | null | undefined,
+  maxLength: number
+): string | null {
+  const plain = (value ?? "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/p>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+  if (!plain) return null
+  if (plain.length <= maxLength) return plain
+  return `${plain.slice(0, maxLength - 1).trimEnd()}…`
+}
+
+export type OpportunityPreviewItem = Pick<
+  CommunityOpportunityRecord,
+  "id" | "title" | "summary" | "flierUrl" | "status" | "featured" | "source" | "tags" | "deadline"
+>
