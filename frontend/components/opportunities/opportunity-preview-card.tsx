@@ -39,15 +39,20 @@ export function OpportunityPreviewCard({ item, className }: OpportunityPreviewCa
   return (
     <Card
       className={cn(
-        "flex h-full min-h-0 w-full max-w-full flex-col overflow-hidden border-border transition-colors",
-        "active:bg-muted/30 md:min-h-[280px] md:hover:border-primary/30 md:hover:bg-muted/20",
+        "flex h-full min-h-0 w-full min-w-0 max-w-full flex-col overflow-hidden border-border transition-colors",
+        "active:bg-muted/30 md:min-h-[260px] md:hover:border-primary/30 md:hover:bg-muted/20",
         className
       )}
     >
       {flier ? (
-        <div className="aspect-[16/9] w-full shrink-0 overflow-hidden border-b border-border bg-muted sm:aspect-[2/1]">
+        <div className="flex w-full min-w-0 shrink-0 items-center justify-center overflow-hidden border-b border-border bg-muted sm:aspect-[16/9] sm:block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={flier} alt="" className="h-full w-full object-cover" loading="lazy" />
+          <img
+            src={flier}
+            alt=""
+            className="max-h-40 w-full object-contain sm:h-full sm:max-h-none sm:object-cover"
+            loading="lazy"
+          />
         </div>
       ) : null}
 
@@ -76,7 +81,7 @@ export function OpportunityPreviewCard({ item, className }: OpportunityPreviewCa
           ) : null}
         </div>
 
-        <CardTitle className="line-clamp-2 break-words text-[15px] leading-snug sm:text-base md:text-lg">
+        <CardTitle className="line-clamp-3 break-words text-sm leading-snug sm:line-clamp-2 sm:text-base md:text-lg">
           {title}
         </CardTitle>
 

@@ -471,7 +471,7 @@ function ResourcesPageContent() {
                   <Link
                     key={item.id}
                     href={`/resources/opportunities/${item.id}`}
-                    className="block h-full min-w-0 max-w-full touch-manipulation active:opacity-95"
+                    className="block h-full min-w-0 max-w-full overflow-hidden touch-manipulation active:opacity-95"
                   >
                     <OpportunityPreviewCard item={item} className="cursor-pointer" />
                   </Link>
