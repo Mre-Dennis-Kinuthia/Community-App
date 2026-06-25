@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { buildSimpleInvoicePdf } from "@/lib/finance/invoice-pdf"
+import { buildBrandedInvoicePdf, invoiceRecordToPdfInput } from "@/lib/finance/invoice-pdf"
 
 export async function GET(
   _request: NextRequest,
@@ -26,20 +26,7 @@ export async function GET(
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 })
     }
 
-    const lines = [
-      "Impact Hub Nairobi",
-      "INVOICE",
-      `Number: ${invoice.invoiceNumber}`,
-      `Date: ${invoice.createdAt.toLocaleDateString("en-KE")}`,
-      `Bill to: ${invoice.user.name || invoice.user.email}`,
-      `Amount: ${invoice.currency} ${Number(invoice.amount).toLocaleString()}`,
-      `Status: ${invoice.status}`,
-      invoice.dueDate ? `Due: ${invoice.dueDate.toLocaleDateString("en-KE")}` : "",
-      invoice.paidAt ? `Paid: ${invoice.paidAt.toLocaleDateString("en-KE")}` : "",
-      invoice.subscription?.plan ? `Plan: ${invoice.subscription.plan.name}` : "",
-    ].filter(Boolean)
-
-    const pdfBytes = buildSimpleInvoicePdf(lines)
+    const pdfBytes = await buildBrandedInvoicePdf(invoiceRecordToPdfInput(invoice))
     const pdfPath = `/api/billing/invoices/${invoice.id}/pdf`
 
     if (!invoice.pdfUrl) {
