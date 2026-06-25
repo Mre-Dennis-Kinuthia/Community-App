@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { createNotification } from "@/lib/notifications"
 import { z } from "zod"
 
 const createNotificationSchema = z.object({
@@ -131,15 +132,19 @@ export async function POST(request: NextRequest) {
 
     const validatedData = createNotificationSchema.parse(body)
 
-    // If userId is not provided, use the current user's ID
-    const userId = validatedData.userId || session.user.id
+    const userId = validatedData.userId ?? session.user.id
 
-    const notification = await prisma.notification.create({
-      data: {
-        ...validatedData,
-        userId,
-      },
+    const notification = await createNotification({
+      ...validatedData,
+      userId,
     })
+
+    if (!notification) {
+      return NextResponse.json(
+        { error: "Failed to create notification" },
+        { status: 500 }
+      )
+    }
 
     console.log("[NOTIFICATIONS API] Notification created:", notification.id)
 

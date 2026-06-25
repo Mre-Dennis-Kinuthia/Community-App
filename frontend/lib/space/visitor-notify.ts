@@ -37,6 +37,7 @@ export async function notifyVisitorRegistered(visitor: VisitorNotifyPayload) {
     type: "info",
     category: "visitor",
     actionUrl: "/dashboard/visitors",
+    skipEmail: true,
   })
 
   if (host?.email) {

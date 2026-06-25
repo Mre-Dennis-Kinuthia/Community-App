@@ -426,6 +426,7 @@ export async function POST(request: NextRequest) {
     await createNotification({
       userId: userId,
       ...notificationParams,
+      skipEmail: true,
     })
 
     const { syncAccessForBooking } = await import("@/lib/integrations/access-control")

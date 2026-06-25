@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client"
-import { sendEmail, sendEmailInBackground } from "@/lib/email/send"
+import { createNotification } from "@/lib/notifications"
+import { sendEmailInBackground } from "@/lib/email/send"
 import {
   sendInvoiceReminderEmail,
   sendSubscriptionRenewalReminderEmail,
@@ -89,6 +90,7 @@ export async function runBillingReminderJobs(prisma: PrismaClient) {
       actionUrl: "/billing",
       relatedId: invoice.id,
       relatedType: "invoice",
+      skipEmail: true,
     })
 
     if (invoice.user.email) {
@@ -127,6 +129,7 @@ export async function runBillingReminderJobs(prisma: PrismaClient) {
       actionUrl: "/billing",
       relatedId: sub.id,
       relatedType: "subscription",
+      skipEmail: true,
     })
 
     if (sub.user.email) {

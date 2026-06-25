@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma"
+import { deliverNotificationEmails } from "@/lib/notification-email"
 
 export interface CreateNotificationParams {
-  userId: string
+  userId?: string | null
   title: string
   message: string
   type?: "info" | "success" | "warning" | "error"
@@ -9,17 +10,19 @@ export interface CreateNotificationParams {
   actionUrl?: string
   relatedId?: string
   relatedType?: string
+  /** Set when a dedicated transactional email is sent separately */
+  skipEmail?: boolean
 }
 
 /**
- * Create a notification for a user
- * This is a utility function that can be used throughout the app
+ * Create a notification for a user (or broadcast when userId is null)
+ * and queue a matching email when configured.
  */
 export async function createNotification(params: CreateNotificationParams) {
   try {
     const notification = await prisma.notification.create({
       data: {
-        userId: params.userId,
+        userId: params.userId ?? null,
         title: params.title,
         message: params.message,
         type: params.type || "info",
@@ -30,11 +33,18 @@ export async function createNotification(params: CreateNotificationParams) {
       },
     })
 
+    void deliverNotificationEmails({
+      userId: params.userId,
+      title: params.title,
+      message: params.message,
+      actionUrl: params.actionUrl,
+      skipEmail: params.skipEmail,
+    })
+
     console.log("[NOTIFICATIONS] Created notification:", notification.id)
     return notification
   } catch (error) {
     console.error("[NOTIFICATIONS] Error creating notification:", error)
-    // Don't throw - notifications are non-critical
     return null
   }
 }
@@ -63,6 +73,14 @@ export async function createBroadcastNotification(
         })
       )
     )
+
+    void deliverNotificationEmails({
+      userIds,
+      title: params.title,
+      message: params.message,
+      actionUrl: params.actionUrl,
+      skipEmail: params.skipEmail,
+    })
 
     console.log("[NOTIFICATIONS] Created", notifications.length, "broadcast notifications")
     return notifications
