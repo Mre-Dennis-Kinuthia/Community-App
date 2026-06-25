@@ -17,28 +17,23 @@ export function LandingPartnerLogo({ partner, className }: LandingPartnerLogoPro
   const content = (
     <div
       className={cn(
-        "group flex h-24 flex-col items-center justify-center gap-2 rounded-md border border-border/90 bg-card px-4 py-5 shadow-sm shadow-black/[0.02] transition-colors",
-        "hover:border-foreground/25",
+        "group flex h-20 flex-col items-center justify-center gap-2 rounded-md border border-border bg-card px-4 py-4 transition-colors hover:bg-muted/40",
         className
       )}
     >
-      <div className="relative flex h-10 w-full max-w-[140px] items-center justify-center text-muted-foreground">
+      <div className="relative flex h-9 w-full max-w-[130px] items-center justify-center">
         <Image
           src={partner.logo}
           alt={partner.name}
-          width={140}
-          height={40}
+          width={130}
+          height={36}
           className={cn(
-            "max-h-9 w-auto object-contain",
-            "opacity-[0.55] grayscale contrast-[0.92]",
-            "transition-all duration-300 ease-out",
-            "group-hover:opacity-[0.88] group-hover:grayscale-[0.35] group-hover:contrast-100",
-            "dark:opacity-[0.5] dark:brightness-[1.15] dark:contrast-[0.9]",
-            "dark:group-hover:opacity-[0.92] dark:group-hover:brightness-100"
+            "max-h-8 w-auto object-contain opacity-60 grayscale transition-all duration-200",
+            "group-hover:opacity-90 group-hover:grayscale-0"
           )}
         />
       </div>
-      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70 transition-colors group-hover:text-muted-foreground">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
         {partner.name}
       </span>
     </div>
@@ -50,7 +45,7 @@ export function LandingPartnerLogo({ partner, className }: LandingPartnerLogoPro
         href={partner.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md"
+        className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={`${partner.name} (opens in new tab)`}
       >
         {content}
