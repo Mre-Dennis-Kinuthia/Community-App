@@ -57,6 +57,7 @@ import {
 } from "@/components/design/data-list"
 import { StatusDot } from "@/components/design/status-dot"
 import { EmptyState } from "@/components/design/empty-state"
+import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
 
 const MEMBERSHIP_EMAIL = `mailto:${HUB_CONTACT_EMAIL}?subject=Impact%20Hub%20Nairobi%20%E2%80%94%20Billing`
 
@@ -374,6 +375,30 @@ export default function BillingPage() {
             </a>
           </Button>
         </div>
+
+        {!isLoading ? (
+          <MetricCardGrid className="sm:grid-cols-3">
+            <MetricCard
+              label="Current plan"
+              value={hasPlan ? subscription!.plan.name : "None"}
+              description={
+                hasPlan
+                  ? `${subscription!.plan.currency} ${subscription!.plan.price.toLocaleString()}/${subscription!.plan.interval === "yearly" ? "yr" : "mo"}`
+                  : "No active subscription"
+              }
+              icon={CreditCard}
+            />
+            <MetricCard label="Invoices" value={invoices.length} icon={Receipt} />
+            <MetricCard
+              label="Next renewal"
+              value={
+                hasPlan
+                  ? format(new Date(subscription!.currentPeriodEnd), "MMM d")
+                  : "—"
+              }
+            />
+          </MetricCardGrid>
+        ) : null}
 
         {/* Plan summary — compact */}
         <section className="overflow-hidden rounded-xl border border-border/80 bg-card">
@@ -831,24 +856,20 @@ export default function BillingPage() {
         </section>
 
         {/* Invoices */}
-        <Card className="border-border shadow-none">
-          <CardHeader className="p-4 pb-2 md:p-6 md:pb-3">
-            <CardTitle className="text-sm font-medium md:text-base">Invoices</CardTitle>
-            <CardDescription className="text-xs">Recent bills on your account.</CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 pb-4 md:px-6">
-            {isLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : invoices.length === 0 ? (
-              <EmptyState
-                icon={Receipt}
-                title="No invoices yet"
-                description="When membership generates a bill, it will appear here with a receipt link when available."
-              />
-            ) : (
-              <DataList>
+        <section className="space-y-2">
+          <h2 className="section-label">Invoices</h2>
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : invoices.length === 0 ? (
+            <EmptyState
+              icon={Receipt}
+              title="No invoices yet"
+              description="When membership generates a bill, it will appear here with a receipt link when available."
+            />
+          ) : (
+            <DataList>
                 {invoices.map((invoice) => (
                   <DataListRow key={invoice.id} showChevron={false}>
                     <DataListPrimary
@@ -894,9 +915,8 @@ export default function BillingPage() {
                   </DataListRow>
                 ))}
               </DataList>
-            )}
-          </CardContent>
-        </Card>
+          )}
+        </section>
 
         <div className="flex gap-2 rounded-md border border-dashed border-border bg-muted/20 px-3 py-2.5 text-xs text-muted-foreground sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
           <HelpCircle className="h-5 w-5 shrink-0 text-foreground/70" />

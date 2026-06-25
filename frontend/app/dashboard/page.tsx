@@ -2,8 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { CalendarDays, Users2, CheckCircle2, ArrowUpRight, ExternalLink, HelpCircle, Sparkles, X, Plus } from "lucide-react"
+import { CalendarDays, Users2, CheckCircle2, Sparkles, X, Plus } from "lucide-react"
 import Link from "next/link"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import {
@@ -12,12 +11,6 @@ import {
 } from "@/components/mobile/mobile-page-shell"
 import { useState, useEffect } from "react"
 import useSWR from "swr"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { WelcomeModal } from "@/components/welcome-modal"
 import { DashboardSpaceWidget } from "@/components/dashboard-space-widget"
 import {
@@ -27,6 +20,15 @@ import {
 import { DashboardAnnouncements } from "@/components/dashboard-announcements"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
+import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
+import {
+  DataList,
+  DataListRow,
+  DataListPrimary,
+  DataListMeta,
+} from "@/components/design/data-list"
+import { StatusDot } from "@/components/design/status-dot"
+import { EmptyState } from "@/components/design/empty-state"
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -164,7 +166,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <TooltipProvider>
+    <>
       <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
       <div className="space-y-6 md:space-y-10">
         <MobileBreadcrumbsHidden>
@@ -261,211 +263,118 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <div className="hidden gap-5 md:grid md:grid-cols-2 lg:grid-cols-3">
-          <Card 
-            className="cursor-pointer transition-colors hover:bg-muted/30 focus-within:ring-2 focus-within:ring-ring" 
-            onClick={() => window.location.href = "/profile"}
-            role="button"
-            tabIndex={0}
-            aria-label="View community status and profile"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault()
-                window.location.href = "/profile"
-              }
-            }}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-sm font-medium">Community Status</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">Your current membership tier. Active members have full access to workspace, events, and community features.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <Users2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">Active</div>
-              <p className="text-xs text-muted-foreground">Fixed Desk Plan</p>
-            </CardContent>
-          </Card>
-          <Card 
-            className="cursor-pointer transition-colors hover:bg-muted/30 focus-within:ring-2 focus-within:ring-ring" 
-            onClick={() => window.location.href = "/events"}
-            role="button"
-            tabIndex={0}
-            aria-label="View upcoming events"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault()
-                window.location.href = "/events"
-              }
-            }}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
-              <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold min-h-[2rem] flex items-center">
-                {isLoadingStats ? (
-                  <span className="text-muted-foreground animate-pulse">...</span>
-                ) : (
-                  <span className="transition-opacity duration-150 ease-out opacity-100">
-                    {statsWithDefaults.upcomingEvents}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">This week</p>
-            </CardContent>
-          </Card>
-          <Card 
-            className="cursor-pointer transition-colors hover:bg-muted/30 focus-within:ring-2 focus-within:ring-ring" 
-            onClick={() => window.location.href = "/community"}
-            role="button"
-            tabIndex={0}
-            aria-label="View community directory"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault()
-                window.location.href = "/community"
-              }
-            }}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Community Members</CardTitle>
-              <Users2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold min-h-[2rem] flex items-center">
-                {isLoadingStats ? (
-                  <span className="text-muted-foreground animate-pulse">...</span>
-                ) : (
-                  <span className="transition-opacity duration-150 ease-out opacity-100">{statsWithDefaults.activeMembers}</span>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">Active members</p>
-            </CardContent>
-          </Card>
+        <div className="hidden md:block">
+          <MetricCardGrid>
+            <MetricCard
+              label="Upcoming events"
+              value={isLoadingStats ? "…" : statsWithDefaults.upcomingEvents}
+              description="This week"
+              icon={CalendarDays}
+              href="/events"
+            />
+            <MetricCard
+              label="Community members"
+              value={isLoadingStats ? "…" : statsWithDefaults.activeMembers}
+              description="Active on platform"
+              icon={Users2}
+              href="/community"
+            />
+            <MetricCard
+              label="Your connections"
+              value={isLoadingStats ? "…" : statsWithDefaults.userConnections}
+              icon={CheckCircle2}
+              href="/community?tab=connections"
+            />
+          </MetricCardGrid>
         </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Upcoming Bookings</CardTitle>
-            <CardDescription>Your scheduled space reservations for this week.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="section-label">Upcoming bookings</h2>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard/bookings">View all</Link>
+              </Button>
+            </div>
             {isLoadingBookings ? (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-sm text-muted-foreground">Loading bookings...</p>
+              <div className="flex justify-center py-8 text-sm text-muted-foreground">
+                Loading bookings…
               </div>
             ) : upcomingBookings.length === 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-center py-8 text-center">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">No upcoming bookings</p>
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/booking">Book a workspace</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <EmptyState
+                title="No upcoming bookings"
+                action={
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/booking">Book a workspace</Link>
+                  </Button>
+                }
+                className="py-8"
+              />
             ) : (
-              <>
-                <div className="space-y-4">
-                  {upcomingBookings.map((booking) => {
-                    const display = formatBookingDisplay(booking)
-                    return (
-                      <div key={booking.id} className="flex items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium leading-none">{display.room}</p>
-                          <p className="text-xs text-muted-foreground">{display.time}</p>
-                        </div>
-                        <Badge variant={display.status === "Confirmed" ? "default" : "secondary"}>
-                          {display.status}
-                        </Badge>
-                      </div>
-                    )
-                  })}
-                </div>
-                <Button variant="outline" className="mt-4 w-full bg-transparent" asChild>
-                  <Link href="/booking">
-                    View All Bookings
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </>
+              <DataList>
+                {upcomingBookings.map((booking) => {
+                  const display = formatBookingDisplay(booking)
+                  return (
+                    <DataListRow key={booking.id} href={`/dashboard/bookings/${booking.id}`}>
+                      <DataListPrimary title={display.room} subtitle={display.time} />
+                      <StatusDot
+                        label={display.status}
+                        variant={display.status === "Confirmed" ? "success" : "warning"}
+                      />
+                    </DataListRow>
+                  )
+                })}
+              </DataList>
             )}
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Community Highlights</CardTitle>
-            <CardDescription>Stay updated with what's happening.</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="section-label">Community highlights</h2>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/events">View all</Link>
+              </Button>
+            </div>
             {isLoadingEvents ? (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-sm text-muted-foreground animate-pulse">Loading highlights...</p>
+              <div className="flex justify-center py-8 text-sm text-muted-foreground">
+                Loading highlights…
               </div>
             ) : recentEvents.length === 0 ? (
-              <div className="flex items-center justify-center py-8 text-center">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">No upcoming events</p>
+              <EmptyState
+                title="No upcoming events"
+                action={
                   <Button variant="outline" size="sm" asChild>
-                    <Link href="/events">View Events</Link>
+                    <Link href="/events">Browse events</Link>
                   </Button>
-                </div>
-              </div>
+                }
+                className="py-8"
+              />
             ) : (
-              <div className="transition-opacity duration-150 ease-out opacity-100">
-                <div className="space-y-4">
-                  {recentEvents.map((event) => {
-                    const eventDate = new Date(event.startDate)
-                    const formattedDate = eventDate.toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })
-                    return (
-                      <Link key={event.id} href={`/events/${event.id}`} className="block">
-                        <div className="flex gap-4 hover:opacity-80 transition-opacity duration-150">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted text-primary">
-                            <CalendarDays className="h-5 w-5" />
-                          </div>
-                          <div className="space-y-1 flex-1">
-                            <p className="text-sm font-medium leading-none">{event.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formattedDate}
-                              {event.location && ` • ${event.location}`}
-                            </p>
-                          </div>
-                        </div>
-                      </Link>
-                    )
-                  })}
-                </div>
-                <Button className="mt-4 w-full" asChild>
-                  <Link href="/events">
-                    View All Events
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
+              <DataList>
+                {recentEvents.map((event) => {
+                  const eventDate = new Date(event.startDate)
+                  const formattedDate = eventDate.toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })
+                  return (
+                    <DataListRow key={event.id} href={`/events/${event.id}`}>
+                      <DataListPrimary
+                        title={event.title}
+                        subtitle={event.location || undefined}
+                      />
+                      <DataListMeta>{formattedDate}</DataListMeta>
+                    </DataListRow>
+                  )
+                })}
+              </DataList>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
-      </div>
-    </TooltipProvider>
+    </>
   )
 }

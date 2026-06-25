@@ -5,15 +5,23 @@ import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, X, Loader2 } from "lucide-react"
+import { Search, X, Loader2, CalendarDays } from "lucide-react"
 import { EventsHeader } from "@/components/events/events-header"
 import { EventsTimeline } from "@/components/events/events-timeline"
 import { EventDetailSheet } from "@/components/events/event-detail-sheet"
+import { FilterBar, FilterBarItem } from "@/components/design/filter-bar"
+import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
+import {
+  DataList,
+  DataListRow,
+  DataListPrimary,
+  DataListMeta,
+} from "@/components/design/data-list"
+import { StatusDot } from "@/components/design/status-dot"
+import { EmptyState } from "@/components/design/empty-state"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
@@ -436,6 +444,22 @@ export default function EventsPage() {
             upcomingCount={activeTab === "upcoming" ? filteredEvents.length : undefined}
           />
 
+          <MetricCardGrid className="mt-4 hidden sm:grid-cols-3 md:grid">
+            <MetricCard
+              label={activeTab === "upcoming" ? "Upcoming" : "Past events"}
+              value={filteredEvents.length}
+              icon={CalendarDays}
+            />
+            <MetricCard
+              label="Registered"
+              value={filteredEvents.filter((e) => e.status === "Registered").length}
+            />
+            <MetricCard
+              label="Open"
+              value={filteredEvents.filter((e) => e.status === "Open").length}
+            />
+          </MetricCardGrid>
+
           {/* Mobile: search + chips + filter sheet */}
           <div className="mt-4 space-y-3 md:hidden">
             <div className="flex gap-2">
@@ -557,7 +581,7 @@ export default function EventsPage() {
             </div>
           </div>
 
-          {/* Desktop: full filter panel */}
+          {/* Desktop: filter bar */}
           <div className="mt-6 hidden space-y-4 md:block">
             <div className="flex flex-wrap gap-2">
               {filterPresets.map((preset) => (
@@ -567,132 +591,128 @@ export default function EventsPage() {
               ))}
             </div>
 
-            <Card className="border-border">
-              <CardContent className="pt-4">
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="Search events by title, organizer, or tags..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                    <Select value={typeFilter} onValueChange={setTypeFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        {uniqueTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {eventTypeLabel(type)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        {uniqueStatuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={organizerFilter} onValueChange={setOrganizerFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Organizers" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Organizers</SelectItem>
-                        {uniqueOrganizers.map((organizer) => (
-                          <SelectItem key={organizer} value={organizer}>
-                            {organizer}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={platformFilter} onValueChange={setPlatformFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Platforms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Platforms</SelectItem>
-                        {uniquePlatforms.map((platform) => (
-                          <SelectItem key={platform.id} value={platform.id}>
-                            {platform.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sort by" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="date">Date</SelectItem>
-                        <SelectItem value="title">Title</SelectItem>
-                        <SelectItem value="organizer">Organizer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {activeFilterCount > 0 && (
-                        <Badge variant="secondary">
-                          {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-                        </Badge>
-                      )}
-                      <span className="text-sm text-muted-foreground">
-                        {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} found
-                      </span>
-                    </div>
-                    {hasActiveFilters && (
-                      <Button variant="outline" size="sm" onClick={clearFilters}>
-                        <X className="mr-2 h-4 w-4" />
-                        Clear Filters
-                      </Button>
-                    )}
-                  </div>
+            <FilterBar className="rounded-md border border-border bg-card p-4">
+              <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search events…"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="h-9 pl-8"
+                  />
                 </div>
-              </CardContent>
-            </Card>
+              </FilterBarItem>
+              <FilterBarItem>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="h-9 w-40">
+                    <SelectValue placeholder="All types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All types</SelectItem>
+                    {uniqueTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {eventTypeLabel(type)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FilterBarItem>
+              <FilterBarItem>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-9 w-36">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All status</SelectItem>
+                    {uniqueStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FilterBarItem>
+              <FilterBarItem>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="h-9 w-32">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date">Date</SelectItem>
+                    <SelectItem value="title">Title</SelectItem>
+                    <SelectItem value="organizer">Organizer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FilterBarItem>
+              {hasActiveFilters ? (
+                <Button variant="outline" size="sm" onClick={clearFilters}>
+                  <X className="mr-2 h-4 w-4" />
+                  Clear
+                </Button>
+              ) : null}
+            </FilterBar>
+            <p className="text-xs text-muted-foreground">
+              {filteredEvents.length} event{filteredEvents.length !== 1 ? "s" : ""} found
+            </p>
           </div>
         </div>
 
-        {/* Events Timeline */}
+        {/* Events list */}
         <div className="mx-auto max-w-5xl">
           {loading ? (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <span className="ml-2 text-muted-foreground">Loading events...</span>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading events…
+            </div>
+          ) : filteredEvents.length === 0 ? (
+            <EmptyState title="No events found" description="Try adjusting your filters." />
           ) : (
-            <div className="transition-opacity duration-200 ease-in-out" style={{ opacity: isFiltering ? 0.6 : 1 }}>
-              <EventsTimeline
-                events={filteredEvents}
-                onEventClick={handleEventClick}
-                activeTab={activeTab}
-                onRegister={handleRegister}
-                registering={registering}
-              />
+            <div
+              className="transition-opacity duration-200 ease-in-out"
+              style={{ opacity: isFiltering ? 0.6 : 1 }}
+            >
+              <div className="md:hidden">
+                <EventsTimeline
+                  events={filteredEvents}
+                  onEventClick={handleEventClick}
+                  activeTab={activeTab}
+                  onRegister={handleRegister}
+                  registering={registering}
+                />
+              </div>
+              <div className="hidden md:block">
+                <DataList>
+                  {filteredEvents.map((event) => (
+                    <DataListRow
+                      key={event.id}
+                      onClick={() => handleEventClick(event)}
+                    >
+                      <DataListPrimary
+                        title={event.title}
+                        subtitle={event.organizer}
+                      />
+                      <DataListMeta>
+                        {event.date.toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}{" "}
+                        · {event.time}
+                      </DataListMeta>
+                      <StatusDot
+                        label={event.status}
+                        variant={
+                          event.status === "Registered"
+                            ? "success"
+                            : event.status === "Open"
+                              ? "warning"
+                              : "neutral"
+                        }
+                      />
+                    </DataListRow>
+                  ))}
+                </DataList>
+              </div>
             </div>
           )}
         </div>

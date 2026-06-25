@@ -42,6 +42,15 @@ import {
   MobileBreadcrumbsHidden,
   MobileSearchFilterRow,
 } from "@/components/mobile/mobile-page-shell"
+import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
+import {
+  DataList,
+  DataListRow,
+  DataListPrimary,
+  DataListMeta,
+} from "@/components/design/data-list"
+import { EmptyState } from "@/components/design/empty-state"
+import { FilterBar, FilterBarItem } from "@/components/design/filter-bar"
 
 const categoryColors: Record<string, string> = {
   "Climate & Environment": "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
@@ -233,45 +242,25 @@ function ProjectsPageContent() {
         />
 
         {/* Stats — desktop */}
-        <div className="hidden gap-4 md:grid md:grid-cols-4">
-          <Card className="border-border  transition-all hover:bg-muted/30 ">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Projects</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{projectsData.length}</div>
-            </CardContent>
-          </Card>
-          <Card className="border-border  transition-all hover:bg-muted/30 ">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Featured</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">
-                {projectsData.filter((p) => p.isFeatured).length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border  transition-all hover:bg-muted/30 ">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Seeking Support</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">
-                {projectsData.filter((p) => p.needs && p.needs.length > 0).length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border  transition-all hover:bg-muted/30 ">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Followers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">
-                {projectsData.reduce((sum, p) => sum + (p._count?.followers || 0), 0)}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="hidden md:block">
+          <MetricCardGrid>
+            <MetricCard label="Total projects" value={projectsData.length} icon={Lightbulb} />
+            <MetricCard
+              label="Featured"
+              value={projectsData.filter((p) => p.isFeatured).length}
+              icon={Star}
+            />
+            <MetricCard
+              label="Seeking support"
+              value={projectsData.filter((p) => p.needs && p.needs.length > 0).length}
+              icon={Handshake}
+            />
+            <MetricCard
+              label="Total followers"
+              value={projectsData.reduce((sum, p) => sum + (p._count?.followers || 0), 0)}
+              icon={Heart}
+            />
+          </MetricCardGrid>
         </div>
 
         {/* Featured Projects Section */}
@@ -453,138 +442,89 @@ function ProjectsPageContent() {
         </div>
 
         {/* Filters — desktop */}
-        <div className="hidden space-y-4 md:block">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search projects, founders, impact areas..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 shadow-sm"
-              />
-            </div>
-            {activeFilterCount > 0 && (
-              <Badge variant="secondary" className="hidden md:flex">
-                {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied
-              </Badge>
-            )}
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="oldest">Oldest First</SelectItem>
-                <SelectItem value="popular">Most Popular</SelectItem>
-                <SelectItem value="impactful">Most Impactful</SelectItem>
-              </SelectContent>
-            </Select>
-            {hasActiveFilters && (
-              <Button variant="outline" size="sm" onClick={clearFilters} className="shadow-sm">
-                <X className="mr-2 h-4 w-4" />
+        <div className="hidden md:block">
+          <FilterBar className="rounded-md border border-border bg-card p-4">
+            <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search projects…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-9 pl-8"
+                />
+              </div>
+            </FilterBarItem>
+            <FilterBarItem>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="h-9 w-40">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {uniqueCategories.map((category) => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterBarItem>
+            <FilterBarItem>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="h-9 w-36">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="popular">Popular</SelectItem>
+                  <SelectItem value="impactful">Impactful</SelectItem>
+                </SelectContent>
+              </Select>
+            </FilterBarItem>
+            {hasActiveFilters ? (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
                 Clear
               </Button>
-            )}
-          </div>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:flex-wrap">
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {uniqueCategories.map((category) => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-                <SelectValue placeholder="All Stages" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Stages</SelectItem>
-                {uniqueStages.map((stage) => (
-                  <SelectItem key={stage} value={stage}>{stage}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={needsFilter} onValueChange={setNeedsFilter}>
-              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-                <SelectValue placeholder="All Needs" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Needs</SelectItem>
-                {uniqueNeeds.map((need) => (
-                  <SelectItem key={need} value={need}>{need}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={locationFilter} onValueChange={setLocationFilter}>
-              <SelectTrigger className="w-full md:w-[180px] shadow-sm">
-                <SelectValue placeholder="All Locations" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Locations</SelectItem>
-                {uniqueLocations.map((location) => (
-                  <SelectItem key={location} value={location}>{location}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            ) : null}
+          </FilterBar>
         </div>
 
-        {/* Projects Grid */}
         {isLoadingProjects ? (
-          <Card className="border-border ">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground text-center">Loading projects...</p>
-            </CardContent>
-          </Card>
+          <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading projects…
+          </div>
         ) : projectsErrorMsg ? (
-          <Card className="border-border ">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground text-center font-medium mb-1">
-                {isServiceUnavailable
-                  ? "Projects & Initiatives are temporarily unavailable"
-                  : "Unable to load projects"}
-              </p>
-              <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
-                {isServiceUnavailable
-                  ? "Our service is experiencing high demand. Please try again in a few moments."
-                  : projectsErrorMsg}
-              </p>
-              <Button variant="outline" onClick={() => mutateProjects()} className="mt-2">
+          <EmptyState
+            title={isServiceUnavailable ? "Projects temporarily unavailable" : "Unable to load projects"}
+            description={projectsErrorMsg}
+            action={
+              <Button variant="outline" onClick={() => mutateProjects()}>
                 Retry
               </Button>
-            </CardContent>
-          </Card>
+            }
+          />
         ) : filteredAndSortedProjects.length === 0 ? (
-          <Card className="border-border ">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Lightbulb className="h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground text-center">
-                No projects found matching your filters.
-              </p>
-              <Button variant="outline" onClick={clearFilters} className="mt-4">
-                Clear Filters
+          <EmptyState
+            title="No projects found"
+            description="Try adjusting your filters."
+            action={
+              <Button variant="outline" onClick={clearFilters}>
+                Clear filters
               </Button>
-            </CardContent>
-          </Card>
+            }
+          />
         ) : (
           <>
-            {!hasActiveFilters && featuredProjects.length > 0 && (
-              <div className="pt-4 border-t">
-                <h2 className="text-2xl font-semibold mb-4">All Projects</h2>
+            {!hasActiveFilters && featuredProjects.length > 0 ? (
+              <div className="hidden border-t pt-4 md:block">
+                <h2 className="section-label mb-3">All projects</h2>
               </div>
-            )}
-            <div className="grid gap-6 md:grid-cols-2">
+            ) : null}
+            <div className="grid gap-6 md:hidden">
               {filteredAndSortedProjects.map((project) => (
                 <Link key={project.id} href={`/projects/${project.id}`}>
-                  <Card className={`border-border  transition-all hover:bg-muted/30 hover:border-primary/50 cursor-pointer h-full overflow-hidden ${
+                  <Card className={`border-border transition-all hover:bg-muted/30 h-full overflow-hidden ${
                     project.isFeatured ? "ring-2 ring-primary/20" : ""
                   }`}>
                     {(project.imageUrl ?? null) && (
@@ -594,95 +534,31 @@ function ProjectsPageContent() {
                       </div>
                     )}
                     <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {project.isFeatured && (
-                              <Badge className="bg-primary/10 text-primary border-primary/20">
-                                <Star className="mr-1 h-3 w-3" />
-                                Featured
-                              </Badge>
-                            )}
-                            {project.category && (
-                              <Badge className={categoryColors[project.category] ?? ""}>{project.category}</Badge>
-                            )}
-                            {project.stage && (
-                              <Badge className={stageColors[project.stage] ?? ""}>{project.stage}</Badge>
-                            )}
-                          </div>
-                          <CardTitle className="text-xl">{project.title}</CardTitle>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={project.founderAvatar ?? (typeof project.founder === "object" && project.founder != null ? (project.founder as any).image : null)} alt={founderName(project)} />
-                              <AvatarFallback>{(founderName(project) ?? "?")[0]}</AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm text-muted-foreground">by {founderName(project)}</span>
-                          </div>
-                          <CardDescription className="text-base line-clamp-2">
-                            {project.description}
-                          </CardDescription>
-                        </div>
-                      </div>
+                      <CardTitle className="text-lg">{project.title}</CardTitle>
+                      <CardDescription className="line-clamp-2">{project.description}</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      {(project.impact ?? null) && (
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Target className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-medium">Impact</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground">{project.impact}</p>
-                        </div>
-                      )}
-                      {(project.needs ?? []).length > 0 && (
-                        <div>
-                          <p className="text-sm font-medium mb-2">Looking For:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {(project.needs ?? []).slice(0, 2).map((need: string, idx: number) => {
-                              const NeedIcon = needsIcons[need] || Users
-                              return (
-                                <Badge key={idx} className={needsColors[need]} variant="outline">
-                                  <NeedIcon className="mr-1 h-3 w-3" />
-                                  {need}
-                                </Badge>
-                              )
-                            })}
-                            {(project.needs ?? []).length > 2 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{(project.needs ?? []).length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
-                        <div className="flex items-center gap-1">
-                          <Heart className="h-3 w-3" />
-                          <span>{project._count?.followers || 0} followers</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          <span>{project._count?.volunteers || 0} volunteers</span>
-                        </div>
-                      </div>
-                      {(project.tags ?? []).length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {(project.tags ?? []).slice(0, 3).map((tag: string, idx: number) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {(project.tags ?? []).length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{(project.tags ?? []).length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                    </CardContent>
                   </Card>
                 </Link>
               ))}
+            </div>
+            <div className="hidden md:block">
+              <DataList>
+                {filteredAndSortedProjects.map((project) => (
+                  <DataListRow key={project.id} href={`/projects/${project.id}`}>
+                    <DataListPrimary
+                      title={project.title}
+                      subtitle={`by ${founderName(project)}`}
+                    />
+                    {project.category ? (
+                      <DataListMeta>{project.category}</DataListMeta>
+                    ) : null}
+                    {project.stage ? <DataListMeta>{project.stage}</DataListMeta> : null}
+                    <DataListMeta mono>
+                      {project._count?.followers || 0} followers
+                    </DataListMeta>
+                  </DataListRow>
+                ))}
+              </DataList>
             </div>
           </>
         )}
