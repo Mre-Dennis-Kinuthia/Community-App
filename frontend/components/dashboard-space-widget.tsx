@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import useSWR from "swr"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Building2, MapPin, Loader2 } from "lucide-react"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import { toast } from "@/lib/toast"
+import { LocationSelect } from "@/components/location-select"
 
 const fetcher = (url: string) =>
   fetch(url, { credentials: "include" }).then((r) => {
@@ -20,6 +21,24 @@ export function DashboardSpaceWidget() {
   const enabled = isFeatureEnabled("spaceInventory")
   const { data, mutate, isLoading } = useSWR(enabled ? "/api/check-in" : null, fetcher)
   const [checkingIn, setCheckingIn] = useState(false)
+  const [locationId, setLocationId] = useState("")
+  const [showLocationPicker, setShowLocationPicker] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch("/api/locations", { credentials: "include" })
+      if (!res.ok) return
+      const json = await res.json()
+      const locs = json.locations || []
+      if (!cancelled && locs.length > 1) {
+        setShowLocationPicker(true)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   if (!enabled) return null
 
@@ -29,7 +48,7 @@ export function DashboardSpaceWidget() {
       const res = await fetch("/api/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify(locationId ? { locationId } : {}),
       })
       const json = await res.json()
       if (!res.ok) {
@@ -70,13 +89,24 @@ export function DashboardSpaceWidget() {
             ) : (
               <p className="text-sm text-muted-foreground">No permanent desk assigned</p>
             )}
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-3">
               {data?.checkedIn ? (
-                <Badge variant="default">Checked in today</Badge>
+                <Badge variant="default" className="w-fit">
+                  Checked in{data.checkIn?.location?.name ? ` · ${data.checkIn.location.name}` : ""}
+                </Badge>
               ) : (
-                <Button size="sm" onClick={() => void handleCheckIn()} disabled={checkingIn}>
-                  {checkingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check in to hub"}
-                </Button>
+                <>
+                  {showLocationPicker ? (
+                    <LocationSelect
+                      value={locationId}
+                      onChange={setLocationId}
+                      label="Which hub?"
+                    />
+                  ) : null}
+                  <Button size="sm" className="w-fit" onClick={() => void handleCheckIn()} disabled={checkingIn}>
+                    {checkingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check in to hub"}
+                  </Button>
+                </>
               )}
             </div>
           </>

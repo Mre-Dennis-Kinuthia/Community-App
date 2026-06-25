@@ -650,6 +650,13 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
+        spaceAsset: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
       },
     })
 

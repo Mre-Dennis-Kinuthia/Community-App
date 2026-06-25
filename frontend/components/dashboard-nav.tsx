@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, FolderOpen, BarChart3, Sparkles, UserRound, Package } from "lucide-react"
+import { LayoutDashboard, Users, BookOpen, Calendar, CalendarDays, Handshake, Lightbulb, Newspaper, ChevronDown, FolderOpen, BarChart3, Sparkles, UserRound, Package, Wrench } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useSidebar } from "@/components/sidebar-context"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -57,6 +57,11 @@ const navGroups: NavGroup[] = [
         title: "My Packages",
         href: "/dashboard/deliveries",
         icon: Package,
+      },
+      {
+        title: "Maintenance",
+        href: "/dashboard/maintenance",
+        icon: Wrench,
       },
     ],
   },

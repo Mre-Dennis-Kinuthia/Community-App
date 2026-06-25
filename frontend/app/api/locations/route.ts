@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 
 export async function GET() {
-  if (!isFeatureEnabled("visitorManagement") && !isFeatureEnabled("spaceInventory")) {
+  if (!isFeatureEnabled("visitorManagement") && !isFeatureEnabled("spaceInventory") && !isFeatureEnabled("operationsModule")) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 

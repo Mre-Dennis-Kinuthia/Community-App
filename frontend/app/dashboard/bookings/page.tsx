@@ -20,6 +20,7 @@ interface Booking {
   status: string
   totalPrice: number
   createdAt?: string
+  spaceAsset?: { id: string; name: string; type: string } | null
 }
 
 export default function DashboardBookingsPage() {
@@ -152,10 +153,13 @@ export default function DashboardBookingsPage() {
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{resourceLabel(booking.resourceType)}</p>
+                  <p className="truncate font-medium">
+                    {booking.spaceAsset?.name || resourceLabel(booking.resourceType)}
+                  </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {booking.startTime}
                     {booking.endTime ? ` – ${booking.endTime}` : ""}
+                    {booking.spaceAsset ? ` · ${resourceLabel(booking.resourceType)}` : ""}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
