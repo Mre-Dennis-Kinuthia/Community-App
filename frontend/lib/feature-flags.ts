@@ -3,9 +3,9 @@
  */
 export const FEATURE_FLAGS = {
   programsAndResources: true,
-  myProjects: true,
-  investmentsDealflow: true,
-  projectsAndInitiatives: true,
+  myProjects: false,
+  investmentsDealflow: false,
+  projectsAndInitiatives: false,
   // Workspace platform expansion
   spaceInventory: true,
   visitorManagement: true,
