@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
+import { listHubLocations } from "@/lib/space/locations"
 
 export async function GET() {
-  if (!isFeatureEnabled("visitorManagement") && !isFeatureEnabled("spaceInventory") && !isFeatureEnabled("operationsModule")) {
+  if (
+    !isFeatureEnabled("visitorManagement") &&
+    !isFeatureEnabled("spaceInventory") &&
+    !isFeatureEnabled("operationsModule")
+  ) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
@@ -14,13 +18,17 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const locations = await prisma.location.findMany({
-      where: { isActive: true },
-      select: { id: true, name: true, slug: true },
-      orderBy: { name: "asc" },
-    })
+    const hubs = await listHubLocations()
 
-    return NextResponse.json({ locations })
+    return NextResponse.json({
+      locations: hubs.map((h) => ({
+        id: h.id,
+        name: h.name,
+        slug: h.slug,
+        workspaceId: h.workspaceId,
+        workspaceName: h.workspaceName,
+      })),
+    })
   } catch (error) {
     console.error("[LOCATIONS API]", error)
     return NextResponse.json({ error: "Failed to fetch locations" }, { status: 500 })

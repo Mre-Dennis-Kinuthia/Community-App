@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import { createNotification } from "@/lib/notifications"
 import { sendEmail, sendEmailInBackground } from "@/lib/email/send"
+import { LocationResolutionError, resolveLocationId } from "@/lib/space/locations"
 import { z } from "zod"
 
 const visitorBodySchema = z.object({
@@ -14,6 +15,7 @@ const visitorBodySchema = z.object({
   expectedAt: z.string().transform((s) => new Date(s)),
   purpose: z.string().optional().nullable(),
   locationId: z.string().optional(),
+  workspaceId: z.string().optional(),
 })
 
 async function resolveUserId(session: Awaited<ReturnType<typeof auth>>) {
@@ -98,17 +100,10 @@ export async function POST(request: NextRequest) {
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const body = visitorBodySchema.parse(await request.json())
-    let locationId = body.locationId
-    if (!locationId) {
-      const loc = await prisma.location.findFirst({
-        where: { isActive: true },
-        orderBy: { createdAt: "asc" },
-      })
-      if (!loc) {
-        return NextResponse.json({ error: "No active location configured" }, { status: 400 })
-      }
-      locationId = loc.id
-    }
+    const locationId = await resolveLocationId({
+      locationId: body.locationId,
+      workspaceId: body.workspaceId,
+    })
 
     const visitor = await prisma.visitor.create({
       data: {
@@ -130,6 +125,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ visitor }, { status: 201 })
   } catch (error) {
+    if (error instanceof LocationResolutionError) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid data", details: error.errors }, { status: 400 })
     }

@@ -4,3 +4,4 @@
 
 export * from "./asset-types"
 export * from "./availability"
+export * from "./locations"

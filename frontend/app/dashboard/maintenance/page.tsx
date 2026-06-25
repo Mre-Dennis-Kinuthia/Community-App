@@ -35,6 +35,7 @@ export default function MaintenancePage() {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [hubCount, setHubCount] = useState(0)
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -78,6 +79,10 @@ export default function MaintenancePage() {
     e.preventDefault()
     if (!form.title.trim() || !form.description.trim()) {
       toast.error("Title and description are required")
+      return
+    }
+    if (hubCount > 1 && !form.locationId) {
+      toast.error("Select a hub", "Choose which workspace this issue is at.")
       return
     }
     try {
@@ -167,6 +172,8 @@ export default function MaintenancePage() {
             <LocationSelect
               value={form.locationId}
               onChange={(locationId) => setForm((f) => ({ ...f, locationId }))}
+              onLoaded={(hubs) => setHubCount(hubs.length)}
+              required={hubCount > 1}
             />
             <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit request"}

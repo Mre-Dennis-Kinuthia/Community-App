@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
+import { LocationResolutionError, resolveLocationId } from "@/lib/space/locations"
 import { z } from "zod"
 
 function startOfDay(d: Date) {
@@ -77,6 +78,7 @@ export async function GET() {
 
 const checkInBodySchema = z.object({
   locationId: z.string().optional(),
+  workspaceId: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -93,18 +95,10 @@ export async function POST(request: NextRequest) {
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const body = checkInBodySchema.parse(await request.json().catch(() => ({})))
-    let locationId = body.locationId
-
-    if (!locationId) {
-      const defaultLocation = await prisma.location.findFirst({
-        where: { isActive: true },
-        orderBy: { createdAt: "asc" },
-      })
-      if (!defaultLocation) {
-        return NextResponse.json({ error: "No active location configured" }, { status: 400 })
-      }
-      locationId = defaultLocation.id
-    }
+    const locationId = await resolveLocationId({
+      locationId: body.locationId,
+      workspaceId: body.workspaceId,
+    })
 
     const today = new Date()
     const existing = await prisma.checkIn.findFirst({
@@ -133,6 +127,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ checkIn }, { status: 201 })
   } catch (error) {
+    if (error instanceof LocationResolutionError) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 })
     }

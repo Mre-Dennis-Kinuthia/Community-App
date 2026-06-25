@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import useSWR from "swr"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -22,27 +22,15 @@ export function DashboardSpaceWidget() {
   const { data, mutate, isLoading } = useSWR(enabled ? "/api/check-in" : null, fetcher)
   const [checkingIn, setCheckingIn] = useState(false)
   const [locationId, setLocationId] = useState("")
-  const [showLocationPicker, setShowLocationPicker] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      const res = await fetch("/api/locations", { credentials: "include" })
-      if (!res.ok) return
-      const json = await res.json()
-      const locs = json.locations || []
-      if (!cancelled && locs.length > 1) {
-        setShowLocationPicker(true)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const [hubCount, setHubCount] = useState(0)
 
   if (!enabled) return null
 
   async function handleCheckIn() {
+    if (hubCount > 1 && !locationId) {
+      toast.error("Select a hub", "Choose which workspace you are checking into.")
+      return
+    }
     setCheckingIn(true)
     try {
       const res = await fetch("/api/check-in", {
@@ -96,13 +84,13 @@ export function DashboardSpaceWidget() {
                 </Badge>
               ) : (
                 <>
-                  {showLocationPicker ? (
-                    <LocationSelect
-                      value={locationId}
-                      onChange={setLocationId}
-                      label="Which hub?"
-                    />
-                  ) : null}
+                  <LocationSelect
+                    value={locationId}
+                    onChange={setLocationId}
+                    onLoaded={(hubs) => setHubCount(hubs.length)}
+                    label="Which hub?"
+                    required={hubCount > 1}
+                  />
                   <Button size="sm" className="w-fit" onClick={() => void handleCheckIn()} disabled={checkingIn}>
                     {checkingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : "Check in to hub"}
                   </Button>

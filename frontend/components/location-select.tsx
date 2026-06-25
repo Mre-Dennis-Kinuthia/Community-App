@@ -11,7 +11,11 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
-type LocationOption = { id: string; name: string }
+type LocationOption = {
+  id: string
+  name: string
+  workspaceName?: string | null
+}
 
 type LocationSelectProps = {
   label?: string
@@ -20,15 +24,17 @@ type LocationSelectProps = {
   required?: boolean
   className?: string
   autoSelectSingle?: boolean
+  onLoaded?: (locations: LocationOption[]) => void
 }
 
 export function LocationSelect({
-  label = "Hub location",
+  label = "Hub",
   value,
   onChange,
   required,
   className,
   autoSelectSingle = true,
+  onLoaded,
 }: LocationSelectProps) {
   const [locations, setLocations] = useState<LocationOption[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,16 +45,20 @@ export function LocationSelect({
       try {
         setLoading(true)
         const res = await fetch("/api/locations", { credentials: "include" })
-        if (!res.ok) throw new Error("Failed to load locations")
+        if (!res.ok) throw new Error("Failed to load hubs")
         const data = await res.json()
         const rows = (data.locations || []) as LocationOption[]
         if (cancelled) return
         setLocations(rows)
+        onLoaded?.(rows)
         if (autoSelectSingle && rows.length === 1 && !value) {
           onChange(rows[0].id)
         }
       } catch {
-        if (!cancelled) setLocations([])
+        if (!cancelled) {
+          setLocations([])
+          onLoaded?.([])
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -56,9 +66,28 @@ export function LocationSelect({
     return () => {
       cancelled = true
     }
-  }, [autoSelectSingle, onChange, value])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once
+  }, [])
 
-  if (!loading && locations.length === 1) {
+  if (loading) {
+    return (
+      <div className={cn("space-y-2", className)}>
+        {label ? <Label>{label}{required ? " *" : ""}</Label> : null}
+        <p className="text-sm text-muted-foreground">Loading hubs…</p>
+      </div>
+    )
+  }
+
+  if (locations.length === 0) {
+    return (
+      <div className={cn("space-y-1", className)}>
+        {label ? <Label>{label}{required ? " *" : ""}</Label> : null}
+        <p className="text-sm text-destructive">No hubs available. Contact support.</p>
+      </div>
+    )
+  }
+
+  if (locations.length === 1) {
     return (
       <div className={cn("space-y-1", className)}>
         {label ? <Label>{label}{required ? " *" : ""}</Label> : null}
@@ -67,21 +96,18 @@ export function LocationSelect({
     )
   }
 
-  if (locations.length <= 1 && !loading) {
-    return null
-  }
-
   return (
     <div className={cn("space-y-2", className)}>
       {label ? <Label>{label}{required ? " *" : ""}</Label> : null}
-      <Select value={value || undefined} onValueChange={onChange} disabled={loading || locations.length === 0}>
+      <Select value={value || undefined} onValueChange={onChange} required={required}>
         <SelectTrigger>
-          <SelectValue placeholder={loading ? "Loading locations…" : "Select hub location"} />
+          <SelectValue placeholder="Select hub" />
         </SelectTrigger>
         <SelectContent>
           {locations.map((loc) => (
             <SelectItem key={loc.id} value={loc.id}>
               {loc.name}
+              {loc.workspaceName && loc.workspaceName !== loc.name ? ` (${loc.workspaceName})` : ""}
             </SelectItem>
           ))}
         </SelectContent>

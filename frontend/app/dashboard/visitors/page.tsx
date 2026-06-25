@@ -9,16 +9,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { PillTabs } from "@/components/mobile/pill-tabs"
 import { MobilePageHeader } from "@/components/mobile/mobile-page-shell"
+import { LocationSelect } from "@/components/location-select"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
@@ -34,8 +28,6 @@ type Visitor = {
   status: "expected" | "checked_in" | "checked_out" | "cancelled"
   location: { id: string; name: string } | null
 }
-
-type Location = { id: string; name: string }
 
 const statusLabel: Record<Visitor["status"], string> = {
   expected: "Expected",
@@ -68,7 +60,7 @@ function formatExpectedAt(value: string) {
 export default function DashboardVisitorsPage() {
   const enabled = isFeatureEnabled("visitorManagement")
   const [visitors, setVisitors] = useState<Visitor[]>([])
-  const [locations, setLocations] = useState<Location[]>([])
+  const [hubCount, setHubCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -91,26 +83,15 @@ export default function DashboardVisitorsPage() {
     return (data.visitors || []) as Visitor[]
   }, [])
 
-  const loadLocations = useCallback(async () => {
-    const res = await fetch("/api/locations", { credentials: "include" })
-    if (!res.ok) return []
-    const data = await res.json()
-    return (data.locations || []) as Location[]
-  }, [])
-
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
     ;(async () => {
       try {
         setLoading(true)
-        const [visitorRows, locationRows] = await Promise.all([loadVisitors(), loadLocations()])
+        const visitorRows = await loadVisitors()
         if (cancelled) return
         setVisitors(visitorRows)
-        setLocations(locationRows)
-        if (locationRows.length === 1) {
-          setForm((prev) => ({ ...prev, locationId: locationRows[0].id }))
-        }
       } catch {
         if (!cancelled) toast.error("Could not load visitors", "Please try again.")
       } finally {
@@ -120,7 +101,7 @@ export default function DashboardVisitorsPage() {
     return () => {
       cancelled = true
     }
-  }, [enabled, loadVisitors, loadLocations])
+  }, [enabled, loadVisitors])
 
   useEffect(() => {
     if (!showForm || form.expectedAt) return
@@ -161,6 +142,10 @@ export default function DashboardVisitorsPage() {
       toast.error("Missing details", "Name and visit time are required.")
       return
     }
+    if (hubCount > 1 && !form.locationId) {
+      toast.error("Select a hub", "Choose which workspace your guest is visiting.")
+      return
+    }
     setSubmitting(true)
     try {
       const res = await fetch("/api/visitors", {
@@ -191,7 +176,7 @@ export default function DashboardVisitorsPage() {
         company: "",
         expectedAt: "",
         purpose: "",
-        locationId: locations.length === 1 ? locations[0].id : "",
+        locationId: hubCount === 1 ? form.locationId : "",
       })
       setVisitors(await loadVisitors())
     } catch {
@@ -277,26 +262,14 @@ export default function DashboardVisitorsPage() {
                   required
                 />
               </div>
-              {locations.length > 1 ? (
-                <div className="space-y-2 sm:col-span-2">
-                  <Label>Location</Label>
-                  <Select
-                    value={form.locationId}
-                    onValueChange={(value) => setForm((f) => ({ ...f, locationId: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select hub location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {locations.map((loc) => (
-                        <SelectItem key={loc.id} value={loc.id}>
-                          {loc.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : null}
+              <LocationSelect
+                label="Hub"
+                value={form.locationId}
+                onChange={(locationId) => setForm((f) => ({ ...f, locationId }))}
+                onLoaded={(hubs) => setHubCount(hubs.length)}
+                required={hubCount > 1}
+                className="sm:col-span-2"
+              />
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="visitor-purpose">Purpose of visit</Label>
                 <Textarea

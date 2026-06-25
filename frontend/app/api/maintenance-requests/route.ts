@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
+import { LocationResolutionError, resolveLocationId } from "@/lib/space/locations"
 import { z } from "zod"
 
 const requestSchema = z.object({
@@ -10,6 +11,7 @@ const requestSchema = z.object({
   category: z.enum(["internet", "cleaning", "printer", "hvac", "other"]),
   priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
   locationId: z.string().optional(),
+  workspaceId: z.string().optional(),
   spaceAssetId: z.string().optional().nullable(),
 })
 
@@ -56,15 +58,10 @@ export async function POST(request: NextRequest) {
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const body = requestSchema.parse(await request.json())
-    let locationId = body.locationId
-    if (!locationId) {
-      const loc = await prisma.location.findFirst({
-        where: { isActive: true },
-        orderBy: { createdAt: "asc" },
-      })
-      if (!loc) return NextResponse.json({ error: "No active location configured" }, { status: 400 })
-      locationId = loc.id
-    }
+    const locationId = await resolveLocationId({
+      locationId: body.locationId,
+      workspaceId: body.workspaceId,
+    })
 
     const ticket = await prisma.maintenanceTicket.create({
       data: {
@@ -82,6 +79,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ticket }, { status: 201 })
   } catch (error) {
+    if (error instanceof LocationResolutionError) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid data", details: error.errors }, { status: 400 })
     }
