@@ -226,6 +226,9 @@ function LoginForm() {
                 Join the community
               </Link>
             </p>
+            <p className="text-center text-xs text-muted-foreground">
+              Impact Hub staff can sign in with the same email and password used for the admin app.
+            </p>
           </CardFooter>
         </form>
       </Card>

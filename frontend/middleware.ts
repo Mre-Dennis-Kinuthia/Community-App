@@ -22,6 +22,7 @@ const publicRoutes = [
   "/terms",
   "/pay",
   "/membership",
+  "/admin-access",
   "/api",
   "/setup-check",
 ]

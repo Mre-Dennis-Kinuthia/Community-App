@@ -7,6 +7,10 @@ import { sendWelcomeEmail, sendNewAccountStaffEmail, sendEmailInBackground } fro
 import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 import { touchMemberLastActiveInBackground } from "@/lib/member-activity"
+import {
+  authenticateAdminForMemberPlatform,
+  consumeAdminMemberAccessToken,
+} from "@/lib/admin-member-access"
 import { authConfig } from "./auth.config"
 import { randomBytes } from "crypto"
 
@@ -143,8 +147,28 @@ const nextAuthConfig = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        adminAccessToken: { label: "Admin access token", type: "text" },
       },
       async authorize(credentials) {
+        if (credentials?.adminAccessToken) {
+          const user = await consumeAdminMemberAccessToken(
+            credentials.adminAccessToken as string
+          )
+          if (!user) {
+            console.log("[AUTH] Invalid or expired admin access token")
+            return null
+          }
+
+          touchMemberLastActiveInBackground(user.id)
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            staffAccess: true,
+          }
+        }
+
         console.log("[AUTH] Authorize called with credentials:", {
           email: credentials?.email,
           hasPassword: !!credentials?.password,
@@ -155,53 +179,57 @@ const nextAuthConfig = {
           return null
         }
 
-        // Normalize email to lowercase for case-insensitive lookup
         const normalizedEmail = (credentials.email as string).toLowerCase().trim()
         console.log("[AUTH] Normalized email for lookup:", normalizedEmail)
 
-        // Look up user in database
-        console.log("[AUTH] Looking up user in database:", normalizedEmail)
         const user = await prisma.user.findUnique({
           where: { email: normalizedEmail },
         })
 
-        if (!user) {
-          console.log("[AUTH] User not found:", normalizedEmail)
-          return null
+        if (user?.password) {
+          const isValid = await verifyPassword(
+            credentials.password as string,
+            user.password
+          )
+
+          if (isValid) {
+            console.log("[AUTH] Member authentication successful for:", normalizedEmail)
+            touchMemberLastActiveInBackground(user.id)
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              image: user.image,
+            }
+          }
         }
 
-        if (!user.password) {
-          console.log("[AUTH] User has no password set:", normalizedEmail)
-          return null
-        }
-
-        // Verify password
-        console.log("[AUTH] Verifying password...")
-        const isValid = await verifyPassword(
-          credentials.password as string,
-          user.password
+        const adminAuth = await authenticateAdminForMemberPlatform(
+          normalizedEmail,
+          credentials.password as string
         )
 
-        if (!isValid) {
+        if (adminAuth) {
+          console.log("[AUTH] Admin staff access for member platform:", normalizedEmail)
+          touchMemberLastActiveInBackground(adminAuth.user.id)
+          return {
+            id: adminAuth.user.id,
+            email: adminAuth.user.email,
+            name: adminAuth.user.name,
+            image: adminAuth.user.image,
+            staffAccess: true,
+          }
+        }
+
+        if (!user) {
+          console.log("[AUTH] User not found:", normalizedEmail)
+        } else if (!user.password) {
+          console.log("[AUTH] User has no password set:", normalizedEmail)
+        } else {
           console.log("[AUTH] Password verification failed for:", normalizedEmail)
-          return null
         }
 
-        console.log("[AUTH] Authentication successful for:", {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        })
-
-        touchMemberLastActiveInBackground(user.id)
-
-        // Return user object (Auth.js will use this to create session)
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        }
+        return null
       },
     }),
   ],

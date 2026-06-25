@@ -11,6 +11,7 @@ export const authConfig = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        adminAccessToken: { label: "Admin access token", type: "text" },
       },
       // In middleware, we can't use Prisma, so this won't be called
       // The actual auth happens in API routes
@@ -37,6 +38,9 @@ export const authConfig = {
         token.email = user.email
         token.name = user.name
         token.image = user.image
+        if ("staffAccess" in user && user.staffAccess) {
+          token.staffAccess = true
+        }
       }
       if (trigger === "update" && session?.user) {
         const updated = session.user as { image?: string | null; name?: string | null }
@@ -52,6 +56,7 @@ export const authConfig = {
         session.user.email = token.email as string
         session.user.name = token.name as string
         session.user.image = token.image as string
+        session.user.staffAccess = Boolean(token.staffAccess)
       }
       return session
     },
