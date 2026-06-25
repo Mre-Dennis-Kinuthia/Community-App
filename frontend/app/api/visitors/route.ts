@@ -3,7 +3,8 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import { createNotification } from "@/lib/notifications"
-import { sendEmail, sendEmailInBackground } from "@/lib/email/send"
+import { sendEmailInBackground } from "@/lib/email/send"
+import { sendVisitorRegisteredEmail } from "@/lib/email/messages"
 import { LocationResolutionError, resolveLocationId } from "@/lib/space/locations"
 import { z } from "zod"
 
@@ -33,12 +34,11 @@ async function notifyHostVisitorRegistered(
     where: { id: hostUserId },
     select: { email: true, name: true },
   })
-  const when = expectedAt.toLocaleString("en-KE")
 
   await createNotification({
     userId: hostUserId,
     title: "Visitor registered",
-    message: `${visitorName} is expected on ${when}.`,
+    message: `${visitorName} is expected on ${expectedAt.toLocaleString("en-KE")}.`,
     type: "info",
     category: "visitor",
     actionUrl: "/dashboard",
@@ -47,12 +47,11 @@ async function notifyHostVisitorRegistered(
   if (host?.email) {
     sendEmailInBackground(
       () =>
-        sendEmail({
+        sendVisitorRegisteredEmail({
           to: host.email!,
-          subject: "Impact Hub Nairobi — Visitor registered",
-          html: `<p>Hi ${host.name || "there"},</p>
-<p><strong>${visitorName}</strong> has been registered as your visitor, expected on ${when}.</p>`,
-          text: `Visitor ${visitorName} expected on ${when}.`,
+          hostName: host.name,
+          visitorName,
+          expectedAt,
         }),
       "visitor-registered"
     )

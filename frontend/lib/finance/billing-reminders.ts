@@ -1,6 +1,10 @@
 import type { PrismaClient } from "@prisma/client"
-import { createNotification } from "@/lib/notifications"
 import { sendEmail, sendEmailInBackground } from "@/lib/email/send"
+import {
+  sendInvoiceReminderEmail,
+  sendSubscriptionRenewalReminderEmail,
+} from "@/lib/email/messages"
+import { getAppBaseUrl } from "@/lib/app-url"
 
 const REMINDER_COOLDOWN_DAYS = 7
 
@@ -88,15 +92,18 @@ export async function runBillingReminderJobs(prisma: PrismaClient) {
     })
 
     if (invoice.user.email) {
+      const billingUrl = `${getAppBaseUrl()}/billing`
       sendEmailInBackground(
         () =>
-          sendEmail({
+          sendInvoiceReminderEmail({
             to: invoice.user.email!,
-            subject: `Impact Hub Nairobi — ${title}`,
-            html: `<p>Hi ${invoice.user.name || "there"},</p>
-<p>Your invoice <strong>${invoice.invoiceNumber}</strong> (${invoice.currency} ${Number(invoice.amount).toLocaleString()}) is ${isOverdue ? "overdue" : `due on ${dueStr}`}.</p>
-<p><a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/billing">View billing</a></p>`,
-            text: `Invoice ${invoice.invoiceNumber} reminder.`,
+            name: invoice.user.name,
+            invoiceNumber: invoice.invoiceNumber,
+            amount: Number(invoice.amount),
+            currency: invoice.currency,
+            dueDate: invoice.dueDate,
+            isOverdue: Boolean(isOverdue),
+            billingUrl,
           }),
         "billing-reminder"
       )
@@ -123,15 +130,15 @@ export async function runBillingReminderJobs(prisma: PrismaClient) {
     })
 
     if (sub.user.email) {
+      const billingUrl = `${getAppBaseUrl()}/billing`
       sendEmailInBackground(
         () =>
-          sendEmail({
+          sendSubscriptionRenewalReminderEmail({
             to: sub.user.email!,
-            subject: "Impact Hub Nairobi — Membership renewal reminder",
-            html: `<p>Hi ${sub.user.name || "there"},</p>
-<p>Your <strong>${sub.plan.name}</strong> membership renews on ${endStr}.</p>
-<p><a href="${process.env.NEXT_PUBLIC_APP_URL || ""}/billing">Manage billing</a></p>`,
-            text: `Membership renews on ${endStr}.`,
+            name: sub.user.name,
+            planName: sub.plan.name,
+            renewsOn: sub.currentPeriodEnd,
+            billingUrl,
           }),
         "subscription-reminder"
       )
