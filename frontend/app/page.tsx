@@ -3,9 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
 import { toast } from "@/lib/toast"
 import {
   Calendar,
@@ -31,7 +30,6 @@ import { Logo } from "@/components/logo"
 import { LandingPartnerLogo, type LandingPartner } from "@/components/landing-partner-logo"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import { cn } from "@/lib/utils"
-import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import {
   ORGANISATIONAL_MEMBERSHIP_PATH,
   ORGANISATIONAL_RESPONSE_SLA,
@@ -214,9 +212,9 @@ function AccordionItem({ question, answer, isOpen, onToggle }: AccordionItemProp
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-controls={panelId}
-        className="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors hover:text-foreground"
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/40 md:px-6"
       >
-        <span className="text-[15px] font-medium leading-snug text-foreground">{question}</span>
+        <span className="text-sm font-medium leading-snug text-foreground">{question}</span>
         <ChevronDown
           className={cn(
             "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
@@ -230,8 +228,8 @@ function AccordionItem({ question, answer, isOpen, onToggle }: AccordionItemProp
         role="region"
         hidden={!isOpen}
         className={cn(
-          "overflow-hidden text-[15px] leading-relaxed text-muted-foreground transition-all",
-          isOpen ? "pb-5" : "h-0 pb-0"
+          "overflow-hidden px-5 text-sm leading-relaxed text-muted-foreground transition-all md:px-6",
+          isOpen ? "pb-4" : "h-0 pb-0"
         )}
       >
         {isOpen ? answer : null}
@@ -317,32 +315,27 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="landing-header sticky top-0 z-50 overflow-x-hidden">
-        <div className="container flex h-[4.25rem] min-w-0 items-center justify-between gap-4 px-4 md:px-6">
+        <div className="container flex h-14 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
           <Logo href="/" variant="landing" />
 
-          <nav
-            className="hidden items-center gap-8 md:flex"
-            aria-label="Primary"
-          >
+          <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
             {NAV_LINKS.map((link) => (
               <NavLink
                 key={link.href}
                 {...link}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               />
             ))}
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             <Link href="/login" className="hidden sm:block">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
+              <Button variant="ghost" size="sm">
                 Sign in
               </Button>
             </Link>
             <Link href="/register">
-              <Button size="sm" className="px-4">
-                Join the community
-              </Button>
+              <Button size="sm">Get started</Button>
             </Link>
             <Button
               variant="ghost"
@@ -359,27 +352,24 @@ export default function HomePage() {
         </div>
 
         {mobileNavOpen ? (
-          <div
-            id="landing-mobile-nav"
-            className="border-t border-border/70 bg-background md:hidden"
-          >
-            <nav className="container flex flex-col gap-0.5 px-4 py-4" aria-label="Mobile">
+          <div id="landing-mobile-nav" className="border-t border-border bg-background md:hidden">
+            <nav className="container flex flex-col px-4 py-3" aria-label="Mobile">
               {NAV_LINKS.map((link) => (
                 <NavLink
                   key={link.href}
                   {...link}
-                  className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+                  className="rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                   onClick={() => setMobileNavOpen(false)}
                 />
               ))}
-              <div className="mt-3 flex flex-col gap-2 border-t border-border/70 pt-4">
+              <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
                 <Link href="/login" onClick={() => setMobileNavOpen(false)}>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="ghost" className="w-full justify-start">
                     Sign in
                   </Button>
                 </Link>
                 <Link href="/register" onClick={() => setMobileNavOpen(false)}>
-                  <Button className="w-full">Join the community</Button>
+                  <Button className="w-full">Get started</Button>
                 </Link>
               </div>
             </nav>
@@ -389,35 +379,20 @@ export default function HomePage() {
 
       <main>
       <section className="hero-wash border-b border-border" aria-labelledby="hero-heading">
-        <div className="container px-4 py-20 md:py-28 lg:py-32">
-          <div className="landing-hero-accent mx-auto max-w-3xl">
-            <p className="section-label mb-5">Impact Hub Nairobi</p>
+        <div className="container px-4 py-16 md:py-24 lg:py-28">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="section-label mb-4">Impact Hub Nairobi</p>
             <h1
               id="hero-heading"
-              className="text-4xl font-semibold tracking-tight text-balance text-foreground md:text-5xl lg:text-[3.25rem] lg:leading-[1.12]"
+              className="text-4xl font-semibold tracking-tight text-balance text-foreground md:text-5xl lg:text-[3.25rem] lg:leading-[1.1]"
             >
               Scaling sustainable innovation in Kenya
             </h1>
-            <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground md:text-xl md:leading-relaxed">
+            <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base">
               The member platform for programs, workspace, events, and community — built for
               ventures and partners driving measurable impact.
             </p>
-            <ul className="mt-10 grid gap-3 sm:grid-cols-3 sm:gap-4">
-              {[
-                "24,000+ entrepreneurs globally",
-                "100+ hubs worldwide",
-                "Free community membership",
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="flex items-center gap-2.5 rounded-md border border-border/80 bg-background/60 px-3 py-2.5 text-sm text-muted-foreground"
-                >
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href="/register">
                 <Button size="lg" className="w-full sm:w-auto">
                   Create your account
@@ -430,31 +405,33 @@ export default function HomePage() {
                 </Button>
               </Link>
             </div>
+            <ul className="mt-10 grid gap-3 sm:grid-cols-3">
+              {[
+                "24,000+ entrepreneurs globally",
+                "100+ hubs worldwide",
+                "Free community membership",
+              ].map((item) => (
+                <li
+                  key={item}
+                  className="flex items-center justify-center gap-2 rounded-md border border-border bg-card px-3 py-2.5 text-xs text-muted-foreground sm:text-sm"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-border bg-muted/20 py-12 md:py-14" aria-label="Global network impact">
+      <section className="border-b border-border py-12 md:py-14" aria-label="Global network impact">
         <div className="container px-4">
-          <dl className="mx-auto grid max-w-5xl grid-cols-2 gap-8 md:grid-cols-4 md:gap-6">
-            {IMPACT_STATS.map((stat, index) => (
-              <div
-                key={stat.label}
-                className={cn(
-                  "text-center md:text-left",
-                  index > 0 && "md:border-l md:border-border/80 md:pl-6"
-                )}
-              >
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                  {stat.label}
-                </dt>
-                <dd className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-foreground md:text-3xl">
-                  {stat.value}
-                </dd>
-              </div>
+          <MetricCardGrid className="mx-auto max-w-5xl md:grid-cols-4">
+            {IMPACT_STATS.map((stat) => (
+              <MetricCard key={stat.label} label={stat.label} value={stat.value} />
             ))}
-          </dl>
-          <p className="mx-auto mt-8 max-w-2xl text-center text-xs leading-relaxed text-muted-foreground">
+          </MetricCardGrid>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-xs leading-relaxed text-muted-foreground">
             Network-wide figures from Impact Hub Global. Nairobi-specific outcomes are reported
             through programs and annual impact reporting.
           </p>
@@ -468,28 +445,22 @@ export default function HomePage() {
           description="Programs, advisory, spaces, and research — connecting changemakers to collaborate, learn, and build ventures that serve people and the planet."
           className="mb-14 md:mb-16"
         />
-        <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        <div className="mx-auto grid max-w-6xl gap-3 md:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((service) => {
             const Icon = service.icon
             return (
-              <Card
+              <article
                 key={service.title}
-                className="surface-card group border-border/90 transition-colors hover:border-foreground/25"
+                className="landing-panel group p-5 transition-colors hover:bg-muted/30"
               >
-                <CardHeader className="space-y-4 pb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 transition-colors group-hover:bg-primary/15">
-                    <Icon className="h-5 w-5 text-primary" aria-hidden />
-                  </div>
-                  <div className="space-y-2">
-                    <CardTitle className="text-base font-semibold leading-snug">
-                      {service.title}
-                    </CardTitle>
-                    <CardDescription className="text-[15px] leading-relaxed text-muted-foreground">
-                      {service.description}
-                    </CardDescription>
-                  </div>
-                </CardHeader>
-              </Card>
+                <Icon className="h-4 w-4 text-muted-foreground" aria-hidden />
+                <h3 className="mt-4 text-sm font-semibold leading-snug text-foreground">
+                  {service.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {service.description}
+                </p>
+              </article>
             )
           })}
         </div>
@@ -503,44 +474,40 @@ export default function HomePage() {
             description="From free community access to dedicated venture support and institutional partnerships."
             className="mb-14 md:mb-16"
           />
-          <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3 md:gap-8">
+          <div className="mx-auto grid max-w-5xl gap-3 md:grid-cols-3">
             {MEMBERSHIP_TIERS.map((tier) => (
-              <Card
+              <article
                 key={tier.name}
                 className={cn(
-                  "relative flex flex-col border bg-card shadow-sm",
-                  tier.popular
-                    ? "border-primary shadow-md shadow-primary/5 ring-1 ring-primary/15"
-                    : "border-border"
+                  "landing-panel flex flex-col",
+                  tier.popular && "border-primary/30"
                 )}
               >
-                {tier.popular ? (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground">
-                      Recommended
-                    </Badge>
-                  </div>
-                ) : null}
-                <CardHeader className="border-b border-border/60 pb-6 text-center">
-                  <CardTitle className="text-lg font-semibold">{tier.name}</CardTitle>
-                  <div className="mt-4 flex items-baseline justify-center gap-1">
-                    <span className="text-3xl font-semibold tracking-tight tabular-nums">
+                <div className="border-b border-border px-5 py-6 text-center">
+                  {tier.popular ? (
+                    <p className="section-label mb-3 text-primary">Recommended</p>
+                  ) : null}
+                  <h3 className={cn("text-sm font-semibold text-foreground", !tier.popular && "mt-6")}>
+                    {tier.name}
+                  </h3>
+                  <div className="mt-3 flex items-baseline justify-center gap-1">
+                    <span className="text-2xl font-semibold tracking-tight tabular-nums">
                       {tier.price}
                     </span>
                     {tier.period ? (
-                      <span className="text-sm text-muted-foreground">{tier.period}</span>
+                      <span className="text-xs text-muted-foreground">{tier.period}</span>
                     ) : null}
                   </div>
-                  <CardDescription className="mt-3 text-sm leading-relaxed">
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                     {tier.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-6 pt-6">
-                  <ul className="space-y-3 text-sm leading-relaxed">
+                  </p>
+                </div>
+                <div className="flex flex-1 flex-col gap-5 px-5 py-6">
+                  <ul className="space-y-2.5 text-sm leading-relaxed">
                     {tier.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2.5">
+                      <li key={feature} className="flex items-start gap-2">
                         <CheckCircle2
-                          className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
                           aria-hidden
                         />
                         <span>{feature}</span>
@@ -548,24 +515,18 @@ export default function HomePage() {
                     ))}
                   </ul>
                   <div className="mt-auto space-y-2">
-                    <p className="text-center text-xs text-muted-foreground leading-relaxed">
+                    <p className="text-center text-xs leading-relaxed text-muted-foreground">
                       {tier.helper}
                     </p>
                     {tier.external ? (
                       <a href={tier.href} className="block">
-                        <Button
-                          className="w-full"
-                          variant={tier.popular ? "default" : "outline"}
-                        >
+                        <Button className="w-full" variant={tier.popular ? "default" : "outline"}>
                           {tier.cta}
                         </Button>
                       </a>
                     ) : (
                       <Link href={tier.href} className="block">
-                        <Button
-                          className="w-full"
-                          variant={tier.popular ? "default" : "outline"}
-                        >
+                        <Button className="w-full" variant={tier.popular ? "default" : "outline"}>
                           {tier.cta}
                           {tier.popular ? (
                             <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
@@ -574,8 +535,8 @@ export default function HomePage() {
                       </Link>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </article>
             ))}
           </div>
         </div>
@@ -593,10 +554,10 @@ export default function HomePage() {
             <LandingPartnerLogo key={partner.name} partner={partner} />
           ))}
         </div>
-        <p className="mt-10 text-center">
+        <p className="mt-8 text-center">
           <Link
             href="/partners"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-opacity hover:opacity-80"
+            className="inline-flex items-center gap-1.5 text-sm text-foreground transition-colors hover:text-muted-foreground"
           >
             View all partners
             <ArrowRight className="h-4 w-4" aria-hidden />
@@ -612,7 +573,7 @@ export default function HomePage() {
             description="Guidance on joining, membership, programs, and using the platform."
             className="mb-12 md:mb-14"
           />
-          <div className="mx-auto max-w-3xl rounded-md border border-border bg-card px-5 shadow-sm md:px-6">
+          <div className="landing-panel mx-auto max-w-3xl overflow-hidden">
             {FAQS.map((faq, index) => (
               <AccordionItem
                 key={faq.question}
@@ -627,10 +588,10 @@ export default function HomePage() {
       </section>
 
       <section className="landing-section container px-4" aria-labelledby="newsletter-heading">
-        <div className="mx-auto max-w-2xl rounded-md border border-border bg-muted/30 px-6 py-10 md:px-10 md:py-12">
+        <div className="landing-panel mx-auto max-w-2xl px-6 py-10 md:px-10 md:py-12">
           <div className="text-center">
             <p className="section-label mb-3">Newsletter</p>
-            <h2 id="newsletter-heading" className="section-title text-2xl md:text-3xl">
+            <h2 id="newsletter-heading" className="section-title">
               Impact insights
             </h2>
             <p className="section-lead mx-auto mt-3">
@@ -644,14 +605,14 @@ export default function HomePage() {
             <Input
               type="email"
               placeholder="Work email"
-              className="h-11 flex-1 bg-background"
+              className="h-9 flex-1"
               value={newsletterEmail}
               onChange={(e) => setNewsletterEmail(e.target.value)}
               required
               disabled={newsletterLoading}
               aria-label="Email address"
             />
-            <Button type="submit" className="h-11 sm:min-w-[140px]" disabled={newsletterLoading}>
+            <Button type="submit" className="h-9 sm:min-w-[120px]" disabled={newsletterLoading}>
               {newsletterLoading ? "Subscribing…" : "Subscribe"}
               {!newsletterLoading ? <ArrowRight className="ml-2 h-4 w-4" aria-hidden /> : null}
             </Button>
@@ -662,16 +623,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-t border-border bg-primary/[0.04] py-20 md:py-24">
-        <div className="container space-y-8 px-4 text-center">
+      <section className="border-t border-border py-16 md:py-20">
+        <div className="container space-y-6 px-4 text-center">
           <SectionHeader
             title="Ready to get started?"
             description="Join a global network where locally rooted solutions advance people, planet, and profit — starting in Nairobi."
           />
-          <p className="text-sm font-medium text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Part of the global Impact Hub network · 100+ hubs · 60+ countries
           </p>
-          <div className="flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <Link href="/register">
               <Button size="lg" className="w-full sm:w-auto">
                 Create your account
@@ -684,17 +645,17 @@ export default function HomePage() {
               </Button>
             </Link>
           </div>
-          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 pt-2 text-sm text-muted-foreground">
+          <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-2 text-xs text-muted-foreground">
             <li className="flex items-center gap-2">
-              <Shield className="h-4 w-4 shrink-0" aria-hidden />
+              <Shield className="h-3.5 w-3.5 shrink-0" aria-hidden />
               Secure platform
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+              <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
               Free community tier
             </li>
             <li className="flex items-center gap-2">
-              <Award className="h-4 w-4 shrink-0" aria-hidden />
+              <Award className="h-3.5 w-3.5 shrink-0" aria-hidden />
               15+ years of impact
             </li>
           </ul>
@@ -702,23 +663,42 @@ export default function HomePage() {
       </section>
       </main>
 
-      <footer className="border-t border-border bg-muted/40 py-14 md:py-16">
+      <footer className="border-t border-border bg-muted/30 py-12 md:py-14">
         <div className="container px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div className="mb-8 grid gap-8 md:grid-cols-4">
             <div className="space-y-4">
               <Logo />
-              <p className="text-sm text-muted-foreground">
-                Kenya&apos;s leading ecosystem for impact-driven innovators — where ventures scale, communities thrive, and solutions shape global change.
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Kenya&apos;s leading ecosystem for impact-driven innovators — where ventures scale,
+                communities thrive, and solutions shape global change.
               </p>
-              <div className="flex gap-4">
-                <a href="https://www.instagram.com/impacthubnairobi" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Instagram className="h-5 w-5" />
+              <div className="flex gap-3">
+                <a
+                  href="https://www.instagram.com/impacthubnairobi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Instagram className="h-4 w-4" />
                 </a>
-                <a href="https://www.linkedin.com/company/impact-hub-nairobi" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Linkedin className="h-5 w-5" />
+                <a
+                  href="https://www.linkedin.com/company/impact-hub-nairobi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Linkedin className="h-4 w-4" />
                 </a>
-                <a href="https://twitter.com/ImpactHubNBI" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="text-muted-foreground hover:text-foreground transition-colors">
-                  <Twitter className="h-5 w-5" />
+                <a
+                  href="https://twitter.com/ImpactHubNBI"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Twitter"
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Twitter className="h-4 w-4" />
                 </a>
               </div>
             </div>
@@ -772,8 +752,8 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="border-t border-border/80 pt-8">
-            <div className="flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
+          <div className="border-t border-border pt-6">
+            <div className="flex flex-col items-center justify-between gap-4 text-xs text-muted-foreground md:flex-row">
               <p>&copy; {new Date().getFullYear()} Impact Hub Nairobi. All rights reserved.</p>
               <div className="flex gap-6">
                 <Link href="/privacy" className="transition-colors hover:text-foreground">
@@ -784,13 +764,13 @@ export default function HomePage() {
                 </Link>
               </div>
             </div>
-            <p className="mt-5 text-center text-xs leading-relaxed text-muted-foreground">
+            <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
               Part of the global{" "}
               <a
                 href="https://impacthub.net"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-primary underline-offset-2 hover:underline"
+                className="text-foreground underline-offset-2 hover:underline"
               >
                 Impact Hub network
               </a>
