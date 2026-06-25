@@ -92,3 +92,29 @@ export type OpportunityPreviewItem = Pick<
   CommunityOpportunityRecord,
   "id" | "title" | "summary" | "flierUrl" | "status" | "featured" | "source" | "tags" | "deadline"
 >
+
+/** Strip fixed dimensions from admin HTML so content fits mobile viewports. */
+export function sanitizeOpportunityHtmlForMobile(html: string): string {
+  if (!html) return ""
+
+  let out = html
+    .replace(/\s(width|height)=["'][^"']*["']/gi, "")
+    .replace(/\swidth:\s*[^;"]+;?/gi, "")
+    .replace(/\smin-width:\s*[^;"]+;?/gi, "")
+    .replace(/\smax-width:\s*[^;"]+;?/gi, "")
+
+  out = out.replace(/\sstyle=(["'])([^"']*)\1/gi, (_match, quote: string, style: string) => {
+    const cleaned = style
+      .replace(/(^|;)\s*width\s*:[^;]*/gi, "")
+      .replace(/(^|;)\s*min-width\s*:[^;]*/gi, "")
+      .replace(/(^|;)\s*max-width\s*:[^;]*/gi, "")
+      .replace(/(^|;)\s*height\s*:[^;]*/gi, "")
+      .replace(/;\s*;+/g, ";")
+      .replace(/^;|;$/g, "")
+      .trim()
+    if (!cleaned) return ""
+    return ` style=${quote}${cleaned}${quote}`
+  })
+
+  return out
+}

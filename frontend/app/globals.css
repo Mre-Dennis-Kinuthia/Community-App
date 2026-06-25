@@ -318,7 +318,10 @@ html {
 
   /* Community opportunity rich HTML — prevent horizontal overflow on mobile */
   .opportunity-content {
-    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
     overflow-wrap: anywhere;
     word-break: break-word;
   }
@@ -329,13 +332,16 @@ html {
   .opportunity-content embed,
   .opportunity-content object,
   .opportunity-content svg {
+    display: block;
+    width: 100% !important;
     max-width: 100% !important;
     height: auto !important;
   }
 
   .opportunity-content table {
     display: block;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     overflow-x: auto;
   }
 
@@ -346,8 +352,16 @@ html {
     max-width: 100%;
   }
 
-  .opportunity-content * {
+  .opportunity-content p,
+  .opportunity-content li,
+  .opportunity-content h1,
+  .opportunity-content h2,
+  .opportunity-content h3,
+  .opportunity-content h4,
+  .opportunity-content div,
+  .opportunity-content span,
+  .opportunity-content a {
     max-width: 100%;
-    box-sizing: border-box;
+    overflow-wrap: anywhere;
   }
 }
