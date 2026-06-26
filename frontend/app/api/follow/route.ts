@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { createNotification, NotificationTemplates } from "@/lib/notifications"
 import { z } from "zod"
 
 /**
@@ -39,6 +40,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const target = await prisma.user.findUnique({
+      where: { id: followingId },
+      select: { id: true },
+    })
+
+    if (!target) {
+      return NextResponse.json(
+        { error: "Member not found" },
+        { status: 404, headers: corsHeaders }
+      )
+    }
+
     // Check if already following
     const existing = await prisma.follow.findUnique({
       where: {
@@ -62,6 +75,23 @@ export async function POST(request: NextRequest) {
         followerId: session.user.id,
         followingId,
       },
+    })
+
+    const follower = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true },
+    })
+    const followerLabel =
+      follower?.name?.trim() || follower?.email?.split("@")[0] || "A community member"
+
+    await createNotification({
+      userId: followingId,
+      skipEmail: true,
+      ...NotificationTemplates.memberFollowed(
+        session.user.id,
+        followerLabel,
+        follow.id
+      ),
     })
 
     return NextResponse.json(

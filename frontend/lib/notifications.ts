@@ -173,4 +173,14 @@ export const NotificationTemplates = {
     relatedId: connectionId,
     relatedType: "connection",
   }),
+
+  memberFollowed: (followerUserId: string, followerName: string, followId: string) => ({
+    title: "New follower",
+    message: `${followerName} started following you.`,
+    type: "info" as const,
+    category: "follow",
+    actionUrl: `/community/${followerUserId}`,
+    relatedId: followId,
+    relatedType: "follow",
+  }),
 }
