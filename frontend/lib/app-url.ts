@@ -1,8 +1,19 @@
 export function getAppBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000")
-  ).replace(/\/$/, "")
+  const configured =
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    process.env.AUTH_URL?.trim() ||
+    process.env.VERCEL_URL?.trim()
+
+  if (configured) {
+    const withProtocol = configured.startsWith("http") ? configured : `https://${configured}`
+    return withProtocol.replace(/\/$/, "")
+  }
+
+  if (typeof window !== "undefined") {
+    return window.location.origin.replace(/\/$/, "")
+  }
+
+  return "http://localhost:3000"
 }
 
 /** Public privacy policy path (no trailing slash). */

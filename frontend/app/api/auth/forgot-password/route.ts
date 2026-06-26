@@ -39,15 +39,20 @@ export async function POST(request: NextRequest) {
 
     const result = await issuePasswordResetForEmail(email, { baseUrl })
 
-    if (process.env.NODE_ENV === "development") {
-      if (result.ok && result.emailed) {
-        console.log("[FORGOT PASSWORD] Reset email sent to", result.email)
-      } else if (result.ok && result.reason === "google_only") {
-        console.warn(
-          "[FORGOT PASSWORD] No email sent — Google-only account:",
-          email
-        )
+    if (result.ok && result.emailed) {
+      console.log("[FORGOT PASSWORD] Reset email queued for", result.email)
+      if (process.env.NODE_ENV === "development") {
+        console.log("[FORGOT PASSWORD] Reset URL:", result.resetUrl)
       }
+    } else if (result.ok && !result.emailed) {
+      console.error(
+        "[FORGOT PASSWORD] No email sent:",
+        result.reason,
+        "for",
+        result.email
+      )
+    } else if (!result.ok) {
+      console.log("[FORGOT PASSWORD] No matching account for password reset request")
     }
 
     return NextResponse.json({ message: GENERIC_MESSAGE })
