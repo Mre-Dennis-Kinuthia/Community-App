@@ -49,12 +49,12 @@ export async function POST(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, password: true },
+      select: { id: true },
     })
 
-    if (!user?.password) {
+    if (!user) {
       return NextResponse.json(
-        { error: "This account cannot reset a password via email. Contact support." },
+        { error: "Invalid or expired reset link. Please request a new one." },
         { status: 400 }
       )
     }
