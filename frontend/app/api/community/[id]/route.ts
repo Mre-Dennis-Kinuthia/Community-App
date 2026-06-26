@@ -8,6 +8,7 @@ import {
   parseMembershipTier,
 } from "@/lib/membership-tier"
 import type { MemberConnectionStatus } from "@/types/community"
+import { connectionPairFilter } from "@/lib/connection-requests"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 
 export async function OPTIONS(request: NextRequest) {
@@ -84,12 +85,7 @@ export async function GET(
 
     if (viewerId && !isSelf) {
       connectionRow = await prisma.connection.findFirst({
-        where: {
-          OR: [
-            { fromUserId: viewerId, toUserId: member.id },
-            { fromUserId: member.id, toUserId: viewerId },
-          ],
-        },
+        where: connectionPairFilter(viewerId, member.id),
         select: { fromUserId: true, toUserId: true, status: true },
       })
 

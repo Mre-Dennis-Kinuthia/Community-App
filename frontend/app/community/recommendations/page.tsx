@@ -46,7 +46,13 @@ function RecommendationsContent() {
       if (!res.ok) {
         throw new Error(data.error || "Could not send connection request")
       }
-      toast.success("Request sent", "They will see your connection request in the hub.")
+      if (data.alreadyConnected) {
+        toast.success("Already connected", "You are connected with this member.")
+      } else if (data.alreadySent) {
+        toast.info("Request pending", "You already sent a connection request.")
+      } else {
+        toast.success("Request sent", "They will get a notification and email.")
+      }
       setSkippedIds((prev) => [...prev, current.id])
       void refetch()
     } catch (e) {

@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 import { z } from "zod"
 
-/**
- * Handle OPTIONS preflight for CORS
- */
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
 }
@@ -15,48 +13,39 @@ const updateConnectionSchema = z.object({
   status: z.enum(["accepted", "rejected", "blocked"]),
 })
 
-/**
- * PUT /api/connections/[id]
- * Accept/reject connection request
- */
+async function requireUserId() {
+  const session = await auth()
+  const userId = await resolveUserIdFromSession(session)
+  if (!userId) return null
+  return userId
+}
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401, headers: corsHeaders }
-      )
+    const userId = await requireUserId()
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders })
     }
 
-    const { id: connectionId } = params
+    const { id: connectionId } = await params
     const body = await request.json()
     const { status } = updateConnectionSchema.parse(body)
 
-    // Get connection
     const connection = await prisma.connection.findUnique({
       where: { id: connectionId },
     })
 
     if (!connection) {
-      return NextResponse.json(
-        { error: "Connection not found" },
-        { status: 404, headers: corsHeaders }
-      )
+      return NextResponse.json({ error: "Connection not found" }, { status: 404, headers: corsHeaders })
     }
 
-    // Verify user is the recipient
-    if (connection.toUserId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 403, headers: corsHeaders }
-      )
+    if (connection.toUserId !== userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403, headers: corsHeaders })
     }
 
-    // Update connection status
     const updated = await prisma.connection.update({
       where: { id: connectionId },
       data: { status },
@@ -66,15 +55,12 @@ export async function PUT(
       { message: "Connection updated", connection: updated },
       { headers: corsHeaders }
     )
-  } catch (error: any) {
-    console.error("[CONNECTIONS API] Error:", error)
+  } catch (error) {
+    console.error("[CONNECTIONS API PUT]", error)
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        {
-          error: "Invalid request data",
-          details: error.errors,
-        },
+        { error: "Invalid request data", details: error.errors },
         { status: 400, headers: corsHeaders }
       )
     }
@@ -86,59 +72,37 @@ export async function PUT(
   }
 }
 
-/**
- * DELETE /api/connections/[id]
- * Remove connection
- */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401, headers: corsHeaders }
-      )
+    const userId = await requireUserId()
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders })
     }
 
-    const { id: connectionId } = params
+    const { id: connectionId } = await params
 
-    // Get connection
     const connection = await prisma.connection.findUnique({
       where: { id: connectionId },
     })
 
     if (!connection) {
-      return NextResponse.json(
-        { error: "Connection not found" },
-        { status: 404, headers: corsHeaders }
-      )
+      return NextResponse.json({ error: "Connection not found" }, { status: 404, headers: corsHeaders })
     }
 
-    // Verify user is part of the connection
-    if (
-      connection.fromUserId !== session.user.id &&
-      connection.toUserId !== session.user.id
-    ) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 403, headers: corsHeaders }
-      )
+    if (connection.fromUserId !== userId && connection.toUserId !== userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403, headers: corsHeaders })
     }
 
-    // Delete connection
     await prisma.connection.delete({
       where: { id: connectionId },
     })
 
-    return NextResponse.json(
-      { message: "Connection removed" },
-      { headers: corsHeaders }
-    )
-  } catch (error: any) {
-    console.error("[CONNECTIONS API] Error:", error)
+    return NextResponse.json({ message: "Connection removed" }, { headers: corsHeaders })
+  } catch (error) {
+    console.error("[CONNECTIONS API DELETE]", error)
     return NextResponse.json(
       { error: "Failed to remove connection" },
       { status: 500, headers: corsHeaders }
