@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { createNotification, NotificationTemplates } from "@/lib/notifications"
 import { z } from "zod"
 
 /**
@@ -111,6 +112,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const recipient = await prisma.user.findUnique({
+      where: { id: toUserId },
+      select: { id: true },
+    })
+
+    if (!recipient) {
+      return NextResponse.json(
+        { error: "Member not found" },
+        { status: 404, headers: corsHeaders }
+      )
+    }
+
     // Check if connection already exists
     const existing = await prisma.connection.findFirst({
       where: {
@@ -135,6 +148,22 @@ export async function POST(request: NextRequest) {
         toUserId,
         status: "pending",
       },
+    })
+
+    const sender = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true },
+    })
+    const senderLabel =
+      sender?.name?.trim() || sender?.email?.split("@")[0] || "A community member"
+
+    await createNotification({
+      userId: toUserId,
+      ...NotificationTemplates.connectionRequest(
+        session.user.id,
+        senderLabel,
+        connection.id
+      ),
     })
 
     return NextResponse.json(

@@ -163,4 +163,14 @@ export const NotificationTemplates = {
     relatedId: bookingId,
     relatedType: "booking",
   }),
+
+  connectionRequest: (fromUserId: string, fromName: string, connectionId: string) => ({
+    title: "New connection request",
+    message: `${fromName} wants to connect with you on Impact Hub Nairobi.`,
+    type: "info" as const,
+    category: "connection",
+    actionUrl: `/community/${fromUserId}`,
+    relatedId: connectionId,
+    relatedType: "connection",
+  }),
 }
