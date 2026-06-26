@@ -29,6 +29,7 @@ import {
 } from "@/components/design/data-list"
 import { StatusDot } from "@/components/design/status-dot"
 import { EmptyState } from "@/components/design/empty-state"
+import { cn } from "@/lib/utils"
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -98,7 +99,7 @@ export default function DashboardPage() {
   }, [user?.id])
 
   const statsKey = user ? "/api/dashboard/stats" : null
-  const eventsKey = user ? "/api/events?filter=upcoming&limit=2" : null
+  const eventsKey = user ? "/api/events?filter=upcoming&limit=5" : null
   const bookingsKey = user ? "/api/bookings/upcoming?limit=5&days=7" : null
 
   const { data: stats = null, isLoading: isLoadingStats } = useSWR<DashboardStats>(statsKey)
@@ -137,7 +138,6 @@ export default function DashboardPage() {
     }
   }, [])
 
-  // Format booking display
   const formatBookingDisplay = (booking: Booking) => {
     const date = new Date(booking.date)
     const today = new Date()
@@ -164,6 +164,13 @@ export default function DashboardPage() {
       status: booking.status.charAt(0).toUpperCase() + booking.status.slice(1),
     }
   }
+
+  const dashboardFeedShell =
+    "flex min-h-[17.75rem] flex-col overflow-hidden rounded-md border border-border bg-card md:min-h-0"
+  const dashboardFeedLoading =
+    "flex flex-1 items-center justify-center py-8 text-sm text-muted-foreground"
+  const dashboardFeedEmpty =
+    "flex flex-1 flex-col items-center justify-center border-0 bg-transparent px-6 py-8 shadow-none"
 
   return (
     <>
@@ -297,8 +304,8 @@ export default function DashboardPage() {
               </Button>
             </div>
             {isLoadingBookings ? (
-              <div className="flex justify-center py-8 text-sm text-muted-foreground">
-                Loading bookings…
+              <div className={dashboardFeedShell}>
+                <div className={dashboardFeedLoading}>Loading bookings…</div>
               </div>
             ) : upcomingBookings.length === 0 ? (
               <EmptyState
@@ -308,10 +315,10 @@ export default function DashboardPage() {
                     <Link href="/booking">Book a workspace</Link>
                   </Button>
                 }
-                className="py-8"
+                className={cn(dashboardFeedShell, dashboardFeedEmpty)}
               />
             ) : (
-              <DataList>
+              <DataList className={dashboardFeedShell}>
                 {upcomingBookings.map((booking) => {
                   const display = formatBookingDisplay(booking)
                   return (
@@ -336,8 +343,8 @@ export default function DashboardPage() {
               </Button>
             </div>
             {isLoadingEvents ? (
-              <div className="flex justify-center py-8 text-sm text-muted-foreground">
-                Loading highlights…
+              <div className={dashboardFeedShell}>
+                <div className={dashboardFeedLoading}>Loading highlights…</div>
               </div>
             ) : recentEvents.length === 0 ? (
               <EmptyState
@@ -347,10 +354,10 @@ export default function DashboardPage() {
                     <Link href="/events">Browse events</Link>
                   </Button>
                 }
-                className="py-8"
+                className={cn(dashboardFeedShell, dashboardFeedEmpty)}
               />
             ) : (
-              <DataList>
+              <DataList className={dashboardFeedShell}>
                 {recentEvents.map((event) => {
                   const eventDate = new Date(event.startDate)
                   const formattedDate = eventDate.toLocaleDateString("en-US", {

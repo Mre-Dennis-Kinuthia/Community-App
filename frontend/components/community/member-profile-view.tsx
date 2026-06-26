@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { format } from "date-fns"
 import {
@@ -28,12 +28,12 @@ import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import { toast } from "@/lib/toast"
-import { getInitials } from "@/lib/utils"
+import { getInitials, cn } from "@/lib/utils"
 import type { CommunityMember } from "@/types/community"
 
 type MemberProfileViewProps = {
   member: CommunityMember
-  onRefresh: () => void
+  onRefresh: () => void | Promise<void>
 }
 
 function ProfileSection({
@@ -72,6 +72,11 @@ function TagList({ items, variant = "secondary" }: { items: string[]; variant?: 
 export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps) {
   const [connectLoading, setConnectLoading] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
+  const [isFollowing, setIsFollowing] = useState(Boolean(member.isFollowing))
+
+  useEffect(() => {
+    setIsFollowing(Boolean(member.isFollowing))
+  }, [member.id, member.isFollowing])
 
   const bio = member.fullBio || member.bio
   const hasAbout = Boolean(bio?.trim())
@@ -106,28 +111,31 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
 
   const handleFollow = async () => {
     if (member.isSelf) return
+    const wasFollowing = isFollowing
     setFollowLoading(true)
     try {
       const res = await fetch(
-        member.isFollowing ? `/api/follow?followingId=${member.id}` : "/api/follow",
+        wasFollowing ? `/api/follow?followingId=${member.id}` : "/api/follow",
         {
-          method: member.isFollowing ? "DELETE" : "POST",
+          method: wasFollowing ? "DELETE" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: member.isFollowing ? undefined : JSON.stringify({ followingId: member.id }),
+          body: wasFollowing ? undefined : JSON.stringify({ followingId: member.id }),
         }
       )
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         throw new Error(data.error || "Could not update follow status")
       }
+      setIsFollowing(!wasFollowing)
       toast.success(
-        member.isFollowing ? "Unfollowed" : "Following",
-        member.isFollowing
+        wasFollowing ? "Unfollowed" : "Following",
+        wasFollowing
           ? "You will no longer see their updates here."
           : "You are now following this member."
       )
-      onRefresh()
+      await onRefresh()
     } catch (e) {
+      setIsFollowing(wasFollowing)
       toast.error("Follow failed", e instanceof Error ? e.message : "Please try again.")
     } finally {
       setFollowLoading(false)
@@ -269,14 +277,14 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                 {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : connectLabel()}
               </Button>
               <Button
-                variant="outline"
+                variant={isFollowing ? "secondary" : "outline"}
                 className="h-10 rounded-full text-xs"
                 disabled={followLoading}
                 onClick={handleFollow}
               >
                 {followLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
-                ) : member.isFollowing ? (
+                ) : isFollowing ? (
                   "Following"
                 ) : (
                   "Follow"
@@ -313,13 +321,17 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                   </a>
                 </Button>
               ) : null}
-              <Button variant="outline" disabled={followLoading} onClick={handleFollow}>
+              <Button
+                variant={isFollowing ? "secondary" : "outline"}
+                disabled={followLoading}
+                onClick={handleFollow}
+              >
                 {followLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
-                  <Heart className="mr-2 h-4 w-4" />
+                  <Heart className={cn("mr-2 h-4 w-4", isFollowing && "fill-current")} />
                 )}
-                {member.isFollowing ? "Following" : "Follow"}
+                {isFollowing ? "Following" : "Follow"}
               </Button>
               <Button variant="ghost" asChild className="ml-auto">
                 <Link href="/community">

@@ -33,7 +33,7 @@ export async function createNotification(params: CreateNotificationParams) {
       },
     })
 
-    void deliverNotificationEmails({
+    await deliverNotificationEmails({
       userId: params.userId,
       title: params.title,
       message: params.message,
@@ -74,7 +74,7 @@ export async function createBroadcastNotification(
       )
     )
 
-    void deliverNotificationEmails({
+    await deliverNotificationEmails({
       userIds,
       title: params.title,
       message: params.message,

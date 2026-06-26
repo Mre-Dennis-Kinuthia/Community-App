@@ -55,7 +55,7 @@ export function useCommunityMembers(options: UseCommunityMembersOptions = {}) {
     userConnections: Array.isArray(data?.userConnections) ? data.userConnections : [],
     isLoading,
     error: error?.message ?? null,
-    refetch: () => mutate(),
+    refetch: () => mutate(undefined, { revalidate: true }),
   }
 }
 
@@ -67,6 +67,6 @@ export function useCommunityMember(memberId: string | null) {
     member: data?.member ?? null,
     isLoading,
     error: error?.message ?? null,
-    refetch: () => mutate(),
+    refetch: () => mutate(undefined, { revalidate: true }),
   }
 }

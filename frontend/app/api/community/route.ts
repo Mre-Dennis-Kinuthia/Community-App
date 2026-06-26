@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
 
     // Get connection and follower counts for all members
     const memberIds = members.map((m) => m.id)
-    const [connectionCounts, followerCounts] = await Promise.all([
+    const [connectionCounts, followerCounts, viewerFollowing] = await Promise.all([
       prisma.connection.groupBy({
         by: ["fromUserId"],
         where: {
@@ -235,7 +235,18 @@ export async function GET(request: NextRequest) {
         },
         _count: true,
       }),
+      viewerId
+        ? prisma.follow.findMany({
+            where: {
+              followerId: viewerId,
+              followingId: { in: memberIds },
+            },
+            select: { followingId: true },
+          })
+        : Promise.resolve([]),
     ])
+
+    const followingSet = new Set(viewerFollowing.map((f) => f.followingId))
 
     const connectionCountMap = new Map(
       connectionCounts.map((c) => [c.fromUserId, c._count])
@@ -281,6 +292,7 @@ export async function GET(request: NextRequest) {
         joinedDate: member.createdAt,
         achievements: [], // Can be added later
         isConnected,
+        isFollowing: viewerId ? followingSet.has(member.id) : false,
         isSelf,
       }
     })

@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
-
-async function resolveUserId(session: Awaited<ReturnType<typeof auth>>) {
-  if (!session?.user?.id) return null
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-  return user?.id ?? null
-}
+import { prisma } from "@/lib/prisma"
+import { emptyListIfMissingTable, requireMemberUserId } from "@/lib/space/front-desk-api"
 
 export async function GET() {
   if (!isFeatureEnabled("deliveryManagement")) {
@@ -15,15 +9,11 @@ export async function GET() {
   }
 
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    const userId = await resolveUserId(session)
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const authResult = await requireMemberUserId()
+    if ("response" in authResult) return authResult.response
 
     const deliveries = await prisma.delivery.findMany({
-      where: { recipientUserId: userId },
+      where: { recipientUserId: authResult.userId },
       include: { location: { select: { id: true, name: true } } },
       orderBy: { receivedAt: "desc" },
       take: 50,
@@ -31,6 +21,8 @@ export async function GET() {
 
     return NextResponse.json({ deliveries })
   } catch (error) {
+    const missingTable = emptyListIfMissingTable(error, { deliveries: [] })
+    if (missingTable) return missingTable
     console.error("[DELIVERIES API GET]", error)
     return NextResponse.json({ error: "Failed to fetch deliveries" }, { status: 500 })
   }
