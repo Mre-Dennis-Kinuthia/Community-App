@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/auth"
-import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
+import { prisma } from "@/lib/prisma"
 import { LocationResolutionError, resolveLocationId } from "@/lib/space/locations"
+import { emptyListIfMissingTable, requireMemberUserId } from "@/lib/space/front-desk-api"
 import { z } from "zod"
 
 const requestSchema = z.object({
@@ -15,25 +15,17 @@ const requestSchema = z.object({
   spaceAssetId: z.string().optional().nullable(),
 })
 
-async function resolveUserId(session: Awaited<ReturnType<typeof auth>>) {
-  if (!session?.user?.id) return null
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-  return user?.id ?? null
-}
-
 export async function GET() {
   if (!isFeatureEnabled("operationsModule")) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
   try {
-    const session = await auth()
-    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    const userId = await resolveUserId(session)
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const authResult = await requireMemberUserId()
+    if ("response" in authResult) return authResult.response
 
     const tickets = await prisma.maintenanceTicket.findMany({
-      where: { reportedBy: userId },
+      where: { reportedBy: authResult.userId },
       include: { location: { select: { id: true, name: true } } },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -41,6 +33,8 @@ export async function GET() {
 
     return NextResponse.json({ tickets })
   } catch (error) {
+    const missingTable = emptyListIfMissingTable(error, { tickets: [] })
+    if (missingTable) return missingTable
     console.error("[MAINTENANCE REQUESTS GET]", error)
     return NextResponse.json({ error: "Failed to fetch requests" }, { status: 500 })
   }
@@ -52,10 +46,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const session = await auth()
-    if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    const userId = await resolveUserId(session)
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const authResult = await requireMemberUserId()
+    if ("response" in authResult) return authResult.response
 
     const body = requestSchema.parse(await request.json())
     const locationId = await resolveLocationId({
@@ -71,7 +63,7 @@ export async function POST(request: NextRequest) {
         priority: body.priority ?? "medium",
         locationId,
         spaceAssetId: body.spaceAssetId ?? null,
-        reportedBy: userId,
+        reportedBy: authResult.userId,
         status: "open",
       },
       include: { location: { select: { id: true, name: true } } },
@@ -84,6 +76,13 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid data", details: error.errors }, { status: 400 })
+    }
+    const missingTable = emptyListIfMissingTable(error, { tickets: [] })
+    if (missingTable) {
+      return NextResponse.json(
+        { error: "Maintenance requests are not set up on this database yet." },
+        { status: 503 }
+      )
     }
     console.error("[MAINTENANCE REQUESTS POST]", error)
     return NextResponse.json({ error: "Failed to submit request" }, { status: 500 })

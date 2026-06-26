@@ -8,6 +8,7 @@ import {
   parseMembershipTier,
 } from "@/lib/membership-tier"
 import type { MemberConnectionStatus } from "@/types/community"
+import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -36,7 +37,7 @@ export async function GET(
   try {
     const { id } = await params
     const session = await auth()
-    const viewerId = session?.user?.id
+    const viewerId = (await resolveUserIdFromSession(session)) ?? undefined
 
     const member = await prisma.user.findUnique({
       where: { id },

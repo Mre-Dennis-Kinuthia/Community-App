@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import { notifyVisitorRegistered } from "@/lib/space/visitor-notify"
 import { LocationResolutionError, resolveLocationId } from "@/lib/space/locations"
+import { emptyListIfMissingTable, requireMemberUserId } from "@/lib/space/front-desk-api"
 import { z } from "zod"
 
 const visitorBodySchema = z.object({
@@ -17,27 +17,17 @@ const visitorBodySchema = z.object({
   workspaceId: z.string().optional(),
 })
 
-async function resolveUserId(session: Awaited<ReturnType<typeof auth>>) {
-  if (!session?.user?.id) return null
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-  return user?.id ?? null
-}
-
 export async function GET() {
   if (!isFeatureEnabled("visitorManagement")) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    const userId = await resolveUserId(session)
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const authResult = await requireMemberUserId()
+    if ("response" in authResult) return authResult.response
 
     const visitors = await prisma.visitor.findMany({
-      where: { hostUserId: userId },
+      where: { hostUserId: authResult.userId },
       include: { location: { select: { id: true, name: true } } },
       orderBy: { expectedAt: "desc" },
       take: 50,
@@ -45,6 +35,8 @@ export async function GET() {
 
     return NextResponse.json({ visitors })
   } catch (error) {
+    const missingTable = emptyListIfMissingTable(error, { visitors: [] })
+    if (missingTable) return missingTable
     console.error("[VISITORS API GET]", error)
     return NextResponse.json({ error: "Failed to fetch visitors" }, { status: 500 })
   }
@@ -56,12 +48,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const session = await auth()
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-    const userId = await resolveUserId(session)
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const authResult = await requireMemberUserId()
+    if ("response" in authResult) return authResult.response
 
     const body = visitorBodySchema.parse(await request.json())
     const locationId = await resolveLocationId({
@@ -75,11 +63,11 @@ export async function POST(request: NextRequest) {
         email: body.email ?? null,
         phone: body.phone ?? null,
         company: body.company ?? null,
-        hostUserId: userId,
+        hostUserId: authResult.userId,
         expectedAt: body.expectedAt,
         purpose: body.purpose ?? null,
         locationId,
-        createdBy: userId,
+        createdBy: authResult.userId,
         status: "expected",
       },
       include: {
@@ -94,7 +82,7 @@ export async function POST(request: NextRequest) {
       company: visitor.company,
       purpose: visitor.purpose,
       expectedAt: visitor.expectedAt,
-      hostUserId: userId,
+      hostUserId: authResult.userId,
       location: visitor.location,
     })
 
@@ -105,6 +93,13 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid data", details: error.errors }, { status: 400 })
+    }
+    const missingTable = emptyListIfMissingTable(error, { visitors: [] })
+    if (missingTable) {
+      return NextResponse.json(
+        { error: "Visitor management is not set up on this database yet." },
+        { status: 503 }
+      )
     }
     console.error("[VISITORS API POST]", error)
     return NextResponse.json({ error: "Failed to register visitor" }, { status: 500 })

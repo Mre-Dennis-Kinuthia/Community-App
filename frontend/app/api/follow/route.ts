@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
+import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 import { z } from "zod"
 
 /**
@@ -23,7 +24,8 @@ const followSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    const viewerId = await resolveUserIdFromSession(session)
+    if (!viewerId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401, headers: corsHeaders }
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { followingId } = followSchema.parse(body)
 
-    if (followingId === session.user.id) {
+    if (followingId === viewerId) {
       return NextResponse.json(
         { error: "Cannot follow yourself" },
         { status: 400, headers: corsHeaders }
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest) {
     const existing = await prisma.follow.findUnique({
       where: {
         followerId_followingId: {
-          followerId: session.user.id,
+          followerId: viewerId,
           followingId,
         },
       },
@@ -72,13 +74,13 @@ export async function POST(request: NextRequest) {
     // Create follow relationship
     const follow = await prisma.follow.create({
       data: {
-        followerId: session.user.id,
+        followerId: viewerId,
         followingId,
       },
     })
 
     const follower = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: viewerId },
       select: { name: true, email: true },
     })
     const followerLabel =
@@ -87,11 +89,7 @@ export async function POST(request: NextRequest) {
     await createNotification({
       userId: followingId,
       skipEmail: true,
-      ...NotificationTemplates.memberFollowed(
-        session.user.id,
-        followerLabel,
-        follow.id
-      ),
+      ...NotificationTemplates.memberFollowed(viewerId, followerLabel, follow.id),
     })
 
     return NextResponse.json(
@@ -125,7 +123,8 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user?.id) {
+    const viewerId = await resolveUserIdFromSession(session)
+    if (!viewerId) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401, headers: corsHeaders }
@@ -146,7 +145,7 @@ export async function DELETE(request: NextRequest) {
     await prisma.follow.delete({
       where: {
         followerId_followingId: {
-          followerId: session.user.id,
+          followerId: viewerId,
           followingId,
         },
       },
