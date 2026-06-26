@@ -3,6 +3,12 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
+import { getAppBaseUrl } from "@/lib/app-url"
+import {
+  isEmailConfigured,
+  sendConnectionRequestEmail,
+  sendEmailInBackground,
+} from "@/lib/email"
 import { z } from "zod"
 
 /**
@@ -114,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     const recipient = await prisma.user.findUnique({
       where: { id: toUserId },
-      select: { id: true },
+      select: { id: true, email: true, name: true },
     })
 
     if (!recipient) {
@@ -156,15 +162,32 @@ export async function POST(request: NextRequest) {
     })
     const senderLabel =
       sender?.name?.trim() || sender?.email?.split("@")[0] || "A community member"
+    const profileUrl = `${getAppBaseUrl()}/community/${session.user.id}`
 
     await createNotification({
       userId: toUserId,
+      skipEmail: true,
       ...NotificationTemplates.connectionRequest(
         session.user.id,
         senderLabel,
         connection.id
       ),
     })
+
+    if (isEmailConfigured() && recipient.email) {
+      sendEmailInBackground(
+        () =>
+          sendConnectionRequestEmail({
+            to: recipient.email,
+            name: recipient.name,
+            fromName: senderLabel,
+            profileUrl,
+          }),
+        `connection-request:${recipient.email}`
+      )
+    } else if (!isEmailConfigured()) {
+      console.error("[CONNECTIONS API] Email not configured — connection request email skipped")
+    }
 
     return NextResponse.json(
       { message: "Connection request sent", connection },

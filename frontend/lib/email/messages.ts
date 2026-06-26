@@ -40,6 +40,36 @@ export async function sendPasswordResetEmail(params: {
   })
 }
 
+export async function sendConnectionRequestEmail(params: {
+  to: string
+  name?: string | null
+  fromName: string
+  profileUrl: string
+}): Promise<SendEmailResult> {
+  const fromName = escapeHtml(params.fromName.trim() || "A community member")
+  const bodyHtml = `
+    ${emailGreeting(params.name)}
+    ${emailParagraph(
+      `<strong>${fromName}</strong> sent you a connection request on the <strong>Impact Hub Nairobi</strong> community platform.`
+    )}
+    ${emailMutedNote("Open their profile to accept or decline the request.")}
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: `${params.fromName.trim() || "Someone"} wants to connect with you`,
+    html: layoutEmail({
+      preheader: `${params.fromName} wants to connect`,
+      title: "New connection request",
+      eyebrow: "Community",
+      bodyHtml,
+      ctaLabel: "View profile",
+      ctaUrl: params.profileUrl,
+    }),
+    text: `${params.fromName} wants to connect with you on Impact Hub Nairobi.\n\nView their profile: ${params.profileUrl}`,
+  })
+}
+
 export async function sendEventRegistrationEmail(params: {
   to: string
   name?: string | null

@@ -17,6 +17,7 @@ export {
 
 export {
   sendPasswordResetEmail,
+  sendConnectionRequestEmail,
   sendEventRegistrationEmail,
   sendEventApplicationDecisionEmail,
   sendEventRegistrationCancelledEmail,
