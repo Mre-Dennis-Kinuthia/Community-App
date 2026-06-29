@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { RecommendationProfileCard } from "@/components/community/recommendation-profile-card"
 import { getRecommendedMembers } from "@/lib/community-recommendations"
 import { useCommunityMembers } from "@/lib/hooks/use-community"
+import { sendConnectionRequest } from "@/lib/connection-client"
 import { toast } from "@/lib/toast"
 
 function RecommendationsContent() {
@@ -37,18 +38,13 @@ function RecommendationsContent() {
     if (!current) return
     setContactLoading(true)
     try {
-      const res = await fetch("/api/connections", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toUserId: current.id }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(data.error || "Could not send connection request")
+      const result = await sendConnectionRequest(current.id)
+      if (!result.ok) {
+        throw new Error(result.error || "Could not send connection request")
       }
-      if (data.alreadyConnected) {
+      if (result.data.alreadyConnected) {
         toast.success("Already connected", "You are connected with this member.")
-      } else if (data.alreadySent) {
+      } else if (result.data.alreadySent) {
         toast.info("Request pending", "You already sent a connection request.")
       } else {
         toast.success("Request sent", "They will get a notification and email.")

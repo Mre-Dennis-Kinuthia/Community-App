@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { createNotification, NotificationTemplates } from "@/lib/notifications"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 import { z } from "zod"
 
@@ -46,10 +47,32 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403, headers: corsHeaders })
     }
 
+    if (connection.status !== "pending") {
+      return NextResponse.json(
+        { error: "This connection request has already been handled" },
+        { status: 409, headers: corsHeaders }
+      )
+    }
+
     const updated = await prisma.connection.update({
       where: { id: connectionId },
       data: { status },
     })
+
+    if (status === "accepted") {
+      const accepter = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true, email: true },
+      })
+      const accepterLabel =
+        accepter?.name?.trim() || accepter?.email?.split("@")[0] || "A community member"
+
+      await createNotification({
+        userId: connection.fromUserId,
+        skipEmail: true,
+        ...NotificationTemplates.connectionAccepted(userId, accepterLabel, connectionId),
+      })
+    }
 
     return NextResponse.json(
       { message: "Connection updated", connection: updated },

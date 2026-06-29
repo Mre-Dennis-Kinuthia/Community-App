@@ -174,6 +174,16 @@ export const NotificationTemplates = {
     relatedType: "connection",
   }),
 
+  connectionAccepted: (accepterUserId: string, accepterName: string, connectionId: string) => ({
+    title: "Connection accepted",
+    message: `${accepterName} accepted your connection request.`,
+    type: "success" as const,
+    category: "connection",
+    actionUrl: `/community/${accepterUserId}`,
+    relatedId: connectionId,
+    relatedType: "connection",
+  }),
+
   memberFollowed: (followerUserId: string, followerName: string, followId: string) => ({
     title: "New follower",
     message: `${followerName} started following you.`,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { isFeatureEnabled } from "@/lib/feature-flags"
+import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 import { LocationResolutionError, resolveLocationId } from "@/lib/space/locations"
 import { z } from "zod"
 
@@ -17,12 +18,6 @@ function endOfDay(d: Date) {
   return x
 }
 
-async function resolveUserId(session: Awaited<ReturnType<typeof auth>>) {
-  if (!session?.user?.id) return null
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-  return user?.id ?? null
-}
-
 export async function GET() {
   if (!isFeatureEnabled("spaceInventory")) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
@@ -33,8 +28,11 @@ export async function GET() {
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const userId = await resolveUserId(session)
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const userId = await resolveUserIdFromSession(session)
+    if (!userId) {
+      console.log("[CHECK-IN API GET] Unauthorized - unable to resolve user")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     const today = new Date()
     const checkIn = await prisma.checkIn.findFirst({
@@ -91,8 +89,11 @@ export async function POST(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-    const userId = await resolveUserId(session)
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const userId = await resolveUserIdFromSession(session)
+    if (!userId) {
+      console.log("[CHECK-IN API POST] Unauthorized - unable to resolve user")
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
 
     const body = checkInBodySchema.parse(await request.json().catch(() => ({})))
     const locationId = await resolveLocationId({

@@ -19,7 +19,7 @@ const fetcher = (url: string) =>
 
 export function DashboardSpaceWidget() {
   const enabled = isFeatureEnabled("spaceInventory")
-  const { data, mutate, isLoading } = useSWR(enabled ? "/api/check-in" : null, fetcher)
+  const { data, mutate, isLoading, error } = useSWR(enabled ? "/api/check-in" : null, fetcher)
   const [checkingIn, setCheckingIn] = useState(false)
   const [locationId, setLocationId] = useState("")
   const [hubCount, setHubCount] = useState(0)
@@ -35,12 +35,17 @@ export function DashboardSpaceWidget() {
     try {
       const res = await fetch("/api/check-in", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(locationId ? { locationId } : {}),
       })
       const json = await res.json()
       if (!res.ok) {
-        toast.error("Check-in failed", json.error || "Please try again")
+        const message =
+          res.status === 401
+            ? "Your session may have expired. Please sign in again."
+            : json.error || "Please try again"
+        toast.error("Check-in failed", message)
         return
       }
       toast.success("Checked in", `Welcome to ${json.checkIn?.location?.name || "the hub"}!`)
@@ -64,6 +69,10 @@ export function DashboardSpaceWidget() {
       <CardContent className="space-y-3">
         {isLoading ? (
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        ) : error ? (
+          <p className="text-sm text-muted-foreground">
+            Could not load check-in status. Try refreshing or signing in again.
+          </p>
         ) : (
           <>
             {data?.assignment ? (

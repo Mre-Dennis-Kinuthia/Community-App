@@ -63,6 +63,7 @@ export interface CommunityMember {
   education?: MemberEducation[]
   isConnected?: boolean
   connectionStatus?: MemberConnectionStatus
+  connectionId?: string | null
   isFollowing?: boolean
   isSelf?: boolean
   mutualConnections?: MutualConnectionSummary[]

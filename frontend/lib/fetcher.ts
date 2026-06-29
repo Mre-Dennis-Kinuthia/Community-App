@@ -2,7 +2,7 @@
  * Shared fetcher for SWR. Throws on non-ok response so SWR treats it as error.
  */
 export async function fetcher<T = unknown>(url: string): Promise<T> {
-  const res = await fetch(url)
+  const res = await fetch(url, { credentials: "include" })
   if (!res.ok) {
     let info: unknown
     try {

@@ -79,14 +79,18 @@ export async function GET(
     const profile = member.profile
     const isSelf = viewerId === member.id
 
-    let connectionRow: { fromUserId: string; toUserId: string; status: string } | null =
-      null
+    let connectionRow: {
+      id: string
+      fromUserId: string
+      toUserId: string
+      status: string
+    } | null = null
     let viewerConnectionIds: string[] = []
 
     if (viewerId && !isSelf) {
       connectionRow = await prisma.connection.findFirst({
         where: connectionPairFilter(viewerId, member.id),
-        select: { fromUserId: true, toUserId: true, status: true },
+        select: { id: true, fromUserId: true, toUserId: true, status: true },
       })
 
       const viewerConnections = await prisma.connection.findMany({
@@ -251,6 +255,7 @@ export async function GET(
       education: [],
       isConnected,
       connectionStatus,
+      connectionId: connectionRow?.id ?? null,
       isFollowing,
       isSelf,
       mutualConnections,

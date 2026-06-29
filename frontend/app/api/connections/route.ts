@@ -24,7 +24,10 @@ const connectionRequestSchema = z.object({
 async function requireUserId() {
   const session = await auth()
   const userId = await resolveUserIdFromSession(session)
-  if (!userId) return null
+  if (!userId) {
+    console.log("[CONNECTIONS API] Unauthorized - unable to resolve user")
+    return null
+  }
   return { userId, session }
 }
 

@@ -28,6 +28,10 @@ import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import { toast } from "@/lib/toast"
+import {
+  respondToConnectionRequest,
+  sendConnectionRequest,
+} from "@/lib/connection-client"
 import { getInitials, cn } from "@/lib/utils"
 import type { CommunityMember } from "@/types/community"
 
@@ -94,27 +98,62 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
       return
     }
     if (member.connectionStatus === "pending_received") {
-      toast.info("Respond to request", "This member already sent you a connection request.")
+      await handleAcceptConnection()
       return
     }
     setConnectLoading(true)
     try {
-      const res = await fetch("/api/connections", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toUserId: member.id }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(data.error || "Could not send connection request")
+      const result = await sendConnectionRequest(member.id)
+      if (!result.ok) {
+        throw new Error(result.error || "Could not send connection request")
       }
-      if (data.alreadyConnected) {
+      if (result.data.alreadyConnected) {
         toast.success("Already connected", "You are connected with this member.")
-      } else if (data.alreadySent) {
+      } else if (result.data.alreadySent) {
         toast.info("Request pending", "You already sent a connection request.")
       } else {
         toast.success("Request sent", "They will get a notification and email.")
       }
+      await onRefresh()
+    } catch (e) {
+      toast.error("Connection failed", e instanceof Error ? e.message : "Please try again.")
+    } finally {
+      setConnectLoading(false)
+    }
+  }
+
+  const handleAcceptConnection = async () => {
+    if (!member.connectionId) {
+      toast.error("Connection failed", "Could not find the pending request. Refresh and try again.")
+      return
+    }
+    setConnectLoading(true)
+    try {
+      const result = await respondToConnectionRequest(member.connectionId, "accepted")
+      if (!result.ok) {
+        throw new Error(result.error || "Could not accept connection request")
+      }
+      toast.success("Connected", `You are now connected with ${member.name}.`)
+      await onRefresh()
+    } catch (e) {
+      toast.error("Connection failed", e instanceof Error ? e.message : "Please try again.")
+    } finally {
+      setConnectLoading(false)
+    }
+  }
+
+  const handleDeclineConnection = async () => {
+    if (!member.connectionId) {
+      toast.error("Connection failed", "Could not find the pending request. Refresh and try again.")
+      return
+    }
+    setConnectLoading(true)
+    try {
+      const result = await respondToConnectionRequest(member.connectionId, "rejected")
+      if (!result.ok) {
+        throw new Error(result.error || "Could not decline connection request")
+      }
+      toast.info("Request declined", "The connection request was removed.")
       await onRefresh()
     } catch (e) {
       toast.error("Connection failed", e instanceof Error ? e.message : "Please try again.")
@@ -132,13 +171,18 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
         wasFollowing ? `/api/follow?followingId=${member.id}` : "/api/follow",
         {
           method: wasFollowing ? "DELETE" : "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: wasFollowing ? undefined : JSON.stringify({ followingId: member.id }),
         }
       )
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        throw new Error(data.error || "Could not update follow status")
+        const message =
+          res.status === 401
+            ? "Your session may have expired. Please sign in again."
+            : data.error || "Could not update follow status"
+        throw new Error(message)
       }
       setIsFollowing(!wasFollowing)
       toast.success(
@@ -170,6 +214,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
   }
 
   const isConnected = member.connectionStatus === "connected"
+  const isPendingReceived = member.connectionStatus === "pending_received"
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4 overflow-x-hidden md:space-y-6">
@@ -281,20 +326,45 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
         {/* Actions */}
         {!member.isSelf ? (
           <>
-            {/* Mobile — two clean pill buttons */}
-            <div className="grid grid-cols-2 gap-3 border-t border-border px-5 py-4 md:hidden">
-              <Button
-                className="h-10 rounded-full text-xs"
-                disabled={connectLoading || isConnected || member.connectionStatus === "pending_sent"}
-                onClick={handleConnect}
-              >
-                {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : connectLabel()}
-              </Button>
+            {/* Mobile — action buttons */}
+            <div
+              className={cn(
+                "grid gap-3 border-t border-border px-5 py-4 md:hidden",
+                isPendingReceived ? "grid-cols-3" : "grid-cols-2"
+              )}
+            >
+              {isPendingReceived ? (
+                <>
+                  <Button
+                    className="h-10 rounded-full text-xs"
+                    disabled={connectLoading}
+                    onClick={() => void handleAcceptConnection()}
+                  >
+                    {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Accept"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-full text-xs"
+                    disabled={connectLoading}
+                    onClick={() => void handleDeclineConnection()}
+                  >
+                    Decline
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  className="h-10 rounded-full text-xs"
+                  disabled={connectLoading || isConnected || member.connectionStatus === "pending_sent"}
+                  onClick={() => void handleConnect()}
+                >
+                  {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : connectLabel()}
+                </Button>
+              )}
               <Button
                 variant={isFollowing ? "secondary" : "outline"}
                 className="h-10 rounded-full text-xs"
                 disabled={followLoading}
-                onClick={handleFollow}
+                onClick={() => void handleFollow()}
               >
                 {followLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -308,17 +378,37 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
 
             {/* Desktop actions */}
             <div className="hidden flex-wrap gap-2 border-t border-border px-8 py-4 md:flex">
-              <Button
-                disabled={connectLoading || isConnected || member.connectionStatus === "pending_sent"}
-                onClick={handleConnect}
-              >
-                {connectLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <UserPlus className="mr-2 h-4 w-4" />
-                )}
-                {connectLabel()}
-              </Button>
+              {isPendingReceived ? (
+                <>
+                  <Button disabled={connectLoading} onClick={() => void handleAcceptConnection()}>
+                    {connectLoading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <UserPlus className="mr-2 h-4 w-4" />
+                    )}
+                    Accept request
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={connectLoading}
+                    onClick={() => void handleDeclineConnection()}
+                  >
+                    Decline
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  disabled={connectLoading || isConnected || member.connectionStatus === "pending_sent"}
+                  onClick={() => void handleConnect()}
+                >
+                  {connectLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <UserPlus className="mr-2 h-4 w-4" />
+                  )}
+                  {connectLabel()}
+                </Button>
+              )}
               {member.email && isConnected ? (
                 <Button variant="outline" asChild>
                   <a href={`mailto:${member.email}`}>
