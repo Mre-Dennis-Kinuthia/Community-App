@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
         },
         select: profileSelect,
       })
-      const [connections, events, projects] = await Promise.all([
+      const [connections, events, projects, following, followers] = await Promise.all([
         prisma.connection.count({
           where: {
             status: "accepted",
@@ -164,19 +164,25 @@ export async function GET(request: NextRequest) {
         prisma.project.count({
           where: { founderId: userId, deletedAt: null },
         }),
+        prisma.follow.count({
+          where: { followerId: userId },
+        }),
+        prisma.follow.count({
+          where: { followingId: userId },
+        }),
       ])
       const needsOnboarding = !isOnboardingComplete(newProfile)
       return NextResponse.json(
         {
           profile: formatProfileResponse(newProfile),
           needsOnboarding,
-          stats: { connections, events, projects },
+          stats: { connections, events, projects, following, followers },
         },
         { headers: corsHeaders }
       )
     }
 
-    const [connections, events, projects] = await Promise.all([
+    const [connections, events, projects, following, followers] = await Promise.all([
       prisma.connection.count({
         where: {
           status: "accepted",
@@ -189,6 +195,12 @@ export async function GET(request: NextRequest) {
       prisma.project.count({
         where: { founderId: userId, deletedAt: null },
       }),
+      prisma.follow.count({
+        where: { followerId: userId },
+      }),
+      prisma.follow.count({
+        where: { followingId: userId },
+      }),
     ])
 
     const needsOnboarding = !isOnboardingComplete(profile)
@@ -196,7 +208,7 @@ export async function GET(request: NextRequest) {
       {
         profile: formatProfileResponse(profile),
         needsOnboarding,
-        stats: { connections, events, projects },
+        stats: { connections, events, projects, following, followers },
       },
       { headers: corsHeaders }
     )

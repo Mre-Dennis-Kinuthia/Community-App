@@ -18,6 +18,78 @@ const followSchema = z.object({
 })
 
 /**
+ * GET /api/follow?list=following
+ * List members the current user follows.
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth()
+    const viewerId = await resolveUserIdFromSession(session)
+    if (!viewerId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: corsHeaders }
+      )
+    }
+
+    const list = request.nextUrl.searchParams.get("list")
+    if (list !== "following") {
+      return NextResponse.json(
+        { error: "Unsupported list type" },
+        { status: 400, headers: corsHeaders }
+      )
+    }
+
+    const limit = Math.min(
+      parseInt(request.nextUrl.searchParams.get("limit") || "20", 10) || 20,
+      50
+    )
+
+    const follows = await prisma.follow.findMany({
+      where: { followerId: viewerId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: { followingId: true },
+    })
+
+    const followingIds = follows.map((f) => f.followingId)
+    if (followingIds.length === 0) {
+      return NextResponse.json({ following: [] }, { headers: corsHeaders })
+    }
+
+    const users = await prisma.user.findMany({
+      where: { id: { in: followingIds } },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        profile: { select: { role: true } },
+      },
+    })
+
+    const userById = new Map(users.map((u) => [u.id, u]))
+    const following = followingIds
+      .map((id) => userById.get(id))
+      .filter(Boolean)
+      .map((u) => ({
+        id: u!.id,
+        name: u!.name?.trim() || u!.email?.split("@")[0] || "Member",
+        avatar: u!.image,
+        role: u!.profile?.role ?? null,
+      }))
+
+    return NextResponse.json({ following }, { headers: corsHeaders })
+  } catch (error) {
+    console.error("[FOLLOW API] GET error:", error)
+    return NextResponse.json(
+      { error: "Failed to fetch following list" },
+      { status: 500, headers: corsHeaders }
+    )
+  }
+}
+
+/**
  * POST /api/follow
  * Follow a user
  */

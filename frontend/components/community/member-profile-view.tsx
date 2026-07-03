@@ -585,10 +585,14 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                 <p className="text-xl font-semibold tabular-nums">{member.followers}</p>
               </div>
               <div>
+                <p className="text-muted-foreground">Following</p>
+                <p className="text-xl font-semibold tabular-nums">{member.following}</p>
+              </div>
+              <div>
                 <p className="text-muted-foreground">Projects</p>
                 <p className="text-xl font-semibold tabular-nums">{projects.length}</p>
               </div>
-              <div>
+              <div className="col-span-2">
                 <p className="text-muted-foreground">Events</p>
                 <p className="text-xl font-semibold tabular-nums">{events.length}</p>
               </div>

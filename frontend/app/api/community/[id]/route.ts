@@ -121,7 +121,7 @@ export async function GET(
       isFollowing = !!follow
     }
 
-    const [connectionCount, followerCount, projects, eventRegistrations] =
+    const [connectionCount, followerCount, followingCount, projects, eventRegistrations] =
       await Promise.all([
         prisma.connection.count({
           where: {
@@ -131,6 +131,9 @@ export async function GET(
         }),
         prisma.follow.count({
           where: { followingId: member.id },
+        }),
+        prisma.follow.count({
+          where: { followerId: member.id },
         }),
         prisma.project.findMany({
           where: {
@@ -236,6 +239,7 @@ export async function GET(
       socialLinks: parseMemberSocialLinks(profile?.socialLinks),
       connections: connectionCount,
       followers: followerCount,
+      following: followingCount,
       projectsInvolved: projects.map((p) => p.id),
       projects,
       recentEvents: eventRegistrations

@@ -52,6 +52,7 @@ export interface CommunityMember {
   socialLinks?: { linkedin?: string } | null
   connections: number
   followers: number
+  following: number
   projectsInvolved: number[]
   projects?: MemberProjectSummary[]
   recentEvents?: MemberEventSummary[]

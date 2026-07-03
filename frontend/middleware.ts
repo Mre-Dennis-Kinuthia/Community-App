@@ -18,6 +18,7 @@ const publicRoutes = [
   "/register",
   "/forgot-password",
   "/reset-password",
+  "/accept-invite",
   "/privacy",
   "/terms",
   "/pay",

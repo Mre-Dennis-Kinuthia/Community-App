@@ -9,6 +9,7 @@ export const AUTH_PAGE_PATHS = [
   "/register",
   "/forgot-password",
   "/reset-password",
+  "/accept-invite",
 ] as const
 
 /** Marketing home — signed-in members should not stay here */

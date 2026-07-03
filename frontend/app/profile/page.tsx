@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Edit, Save, X, Plus, Loader2, CreditCard, Users, CalendarDays, Briefcase, AlertTriangle } from "lucide-react"
+import { Edit, Save, X, Plus, Loader2, CreditCard, Users, CalendarDays, Briefcase, AlertTriangle, Heart } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { MobilePageHeader, MobileStatsStrip, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { DashboardLayout } from "@/app/dashboard/layout"
@@ -51,7 +51,20 @@ const AVAILABILITY_OPTIONS = [
   "Looking for Volunteers",
 ] as const
 
-type ProfileStats = { connections: number; events: number; projects: number }
+type FollowingMember = {
+  id: string
+  name: string
+  avatar: string | null
+  role: string | null
+}
+
+type ProfileStats = {
+  connections: number
+  following: number
+  followers: number
+  events: number
+  projects: number
+}
 
 type ProfilePayload = {
   bio: string | null
@@ -100,6 +113,8 @@ export default function ProfilePage() {
   const { update: updateSession } = useNextAuthSession()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState<ProfileStats | null>(null)
+  const [followingMembers, setFollowingMembers] = useState<FollowingMember[]>([])
+  const [followingLoading, setFollowingLoading] = useState(true)
   const [joinedAt, setJoinedAt] = useState<string | null>(null)
   const [membership, setMembership] = useState<MembershipBenefits | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -133,16 +148,21 @@ export default function ProfilePage() {
   const loadProfile = useCallback(async () => {
     if (!user?.id) {
       setLoading(false)
+      setFollowingLoading(false)
       return
     }
     setLoading(true)
+    setFollowingLoading(true)
     try {
-      const res = await fetch("/api/profile", { credentials: "include" })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
+      const [profileRes, followingRes] = await Promise.all([
+        fetch("/api/profile", { credentials: "include" }),
+        fetch("/api/follow?list=following&limit=20", { credentials: "include" }),
+      ])
+      if (!profileRes.ok) {
+        const err = await profileRes.json().catch(() => ({}))
         throw new Error(err.error || "Failed to load profile")
       }
-      const data = await res.json()
+      const data = await profileRes.json()
       if (data.profile) {
         applyProfile(data.profile)
         setMembership(data.profile.membership ?? null)
@@ -151,11 +171,19 @@ export default function ProfilePage() {
       if (data.stats) {
         setStats(data.stats)
       }
+
+      if (followingRes.ok) {
+        const followingData = await followingRes.json()
+        setFollowingMembers(followingData.following || [])
+      } else {
+        setFollowingMembers([])
+      }
     } catch (e) {
       console.error(e)
       toast.error("Could not load profile", e instanceof Error ? e.message : "Try again later.")
     } finally {
       setLoading(false)
+      setFollowingLoading(false)
     }
   }, [user?.id, applyProfile])
 
@@ -376,6 +404,7 @@ export default function ProfilePage() {
         <MobileStatsStrip
           items={[
             { label: "Connections", value: stats?.connections ?? 0, icon: Users },
+            { label: "Following", value: stats?.following ?? 0, icon: Heart },
             { label: "Event sign-ups", value: stats?.events ?? 0, icon: CalendarDays },
             { label: "Projects", value: stats?.projects ?? 0, icon: Briefcase },
           ]}
@@ -799,19 +828,76 @@ export default function ProfilePage() {
             </Card>
           </div>
 
+          <div className="space-y-4 lg:hidden">
+            <Card className="border-border">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Heart className="h-4 w-4" />
+                  Following
+                </CardTitle>
+                <CardDescription>Members you follow in the community directory.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {followingLoading ? (
+                  <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading…
+                  </div>
+                ) : followingMembers.length === 0 ? (
+                  <p className="py-2 text-sm text-muted-foreground">
+                    You are not following anyone yet.{" "}
+                    <Link href="/community" className="font-medium text-primary hover:underline">
+                      Browse the directory
+                    </Link>
+                    .
+                  </p>
+                ) : (
+                  followingMembers.map((member) => (
+                    <Link
+                      key={member.id}
+                      href={`/community/${member.id}`}
+                      className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={getImageDisplayUrl(member.avatar) || undefined}
+                          alt={member.name}
+                        />
+                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{member.name}</p>
+                        {member.role ? (
+                          <p className="truncate text-xs text-muted-foreground">{member.role}</p>
+                        ) : null}
+                      </div>
+                    </Link>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
           <aside className="hidden space-y-6 lg:block">
             <Card className="border-border">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Your activity</CardTitle>
                 <CardDescription>Counts from your account in this platform.</CardDescription>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 <div className="rounded-md border border-border px-4 py-3">
                   <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
                     <Users className="h-3.5 w-3.5" />
                     Connections
                   </div>
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{stats?.connections ?? 0}</p>
+                </div>
+                <div className="rounded-md border border-border px-4 py-3">
+                  <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                    <Heart className="h-3.5 w-3.5" />
+                    Following
+                  </div>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{stats?.following ?? 0}</p>
                 </div>
                 <div className="rounded-md border border-border px-4 py-3">
                   <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
@@ -827,6 +913,61 @@ export default function ProfilePage() {
                   </div>
                   <p className="mt-1 text-2xl font-semibold tabular-nums">{stats?.projects ?? 0}</p>
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Heart className="h-4 w-4" />
+                  Following
+                </CardTitle>
+                <CardDescription>
+                  Members you follow in the community directory.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {followingLoading ? (
+                  <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading…
+                  </div>
+                ) : followingMembers.length === 0 ? (
+                  <p className="py-2 text-sm text-muted-foreground">
+                    You are not following anyone yet. Browse the{" "}
+                    <Link href="/community" className="font-medium text-primary hover:underline">
+                      community directory
+                    </Link>{" "}
+                    to follow members.
+                  </p>
+                ) : (
+                  followingMembers.map((member) => (
+                    <Link
+                      key={member.id}
+                      href={`/community/${member.id}`}
+                      className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={getImageDisplayUrl(member.avatar) || undefined}
+                          alt={member.name}
+                        />
+                        <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{member.name}</p>
+                        {member.role ? (
+                          <p className="truncate text-xs text-muted-foreground">{member.role}</p>
+                        ) : null}
+                      </div>
+                    </Link>
+                  ))
+                )}
+                {(stats?.following ?? 0) > followingMembers.length ? (
+                  <Button variant="ghost" size="sm" className="mt-2 w-full" asChild>
+                    <Link href="/community">Browse community</Link>
+                  </Button>
+                ) : null}
               </CardContent>
             </Card>
 
