@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { User, Settings, LogOut, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { User, LogOut, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { useState, useEffect, Suspense } from "react"
 import { Logo } from "@/components/logo"
@@ -165,12 +165,6 @@ function DashboardLayoutContent({
                   <Link href="/profile" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     Profile
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
