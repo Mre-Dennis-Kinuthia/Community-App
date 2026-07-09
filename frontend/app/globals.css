@@ -327,6 +327,95 @@ html.pwa-standalone body {
     background-size: 100% 100%, 4rem 4rem, 4rem 4rem;
   }
 
+  /* Impact Hub Nairobi marketing site — aligned with nairobi.impacthub.net */
+  .landing-page {
+    --ihn-primary: #812926;
+    --ihn-navy: #1c395c;
+    --ihn-navy-deep: #0a1f38;
+    --ihn-surface: #f3f5f8;
+    --ihn-surface-alt: #edeff2;
+    --ihn-accent-gold: #ffd546;
+    --ihn-green: #7ebb55;
+    --ihn-orange: #f78a3c;
+    --ihn-teal: #41bed0;
+    --ihn-cream: #faf9f6;
+  }
+
+  .landing-page .landing-header {
+    @apply border-b border-[#edeff2] bg-[#faf9f6]/90;
+  }
+
+  .landing-page .section-label {
+    @apply font-medium tracking-[0.14em] text-[#812926];
+  }
+
+  .landing-page .hero-wash {
+    min-height: min(72vh, 52rem);
+    background-color: var(--ihn-surface);
+    background-image:
+      linear-gradient(
+        to bottom,
+        rgb(243 245 248 / 0.72) 0%,
+        rgb(243 245 248 / 0.88) 45%,
+        rgb(250 249 246 / 0.96) 100%
+      ),
+      url("https://nairobi.impacthub.net/wp-content/uploads/2025/08/28-scaled.jpg");
+    background-position: top center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  .landing-page .landing-section-alt {
+    @apply border-y border-[#edeff2] bg-[#f3f5f8];
+  }
+
+  .landing-page .landing-panel {
+    @apply rounded-md border border-[#edeff2] bg-white shadow-sm;
+  }
+
+  .landing-page .landing-pillar-card {
+    @apply relative overflow-hidden rounded-md border-0 shadow-md;
+    min-height: 18rem;
+  }
+
+  .landing-page .landing-pillar-card__image {
+    @apply absolute inset-0 h-full w-full object-cover transition-transform duration-500;
+  }
+
+  .landing-page .landing-pillar-card:hover .landing-pillar-card__image {
+    transform: scale(1.03);
+  }
+
+  .landing-page .landing-pillar-card__overlay {
+    @apply absolute inset-0;
+    background: linear-gradient(
+      to top,
+      rgb(10 31 56 / 0.92) 0%,
+      rgb(28 57 92 / 0.55) 45%,
+      rgb(28 57 92 / 0.2) 100%
+    );
+  }
+
+  .landing-page .landing-pillar-card__content {
+    @apply relative flex h-full flex-col justify-end p-5 text-white md:p-6;
+  }
+
+  .landing-page .landing-pillar-card__accent {
+    @apply mb-3 inline-block h-1 w-10 rounded-full;
+  }
+
+  .landing-page .landing-stat-band {
+    @apply border-y border-[#edeff2] bg-[#1c395c] py-10 text-white md:py-12;
+  }
+
+  .landing-page .landing-mission-strip {
+    @apply border-b border-[#edeff2] bg-[#faf9f6] py-8 md:py-10;
+  }
+
+  .landing-page .landing-newsletter-panel {
+    @apply overflow-hidden rounded-md border border-[#edeff2] bg-[#1c395c] text-white shadow-md;
+  }
+
   /* Community opportunity rich HTML — prevent horizontal overflow on mobile */
   .opportunity-content {
     width: 100%;
