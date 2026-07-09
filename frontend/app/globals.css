@@ -350,7 +350,7 @@ html.pwa-standalone body {
   }
 
   .landing-page .hero-wash {
-    min-height: min(52vh, 36rem);
+    min-height: min(72vh, 52rem);
     background-color: var(--ihn-surface);
     background-image:
       linear-gradient(
@@ -383,7 +383,7 @@ html.pwa-standalone body {
   }
 
   .landing-page .landing-pillar-card:hover .landing-pillar-card__image {
-    transform: scale(1.01);
+    transform: scale(1.03);
   }
 
   .landing-page .landing-pillar-card__overlay {

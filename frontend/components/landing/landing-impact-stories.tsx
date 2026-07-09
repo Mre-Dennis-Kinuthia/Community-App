@@ -1,16 +1,26 @@
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, BookOpen } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const STORIES = [
   {
-    title: "Impact stories",
-    description: "Founders and programs from our Nairobi hub.",
+    title: "Ventures scaling impact across Kenya",
+    description:
+      "Meet founders building in climate, agri-tech, and circularity — supported through programs and community at Impact Hub Nairobi.",
     href: "https://nairobi.impacthub.net/impact-stories/",
     external: true,
   },
   {
-    title: "News & updates",
-    description: "Events, opportunities, and member news on the platform.",
+    title: "Programs & ecosystem partnerships",
+    description:
+      "How institutions, funders, and innovators collaborate to drive inclusive innovation at scale in Nairobi.",
+    href: "https://nairobi.impacthub.net/",
+    external: true,
+  },
+  {
+    title: "News from our community",
+    description:
+      "Updates on events, opportunities, and member milestones — published on the Impact Hub Nairobi platform.",
     href: "/news",
     external: false,
   },
@@ -18,52 +28,63 @@ const STORIES = [
 
 export function LandingImpactStories() {
   return (
-    <section className="landing-section border-t border-[#edeff2] bg-[#faf9f6]">
+    <section className="landing-section">
       <div className="container px-4">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="text-xl font-semibold tracking-tight text-[#0a1f38] md:text-2xl">
-            From the hub
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-[#1c395c]/85 md:text-base">
-            Longer reads live on our main site; shorter updates are posted here.
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="section-label mb-3">Impact stories</p>
+          <h2 className="section-title text-balance">Stories from Nairobi</h2>
+          <p className="section-lead mx-auto mt-4 max-w-2xl text-pretty">
+            Real ventures, programs, and partnerships shaping inclusive innovation — from our
+            workspace to the wider ecosystem.
           </p>
         </div>
 
-        <ul className="mx-auto mt-8 max-w-2xl divide-y divide-[#edeff2] border-y border-[#edeff2]">
+        <div className="mx-auto mt-10 grid max-w-5xl gap-4 md:grid-cols-3">
           {STORIES.map((story) => (
-            <li key={story.title}>
+            <article
+              key={story.title}
+              className="landing-panel flex flex-col rounded-md border border-[#edeff2] bg-white p-6"
+            >
+              <BookOpen className="mb-4 h-5 w-5 text-[#812926]" aria-hidden />
+              <h3 className="text-base font-semibold text-[#0a1f38]">{story.title}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-[#1c395c]/80">
+                {story.description}
+              </p>
               {story.external ? (
                 <a
                   href={story.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center justify-between gap-4 py-4 transition-colors hover:text-[#812926]"
+                  className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#812926] hover:underline"
                 >
-                  <span>
-                    <span className="block font-medium text-[#0a1f38] group-hover:text-[#812926]">
-                      {story.title}
-                    </span>
-                    <span className="mt-0.5 block text-sm text-[#1c395c]/75">{story.description}</span>
-                  </span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-[#1c395c]/50" aria-hidden />
+                  Read on IHN
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                 </a>
               ) : (
                 <Link
                   href={story.href}
-                  className="group flex items-center justify-between gap-4 py-4 transition-colors"
+                  className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-[#812926] hover:underline"
                 >
-                  <span>
-                    <span className="block font-medium text-[#0a1f38] group-hover:text-[#812926]">
-                      {story.title}
-                    </span>
-                    <span className="mt-0.5 block text-sm text-[#1c395c]/75">{story.description}</span>
-                  </span>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-[#1c395c]/50" aria-hidden />
+                  Browse news
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
                 </Link>
               )}
-            </li>
+            </article>
           ))}
-        </ul>
+        </div>
+
+        <div className="mt-8 text-center">
+          <a
+            href="https://nairobi.impacthub.net/impact-stories/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" className="border-[#1c395c]/20 bg-white hover:bg-[#faf9f6]">
+              More stories from Impact Hub Nairobi
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            </Button>
+          </a>
+        </div>
       </div>
     </section>
   )

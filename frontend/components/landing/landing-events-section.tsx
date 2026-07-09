@@ -5,8 +5,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Calendar, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { eventTypeLabel } from "@/lib/event-constants"
 import { formatEventPrice } from "@/lib/event-questions"
 import { getImageDisplayUrl } from "@/lib/stored-image"
+import { cn } from "@/lib/utils"
 
 export interface LandingEventTeaser {
   id: string
@@ -18,6 +20,28 @@ export interface LandingEventTeaser {
   imageUrl: string | null
   price: number | null
   currency: string | null
+}
+
+function SectionHeader({
+  label,
+  title,
+  description,
+  className,
+}: {
+  label?: string
+  title: string
+  description?: string
+  className?: string
+}) {
+  return (
+    <div className={cn("mx-auto max-w-3xl text-center", className)}>
+      {label ? <p className="section-label mb-3">{label}</p> : null}
+      <h2 className="section-title text-balance">{title}</h2>
+      {description ? (
+        <p className="section-lead mx-auto mt-4 max-w-2xl text-pretty">{description}</p>
+      ) : null}
+    </div>
+  )
 }
 
 function formatEventDate(iso: string) {
@@ -52,16 +76,14 @@ export function LandingEventsSection() {
   return (
     <section id="events" className="landing-section bg-[#f3f5f8]/50">
       <div className="container px-4">
-        <div className="mx-auto max-w-2xl md:max-w-none">
-          <h2 className="text-xl font-semibold tracking-tight text-[#0a1f38] md:text-2xl">
-            Upcoming events
-          </h2>
-          <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#1c395c]/85 md:text-base">
-            Workshops, office hours, and community gatherings — open to members and the public.
-          </p>
-        </div>
+        <SectionHeader
+          label="Events & programs"
+          title="What's happening at Impact Hub Nairobi"
+          description="Workshops, mixers, and programs open to the public — register to join the community in person or online."
+          className="mb-10 md:mb-12"
+        />
 
-        <div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => {
             const imageSrc = getImageDisplayUrl(event.imageUrl || undefined)
             const priceLabel =
@@ -81,14 +103,17 @@ export function LandingEventsSection() {
                       alt=""
                       fill
                       sizes="(max-width: 640px) 100vw, 33vw"
-                      className="object-cover"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                       unoptimized
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-[#f3f5f8]">
-                      <Calendar className="h-8 w-8 text-[#1c395c]/25" aria-hidden />
+                    <div className="flex h-full items-center justify-center">
+                      <Calendar className="h-10 w-10 text-[#812926]/40" aria-hidden />
                     </div>
                   )}
+                  <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#812926]">
+                    {eventTypeLabel(event.eventType)}
+                  </span>
                 </div>
                 <div className="flex flex-1 flex-col p-4">
                   <h3 className="text-base font-semibold leading-snug text-[#0a1f38]">
