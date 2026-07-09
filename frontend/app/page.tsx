@@ -20,28 +20,27 @@ import {
   Globe,
   Menu,
   X,
+  Mail,
+  Phone,
 } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { LandingPartnerLogo } from "@/components/landing-partner-logo"
-import { LANDING_PARTNERS } from "@/lib/landing-partners"
-import { FEATURE_FLAGS } from "@/lib/feature-flags"
+import { LANDING_IMPLEMENTATION_PARTNERS, LANDING_STRATEGIC_PARTNERS } from "@/lib/landing-partners"
 import { cn } from "@/lib/utils"
 import { LANDING_IMAGES } from "@/lib/landing-assets"
 import { HERO_AVATAR_COLORS, HERO_AVATAR_INITIALS } from "@/lib/landing-community"
 import { LandingCommunitySection } from "@/components/landing/landing-community-section"
+import { LandingEventsSection } from "@/components/landing/landing-events-section"
+import { LandingImpactStories } from "@/components/landing/landing-impact-stories"
+import { getLandingFooterPlatformLinks, LANDING_HEADER_LINKS } from "@/lib/public-nav-links"
+import { HUB_PUBLIC_EMAIL, HUB_PUBLIC_PHONE, HUB_PUBLIC_PHONE_HREF } from "@/lib/hub-contact"
 import {
   ORGANISATIONAL_MEMBERSHIP_PATH,
   ORGANISATIONAL_RESPONSE_SLA,
   STAR_CONNECT_RESPONSE_SLA,
 } from "@/lib/membership-inquiry"
 
-const NAV_LINKS = [
-  { href: "#services", label: "What we offer" },
-  { href: "#community", label: "Community" },
-  { href: "#membership", label: "Become a member" },
-  { href: "#faq", label: "FAQ" },
-  { href: "https://nairobi.impacthub.net/", label: "About IHN", external: true },
-] as const
+const NAV_LINKS = LANDING_HEADER_LINKS
 
 const IMPACT_STATS = [
   { label: "Impact Makers", value: "300k+" },
@@ -137,8 +136,6 @@ const MEMBERSHIP_TIERS = [
     popular: false,
   },
 ] as const
-
-const PARTNERS = LANDING_PARTNERS
 
 const FAQS = [
   {
@@ -311,8 +308,13 @@ export default function HomePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: newsletterEmail }),
       })
-      if (!res.ok) throw new Error("Failed")
-      toast.success("Subscribed!", "You'll receive our weekly impact insights")
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed")
+      if (data.status === "already_subscribed") {
+        toast.success("Already subscribed", "You're already on our newsletter list.")
+      } else {
+        toast.success("Subscribed!", "You'll receive events, programs, and community updates.")
+      }
       setNewsletterEmail("")
     } catch {
       toast.error("Something went wrong. Please try again.")
@@ -519,7 +521,11 @@ export default function HomePage() {
         </p>
       </section>
 
+      <LandingEventsSection />
+
       <LandingCommunitySection />
+
+      <LandingImpactStories />
 
       <section id="membership" className="landing-section-alt landing-section">
         <div className="container px-4">
@@ -602,10 +608,22 @@ export default function HomePage() {
           label="Our ecosystem"
           title="Strategic partners"
           description="Collaborating across sectors to strengthen entrepreneurial communities for impact at scale."
-          className="mb-12 md:mb-14"
+          className="mb-10 md:mb-12"
         />
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {PARTNERS.map((partner) => (
+        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {LANDING_STRATEGIC_PARTNERS.map((partner) => (
+            <LandingPartnerLogo key={partner.name} partner={partner} />
+          ))}
+        </div>
+
+        <SectionHeader
+          label="Implementation partnerships"
+          title="Building impact together"
+          description="Programs, business development, mentorship, legal support, monitoring & evaluation, and ecosystem collaboration across Nairobi's impact community."
+          className="mb-10 mt-16 md:mb-12 md:mt-20"
+        />
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {LANDING_IMPLEMENTATION_PARTNERS.map((partner) => (
             <LandingPartnerLogo key={partner.name} partner={partner} />
           ))}
         </div>
@@ -766,13 +784,16 @@ export default function HomePage() {
             <div>
               <h3 className="landing-footer-heading mb-4">Platform</h3>
               <ul className="space-y-2 text-sm">
-                <li><Link href="/community" className="text-muted-foreground hover:text-foreground transition-colors">Community</Link></li>
-                <li><Link href="/events" className="text-muted-foreground hover:text-foreground transition-colors">Events &amp; Programs</Link></li>
-                <li><Link href="/booking" className="text-muted-foreground hover:text-foreground transition-colors">Book Workspace</Link></li>
-                {FEATURE_FLAGS.programsAndResources && (
-                  <li><Link href="/resources" className="text-muted-foreground hover:text-foreground transition-colors">Resources</Link></li>
-                )}
-                <li><Link href="/partners" className="text-muted-foreground hover:text-foreground transition-colors">Partners</Link></li>
+                {getLandingFooterPlatformLinks().map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -803,7 +824,25 @@ export default function HomePage() {
                   <span>Impact Hub Nairobi, Westlands, Nairobi, Kenya</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Globe className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <Mail className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden />
+                  <a
+                    href={`mailto:${HUB_PUBLIC_EMAIL}`}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    {HUB_PUBLIC_EMAIL}
+                  </a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Phone className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden />
+                  <a
+                    href={HUB_PUBLIC_PHONE_HREF}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    {HUB_PUBLIC_PHONE}
+                  </a>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Globe className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden />
                   <a href="https://nairobi.impacthub.net/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
                     nairobi.impacthub.net
                   </a>

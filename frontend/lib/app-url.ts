@@ -45,3 +45,7 @@ export function getDashboardBookingUrl(bookingId: string): string {
 export function getCommunityMemberProfileUrl(memberId: string): string {
   return `${getAppBaseUrl()}/community/${memberId}`
 }
+
+export function getNewsletterUnsubscribeUrl(token: string): string {
+  return `${getAppBaseUrl()}/newsletter/unsubscribe?token=${encodeURIComponent(token)}`
+}

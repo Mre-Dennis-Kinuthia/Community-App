@@ -23,6 +23,7 @@ const publicRoutes = [
   "/terms",
   "/pay",
   "/membership",
+  "/newsletter",
   "/admin-access",
   "/api",
   "/setup-check",
@@ -70,11 +71,12 @@ export default auth((request) => {
     return NextResponse.next()
   }
 
-  // Public event pages (short /e/{code} and /events/{slug|id})
+  // Public event pages (short /e/{code}, /events/public, and /events/{slug|id})
   const isPublicEventDetail =
     /^\/events\/[^/]+$/.test(pathname) && pathname !== "/events"
+  const isPublicEventsBrowse = pathname === "/events/public"
   const isShortEventLink = /^\/e\/[^/]+$/.test(pathname)
-  if (isPublicEventDetail || isShortEventLink) {
+  if (isPublicEventDetail || isPublicEventsBrowse || isShortEventLink) {
     return NextResponse.next()
   }
 

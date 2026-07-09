@@ -5,16 +5,17 @@ import { eventTimezone } from "@/lib/event-datetime"
 
 /** Impact Hub Nairobi brand palette for email clients (inline styles only). */
 export const EMAIL_BRAND = {
-  primary: "#A6192E",
-  primaryDark: "#802B2B",
-  primaryLight: "#FDF2F4",
-  accent: "#C4324A",
-  background: "#F3F4F6",
+  primary: "#812926",
+  primaryDark: "#0a1f38",
+  navy: "#1c395c",
+  accent: "#ffd546",
+  primaryLight: "#fdf2f4",
+  background: "#faf9f6",
   surface: "#FFFFFF",
-  text: "#18181B",
-  textMuted: "#71717A",
-  border: "#E4E4E7",
-  footerBg: "#FAFAFA",
+  text: "#0a1f38",
+  textMuted: "#1c395c",
+  border: "#edeff2",
+  footerBg: "#f3f5f8",
 } as const
 
 export function escapeHtml(text: string): string {
@@ -76,7 +77,7 @@ export function emailDetailCard(
     )
     .join("")
 
-  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:20px 0;background:${EMAIL_BRAND.primaryLight};border:1px solid #F5D0D6;border-radius:10px;">
+  return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:20px 0;background:${EMAIL_BRAND.primaryLight};border:1px solid ${EMAIL_BRAND.border};border-radius:10px;">
     <tr>
       <td style="padding:18px 20px;">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
@@ -112,9 +113,9 @@ function emailFooter(): string {
     <tr>
       <td style="padding:24px 28px;text-align:center;">
         <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:${EMAIL_BRAND.primaryDark};">Impact Hub Nairobi</p>
-        <p style="margin:0 0 14px;font-size:12px;line-height:1.5;color:${EMAIL_BRAND.textMuted};">
-          Innovation · Connection · Impact<br />
-          Part of the global Impact Hub network
+        <p style="margin:0 0 14px;font-size:12px;line-height:1.5;color:${EMAIL_BRAND.textMuted};opacity:0.75;">
+          For Impact Startups &amp; Innovators<br />
+          Innovation · Connection · Impact
         </p>
         <p style="margin:0 0 14px;font-size:13px;">
           <a href="${escapeHtml(appUrl)}" style="color:${EMAIL_BRAND.primary};text-decoration:none;font-weight:600;">Visit platform</a>
@@ -143,6 +144,12 @@ function emailCtaButton(label: string, url: string): string {
   </table>`
 }
 
+export function emailUnsubscribeFooter(unsubscribeUrl: string): string {
+  return emailMutedNote(
+    `You can <a href="${escapeHtml(unsubscribeUrl)}" style="color:${EMAIL_BRAND.primary};text-decoration:underline;">unsubscribe</a> from these emails at any time.`
+  )
+}
+
 export function layoutEmail(params: {
   preheader?: string
   title: string
@@ -150,8 +157,9 @@ export function layoutEmail(params: {
   ctaLabel?: string
   ctaUrl?: string
   eyebrow?: string
+  footerExtraHtml?: string
 }): string {
-  const { preheader, title, bodyHtml, ctaLabel, ctaUrl, eyebrow = "Community platform" } = params
+  const { preheader, title, bodyHtml, ctaLabel, ctaUrl, eyebrow = "Impact Hub Nairobi", footerExtraHtml } = params
   const ctaBlock = ctaLabel && ctaUrl ? emailCtaButton(ctaLabel, ctaUrl) : ""
 
   return `<!DOCTYPE html>
@@ -170,7 +178,7 @@ export function layoutEmail(params: {
       <td align="center">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;background:${EMAIL_BRAND.surface};border-radius:12px;overflow:hidden;border:1px solid ${EMAIL_BRAND.border};box-shadow:0 4px 24px rgba(24,24,27,0.06);">
           <tr>
-            <td style="height:5px;background:linear-gradient(90deg, ${EMAIL_BRAND.primaryDark} 0%, ${EMAIL_BRAND.primary} 50%, ${EMAIL_BRAND.accent} 100%);font-size:0;line-height:0;">&nbsp;</td>
+            <td style="height:5px;background:linear-gradient(90deg, ${EMAIL_BRAND.primaryDark} 0%, ${EMAIL_BRAND.navy} 45%, ${EMAIL_BRAND.primary} 100%);font-size:0;line-height:0;">&nbsp;</td>
           </tr>
           <tr>
             <td style="padding:32px 32px 20px;text-align:left;">
@@ -187,6 +195,7 @@ export function layoutEmail(params: {
             <td style="padding:4px 32px 32px;font-size:15px;line-height:1.65;color:${EMAIL_BRAND.text};">
               ${bodyHtml}
               ${ctaBlock}
+              ${footerExtraHtml ?? ""}
             </td>
           </tr>
           <tr>

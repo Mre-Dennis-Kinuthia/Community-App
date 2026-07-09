@@ -15,7 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Logo } from "@/components/logo"
+import {
+  MEMBERSHIP_LINK,
+  MEMBERSHIP_PRIMARY_BTN,
+  MembershipPageShell,
+} from "@/components/membership/membership-page-shell"
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 import { IMPACT_SECTORS, PRIMARY_ROLES } from "@/lib/member-segmentation"
@@ -30,8 +34,8 @@ import {
   VENTURE_STAGES,
   WORKSPACE_NEEDS,
 } from "@/lib/membership-inquiry"
-import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
-import { ArrowLeft, ArrowRight, Calendar, CheckCircle2, Linkedin, Loader2 } from "lucide-react"
+import { HUB_PUBLIC_EMAIL } from "@/lib/hub-contact"
+import { ArrowRight, Calendar, CheckCircle2, Linkedin, Loader2 } from "lucide-react"
 
 const STEPS = ["About you & your venture", "What you need"] as const
 const VENTURE_MAX = 800
@@ -172,24 +176,20 @@ export default function StarConnectApplicationPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-muted/30 px-4 py-10 md:py-16">
-        <div className="mx-auto max-w-lg space-y-6">
-          <div className="flex justify-center">
-            <Logo href="/" variant="compact" />
-          </div>
-          <Card className="border-border/90 shadow-sm">
+      <MembershipPageShell>
+          <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
             <CardHeader className="pb-2 text-center">
-              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <CheckCircle2 className="h-6 w-6 text-primary" aria-hidden />
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#812926]/10">
+                <CheckCircle2 className="h-6 w-6 text-[#812926]" aria-hidden />
               </div>
-              <CardTitle className="text-xl">You&apos;re on the list</CardTitle>
-              <CardDescription className="text-base leading-relaxed">
-                We emailed <strong className="text-foreground">{form.email}</strong> with next
+              <CardTitle className="text-xl text-[#0a1f38]">You&apos;re on the list</CardTitle>
+              <CardDescription className="text-base leading-relaxed text-[#1c395c]/80">
+                We emailed <strong className="text-[#0a1f38]">{form.email}</strong> with next
                 steps. Our team will reply {STAR_CONNECT_RESPONSE_SLA}.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button asChild size="lg" className="w-full">
+              <Button asChild size="lg" className={MEMBERSHIP_PRIMARY_BTN}>
                 <a
                   href={STAR_CONNECT_DISCOVERY_CALL_URL}
                   target="_blank"
@@ -199,40 +199,29 @@ export default function StarConnectApplicationPage() {
                   Book discovery call
                 </a>
               </Button>
-              <Button variant="outline" asChild className="w-full">
+              <Button variant="outline" asChild className="w-full border-[#edeff2] bg-white">
                 <Link href="/register">Create your platform account</Link>
               </Button>
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-xs text-[#1c395c]/70">
                 Use the same email ({form.email}) so we can link your Star Connect membership.
               </p>
-              <Button variant="ghost" asChild className="w-full">
+              <Button variant="ghost" asChild className="w-full text-[#1c395c]">
                 <Link href="/">Back to home</Link>
               </Button>
             </CardContent>
           </Card>
-        </div>
-      </div>
+      </MembershipPageShell>
     )
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 px-4 py-8 md:py-12">
-      <div className="mx-auto max-w-lg space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <Logo href="/" variant="compact" />
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/#membership">
-              <ArrowLeft className="mr-1.5 h-4 w-4" />
-              Back
-            </Link>
-          </Button>
-        </div>
-
+    <MembershipPageShell backLabel="Back">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Apply for {STAR_CONNECT_PLAN_NAME}
+          <p className="section-label text-left">{STAR_CONNECT_PLAN_NAME}</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-[#0a1f38]">
+            Apply for membership
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-[#1c395c]/80">
             {STAR_CONNECT_PRICE_LABEL} · Two quick steps · Response {STAR_CONNECT_RESPONSE_SLA}
           </p>
           <div className="mt-4 flex gap-2" aria-label={`Step ${step} of 2`}>
@@ -241,13 +230,13 @@ export default function StarConnectApplicationPage() {
                 <div
                   className={cn(
                     "h-1 rounded-full transition-colors",
-                    i + 1 <= step ? "bg-primary" : "bg-muted"
+                    i + 1 <= step ? "bg-[#812926]" : "bg-[#edeff2]"
                   )}
                 />
                 <p
                   className={cn(
                     "mt-1.5 text-[10px] font-medium uppercase tracking-wider",
-                    i + 1 === step ? "text-foreground" : "text-muted-foreground"
+                    i + 1 === step ? "text-[#0a1f38]" : "text-[#1c395c]/60"
                   )}
                 >
                   {i + 1}. {label}
@@ -257,7 +246,7 @@ export default function StarConnectApplicationPage() {
           </div>
         </div>
 
-        <Card className="border-border/90 shadow-sm">
+        <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
           <CardContent className="pt-6">
             {step === 1 ? (
               <div className="space-y-4">
@@ -408,7 +397,7 @@ export default function StarConnectApplicationPage() {
                   </div>
                 </div>
 
-                <Button type="button" className="w-full" size="lg" onClick={handleContinue}>
+                <Button type="button" className={`${MEMBERSHIP_PRIMARY_BTN}`} size="lg" onClick={handleContinue}>
                   Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -562,7 +551,7 @@ export default function StarConnectApplicationPage() {
                   >
                     Back
                   </Button>
-                  <Button type="submit" className="flex-1" size="lg" disabled={submitting}>
+                  <Button type="submit" className={`flex-1 ${MEMBERSHIP_PRIMARY_BTN}`} size="lg" disabled={submitting}>
                     {submitting ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
@@ -574,12 +563,11 @@ export default function StarConnectApplicationPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground">
-          <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="text-primary hover:underline">
+        <p className="text-center text-xs text-[#1c395c]/70">
+          <a href={`mailto:${HUB_PUBLIC_EMAIL}`} className={MEMBERSHIP_LINK}>
             Questions? Email us
           </a>
         </p>
-      </div>
-    </div>
+    </MembershipPageShell>
   )
 }

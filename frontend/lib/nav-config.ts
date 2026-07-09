@@ -85,15 +85,12 @@ export const NAV_GROUPS: NavGroupConfig[] = [
 /** Bottom tab bar — order and short labels */
 const MOBILE_PRIMARY_HREFS = ["/dashboard", "/booking", "/community", "/events"] as const
 
-/** "More" sheet — order matches desktop nav groups */
+/** "More" sheet — order matches desktop nav groups (disabled routes omitted at source). */
 const MOBILE_MORE_HREFS = [
   "/news",
   "/partners",
   "/opportunities",
-  "/projects",
-  "/investments",
   "/dashboard/bookings",
-  "/dashboard/projects",
   "/profile",
   "/dashboard/visitors",
   "/dashboard/deliveries",

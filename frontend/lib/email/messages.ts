@@ -4,9 +4,9 @@ import {
   formatResourceType,
 } from "@/lib/booking-format"
 import { formatBookingAddOnsHtml, formatBookingAddOnsPlainText } from "@/lib/booking-add-ons"
-import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl } from "@/lib/app-url"
+import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl, getNewsletterUnsubscribeUrl } from "@/lib/app-url"
 import { formatHubDateTime } from "@/lib/space/hub-timezone"
-import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph, emailDetailCard, emailMutedNote, emailHighlightBox } from "./templates"
+import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph, emailDetailCard, emailMutedNote, emailHighlightBox, emailUnsubscribeFooter } from "./templates"
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type EmailAttachment, type SendEmailResult } from "./send"
 
@@ -50,23 +50,23 @@ export async function sendConnectionRequestEmail(params: {
   const bodyHtml = `
     ${emailGreeting(params.name)}
     ${emailParagraph(
-      `<strong>${fromName}</strong> sent you a connection request on the <strong>Impact Hub Nairobi</strong> community platform.`
+      `<strong>${fromName}</strong> wants to connect with you on <strong>Impact Hub Nairobi</strong> — Kenya's community for impact startups, partners, and innovators.`
     )}
-    ${emailMutedNote("Open their profile to accept or decline the request.")}
+    ${emailHighlightBox("Accept the request to message each other and explore collaboration across programs, events, and the member directory.")}
   `
 
   return sendEmail({
     to: params.to,
-    subject: `${params.fromName.trim() || "Someone"} wants to connect with you`,
+    subject: `${params.fromName.trim() || "A member"} wants to connect — Impact Hub Nairobi`,
     html: layoutEmail({
-      preheader: `${params.fromName} wants to connect`,
+      preheader: `${params.fromName} sent a connection request`,
       title: "New connection request",
       eyebrow: "Community",
       bodyHtml,
       ctaLabel: "View profile",
       ctaUrl: params.profileUrl,
     }),
-    text: `${params.fromName} wants to connect with you on Impact Hub Nairobi.\n\nView their profile: ${params.profileUrl}`,
+    text: `${params.fromName} wants to connect on Impact Hub Nairobi.\n\nView profile: ${params.profileUrl}`,
   })
 }
 
@@ -85,9 +85,12 @@ export async function sendConnectedMemberMessageEmail(params: {
   const bodyHtml = `
     ${emailGreeting(params.toName)}
     ${emailParagraph(
-      `<strong>${senderName}</strong> sent you a message through the <strong>Impact Hub Nairobi</strong> community platform.`
+      `<strong>${senderName}</strong> sent you a message through <strong>Impact Hub Nairobi</strong>.`
     )}
-    ${emailParagraph(`<strong>Subject:</strong> ${escapeHtml(subjectLine)}`)}
+    ${emailDetailCard(
+      [{ label: "Subject", value: escapeHtml(subjectLine) }],
+      { title: "Message" }
+    )}
     ${emailHighlightBox(messageHtml)}
     ${emailMutedNote("Reply to this email to respond directly to the sender.")}
   `
@@ -97,7 +100,7 @@ export async function sendConnectedMemberMessageEmail(params: {
     replyTo: params.fromEmail,
     subject: `${params.fromName.trim() || "A member"}: ${subjectLine}`,
     html: layoutEmail({
-      preheader: `${params.fromName.trim() || "A member"} sent you a message`,
+      preheader: `Message from ${params.fromName.trim() || "a member"}`,
       title: "Message from your connection",
       eyebrow: "Community",
       bodyHtml,
@@ -146,10 +149,10 @@ export async function sendEventRegistrationEmail(params: {
               "The event is currently full. We will notify you if a spot opens up.",
           }
         : {
-            subject: `You are registered — ${params.eventTitle}`,
-            title: "Registration confirmed",
+            subject: `You're registered — ${params.eventTitle}`,
+            title: "You're in!",
             detail:
-              "You are confirmed for this event. A calendar invite is attached — open it to add the event to your calendar (Google Calendar, Apple Calendar, Outlook, etc.).",
+              "You're confirmed for this Impact Hub Nairobi event. A calendar invite is attached — add it to Google Calendar, Apple Calendar, or Outlook.",
           }
 
   const bodyHtml = `
@@ -532,52 +535,102 @@ export async function sendWelcomeEmail(params: {
   name?: string | null
 }): Promise<SendEmailResult> {
   const appUrl = getAppBaseUrl()
+  const onboardingUrl = `${appUrl}/onboarding`
 
   const bodyHtml = `
     ${emailGreeting(params.name)}
-    ${emailParagraph("Welcome to <strong>Impact Hub Nairobi</strong> — Kenya's leading innovation community.")}
-    ${emailParagraph("Your account is ready. Book workspace, register for events, connect with members, and stay up to date with community news.")}
-    ${emailMutedNote("We're glad you're here. Let's build impact together.")}
+    ${emailParagraph(
+      "Welcome to <strong>Impact Hub Nairobi</strong> — where impact startups, partners, and innovators connect, learn, and build together."
+    )}
+    ${emailParagraph(
+      "Complete your profile to unlock the community directory, events, workspace booking, and programs tailored to your goals."
+    )}
+    ${emailDetailCard(
+      [
+        { label: "Programs", value: "Workshops & acceleration" },
+        { label: "Workspace", value: "Flexible coworking in Nairobi" },
+        { label: "Community", value: "300k+ global Impact Hub network" },
+      ],
+      { title: "What you can do here" }
+    )}
   `
 
   return sendEmail({
     to: params.to,
-    subject: "Welcome to Impact Hub Nairobi",
+    subject: "Welcome to Impact Hub Nairobi — complete your profile",
     html: layoutEmail({
-      preheader: "Your account is ready",
-      title: "Welcome aboard",
-      eyebrow: "Member welcome",
+      preheader: "For impact startups & innovators",
+      title: "Welcome to the community",
+      eyebrow: "Become a member",
       bodyHtml,
-      ctaLabel: "Go to dashboard",
-      ctaUrl: `${appUrl}/dashboard`,
+      ctaLabel: "Complete your profile",
+      ctaUrl: onboardingUrl,
     }),
-    text: `Welcome to Impact Hub Nairobi!\n${appUrl}/dashboard`,
+    text: `Welcome to Impact Hub Nairobi!\nComplete your profile: ${onboardingUrl}`,
+  })
+}
+
+export async function sendOnboardingReminderEmail(params: {
+  to: string
+  name?: string | null
+}): Promise<SendEmailResult> {
+  const appUrl = getAppBaseUrl()
+  const onboardingUrl = `${appUrl}/onboarding`
+
+  const bodyHtml = `
+    ${emailGreeting(params.name)}
+    ${emailParagraph(
+      "You created your <strong>Impact Hub Nairobi</strong> account — thank you for joining our community of impact makers."
+    )}
+    ${emailParagraph(
+      "Your profile is almost ready. Finish onboarding to appear in the directory, register for events, and book workspace."
+    )}
+    ${emailHighlightBox("It only takes a few minutes — tell us about your venture, sector, and what you're looking for in the community.")}
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: "Finish setting up your Impact Hub Nairobi profile",
+    html: layoutEmail({
+      preheader: "Complete onboarding in a few minutes",
+      title: "You're almost there",
+      eyebrow: "Become a member",
+      bodyHtml,
+      ctaLabel: "Continue onboarding",
+      ctaUrl: onboardingUrl,
+    }),
+    text: `Finish your Impact Hub Nairobi profile: ${onboardingUrl}`,
   })
 }
 
 export async function sendNewsletterSubscribeEmail(params: {
   to: string
+  unsubscribeToken?: string
 }): Promise<SendEmailResult> {
   const appUrl = getAppBaseUrl()
+  const unsubscribeUrl = params.unsubscribeToken
+    ? getNewsletterUnsubscribeUrl(params.unsubscribeToken)
+    : undefined
 
   const bodyHtml = `
     ${emailGreeting()}
     ${emailParagraph("Thanks for subscribing to <strong>Impact Hub Nairobi</strong> updates.")}
-    ${emailParagraph("You will receive news and announcements about events, programs, and the community.")}
+    ${emailParagraph("You'll hear about upcoming events, programs, and community news from Nairobi's impact ecosystem.")}
   `
 
   return sendEmail({
     to: params.to,
-    subject: "You are subscribed to Impact Hub Nairobi updates",
+    subject: "You're subscribed to Impact Hub Nairobi",
     html: layoutEmail({
       preheader: "Subscription confirmed",
-      title: "Subscription confirmed",
+      title: "Welcome to our newsletter",
       eyebrow: "Newsletter",
       bodyHtml,
-      ctaLabel: "Visit our site",
-      ctaUrl: appUrl,
+      ctaLabel: "Explore events",
+      ctaUrl: `${appUrl}/events/public`,
+      footerExtraHtml: unsubscribeUrl ? emailUnsubscribeFooter(unsubscribeUrl) : undefined,
     }),
-    text: `Thanks for subscribing to Impact Hub Nairobi updates.\n${appUrl}`,
+    text: `Thanks for subscribing to Impact Hub Nairobi updates.\n${appUrl}${unsubscribeUrl ? `\nUnsubscribe: ${unsubscribeUrl}` : ""}`,
   })
 }
 

@@ -14,26 +14,26 @@ export function EventPublicLayout({ children }: EventPublicLayoutProps) {
   const isLoggedIn = status !== "loading" && !!user
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <div className="min-h-screen flex flex-col bg-[#faf9f6]">
+      <header className="sticky top-0 z-50 border-b border-[#edeff2] bg-[#faf9f6]/95 backdrop-blur supports-[backdrop-filter]:bg-[#faf9f6]/80">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo href="/" variant="compact" />
           <div className="flex items-center gap-2">
             {isLoggedIn ? (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="text-[#1c395c]">
                   <Link href="/events">All events</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" asChild className="bg-[#812926] hover:bg-[#6b2120]">
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="text-[#1c395c]">
                   <Link href="/login">Log in</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" asChild className="bg-[#812926] hover:bg-[#6b2120]">
                   <Link href="/register">Sign up</Link>
                 </Button>
               </>
@@ -44,8 +44,8 @@ export function EventPublicLayout({ children }: EventPublicLayoutProps) {
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t py-6">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-[#edeff2] bg-[#f3f5f8] py-6">
+        <div className="mx-auto max-w-6xl px-4 text-center text-xs text-[#1c395c]/70 sm:px-6">
           <p>
             Hosted by{" "}
             <Link href="/" className="underline underline-offset-2 hover:text-foreground">

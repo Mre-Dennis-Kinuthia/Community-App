@@ -8,6 +8,7 @@ import {
   emailDetailCard,
   emailMutedNote,
   emailHighlightBox,
+  EMAIL_BRAND,
 } from "./templates"
 import {
   STAR_CONNECT_DISCOVERY_CALL_URL,
@@ -76,7 +77,7 @@ function buildStaffBodyHtml(params: StarConnectInquiryPayload): string {
         : ""
     }
     ${emailMutedNote(
-      `Encourage applicant to book a discovery call: <a href="${escapeHtml(STAR_CONNECT_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">Community Office Hours</a>`
+      `Encourage applicant to book a discovery call: <a href="${escapeHtml(STAR_CONNECT_DISCOVERY_CALL_URL)}" style="color:${EMAIL_BRAND.primary};font-weight:600;text-decoration:none;">Community Office Hours</a>`
     )}
   `
 }
@@ -130,25 +131,28 @@ export async function sendStarConnectInquiryConfirmationEmail(
   const bodyHtml = `
     ${emailGreeting(firstName)}
     ${emailParagraph(
-      `Thanks for applying for <strong>${escapeHtml(STAR_CONNECT_PLAN_NAME)}</strong> (${escapeHtml(STAR_CONNECT_PRICE_LABEL)}).`
+      `Thanks for applying to <strong>become a member</strong> through <strong>${escapeHtml(STAR_CONNECT_PLAN_NAME)}</strong> (${escapeHtml(STAR_CONNECT_PRICE_LABEL)}).`
     )}
     ${emailParagraph(
-      `We are reviewing your request and will reply <strong>${escapeHtml(STAR_CONNECT_RESPONSE_SLA)}</strong> on business days.`
+      `Impact Hub Nairobi supports ventures through programs, flexible workspace, mentorship, and a global network of 300k+ impact makers. We review every application personally.`
     )}
     ${emailDetailCard(
-      [{ label: "Next step", value: "Book a short discovery call" }],
+      [
+        { label: "Response time", value: escapeHtml(STAR_CONNECT_RESPONSE_SLA) },
+        { label: "Next step", value: "Book a short discovery call" },
+      ],
       { title: "What happens next" }
     )}
-    ${emailMutedNote("This helps us prepare and confirm next steps.")}
+    ${emailMutedNote("Use the same email when you create your platform account so we can link your membership.")}
   `
 
   return sendEmail({
     to: params.email,
-    subject: `We received your ${STAR_CONNECT_PLAN_NAME} request`,
+    subject: `We received your ${STAR_CONNECT_PLAN_NAME} application`,
     html: layoutEmail({
-      preheader: `Response ${STAR_CONNECT_RESPONSE_SLA}`,
-      title: "Request received",
-      eyebrow: "Membership",
+      preheader: `Become a member — response ${STAR_CONNECT_RESPONSE_SLA}`,
+      title: "Application received",
+      eyebrow: "Become a member",
       bodyHtml,
       ctaLabel: "Book discovery call",
       ctaUrl: STAR_CONNECT_DISCOVERY_CALL_URL,

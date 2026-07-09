@@ -27,6 +27,7 @@ export {
   sendBookingConfirmationEmail,
   sendBookingCancelledEmail,
   sendWelcomeEmail,
+  sendOnboardingReminderEmail,
   sendNewsletterSubscribeEmail,
   sendNewsArticleEmail,
   sendNewBookingStaffEmail,

@@ -1,7 +1,6 @@
 import Link from "next/link"
-import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { HUB_PUBLIC_EMAIL } from "@/lib/hub-contact"
+import { LegalLink, LegalSection, PublicPageShell } from "@/components/public/public-page-shell"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -11,117 +10,74 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container px-4 py-16 max-w-3xl mx-auto">
-        <div className="mb-8">
-          <Link href="/">
-            <Button variant="ghost" className="gap-2 -ml-3">
-              <ArrowLeft className="h-4 w-4" />
-              Back to home
-            </Button>
-          </Link>
-        </div>
+    <PublicPageShell title="Privacy Policy" updated="May 2026">
+      <LegalSection title="1. Information we collect">
+        <p>
+          We collect information you provide when you create an account, complete your profile,
+          book workspace, register for events, apply for membership, or contact us. This may include
+          your name, email, profile details, organisation, and payment information where applicable.
+        </p>
+      </LegalSection>
 
-        <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
-        <p className="text-muted-foreground mb-10">Last updated: May 2026</p>
+      <LegalSection title="2. How we use your information">
+        <p>
+          We use your information to provide platform services, process bookings and payments, send
+          updates about events and programs you join, and help you connect with Impact Hub
+          Nairobi&apos;s innovation community.
+        </p>
+      </LegalSection>
 
-        <div className="space-y-8 text-sm leading-relaxed">
-          <section>
-            <h2 className="text-xl font-semibold mb-3">1. Information We Collect</h2>
-            <p className="text-muted-foreground">
-              We collect information you provide directly when you create an account, complete your
-              profile, book workspace, register for events, or contact us. This includes your name,
-              email address, profile information, and payment details where applicable.
-            </p>
-          </section>
+      <LegalSection title="3. Data sharing">
+        <p>
+          We do not sell your personal information. We may share data with service providers who
+          help us operate the platform under confidentiality obligations. Profile information you
+          choose to make visible may appear in the community directory for other members.
+        </p>
+      </LegalSection>
 
-          <section>
-            <h2 className="text-xl font-semibold mb-3">2. How We Use Your Information</h2>
-            <p className="text-muted-foreground">
-              We use the information we collect to provide and improve our platform services,
-              process bookings and payments, send updates about events and programs you've
-              registered for, and facilitate connections within the Impact Hub Nairobi community.
-            </p>
-          </section>
+      <LegalSection title="4. Data security">
+        <p>
+          We use appropriate technical and organisational measures to protect your information.
+          Passwords are stored using industry-standard hashing.
+        </p>
+      </LegalSection>
 
-          <section>
-            <h2 className="text-xl font-semibold mb-3">3. Data Sharing</h2>
-            <p className="text-muted-foreground">
-              We do not sell your personal information. We may share your information with
-              service providers who assist us in operating the platform, subject to confidentiality
-              obligations. Your public profile information (name, bio, skills) is visible to other
-              members within the community directory.
-            </p>
-          </section>
+      <LegalSection title="5. Data retention">
+        <p>
+          We retain your information while your account is active or as needed to provide services.
+          You may request deletion of your account and associated data at any time.
+        </p>
+      </LegalSection>
 
-          <section>
-            <h2 className="text-xl font-semibold mb-3">4. Data Security</h2>
-            <p className="text-muted-foreground">
-              We implement appropriate technical and organisational measures to protect your
-              personal information against unauthorised access, alteration, disclosure, or
-              destruction. Passwords are stored using industry-standard hashing.
-            </p>
-          </section>
+      <LegalSection title="6. Your rights">
+        <p>
+          You may access, correct, or delete your personal information, or request a copy of data we
+          hold. Contact us at <LegalLink href={`mailto:${HUB_PUBLIC_EMAIL}`}>{HUB_PUBLIC_EMAIL}</LegalLink>.
+        </p>
+      </LegalSection>
 
-          <section>
-            <h2 className="text-xl font-semibold mb-3">5. Data Retention</h2>
-            <p className="text-muted-foreground">
-              We retain your personal information for as long as your account is active or as
-              needed to provide services. You may request deletion of your account and associated
-              data at any time.
-            </p>
-          </section>
+      <LegalSection title="7. Cookies">
+        <p>
+          We use session cookies required for authentication and platform functionality. We do not
+          use third-party advertising or tracking cookies.
+        </p>
+      </LegalSection>
 
-          <section>
-            <h2 className="text-xl font-semibold mb-3">6. Your Rights</h2>
-            <p className="text-muted-foreground">
-              You have the right to access, correct, or delete your personal information. You may
-              also request a copy of the data we hold about you. To exercise any of these rights,
-              contact us at{" "}
-              <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="text-primary hover:underline">
-                {HUB_CONTACT_EMAIL}
-              </a>
-              .
-            </p>
-          </section>
+      <LegalSection title="8. Contact">
+        <p>
+          For privacy questions, email{" "}
+          <LegalLink href={`mailto:${HUB_PUBLIC_EMAIL}`}>{HUB_PUBLIC_EMAIL}</LegalLink> or visit{" "}
+          <LegalLink href="https://nairobi.impacthub.net">nairobi.impacthub.net</LegalLink>.
+        </p>
+      </LegalSection>
 
-          <section>
-            <h2 className="text-xl font-semibold mb-3">7. Cookies</h2>
-            <p className="text-muted-foreground">
-              We use session cookies necessary for authentication and platform functionality. We do
-              not use third-party advertising or tracking cookies.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-3">8. Contact</h2>
-            <p className="text-muted-foreground">
-              For privacy-related questions, contact Impact Hub Nairobi at{" "}
-              <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="text-primary hover:underline">
-                {HUB_CONTACT_EMAIL}
-              </a>{" "}
-              or visit{" "}
-              <Link
-                href="https://nairobi.impacthub.net"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                nairobi.impacthub.net
-              </Link>
-              .
-            </p>
-          </section>
-
-          <p className="text-muted-foreground pt-4 border-t">
-            See also our{" "}
-            <Link href="/terms" className="text-primary hover:underline">
-              Terms of Service
-            </Link>
-            .
-          </p>
-        </div>
-      </div>
-    </div>
+      <p className="border-t border-[#edeff2] pt-6 text-[#1c395c]/75">
+        See also our{" "}
+        <Link href="/terms" className="font-medium text-[#812926] hover:underline">
+          Terms of Service
+        </Link>
+        .
+      </p>
+    </PublicPageShell>
   )
 }

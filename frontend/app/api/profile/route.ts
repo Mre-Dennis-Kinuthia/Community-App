@@ -5,6 +5,7 @@ import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
 import { imageRefSchema } from "@/lib/image-url-schema"
 import { isOnboardingComplete } from "@/lib/member-segmentation"
+import { shouldShowOnboardingNudge } from "@/lib/onboarding-reminders"
 import { buildMembershipSummary } from "@/lib/membership-profile"
 import { assignMembershipTierForUser } from "@/lib/membership-tier-resolve"
 import { maybeNotifyMembershipTierUpgrade } from "@/lib/membership-tier-notify"
@@ -113,6 +114,11 @@ export async function GET(request: NextRequest) {
 
     touchMemberLastActiveInBackground(userId)
 
+    const accountMeta = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { createdAt: true },
+    })
+
     const userEmail =
       typeof session.user.email === "string"
         ? session.user.email.toLowerCase().trim()
@@ -176,6 +182,10 @@ export async function GET(request: NextRequest) {
         {
           profile: formatProfileResponse(newProfile),
           needsOnboarding,
+          showOnboardingNudge:
+            needsOnboarding && accountMeta
+              ? shouldShowOnboardingNudge(accountMeta.createdAt)
+              : false,
           stats: { connections, events, projects, following, followers },
         },
         { headers: corsHeaders }
@@ -208,6 +218,10 @@ export async function GET(request: NextRequest) {
       {
         profile: formatProfileResponse(profile),
         needsOnboarding,
+        showOnboardingNudge:
+          needsOnboarding && accountMeta
+            ? shouldShowOnboardingNudge(accountMeta.createdAt)
+            : false,
         stats: { connections, events, projects, following, followers },
       },
       { headers: corsHeaders }

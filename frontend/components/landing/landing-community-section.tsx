@@ -268,7 +268,7 @@ export function LandingCommunitySection() {
                 Join the community
               </Button>
             </Link>
-            <Link href="/events">
+            <Link href="/events/public">
               <Button variant="outline" className="w-full border-[#1c395c]/20 bg-white sm:w-auto">
                 Browse events
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden />

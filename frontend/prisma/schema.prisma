@@ -62,6 +62,7 @@ model User {
   emailVerified DateTime?
   image     String?
   lastActiveAt DateTime? @map("last_active_at")
+  onboardingReminderSentAt DateTime? @map("onboarding_reminder_sent_at")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -281,6 +282,7 @@ model Event {
   eventType            String   @default("other") // workshop, meetup, conference, etc.
   timezone             String   @default("Africa/Nairobi")
   visibility           String   @default("public") // public, private, members
+  featuredOnHomepage     Boolean  @default(false)
   waitlistEnabled              Boolean  @default(false)
   registrationRequired         Boolean  @default(true)
   registrationRequiresApproval Boolean  @default(false)
@@ -305,6 +307,7 @@ model Event {
   @@index([startDate])
   @@index([eventType])
   @@index([visibility])
+  @@index([featuredOnHomepage])
   @@index([slug])
   @@index([shortCode])
   @@index([lumaEventId])
@@ -1381,6 +1384,24 @@ model SupportTicket {
   @@index([status])
   @@index([priority])
   @@index([createdAt])
+}
+
+// ============================================
+// NEWSLETTER
+// ============================================
+
+model NewsletterSubscriber {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  source           String    @default("landing")
+  unsubscribeToken String    @unique @default(cuid())
+  subscribedAt     DateTime  @default(now())
+  unsubscribedAt   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([subscribedAt])
+  @@map("newsletter_subscribers")
 }
 
 // ============================================

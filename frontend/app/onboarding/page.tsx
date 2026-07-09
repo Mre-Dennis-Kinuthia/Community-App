@@ -67,6 +67,7 @@ function OnboardingContent() {
   const [bio, setBio] = useState("")
   const [profileImage, setProfileImage] = useState("")
   const [linkedinUrl, setLinkedinUrl] = useState("")
+  const [showOnboardingNudge, setShowOnboardingNudge] = useState(false)
 
   const checkProfile = useCallback(async () => {
     if (!session?.user?.id) return
@@ -75,6 +76,7 @@ function OnboardingContent() {
       if (!res.ok) return
       const data = await res.json()
       setNeedsOnboarding(data.needsOnboarding === true)
+      setShowOnboardingNudge(data.showOnboardingNudge === true)
       const p = data.profile
       if (p?.memberType) setMemberType(p.memberType)
       else if (organisationalIntent) setMemberType("partner")
@@ -227,8 +229,8 @@ function OnboardingContent() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/30">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Loading" />
+      <div className="flex min-h-screen items-center justify-center bg-[#faf9f6]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#812926]" aria-label="Loading" />
       </div>
     )
   }
@@ -238,15 +240,28 @@ function OnboardingContent() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 px-4 py-8 md:py-12">
+    <div className="min-h-screen bg-[#faf9f6] px-4 py-8 md:py-12">
       <div className="mx-auto max-w-lg space-y-6">
         <div className="flex justify-center">
           <Logo href="/dashboard" variant="compact" />
         </div>
 
+        {showOnboardingNudge ? (
+          <div
+            className="rounded-md border border-[#812926]/20 bg-[#812926]/5 px-4 py-3 text-sm text-[#1c395c]"
+            role="status"
+          >
+            <p className="font-medium text-[#812926]">Finish your profile to join the community</p>
+            <p className="mt-1 text-[#1c395c]/85">
+              You&apos;re almost there — complete onboarding to appear in the directory, register for
+              events, and book workspace.
+            </p>
+          </div>
+        ) : null}
+
         <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#812926]">
-            Member onboarding
+            Become a member
           </p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0a1f38]">
             {firstName ? `Welcome, ${firstName}` : "Welcome to Impact Hub Nairobi"}
@@ -254,7 +269,7 @@ function OnboardingContent() {
           <p className="mt-2 text-sm text-[#1c395c]/80">
             {organisationalIntent
               ? `Complete your organisation profile for ${ORGANISATIONAL_PLAN_NAME} membership. Our partnerships team will follow up ${ORGANISATIONAL_RESPONSE_SLA}.`
-              : "A short setup so we can connect you with the right programs, people, and opportunities across Nairobi's impact ecosystem."}
+              : "Tell us about your venture and goals — we'll connect you with programs, workspace, events, and people across Nairobi's impact ecosystem."}
           </p>
           <div
             className="mt-5 flex justify-center gap-2"
@@ -269,7 +284,7 @@ function OnboardingContent() {
                 <div
                   className={cn(
                     "h-1.5 w-16 rounded-full transition-colors sm:w-20",
-                    i + 1 <= step ? "bg-primary" : "bg-muted"
+                    i + 1 <= step ? "bg-[#812926]" : "bg-[#edeff2]"
                   )}
                 />
                 <span
@@ -285,7 +300,7 @@ function OnboardingContent() {
           </div>
         </div>
 
-        <Card className="border-border/90 shadow-sm">
+        <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
           <CardHeader className="pb-4">
             {step === 1 ? (
               <>

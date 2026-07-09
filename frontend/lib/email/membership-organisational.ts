@@ -7,6 +7,7 @@ import {
   emailParagraph,
   emailDetailCard,
   emailMutedNote,
+  EMAIL_BRAND,
 } from "./templates"
 import { getAppBaseUrl } from "@/lib/app-url"
 import {
@@ -57,7 +58,7 @@ export async function sendOrganisationalRegistrationStaffEmail(
     ${emailMutedNote(`${escapeHtml(submitted)} (Nairobi)`)}
     ${emailDetailCard([{ label: "Member", value: memberLabel(params) }], { title: "Registration" })}
     ${emailMutedNote(
-      `Optional partnership call: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">Community Office Hours</a>`
+      `Optional partnership call: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:${EMAIL_BRAND.primary};font-weight:600;text-decoration:none;">Community Office Hours</a>`
     )}
   `
 
@@ -85,14 +86,18 @@ export async function sendOrganisationalRegistrationWelcomeEmail(
   const bodyHtml = `
     ${emailGreeting(firstName)}
     ${emailParagraph(
-      `Welcome to Impact Hub Nairobi. Your account for <strong>${escapeHtml(ORGANISATIONAL_PLAN_NAME)}</strong> membership is ready.`
+      `Welcome to <strong>Impact Hub Nairobi</strong>. Your <strong>${escapeHtml(ORGANISATIONAL_PLAN_NAME)}</strong> account connects your institution to programs, events, workspace, and Nairobi's impact ecosystem.`
     )}
     ${emailParagraph(
-      `Sign in and complete your profile (including your organisation) so our partnerships team can tailor your engagement. We typically respond ${escapeHtml(ORGANISATIONAL_RESPONSE_SLA)}.`
+      `Complete your organisation profile so our partnerships team can co-design engagement around your goals. We typically respond ${escapeHtml(ORGANISATIONAL_RESPONSE_SLA)}.`
     )}
     ${emailDetailCard(
-      [{ label: "Next step", value: "Complete your organisation profile" }],
-      { title: "Getting started" }
+      [
+        { label: "Programs", value: "Co-design & events" },
+        { label: "Network", value: "Ventures, partners, investors" },
+        { label: "Next step", value: "Complete your organisation profile" },
+      ],
+      { title: "Become a member" }
     )}
     ${emailMutedNote(
       `You may also book a short call: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">Community Office Hours</a>`
@@ -101,11 +106,11 @@ export async function sendOrganisationalRegistrationWelcomeEmail(
 
   return sendEmail({
     to: params.email,
-    subject: `Welcome — ${ORGANISATIONAL_PLAN_NAME} membership`,
+    subject: `Welcome — ${ORGANISATIONAL_PLAN_NAME} at Impact Hub Nairobi`,
     html: layoutEmail({
-      preheader: `Complete your profile — we respond ${ORGANISATIONAL_RESPONSE_SLA}`,
+      preheader: "Become a member — complete your organisation profile",
       title: "You're registered",
-      eyebrow: "Membership",
+      eyebrow: "Become a member",
       bodyHtml,
       ctaLabel: "Complete your profile",
       ctaUrl: onboardingUrl,

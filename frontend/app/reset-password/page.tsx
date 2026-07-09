@@ -6,11 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
-import { Logo } from "@/components/logo"
 import { toast } from "@/lib/toast"
 import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter"
+import { AuthPageShell } from "@/components/auth/auth-page-shell"
+import { AUTH_LINK, AUTH_PRIMARY_BTN } from "@/components/auth/auth-form-styles"
 import {
   getPasswordValidationError,
   PASSWORD_MAX_LENGTH,
@@ -82,105 +82,94 @@ function ResetPasswordForm() {
 
   if (!token || !email) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle>Invalid reset link</CardTitle>
-            <CardDescription>
-              This link is missing required parameters. Request a new reset link.
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="justify-center">
-            <Link href="/forgot-password" className="text-primary hover:underline">
-              Request new link
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
+      <AuthPageShell
+        title="Invalid reset link"
+        subtitle="This link is missing required parameters. Request a new reset link."
+      >
+        <p className="text-center">
+          <Link href="/forgot-password" className={AUTH_LINK}>
+            Request new link
+          </Link>
+        </p>
+      </AuthPageShell>
     )
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-2 text-center">
-          <div className="flex justify-center">
-            <Logo />
-          </div>
-          <CardTitle>Set a new password</CardTitle>
-          <CardDescription>Choose a strong, unique password.</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">New password</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (passwordError) setPasswordError(null)
-                }}
-                onBlur={(e) =>
-                  setPasswordError(getPasswordValidationError(e.target.value, { email }))
-                }
-                required
-                minLength={PASSWORD_MIN_LENGTH}
-                maxLength={PASSWORD_MAX_LENGTH}
-                aria-invalid={passwordError ? "true" : "false"}
-                aria-describedby="password-requirements password-strength password-error"
-              />
-              <PasswordStrengthMeter
-                password={password}
-                email={email}
-                onPwnedChange={setPasswordPwned}
-                className="pt-1"
-              />
-              <ul id="password-requirements" className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
-                {PASSWORD_REQUIREMENTS_LINES.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-              {passwordError && (
-                <p id="password-error" className="text-sm text-destructive" role="alert">
-                  {passwordError}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm">Confirm password</Label>
-              <Input
-                id="confirm"
-                type="password"
-                autoComplete="new-password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
-                minLength={PASSWORD_MIN_LENGTH}
-                maxLength={PASSWORD_MAX_LENGTH}
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                "Update password"
-              )}
-            </Button>
-            <Link href="/login" className="text-sm text-primary hover:underline">
-              Back to sign in
-            </Link>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+    <AuthPageShell
+      title="Set a new password"
+      subtitle="Choose a strong, unique password for your account."
+      panelTitle="Secure your account"
+      panelDescription="Keep your Impact Hub Nairobi profile safe with a strong password."
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="password">New password</Label>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              if (passwordError) setPasswordError(null)
+            }}
+            onBlur={(e) =>
+              setPasswordError(getPasswordValidationError(e.target.value, { email }))
+            }
+            required
+            minLength={PASSWORD_MIN_LENGTH}
+            maxLength={PASSWORD_MAX_LENGTH}
+            aria-invalid={passwordError ? "true" : "false"}
+            aria-describedby="password-requirements password-strength password-error"
+          />
+          <PasswordStrengthMeter
+            password={password}
+            email={email}
+            onPwnedChange={setPasswordPwned}
+            className="pt-1"
+          />
+          <ul id="password-requirements" className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+            {PASSWORD_REQUIREMENTS_LINES.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          {passwordError && (
+            <p id="password-error" className="text-sm text-destructive" role="alert">
+              {passwordError}
+            </p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirm">Confirm password</Label>
+          <Input
+            id="confirm"
+            type="password"
+            autoComplete="new-password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            required
+            minLength={PASSWORD_MIN_LENGTH}
+            maxLength={PASSWORD_MAX_LENGTH}
+          />
+        </div>
+        <Button type="submit" className={AUTH_PRIMARY_BTN} disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Updating...
+            </>
+          ) : (
+            "Update password"
+          )}
+        </Button>
+        <p className="text-center">
+          <Link href="/login" className={AUTH_LINK}>
+            Back to sign in
+          </Link>
+        </p>
+      </form>
+    </AuthPageShell>
   )
 }
 
@@ -188,8 +177,8 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-muted-foreground">Loading...</p>
+        <div className="flex min-h-screen items-center justify-center bg-[#faf9f6]">
+          <p className="text-[#1c395c]/70">Loading...</p>
         </div>
       }
     >

@@ -142,8 +142,8 @@ export default function MembershipPayPage() {
   const intervalLabel = link?.plan.interval === "yearly" ? "year" : "month"
 
   return (
-    <div className="min-h-[100svh] bg-background">
-      <header className="border-b border-border">
+    <div className="min-h-[100svh] bg-[#faf9f6]">
+      <header className="border-b border-[#edeff2] bg-[#faf9f6]">
         <div className="container flex h-14 items-center px-4">
           <Logo href="/" />
         </div>
@@ -152,10 +152,10 @@ export default function MembershipPayPage() {
       <main className="container max-w-lg px-4 py-10">
         {loading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-[#812926]" />
           </div>
         ) : error ? (
-          <Card>
+          <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
             <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
               <AlertCircle className="h-10 w-10 text-destructive" />
               <p className="text-muted-foreground">{error}</p>
@@ -165,9 +165,9 @@ export default function MembershipPayPage() {
             </CardContent>
           </Card>
         ) : pendingMpesa ? (
-          <Card>
+          <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
             <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <Loader2 className="h-12 w-12 animate-spin text-[#812926]" />
               <h1 className="text-xl font-semibold">Waiting for M-Pesa</h1>
               <p className="text-sm text-muted-foreground">
                 Approve the payment on your phone. This page will update automatically when payment is confirmed.
@@ -175,15 +175,15 @@ export default function MembershipPayPage() {
             </CardContent>
           </Card>
         ) : done ? (
-          <Card>
+          <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
             <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-              <CheckCircle2 className="h-12 w-12 text-primary" />
+              <CheckCircle2 className="h-12 w-12 text-[#812926]" />
               <h1 className="text-xl font-semibold">Membership active</h1>
               <p className="text-sm text-muted-foreground">
                 Thank you. Your {link?.plan.name} membership is now active.
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
-                <Button asChild>
+                <Button asChild className="bg-[#812926] hover:bg-[#6b2120]">
                   <Link href={session?.user ? "/billing" : "/login"}>
                     {session?.user ? "View billing" : "Sign in to your account"}
                   </Link>
@@ -195,9 +195,12 @@ export default function MembershipPayPage() {
             </CardContent>
           </Card>
         ) : link ? (
-          <Card>
+          <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
             <CardHeader>
-              <CardTitle>Membership payment</CardTitle>
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#812926]">
+                Become a member
+              </p>
+              <CardTitle className="text-[#0a1f38]">Membership payment</CardTitle>
               <CardDescription>
                 {link.plan.name} · {link.currency} {link.amount.toLocaleString()} / {intervalLabel}
               </CardDescription>
@@ -253,7 +256,7 @@ export default function MembershipPayPage() {
                     />
                   </div>
 
-                  <Button className="w-full" disabled={paying} onClick={() => void handlePay()}>
+                  <Button className="w-full bg-[#812926] hover:bg-[#6b2120]" disabled={paying} onClick={() => void handlePay()}>
                     {paying ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
