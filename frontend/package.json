@@ -30,6 +30,7 @@
     "pwa:icons": "node scripts/generate-pwa-icons.mjs",
     "brand:assets": "node scripts/generate-brand-assets.mjs",
     "landing:images": "node scripts/fetch-landing-images.mjs",
+    "db:apply-marketing": "tsx scripts/apply-marketing-schema.ts",
     "partners:logos": "node scripts/fetch-partner-logos.mjs",
     "partners:seed": "tsx scripts/seed-partners.ts"
   },
