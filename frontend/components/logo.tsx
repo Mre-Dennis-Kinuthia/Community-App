@@ -3,9 +3,7 @@
 import Link from "next/link"
 import {
   BRAND_LOGO_PATH,
-  BRAND_LOGO_SVG_PATH,
   BRAND_MARK_PATH,
-  BRAND_MARK_SVG_PATH,
   getBrandLogoDimensions,
   getBrandMarkDimensions,
 } from "@/lib/brand"
@@ -33,7 +31,7 @@ export function Logo({ href, variant = "default", className }: LogoProps) {
   const image = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={isMark ? BRAND_MARK_SVG_PATH : BRAND_LOGO_SVG_PATH}
+      src={isMark ? BRAND_MARK_PATH : BRAND_LOGO_PATH}
       alt={isMark ? "Impact Hub" : "Impact Hub Nairobi"}
       width={width}
       height={height}
@@ -43,12 +41,6 @@ export function Logo({ href, variant = "default", className }: LogoProps) {
         height,
         minWidth: width,
         maxWidth: "none",
-      }}
-      onError={(event) => {
-        const img = event.currentTarget
-        if (img.dataset.fallbackApplied === "true") return
-        img.dataset.fallbackApplied = "true"
-        img.src = isMark ? BRAND_MARK_PATH : BRAND_LOGO_PATH
       }}
     />
   )

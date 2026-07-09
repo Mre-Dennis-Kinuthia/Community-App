@@ -1,4 +1,4 @@
-import { BRAND_MARK_PATH, BRAND_MARK_SVG_PATH, getBrandMarkDimensions } from "@/lib/brand"
+import { BRAND_MARK_PATH, getBrandMarkDimensions } from "@/lib/brand"
 import { cn } from "@/lib/utils"
 
 type BrandMarkProps = {
@@ -13,19 +13,13 @@ export function BrandMark({ size = 36, className }: BrandMarkProps) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={BRAND_MARK_SVG_PATH}
+      src={BRAND_MARK_PATH}
       alt=""
       width={width}
       height={height}
       aria-hidden
       className={cn("shrink-0 object-contain", className)}
       style={{ width, height, minWidth: width }}
-      onError={(event) => {
-        const img = event.currentTarget
-        if (img.dataset.fallbackApplied === "true") return
-        img.dataset.fallbackApplied = "true"
-        img.src = BRAND_MARK_PATH
-      }}
     />
   )
 }
