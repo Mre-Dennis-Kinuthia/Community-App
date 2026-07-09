@@ -70,6 +70,54 @@ export async function sendConnectionRequestEmail(params: {
   })
 }
 
+export async function sendConnectedMemberMessageEmail(params: {
+  to: string
+  toName?: string | null
+  fromName: string
+  fromEmail: string
+  subject: string
+  message: string
+  senderProfileUrl: string
+}): Promise<SendEmailResult> {
+  const senderName = escapeHtml(params.fromName.trim() || "A community member")
+  const subjectLine = params.subject.trim()
+  const messageHtml = escapeHtml(params.message.trim()).replace(/\n/g, "<br>")
+  const bodyHtml = `
+    ${emailGreeting(params.toName)}
+    ${emailParagraph(
+      `<strong>${senderName}</strong> sent you a message through the <strong>Impact Hub Nairobi</strong> community platform.`
+    )}
+    ${emailParagraph(`<strong>Subject:</strong> ${escapeHtml(subjectLine)}`)}
+    ${emailHighlightBox(messageHtml)}
+    ${emailMutedNote("Reply to this email to respond directly to the sender.")}
+  `
+
+  return sendEmail({
+    to: params.to,
+    replyTo: params.fromEmail,
+    subject: `${params.fromName.trim() || "A member"}: ${subjectLine}`,
+    html: layoutEmail({
+      preheader: `${params.fromName.trim() || "A member"} sent you a message`,
+      title: "Message from your connection",
+      eyebrow: "Community",
+      bodyHtml,
+      ctaLabel: "View profile",
+      ctaUrl: params.senderProfileUrl,
+    }),
+    text: [
+      `${params.fromName.trim() || "A community member"} sent you a message on Impact Hub Nairobi.`,
+      "",
+      `Subject: ${subjectLine}`,
+      "",
+      params.message.trim(),
+      "",
+      `View their profile: ${params.senderProfileUrl}`,
+      "",
+      "Reply to this email to respond directly.",
+    ].join("\n"),
+  })
+}
+
 export async function sendEventRegistrationEmail(params: {
   to: string
   name?: string | null

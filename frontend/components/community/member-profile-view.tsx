@@ -32,6 +32,7 @@ import {
   respondToConnectionRequest,
   sendConnectionRequest,
 } from "@/lib/connection-client"
+import { MemberEmailDialog } from "@/components/community/member-email-dialog"
 import { getInitials, cn } from "@/lib/utils"
 import type { CommunityMember } from "@/types/community"
 
@@ -75,6 +76,7 @@ function TagList({ items, variant = "secondary" }: { items: string[]; variant?: 
 
 export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps) {
   const [connectLoading, setConnectLoading] = useState(false)
+  const [emailOpen, setEmailOpen] = useState(false)
   const [followLoading, setFollowLoading] = useState(false)
   const [isFollowing, setIsFollowing] = useState(Boolean(member.isFollowing))
 
@@ -330,7 +332,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
             <div
               className={cn(
                 "grid gap-3 border-t border-border px-5 py-4 md:hidden",
-                isPendingReceived ? "grid-cols-3" : "grid-cols-2"
+                isPendingReceived ? "grid-cols-3" : isConnected ? "grid-cols-2" : "grid-cols-2"
               )}
             >
               {isPendingReceived ? (
@@ -352,28 +354,45 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                   </Button>
                 </>
               ) : (
-                <Button
-                  className="h-10 rounded-full text-xs"
-                  disabled={connectLoading || isConnected || member.connectionStatus === "pending_sent"}
-                  onClick={() => void handleConnect()}
-                >
-                  {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : connectLabel()}
-                </Button>
+                <>
+                  {isConnected ? (
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-full text-xs"
+                      onClick={() => setEmailOpen(true)}
+                    >
+                      <Mail className="mr-1.5 h-3.5 w-3.5" />
+                      Email
+                    </Button>
+                  ) : (
+                    <Button
+                      className="h-10 rounded-full text-xs"
+                      disabled={connectLoading || member.connectionStatus === "pending_sent"}
+                      onClick={() => void handleConnect()}
+                    >
+                      {connectLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        connectLabel()
+                      )}
+                    </Button>
+                  )}
+                  <Button
+                    variant={isFollowing ? "secondary" : "outline"}
+                    className="h-10 rounded-full text-xs"
+                    disabled={followLoading}
+                    onClick={() => void handleFollow()}
+                  >
+                    {followLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : isFollowing ? (
+                      "Following"
+                    ) : (
+                      "Follow"
+                    )}
+                  </Button>
+                </>
               )}
-              <Button
-                variant={isFollowing ? "secondary" : "outline"}
-                className="h-10 rounded-full text-xs"
-                disabled={followLoading}
-                onClick={() => void handleFollow()}
-              >
-                {followLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : isFollowing ? (
-                  "Following"
-                ) : (
-                  "Follow"
-                )}
-              </Button>
             </div>
 
             {/* Desktop actions */}
@@ -409,12 +428,10 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                   {connectLabel()}
                 </Button>
               )}
-              {member.email && isConnected ? (
-                <Button variant="outline" asChild>
-                  <a href={`mailto:${member.email}`}>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email
-                  </a>
+              {isConnected ? (
+                <Button variant="outline" onClick={() => setEmailOpen(true)}>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Email
                 </Button>
               ) : null}
               {linkedinUrl ? (
@@ -641,6 +658,15 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
           ) : null}
         </aside>
       </div>
+
+      {!member.isSelf && isConnected ? (
+        <MemberEmailDialog
+          open={emailOpen}
+          onOpenChange={setEmailOpen}
+          memberId={member.id}
+          memberName={member.name}
+        />
+      ) : null}
     </div>
   )
 }

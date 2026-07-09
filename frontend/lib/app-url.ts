@@ -41,3 +41,7 @@ export function getCommunityOpportunityUrl(opportunityId: string): string {
 export function getDashboardBookingUrl(bookingId: string): string {
   return `${getAppBaseUrl()}/dashboard/bookings/${bookingId}`
 }
+
+export function getCommunityMemberProfileUrl(memberId: string): string {
+  return `${getAppBaseUrl()}/community/${memberId}`
+}

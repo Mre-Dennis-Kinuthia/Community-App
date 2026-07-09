@@ -58,3 +58,24 @@ export async function respondToConnectionRequest(
       : connectionErrorMessage(res.status, data, "Could not update connection request"),
   }
 }
+
+export async function sendMemberEmail(
+  memberId: string,
+  payload: { subject: string; message: string }
+): Promise<ConnectionActionResult> {
+  const res = await fetch(`/api/community/${memberId}/email`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+  const data = await parseJsonResponse(res)
+  return {
+    ok: res.ok,
+    status: res.status,
+    data,
+    error: res.ok
+      ? undefined
+      : connectionErrorMessage(res.status, data, "Could not send email"),
+  }
+}

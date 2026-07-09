@@ -10,6 +10,7 @@ import {
   Users,
   Loader2,
   SlidersHorizontal,
+  Mail,
 } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { cn } from "@/lib/utils"
@@ -41,6 +42,8 @@ import { EmptyState } from "@/components/design/empty-state"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { getInitials } from "@/lib/utils"
+import { MemberEmailDialog } from "@/components/community/member-email-dialog"
+import type { CommunityMember } from "@/types/community"
 
 const experienceLevels = ["All", "Early Career", "Mid-Level", "Senior", "Expert"]
 const availabilityOptions = ["All", "Open to Collaboration", "Seeking Mentorship", "Offering Mentorship", "Open to Partnerships", "Looking for Volunteers"]
@@ -80,6 +83,7 @@ function CommunityPageContent() {
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"))
   const [isFiltering, setIsFiltering] = useState(false)
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+  const [emailMember, setEmailMember] = useState<CommunityMember | null>(null)
 
   // Fetch members from API
   const {
@@ -195,13 +199,13 @@ function CommunityPageContent() {
     sortBy !== "newest",
   ].filter(Boolean).length
 
-  const renderMemberList = (list: typeof members, className?: string) => (
+  const renderMemberList = (list: typeof members, className?: string, showEmailAction = false) => (
     <div className={className}>
       <DataList>
         {list.map((member) => {
           const avatarUrl = getImageDisplayUrl(member.avatar || member.image)
-          return (
-            <DataListRow key={member.id} href={`/community/${member.id}`}>
+          const rowBody = (
+            <>
               <Avatar className="h-8 w-8 shrink-0">
                 {avatarUrl ? <AvatarImage src={avatarUrl} alt={member.name || "Member"} /> : null}
                 <AvatarFallback className="text-xs">
@@ -212,6 +216,38 @@ function CommunityPageContent() {
                 title={member.name || member.email}
                 subtitle={member.organization || member.role || undefined}
               />
+            </>
+          )
+
+          if (showEmailAction && member.isConnected) {
+            return (
+              <div
+                key={member.id}
+                className="group flex min-w-0 items-center gap-2.5 border-b border-border px-3 py-2.5 last:border-b-0 md:gap-3 md:px-4 md:py-3"
+              >
+                <Link
+                  href={`/community/${member.id}`}
+                  className="flex min-w-0 flex-1 items-center gap-2.5 md:gap-3"
+                >
+                  {rowBody}
+                </Link>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  aria-label={`Email ${member.name}`}
+                  onClick={() => setEmailMember(member)}
+                >
+                  <Mail className="h-4 w-4" />
+                </Button>
+              </div>
+            )
+          }
+
+          return (
+            <DataListRow key={member.id} href={`/community/${member.id}`}>
+              {rowBody}
               {member.role ? <DataListMeta>{member.role}</DataListMeta> : null}
             </DataListRow>
           )
@@ -519,13 +555,24 @@ function CommunityPageContent() {
               <>
                 <div className="md:hidden">{memberGrid}</div>
                 <div className="hidden md:block">
-                  {renderMemberList(filteredAndSortedMembers)}
+                  {renderMemberList(filteredAndSortedMembers, undefined, true)}
                 </div>
               </>
             )}
           </div>
         )}
       </div>
+
+      {emailMember ? (
+        <MemberEmailDialog
+          open={!!emailMember}
+          onOpenChange={(open) => {
+            if (!open) setEmailMember(null)
+          }}
+          memberId={emailMember.id}
+          memberName={emailMember.name}
+        />
+      ) : null}
     </DashboardLayout>
   )
 }
