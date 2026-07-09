@@ -8,7 +8,7 @@ export async function OPTIONS(request: NextRequest) {
 
 /**
  * GET /api/landing/community-preview
- * Public snapshot for the marketing landing page — counts, featured members, upcoming events.
+ * Public snapshot for the marketing landing page — counts and featured members.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       industry: { not: null },
     }
 
-    const [memberCount, upcomingEventsCount, featuredUsers, fallbackUsers, upcomingEvents] =
+    const [memberCount, upcomingEventsCount, featuredUsers, fallbackUsers] =
       await Promise.all([
         prisma.memberProfile.count({ where: profileCompleteWhere }),
         prisma.event.count({
@@ -54,22 +54,6 @@ export async function GET(request: NextRequest) {
             },
           },
         }),
-        prisma.event.findMany({
-          where: {
-            deletedAt: null,
-            visibility: "public",
-            startDate: { gte: now },
-          },
-          orderBy: { startDate: "asc" },
-          take: 3,
-          select: {
-            id: true,
-            title: true,
-            startDate: true,
-            location: true,
-            eventType: true,
-          },
-        }),
       ])
 
     const membersSource = featuredUsers.length > 0 ? featuredUsers : fallbackUsers
@@ -89,13 +73,6 @@ export async function GET(request: NextRequest) {
         memberCount,
         upcomingEventsCount,
         featuredMembers,
-        upcomingEvents: upcomingEvents.map((event) => ({
-          id: event.id,
-          title: event.title,
-          startDate: event.startDate.toISOString(),
-          location: event.location,
-          eventType: event.eventType,
-        })),
       },
       { headers: corsHeaders(request) }
     )
@@ -106,7 +83,6 @@ export async function GET(request: NextRequest) {
         memberCount: 0,
         upcomingEventsCount: 0,
         featuredMembers: [],
-        upcomingEvents: [],
       },
       { headers: corsHeaders(request) }
     )

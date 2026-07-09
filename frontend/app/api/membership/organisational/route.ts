@@ -4,53 +4,68 @@ import { z } from "zod"
 import type { OrganisationalInquiryPayload } from "@/lib/email/membership-organisational-inquiry"
 import { buildOrganisationalInquiryPlainText } from "@/lib/email/membership-organisational-inquiry"
 import { queueOrganisationalInquiryEmails } from "@/lib/membership-organisational-inquiry"
-import { IMPACT_SECTORS, PRIMARY_ROLES } from "@/lib/member-segmentation"
-import { normalizeLinkedInUrl } from "@/lib/member-social-links"
+import { IMPACT_SECTORS } from "@/lib/member-segmentation"
 import {
   HOW_HEARD_OPTIONS,
+  ORGANISATIONAL_AUDIENCE_REACH,
+  ORGANISATIONAL_BUDGET_BANDS,
+  ORGANISATIONAL_CONTACT_ROLES,
   ORGANISATIONAL_DISCOVERY_CALL_URL,
+  ORGANISATIONAL_ENGAGEMENT_MODELS,
+  ORGANISATIONAL_ENGAGEMENT_TIMELINE,
+  ORGANISATIONAL_GEOGRAPHIC_SCOPE,
   ORGANISATIONAL_PLAN_NAME,
   ORGANISATION_TEAM_SIZES,
   ORGANISATION_TYPES,
-  ORGANISATIONAL_PARTNERSHIP_INTERESTS,
-  TARGET_START,
 } from "@/lib/membership-inquiry"
 
 export const ORGANISATIONAL_INQUIRY_TICKET_CATEGORY = "organisational-inquiry"
 
-const roleValues = [...PRIMARY_ROLES] as [string, ...string[]]
-const sectorValues = [...IMPACT_SECTORS] as [string, ...string[]]
 const orgTypeValues = [...ORGANISATION_TYPES] as [string, ...string[]]
-const teamSizeValues = [...ORGANISATION_TEAM_SIZES] as [string, ...string[]]
-const interestValues = [...ORGANISATIONAL_PARTNERSHIP_INTERESTS] as [string, ...string[]]
-const startValues = [...TARGET_START] as [string, ...string[]]
+const scopeValues = [...ORGANISATIONAL_GEOGRAPHIC_SCOPE] as [string, ...string[]]
+const sectorValues = [...IMPACT_SECTORS] as [string, ...string[]]
+const scaleValues = [...ORGANISATION_TEAM_SIZES] as [string, ...string[]]
+const modelValues = [...ORGANISATIONAL_ENGAGEMENT_MODELS] as [string, ...string[]]
+const audienceValues = [...ORGANISATIONAL_AUDIENCE_REACH] as [string, ...string[]]
+const timelineValues = [...ORGANISATIONAL_ENGAGEMENT_TIMELINE] as [string, ...string[]]
+const budgetValues = [...ORGANISATIONAL_BUDGET_BANDS] as [string, ...string[]]
+const roleValues = [...ORGANISATIONAL_CONTACT_ROLES] as [string, ...string[]]
 const heardValues = [...HOW_HEARD_OPTIONS] as [string, ...string[]]
 
 const schema = z
   .object({
-    fullName: z.string().min(2, "Enter your full name").max(120),
-    email: z.string().email("Enter a valid email address"),
-    phone: z.string().min(7, "Enter a phone number").max(40),
-    location: z.string().min(2, "Enter your city").max(120),
     organizationName: z.string().min(2, "Enter your organisation name").max(160),
     organizationType: z.enum(orgTypeValues, { message: "Select organisation type" }),
-    organizationDescription: z
+    organizationMandate: z
       .string()
-      .min(25, "Describe your organisation (at least 25 characters)")
+      .min(25, "Describe your mandate and programmes (at least 25 characters)")
       .max(800),
-    role: z.enum(roleValues, { message: "Select your role" }),
-    sector: z.enum(sectorValues, { message: "Select your sector" }),
-    teamSize: z.enum(teamSizeValues, { message: "Select team size" }),
-    partnershipInterests: z
-      .array(z.enum(interestValues))
-      .min(1, "Pick at least one partnership interest"),
-    targetStart: z.enum(startValues, { message: "Select when you want to start" }),
-    partnershipGoals: z
-      .string()
-      .min(15, "Tell us what you hope to achieve (at least 15 characters)")
-      .max(500),
-    linkedinUrl: z.string().max(300).optional(),
+    geographicScope: z.enum(scopeValues, { message: "Select geographic scope" }),
+    focusSectors: z
+      .array(z.enum(sectorValues))
+      .min(1, "Select at least one focus sector")
+      .max(3, "Select up to three sectors"),
+    staffScale: z.enum(scaleValues, { message: "Select team or programme scale" }),
     websiteUrl: z.string().max(300).optional(),
+    engagementModels: z
+      .array(z.enum(modelValues))
+      .min(1, "Select at least one engagement model"),
+    audienceReach: z
+      .array(z.enum(audienceValues))
+      .min(1, "Select at least one audience you want to reach"),
+    engagementTimeline: z.enum(timelineValues, {
+      message: "Select partnership timeline",
+    }),
+    partnershipObjectives: z
+      .string()
+      .min(15, "Describe what success looks like (at least 15 characters)")
+      .max(500),
+    budgetBand: z.enum(budgetValues).optional(),
+    fullName: z.string().min(2, "Enter the primary contact name").max(120),
+    contactRole: z.enum(roleValues, { message: "Select your role" }),
+    email: z.string().email("Enter a valid work email"),
+    phone: z.string().min(7, "Enter a phone number").max(40),
+    location: z.string().min(2, "Enter your city").max(120),
     howHeard: z.enum(heardValues).optional(),
     referralName: z.string().max(120).optional(),
     message: z.string().max(500).optional(),
@@ -59,13 +74,6 @@ const schema = z
     }),
   })
   .superRefine((data, ctx) => {
-    if (data.linkedinUrl?.trim() && !normalizeLinkedInUrl(data.linkedinUrl)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Enter a valid LinkedIn URL",
-        path: ["linkedinUrl"],
-      })
-    }
     if (data.websiteUrl?.trim()) {
       try {
         const url = data.websiteUrl.trim().startsWith("http")
@@ -97,23 +105,23 @@ function normalizeWebsite(url: string | undefined): string | undefined {
 
 function toPayload(data: z.infer<typeof schema>): OrganisationalInquiryPayload {
   return {
+    organizationName: data.organizationName.trim(),
+    organizationType: data.organizationType,
+    organizationMandate: data.organizationMandate.trim(),
+    geographicScope: data.geographicScope,
+    focusSectors: data.focusSectors,
+    staffScale: data.staffScale,
+    websiteUrl: normalizeWebsite(data.websiteUrl),
+    engagementModels: data.engagementModels,
+    audienceReach: data.audienceReach,
+    engagementTimeline: data.engagementTimeline,
+    partnershipObjectives: data.partnershipObjectives.trim(),
+    budgetBand: data.budgetBand,
     fullName: data.fullName.trim(),
+    contactRole: data.contactRole,
     email: data.email.toLowerCase().trim(),
     phone: data.phone.trim(),
     location: data.location.trim(),
-    organizationName: data.organizationName.trim(),
-    organizationType: data.organizationType,
-    organizationDescription: data.organizationDescription.trim(),
-    role: data.role,
-    sector: data.sector,
-    teamSize: data.teamSize,
-    partnershipInterests: data.partnershipInterests,
-    targetStart: data.targetStart,
-    partnershipGoals: data.partnershipGoals.trim(),
-    linkedinUrl: data.linkedinUrl?.trim()
-      ? normalizeLinkedInUrl(data.linkedinUrl) ?? undefined
-      : undefined,
-    websiteUrl: normalizeWebsite(data.websiteUrl),
     howHeard: data.howHeard,
     referralName: data.referralName?.trim(),
     message: data.message?.trim(),
@@ -141,8 +149,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: emailsQueued
-          ? "Application submitted. Check your email for next steps."
-          : "Application saved. Our partnerships team will follow up — confirmation email could not be sent (mail not configured).",
+          ? "Partnership inquiry submitted. Check your email for next steps."
+          : "Inquiry saved. Our partnerships team will follow up — confirmation email could not be sent (mail not configured).",
         emailsQueued,
         discoveryCallUrl: ORGANISATIONAL_DISCOVERY_CALL_URL,
       },

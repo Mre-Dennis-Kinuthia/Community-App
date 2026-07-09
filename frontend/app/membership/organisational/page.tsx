@@ -22,47 +22,78 @@ import {
 } from "@/components/membership/membership-page-shell"
 import { toast } from "@/lib/toast"
 import { cn } from "@/lib/utils"
-import { IMPACT_SECTORS, PRIMARY_ROLES } from "@/lib/member-segmentation"
+import { IMPACT_SECTORS } from "@/lib/member-segmentation"
 import {
   HOW_HEARD_OPTIONS,
+  ORGANISATIONAL_AUDIENCE_REACH,
+  ORGANISATIONAL_BUDGET_BANDS,
+  ORGANISATIONAL_CONTACT_ROLES,
   ORGANISATIONAL_DISCOVERY_CALL_URL,
+  ORGANISATIONAL_ENGAGEMENT_MODELS,
+  ORGANISATIONAL_ENGAGEMENT_TIMELINE,
+  ORGANISATIONAL_GEOGRAPHIC_SCOPE,
   ORGANISATIONAL_PLAN_NAME,
   ORGANISATIONAL_REGISTER_PATH,
   ORGANISATIONAL_RESPONSE_SLA,
   ORGANISATION_TEAM_SIZES,
   ORGANISATION_TYPES,
-  ORGANISATIONAL_PARTNERSHIP_INTERESTS,
-  TARGET_START,
 } from "@/lib/membership-inquiry"
 import { HUB_PUBLIC_EMAIL } from "@/lib/hub-contact"
-import { ArrowRight, Building2, Calendar, CheckCircle2, Linkedin, Loader2 } from "lucide-react"
+import { ArrowRight, Building2, Calendar, CheckCircle2, Handshake, Loader2, Users } from "lucide-react"
 
-const STEPS = ["Your organisation", "Partnership goals"] as const
-const DESCRIPTION_MAX = 800
-const GOALS_MAX = 500
+const STEPS = ["Institution profile", "Partnership design", "Primary contact"] as const
+const MANDATE_MAX = 800
+const OBJECTIVES_MAX = 500
 
 function emptyForm() {
   return {
+    organizationName: "",
+    organizationType: "",
+    organizationMandate: "",
+    geographicScope: "",
+    focusSectors: [] as string[],
+    staffScale: "",
+    websiteUrl: "",
+    engagementModels: [] as string[],
+    audienceReach: [] as string[],
+    engagementTimeline: "",
+    partnershipObjectives: "",
+    budgetBand: "",
     fullName: "",
+    contactRole: "",
     email: "",
     phone: "",
     location: "Nairobi, Kenya",
-    organizationName: "",
-    organizationType: "",
-    organizationDescription: "",
-    role: "",
-    sector: "",
-    teamSize: "",
-    partnershipInterests: [] as string[],
-    targetStart: "",
-    partnershipGoals: "",
-    linkedinUrl: "",
-    websiteUrl: "",
     howHeard: "",
     referralName: "",
     message: "",
     consent: false,
   }
+}
+
+function ChipToggle({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string
+  selected: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-full border px-3 py-1.5 text-left text-xs transition-colors sm:text-sm",
+        selected
+          ? "border-primary bg-primary/10 font-medium text-foreground"
+          : "border-border text-muted-foreground hover:border-foreground/30"
+      )}
+    >
+      {label}
+    </button>
+  )
 }
 
 export default function OrganisationalMembershipPage() {
@@ -75,54 +106,73 @@ export default function OrganisationalMembershipPage() {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const toggleInterest = (interest: string) => {
-    setForm((prev) => ({
-      ...prev,
-      partnershipInterests: prev.partnershipInterests.includes(interest)
-        ? prev.partnershipInterests.filter((i) => i !== interest)
-        : [...prev.partnershipInterests, interest],
-    }))
+  const toggleInList = (field: "focusSectors" | "engagementModels" | "audienceReach", value: string) => {
+    setForm((prev) => {
+      const list = prev[field]
+      const max = field === "focusSectors" ? 3 : undefined
+      if (list.includes(value)) {
+        return { ...prev, [field]: list.filter((v) => v !== value) }
+      }
+      if (max && list.length >= max) {
+        toast.error("Limit reached", `Select up to ${max} sectors.`)
+        return prev
+      }
+      return { ...prev, [field]: [...list, value] }
+    })
   }
 
   const showReferral = form.howHeard === "Referral from a member"
   const registerHref = `${ORGANISATIONAL_REGISTER_PATH}&email=${encodeURIComponent(form.email)}`
 
   const validateStep1 = (): boolean => {
-    if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim()) {
-      toast.error("Missing details", "Fill in your name, email, and phone.")
-      return false
-    }
     if (!form.organizationName.trim() || !form.organizationType) {
-      toast.error("Organisation details", "Add your organisation name and type.")
+      toast.error("Institution details", "Add your organisation name and type.")
       return false
     }
-    if (form.organizationDescription.trim().length < 25) {
-      toast.error("Tell us about your organisation", "Add a short description (at least 25 characters).")
+    if (form.organizationMandate.trim().length < 25) {
+      toast.error("Mandate required", "Describe your mission, programmes, and who you serve.")
       return false
     }
-    if (!form.role || !form.sector || !form.teamSize) {
-      toast.error("Almost there", "Select your role, sector, and team size.")
+    if (!form.geographicScope || !form.staffScale) {
+      toast.error("Almost there", "Select geographic scope and team/programme scale.")
+      return false
+    }
+    if (form.focusSectors.length === 0) {
+      toast.error("Focus sectors", "Select at least one sector your institution works in.")
+      return false
+    }
+    return true
+  }
+
+  const validateStep2 = (): boolean => {
+    if (form.engagementModels.length === 0) {
+      toast.error("Engagement model", "How would you like to partner with Impact Hub?")
+      return false
+    }
+    if (form.audienceReach.length === 0) {
+      toast.error("Audiences", "Who do you want to reach through this partnership?")
+      return false
+    }
+    if (!form.engagementTimeline) {
+      toast.error("Timeline", "Select your preferred partnership timeline.")
+      return false
+    }
+    if (form.partnershipObjectives.trim().length < 15) {
+      toast.error("Objectives", "Describe what a successful partnership looks like.")
       return false
     }
     return true
   }
 
   const handleContinue = () => {
-    if (validateStep1()) setStep(2)
+    if (step === 1 && validateStep1()) setStep(2)
+    else if (step === 2 && validateStep2()) setStep(3)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (form.partnershipInterests.length === 0) {
-      toast.error("Pick partnership interests", "Select at least one area of collaboration.")
-      return
-    }
-    if (!form.targetStart) {
-      toast.error("Almost there", "Select when you'd like to start.")
-      return
-    }
-    if (form.partnershipGoals.trim().length < 15) {
-      toast.error("Partnership goals", "Briefly describe what you hope to achieve together.")
+    if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.contactRole) {
+      toast.error("Contact details", "Fill in the primary contact name, role, email, and phone.")
       return
     }
     if (!form.consent) {
@@ -140,21 +190,23 @@ export default function OrganisationalMembershipPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          organizationName: form.organizationName,
+          organizationType: form.organizationType,
+          organizationMandate: form.organizationMandate,
+          geographicScope: form.geographicScope,
+          focusSectors: form.focusSectors,
+          staffScale: form.staffScale,
+          websiteUrl: form.websiteUrl.trim() || undefined,
+          engagementModels: form.engagementModels,
+          audienceReach: form.audienceReach,
+          engagementTimeline: form.engagementTimeline,
+          partnershipObjectives: form.partnershipObjectives,
+          budgetBand: form.budgetBand || undefined,
           fullName: form.fullName,
+          contactRole: form.contactRole,
           email: form.email,
           phone: form.phone,
           location: form.location,
-          organizationName: form.organizationName,
-          organizationType: form.organizationType,
-          organizationDescription: form.organizationDescription,
-          role: form.role,
-          sector: form.sector,
-          teamSize: form.teamSize,
-          partnershipInterests: form.partnershipInterests,
-          targetStart: form.targetStart,
-          partnershipGoals: form.partnershipGoals,
-          linkedinUrl: form.linkedinUrl.trim() || undefined,
-          websiteUrl: form.websiteUrl.trim() || undefined,
           howHeard: form.howHeard || undefined,
           referralName: showReferral ? form.referralName.trim() : undefined,
           message: form.message.trim() || undefined,
@@ -165,10 +217,7 @@ export default function OrganisationalMembershipPage() {
       if (!res.ok) throw new Error(data.error || "Submission failed")
       setSubmitted(true)
       if (data.emailsQueued === false) {
-        toast.success(
-          "Application saved",
-          "Email is temporarily unavailable — book a call below or contact us."
-        )
+        toast.success("Inquiry saved", "Email unavailable — book a partnership call or contact us.")
       } else {
         toast.success("Submitted", "Check your email for next steps.")
       }
@@ -187,33 +236,27 @@ export default function OrganisationalMembershipPage() {
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#812926]/10">
               <CheckCircle2 className="h-6 w-6 text-[#812926]" aria-hidden />
             </div>
-            <CardTitle className="text-xl text-[#0a1f38]">Application received</CardTitle>
+            <CardTitle className="text-xl text-[#0a1f38]">Partnership inquiry received</CardTitle>
             <CardDescription className="text-base leading-relaxed text-[#1c395c]/80">
               We emailed <strong className="text-[#0a1f38]">{form.email}</strong>. Our partnerships
-              team will reply {ORGANISATIONAL_RESPONSE_SLA}.
+              team will review <strong>{form.organizationName}</strong> and reply{" "}
+              {ORGANISATIONAL_RESPONSE_SLA}.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-center text-sm text-[#1c395c]/80">
-              Next, create your platform account so we can link your partnership profile and
-              co-design programs with you.
+              Create your platform account next so we can link your inquiry and co-design engagement
+              with your team.
             </p>
             <Button asChild size="lg" className={MEMBERSHIP_PRIMARY_BTN}>
-              <Link href={registerHref}>Create your platform account</Link>
+              <Link href={registerHref}>Create platform account</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="w-full border-[#edeff2] bg-white">
-              <a
-                href={ORGANISATIONAL_DISCOVERY_CALL_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href={ORGANISATIONAL_DISCOVERY_CALL_URL} target="_blank" rel="noopener noreferrer">
                 <Calendar className="mr-2 h-4 w-4" />
-                Book a partnership call
+                Book partnership call
               </a>
             </Button>
-            <p className="text-center text-xs text-[#1c395c]/70">
-              Use the same email ({form.email}) when you register.
-            </p>
             <Button variant="ghost" asChild className="w-full text-[#1c395c]">
               <Link href="/">Back to home</Link>
             </Button>
@@ -228,12 +271,12 @@ export default function OrganisationalMembershipPage() {
       <div>
         <p className="section-label text-left">{ORGANISATIONAL_PLAN_NAME} membership</p>
         <h1 className="text-2xl font-semibold tracking-tight text-[#0a1f38]">
-          Apply as an organisation
+          Partnership inquiry
         </h1>
         <p className="mt-2 text-sm text-[#1c395c]/80">
-          Custom partnership · Two quick steps · Response {ORGANISATIONAL_RESPONSE_SLA}
+          Bespoke institutional engagement · 3 steps · Response {ORGANISATIONAL_RESPONSE_SLA}
         </p>
-        <div className="mt-4 flex gap-2" aria-label={`Step ${step} of 2`}>
+        <div className="mt-4 flex gap-2" aria-label={`Step ${step} of 3`}>
           {STEPS.map((label, i) => (
             <div key={label} className="flex-1">
               <div
@@ -244,7 +287,7 @@ export default function OrganisationalMembershipPage() {
               />
               <p
                 className={cn(
-                  "mt-1.5 text-[10px] font-medium uppercase tracking-wider",
+                  "mt-1.5 text-[10px] font-medium uppercase tracking-wider leading-tight",
                   i + 1 === step ? "text-[#0a1f38]" : "text-[#1c395c]/60"
                 )}
               >
@@ -258,21 +301,254 @@ export default function OrganisationalMembershipPage() {
       <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
         <CardHeader className="space-y-3 pb-2 sm:hidden">
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#812926]/10">
-            <Building2 className="h-5 w-5 text-[#812926]" aria-hidden />
+            {step === 2 ? (
+              <Handshake className="h-5 w-5 text-[#812926]" aria-hidden />
+            ) : step === 3 ? (
+              <Users className="h-5 w-5 text-[#812926]" aria-hidden />
+            ) : (
+              <Building2 className="h-5 w-5 text-[#812926]" aria-hidden />
+            )}
           </div>
           <CardDescription className="text-base leading-relaxed text-[#1c395c]/80">
-            Tell us about your institution and how you&apos;d like to partner with Impact Hub Nairobi.
+            {step === 1
+              ? "Start with your institution — we scope partnerships around your mandate and reach."
+              : step === 2
+                ? "Design the collaboration — engagement model, audiences, and timeline."
+                : "Who should our partnerships team speak with?"}
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-6 sm:pt-6">
+        <CardContent className="pt-6">
           {step === 1 ? (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Primary contact and a snapshot of your organisation.
+                Tell us about the institution — not an individual venture profile.
               </p>
+
+              <div className="space-y-2">
+                <Label htmlFor="organizationName">Organisation name</Label>
+                <Input
+                  id="organizationName"
+                  required
+                  value={form.organizationName}
+                  onChange={(e) => update("organizationName", e.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="organizationType">Organisation type</Label>
+                  <Select
+                    value={form.organizationType}
+                    onValueChange={(v) => update("organizationType", v)}
+                  >
+                    <SelectTrigger id="organizationType">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ORGANISATION_TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website" className="text-muted-foreground">
+                    Website <span className="font-normal">(optional)</span>
+                  </Label>
+                  <Input
+                    id="website"
+                    placeholder="organisation.org"
+                    value={form.websiteUrl}
+                    onChange={(e) => update("websiteUrl", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="organizationMandate">Mission, mandate &amp; programmes</Label>
+                <Textarea
+                  id="organizationMandate"
+                  required
+                  rows={4}
+                  maxLength={MANDATE_MAX}
+                  placeholder="What does your institution stand for? Who do you serve? Which programmes or initiatives are relevant to a Nairobi impact partnership?"
+                  value={form.organizationMandate}
+                  onChange={(e) =>
+                    update("organizationMandate", e.target.value.slice(0, MANDATE_MAX))
+                  }
+                  className="resize-none"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="geographicScope">Geographic scope</Label>
+                  <Select
+                    value={form.geographicScope}
+                    onValueChange={(v) => update("geographicScope", v)}
+                  >
+                    <SelectTrigger id="geographicScope">
+                      <SelectValue placeholder="Where you operate" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ORGANISATIONAL_GEOGRAPHIC_SCOPE.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="staffScale">Team / programme scale</Label>
+                  <Select value={form.staffScale} onValueChange={(v) => update("staffScale", v)}>
+                    <SelectTrigger id="staffScale">
+                      <SelectValue placeholder="Approximate size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ORGANISATION_TEAM_SIZES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Primary focus sectors <span className="font-normal text-muted-foreground">(up to 3)</span></Label>
+                <div className="flex flex-wrap gap-2">
+                  {IMPACT_SECTORS.map((sector) => (
+                    <ChipToggle
+                      key={sector}
+                      label={sector}
+                      selected={form.focusSectors.includes(sector)}
+                      onClick={() => toggleInList("focusSectors", sector)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <Button type="button" className={MEMBERSHIP_PRIMARY_BTN} size="lg" onClick={handleContinue}>
+                Continue
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          ) : step === 2 ? (
+            <div className="space-y-5">
+              <p className="text-sm text-muted-foreground">
+                How should we work together? This is partnership scoping — not a workspace membership
+                application.
+              </p>
+
+              <div className="space-y-2">
+                <Label>Preferred engagement model</Label>
+                <div className="flex flex-wrap gap-2">
+                  {ORGANISATIONAL_ENGAGEMENT_MODELS.map((model) => (
+                    <ChipToggle
+                      key={model}
+                      label={model}
+                      selected={form.engagementModels.includes(model)}
+                      onClick={() => toggleInList("engagementModels", model)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Who should this partnership reach?</Label>
+                <div className="flex flex-wrap gap-2">
+                  {ORGANISATIONAL_AUDIENCE_REACH.map((audience) => (
+                    <ChipToggle
+                      key={audience}
+                      label={audience}
+                      selected={form.audienceReach.includes(audience)}
+                      onClick={() => toggleInList("audienceReach", audience)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="engagementTimeline">Partnership timeline</Label>
+                  <Select
+                    value={form.engagementTimeline}
+                    onValueChange={(v) => update("engagementTimeline", v)}
+                  >
+                    <SelectTrigger id="engagementTimeline">
+                      <SelectValue placeholder="When to engage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ORGANISATIONAL_ENGAGEMENT_TIMELINE.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="budgetBand" className="text-muted-foreground">
+                    Budget indication <span className="font-normal">(optional)</span>
+                  </Label>
+                  <Select
+                    value={form.budgetBand || "__none__"}
+                    onValueChange={(v) => update("budgetBand", v === "__none__" ? "" : v)}
+                  >
+                    <SelectTrigger id="budgetBand">
+                      <SelectValue placeholder="Optional" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Prefer not to say</SelectItem>
+                      {ORGANISATIONAL_BUDGET_BANDS.map((b) => (
+                        <SelectItem key={b} value={b}>
+                          {b}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="partnershipObjectives">What does success look like?</Label>
+                <Textarea
+                  id="partnershipObjectives"
+                  required
+                  rows={3}
+                  maxLength={OBJECTIVES_MAX}
+                  placeholder="e.g. co-deliver a youth innovation program, convene 200 ecosystem actors annually, connect portfolio ventures to grant funding…"
+                  value={form.partnershipObjectives}
+                  onChange={(e) =>
+                    update("partnershipObjectives", e.target.value.slice(0, OBJECTIVES_MAX))
+                  }
+                  className="resize-none"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setStep(1)}>
+                  Back
+                </Button>
+                <Button type="button" className={`flex-1 ${MEMBERSHIP_PRIMARY_BTN}`} size="lg" onClick={handleContinue}>
+                  Continue
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Primary contact for partnership conversations and platform access.
+              </p>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="fullName">Full name</Label>
+                  <Label htmlFor="fullName">Contact name</Label>
                   <Input
                     id="fullName"
                     required
@@ -280,6 +556,21 @@ export default function OrganisationalMembershipPage() {
                     onChange={(e) => update("fullName", e.target.value)}
                     autoComplete="name"
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactRole">Your role</Label>
+                  <Select value={form.contactRole} onValueChange={(v) => update("contactRole", v)}>
+                    <SelectTrigger id="contactRole">
+                      <SelectValue placeholder="Institutional role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ORGANISATIONAL_CONTACT_ROLES.map((r) => (
+                        <SelectItem key={r} value={r}>
+                          {r}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Work email</Label>
@@ -302,7 +593,7 @@ export default function OrganisationalMembershipPage() {
                     onChange={(e) => update("phone", e.target.value)}
                   />
                 </div>
-                <div className="space-y-2 sm:col-span-2">
+                <div className="space-y-2">
                   <Label htmlFor="location">City</Label>
                   <Input
                     id="location"
@@ -310,189 +601,6 @@ export default function OrganisationalMembershipPage() {
                     onChange={(e) => update("location", e.target.value)}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="organizationName">Organisation name</Label>
-                <Input
-                  id="organizationName"
-                  required
-                  value={form.organizationName}
-                  onChange={(e) => update("organizationName", e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="organizationType">Organisation type</Label>
-                <Select
-                  value={form.organizationType}
-                  onValueChange={(v) => update("organizationType", v)}
-                >
-                  <SelectTrigger id="organizationType">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ORGANISATION_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="organizationDescription">What does your organisation do?</Label>
-                <Textarea
-                  id="organizationDescription"
-                  required
-                  rows={3}
-                  maxLength={DESCRIPTION_MAX}
-                  placeholder="Mission, programs, and who you serve…"
-                  value={form.organizationDescription}
-                  onChange={(e) =>
-                    update("organizationDescription", e.target.value.slice(0, DESCRIPTION_MAX))
-                  }
-                  className="resize-none"
-                />
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="role">Your role</Label>
-                  <Select value={form.role} onValueChange={(v) => update("role", v)}>
-                    <SelectTrigger id="role">
-                      <SelectValue placeholder="Role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRIMARY_ROLES.map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sector">Sector / focus</Label>
-                  <Select value={form.sector} onValueChange={(v) => update("sector", v)}>
-                    <SelectTrigger id="sector">
-                      <SelectValue placeholder="Sector" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {IMPACT_SECTORS.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="teamSize">Team size</Label>
-                  <Select value={form.teamSize} onValueChange={(v) => update("teamSize", v)}>
-                    <SelectTrigger id="teamSize">
-                      <SelectValue placeholder="Size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ORGANISATION_TEAM_SIZES.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="linkedin" className="flex items-center gap-1.5 text-muted-foreground">
-                    <Linkedin className="h-3.5 w-3.5 text-[#0A66C2]" aria-hidden />
-                    LinkedIn <span className="font-normal">(optional)</span>
-                  </Label>
-                  <Input
-                    id="linkedin"
-                    placeholder="linkedin.com/in/…"
-                    value={form.linkedinUrl}
-                    onChange={(e) => update("linkedinUrl", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website" className="text-muted-foreground">
-                    Website <span className="font-normal">(optional)</span>
-                  </Label>
-                  <Input
-                    id="website"
-                    placeholder="yourorganisation.org"
-                    value={form.websiteUrl}
-                    onChange={(e) => update("websiteUrl", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <Button type="button" className={MEMBERSHIP_PRIMARY_BTN} size="lg" onClick={handleContinue}>
-                Continue
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <p className="text-sm text-muted-foreground">
-                Help us understand how you&apos;d like to partner with Impact Hub Nairobi.
-              </p>
-
-              <div className="space-y-2">
-                <Label>We&apos;re interested in…</Label>
-                <div className="flex flex-wrap gap-2">
-                  {ORGANISATIONAL_PARTNERSHIP_INTERESTS.map((interest) => (
-                    <button
-                      key={interest}
-                      type="button"
-                      onClick={() => toggleInterest(interest)}
-                      className={cn(
-                        "rounded-full border px-3 py-1.5 text-left text-xs transition-colors sm:text-sm",
-                        form.partnershipInterests.includes(interest)
-                          ? "border-primary bg-primary/10 font-medium text-foreground"
-                          : "border-border text-muted-foreground hover:border-foreground/30"
-                      )}
-                    >
-                      {interest}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="targetStart">When would you like to start?</Label>
-                <Select value={form.targetStart} onValueChange={(v) => update("targetStart", v)}>
-                  <SelectTrigger id="targetStart">
-                    <SelectValue placeholder="Select timing" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TARGET_START.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="partnershipGoals">What do you hope to achieve through this partnership?</Label>
-                <Textarea
-                  id="partnershipGoals"
-                  required
-                  rows={3}
-                  maxLength={GOALS_MAX}
-                  placeholder="e.g. co-design a youth program, host ecosystem events, connect portfolio ventures…"
-                  value={form.partnershipGoals}
-                  onChange={(e) =>
-                    update("partnershipGoals", e.target.value.slice(0, GOALS_MAX))
-                  }
-                  className="resize-none"
-                />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -531,7 +639,7 @@ export default function OrganisationalMembershipPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="message" className="text-muted-foreground">
-                  Anything else? <span className="font-normal">(optional)</span>
+                  Anything else for the partnerships team? <span className="font-normal">(optional)</span>
                 </Label>
                 <Input
                   id="message"
@@ -553,18 +661,12 @@ export default function OrganisationalMembershipPage() {
               </label>
 
               <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="shrink-0"
-                  onClick={() => setStep(1)}
-                  disabled={submitting}
-                >
+                <Button type="button" variant="outline" onClick={() => setStep(2)} disabled={submitting}>
                   Back
                 </Button>
                 <Button type="submit" className={`flex-1 ${MEMBERSHIP_PRIMARY_BTN}`} size="lg" disabled={submitting}>
                   {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Submit application
+                  Submit partnership inquiry
                 </Button>
               </div>
             </form>
@@ -573,9 +675,9 @@ export default function OrganisationalMembershipPage() {
       </Card>
 
       <p className="text-center text-xs text-[#1c395c]/70">
-        Already applied?{" "}
-        <Link href={ORGANISATIONAL_REGISTER_PATH} className={MEMBERSHIP_LINK}>
-          Create your account
+        Looking for venture membership?{" "}
+        <Link href="/membership/star-connect" className={MEMBERSHIP_LINK}>
+          Apply for Star Connect
         </Link>
         {" · "}
         <a href={`mailto:${HUB_PUBLIC_EMAIL}`} className={MEMBERSHIP_LINK}>

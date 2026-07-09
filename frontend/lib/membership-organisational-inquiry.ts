@@ -30,6 +30,7 @@ export function queueOrganisationalInquiryEmails(
         sendOrganisationalInquiryConfirmationEmail({
           fullName: payload.fullName,
           email: payload.email,
+          organizationName: payload.organizationName,
         }),
       context: "organisational-inquiry-confirmation",
     },
@@ -46,6 +47,7 @@ export async function sendOrganisationalInquiryEmailsNow(
   const confirmation = await sendOrganisationalInquiryConfirmationEmail({
     fullName: payload.fullName,
     email: payload.email,
+    organizationName: payload.organizationName,
   })
   return { staff, confirmation }
 }

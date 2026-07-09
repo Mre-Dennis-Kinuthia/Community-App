@@ -1,10 +1,10 @@
 /**
  * Impact Hub PWA service worker.
  * - Precaches offline shell + icons
- * - Network-first for navigations with offline fallback
+ * - Network-first for full page navigations; offline shell only on network failure
  * - Stale-while-revalidate for static assets
  */
-const CACHE_VERSION = "ihn-pwa-v1"
+const CACHE_VERSION = "ihn-pwa-v2"
 const PRECACHE = [
   "/offline.html",
   "/icons/icon-192.png",
@@ -39,8 +39,8 @@ self.addEventListener("activate", (event) => {
   )
 })
 
-function isNavigation(request) {
-  return request.mode === "navigate" || request.headers.get("accept")?.includes("text/html")
+function isDocumentNavigation(request) {
+  return request.mode === "navigate"
 }
 
 function isStaticAsset(url) {
@@ -55,6 +55,10 @@ function isApiOrAuth(url) {
   return url.pathname.startsWith("/api/") || url.pathname.startsWith("/auth/")
 }
 
+function isNetworkFailure(error) {
+  return error instanceof TypeError
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event
   if (request.method !== "GET") return
@@ -63,14 +67,14 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return
   if (isApiOrAuth(url)) return
 
-  if (isNavigation(request)) {
+  if (isDocumentNavigation(request)) {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          if (response.ok) return response
-          throw new Error("Navigation failed")
-        })
-        .catch(async () => {
+        .then((response) => response)
+        .catch(async (error) => {
+          if (!isNetworkFailure(error)) {
+            throw error
+          }
           const cached = await caches.match("/offline.html")
           return cached ?? Response.error()
         })

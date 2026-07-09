@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, Calendar, MapPin, Users } from "lucide-react"
+import { ArrowRight, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { cn } from "@/lib/utils"
@@ -34,15 +34,6 @@ function SectionHeader({
       ) : null}
     </div>
   )
-}
-
-function formatEventDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-KE", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    timeZone: "Africa/Nairobi",
-  })
 }
 
 function MemberAvatar({
@@ -225,37 +216,6 @@ export function LandingCommunitySection() {
             </figure>
           ))}
         </div>
-
-        {preview?.upcomingEvents.length ? (
-          <div className="mx-auto mb-12 max-w-3xl">
-            <div className="mb-4 flex items-center justify-center gap-2 text-[#1c395c]">
-              <Calendar className="h-4 w-4 text-[#812926]" aria-hidden />
-              <p className="text-sm font-medium">Happening soon in the community</p>
-            </div>
-            <ul className="space-y-2">
-              {preview.upcomingEvents.map((event) => (
-                <li key={event.id}>
-                  <Link
-                    href={`/events/${event.id}`}
-                    className="landing-community-event flex items-center justify-between gap-3 rounded-md px-4 py-3 text-sm transition-colors hover:bg-white"
-                  >
-                    <span className="font-medium text-[#0a1f38]">{event.title}</span>
-                    <span className="shrink-0 text-xs text-[#1c395c]/70">
-                      {formatEventDate(event.startDate)}
-                      {event.location ? (
-                        <>
-                          {" "}
-                          · <MapPin className="mr-0.5 inline h-3 w-3" aria-hidden />
-                          {event.location}
-                        </>
-                      ) : null}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
 
         <div className="mx-auto flex max-w-xl flex-col items-center gap-3 text-center">
           <p className="text-sm text-[#1c395c]/80">

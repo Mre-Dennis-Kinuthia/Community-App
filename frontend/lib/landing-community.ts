@@ -72,11 +72,4 @@ export interface LandingCommunityPreview {
     industry: string | null
     organization: string | null
   }>
-  upcomingEvents: Array<{
-    id: string
-    title: string
-    startDate: string
-    location: string | null
-    eventType: string
-  }>
 }

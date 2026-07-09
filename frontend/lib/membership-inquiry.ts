@@ -25,16 +25,69 @@ export const ORGANISATION_TEAM_SIZES = [
   "200+ people",
 ] as const
 
-export const ORGANISATIONAL_PARTNERSHIP_INTERESTS = [
-  "Program & event co-creation",
-  "Ecosystem & network access",
-  "Workspace for teams",
-  "Acceleration & venture support",
-  "Research & knowledge sharing",
-  "Grant & investment introductions",
-  "Corporate innovation & CSR",
-  "Youth & talent programs",
+/** Institutional contact roles — distinct from founder/venture PRIMARY_ROLES */
+export const ORGANISATIONAL_CONTACT_ROLES = [
+  "Partnerships / Business development",
+  "Program / Project director",
+  "CSR / Sustainability lead",
+  "Executive / Leadership",
+  "Research / Academic lead",
+  "Communications / Community",
+  "Government / Policy liaison",
+  "Other",
 ] as const
+
+export const ORGANISATIONAL_GEOGRAPHIC_SCOPE = [
+  "Nairobi & local ecosystem",
+  "Kenya national",
+  "East Africa regional",
+  "Africa-wide",
+  "Global / multi-country",
+] as const
+
+/** How the institution wants to engage with Impact Hub Nairobi */
+export const ORGANISATIONAL_ENGAGEMENT_MODELS = [
+  "Co-design & co-deliver programs",
+  "Sponsor or fund initiatives",
+  "Host events & activations",
+  "Staff / team workspace access",
+  "Venture pipeline & deal flow",
+  "Research & knowledge partnership",
+  "Ecosystem convening",
+  "Visibility & brand alignment",
+] as const
+
+/** Communities the partner wants to reach through IHN */
+export const ORGANISATIONAL_AUDIENCE_REACH = [
+  "Early-stage entrepreneurs",
+  "Growth-stage ventures",
+  "Investors & funders",
+  "Youth & students",
+  "Researchers & academics",
+  "Policy & public sector",
+  "Corporate innovators",
+  "NGOs & civil society",
+] as const
+
+export const ORGANISATIONAL_ENGAGEMENT_TIMELINE = [
+  "Exploratory — initial conversation",
+  "Within 1–3 months",
+  "Next quarter (3–6 months)",
+  "6–12 month program cycle",
+  "Multi-year / ongoing partnership",
+] as const
+
+export const ORGANISATIONAL_BUDGET_BANDS = [
+  "Exploring — budget not confirmed",
+  "Under KES 500,000",
+  "KES 500,000 – 2 million",
+  "KES 2 – 10 million",
+  "KES 10 million+",
+  "Prefer to discuss on call",
+] as const
+
+/** @deprecated Use ORGANISATIONAL_ENGAGEMENT_MODELS — kept for reference only */
+export const ORGANISATIONAL_PARTNERSHIP_INTERESTS = ORGANISATIONAL_ENGAGEMENT_MODELS
 
 /** Star Connect membership application — shared constants */
 export const STAR_CONNECT_PLAN_NAME = "Star Connect"
