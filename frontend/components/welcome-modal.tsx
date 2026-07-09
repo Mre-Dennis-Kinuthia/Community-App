@@ -23,7 +23,7 @@ interface WelcomeModalProps {
 const QUICK_LINKS = [
   {
     icon: Calendar,
-    title: "Book workspace at Ikigai",
+    title: "Book workspace",
     description: "Reserve a desk, meeting room, or collaboration space in Westlands.",
     href: "/booking",
   },

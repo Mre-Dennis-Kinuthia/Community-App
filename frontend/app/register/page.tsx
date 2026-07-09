@@ -233,7 +233,7 @@ function RegisterForm() {
       panelDescription={
         organisationalIntent
           ? "Partner with Impact Hub Nairobi to co-design programs, events, and ecosystem initiatives that drive inclusive innovation."
-          : "Inclusive and sustainable innovation at scale — programs, co-working at Ikigai, events, and a local-to-global impact community."
+          : "Inclusive and sustainable innovation at scale — programs, workspace, events, and a local-to-global impact community."
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">

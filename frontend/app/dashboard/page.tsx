@@ -262,7 +262,7 @@ export default function DashboardPage() {
                   <div className="rounded-md border border-border p-3 transition-colors hover:bg-muted/50 md:p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-primary" />
-                      <span className="font-medium">Book workspace at Ikigai</span>
+                      <span className="font-medium">Book workspace</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Reserve a desk or meeting room in Westlands

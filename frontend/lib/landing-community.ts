@@ -10,7 +10,7 @@ export const COMMUNITY_VOICES = [
   },
   {
     quote:
-      "It's more than a desk. You're surrounded by people building for impact — the energy at Ikigai pushes you to think bigger.",
+      "It's more than a desk. You're surrounded by people building for impact — the energy in our workspace pushes you to think bigger.",
     attribution: "Star Connect member",
     context: "Growth-stage venture · Agri-tech",
     accent: "#41bed0",
@@ -40,7 +40,7 @@ export const COMMUNITY_MOMENTS = [
   },
   {
     image: LANDING_IMAGES.pillars.coworking,
-    caption: "Co-working at Ikigai",
+    caption: "Co-working & collaboration",
   },
   {
     image: LANDING_IMAGES.pillars.programs,

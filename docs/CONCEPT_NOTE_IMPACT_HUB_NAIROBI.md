@@ -28,7 +28,7 @@ Impact Hub Nairobi is part of the global Impact Hub network — more than 100 hu
 - **Programs and acceleration** for ventures moving from idea to scale  
 - **Business development advisory** in strategy, fundraising, and investor readiness  
 - **Events and community** that connect founders, creatives, investors, and policy shapers  
-- **Coworking and workspace access**, delivered in partnership with Ikigai (Westlands, Nairobi)  
+- **Coworking and workspace access** at Impact Hub Nairobi (Westlands, Nairobi)  
 - **Consulting, research, and ecosystem development** for institutions and partners
 
 The hub’s mission remains clear: **build a just and sustainable society** by helping ventures scale measurable social impact — advancing people, planet, and profit through locally rooted solutions.
@@ -165,7 +165,7 @@ Each pathway has a clear journey on the platform — from registration to applic
 
 **Learn & participate:** Browse upcoming and past events. Register online (free or paid). Receive tickets and reminders. Access workshops, networking sessions, and hub programming in one calendar.
 
-**Work:** Book a hot desk or meeting room at Ikigai-partnered workspace locations. See real-time availability, pricing, and membership benefits. Pay via M-Pesa or card. Manage upcoming and past bookings.
+**Work:** Book a hot desk or meeting room at Impact Hub Nairobi workspace locations. See real-time availability, pricing, and membership benefits. Pay via M-Pesa or card. Manage upcoming and past bookings.
 
 **Grow:** Explore curated opportunities — grants, fellowships, accelerators, and roles — scouted for Impact Hub members. Download resources from the hub library. Connect with ecosystem partners offering funding and support.
 

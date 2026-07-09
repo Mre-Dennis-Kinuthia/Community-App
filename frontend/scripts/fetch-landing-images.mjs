@@ -13,7 +13,7 @@ const landingDir = path.join(__dirname, "..", "public", "landing")
 const REMOTE = {
   hero: "https://nairobi.impacthub.net/wp-content/uploads/2025/08/28-scaled.jpg",
   "pillar-programs": "https://nairobi.impacthub.net/wp-content/uploads/2025/07/IHN-support-1024x683.jpg",
-  "pillar-coworking": "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Ikigai-Riverside-4-1024x683.jpg",
+  "pillar-coworking": "https://nairobi.impacthub.net/wp-content/uploads/2025/07/IHN-support-1024x683.jpg",
   "pillar-innovation":
     "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Global-gathering-group-photo-1024x683.jpg",
   "pillar-partnerships": "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Partnership-1024x683.jpg",
@@ -42,7 +42,7 @@ async function main() {
 
   await writeFile(
     path.join(landingDir, "auth-panel.jpg"),
-    await fetchBuffer(REMOTE["pillar-coworking"])
+    await fetchBuffer(REMOTE.hero)
   )
 
   console.log("Landing images written to public/landing/")

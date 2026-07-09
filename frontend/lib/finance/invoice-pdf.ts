@@ -18,7 +18,7 @@ export const INVOICE_BRAND = {
 const COMPANY = {
   name: "Impact Hub Nairobi",
   tagline: "Innovation · Connection · Impact",
-  address: "Ikigai Nairobi, Westlands, Nairobi, Kenya",
+  address: "Impact Hub Nairobi, Westlands, Nairobi, Kenya",
   website: "nairobi.impacthub.net",
   email: HUB_CONTACT_EMAIL,
 } as const

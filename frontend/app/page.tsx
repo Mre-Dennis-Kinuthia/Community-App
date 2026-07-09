@@ -22,7 +22,8 @@ import {
   X,
 } from "lucide-react"
 import { Logo } from "@/components/logo"
-import { LandingPartnerLogo, type LandingPartner } from "@/components/landing-partner-logo"
+import { LandingPartnerLogo } from "@/components/landing-partner-logo"
+import { LANDING_PARTNERS } from "@/lib/landing-partners"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import { cn } from "@/lib/utils"
 import { LANDING_IMAGES } from "@/lib/landing-assets"
@@ -60,7 +61,7 @@ const PILLARS = [
   {
     title: "Flexible, Inspiring Work Environment",
     description:
-      "Co-working with Ikigai: beautiful indoor and outdoor workspaces with coffee bars, meeting rooms, and wellness zones — from day passes to company-level plans.",
+      "Beautiful indoor and outdoor workspaces with coffee bars, meeting rooms, and wellness zones — from day passes to company-level plans.",
     image: LANDING_IMAGES.pillars.coworking,
     accent: "#f78a3c",
   },
@@ -137,16 +138,7 @@ const MEMBERSHIP_TIERS = [
   },
 ] as const
 
-const PARTNERS: LandingPartner[] = [
-  { name: "Digital Africa", logo: "/partners/digital-africa.svg", href: "https://digitalafrica.co" },
-  { name: "Ikigai", logo: "/partners/ikigai.svg", href: "https://ikigai.co.ke" },
-  { name: "Stichting DOEN", logo: "/partners/doen.svg", href: "https://www.doen.nl" },
-  { name: "ILRI", logo: "/partners/ilri.svg", href: "https://www.ilri.org" },
-  { name: "CGIAR", logo: "/partners/cgiar.svg", href: "https://www.cgiar.org" },
-  { name: "Amani Institute", logo: "/partners/amani-institute.svg", href: "https://www.amaninstitute.org" },
-  { name: "SNDBX Capital", logo: "/partners/sndbx-capital.svg", href: "https://sndbx.capital" },
-  { name: "Circular Innovation Hub", logo: "/partners/circular-innovation-hub.svg" },
-]
+const PARTNERS = LANDING_PARTNERS
 
 const FAQS = [
   {
@@ -808,7 +800,7 @@ export default function HomePage() {
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>Ikigai Nairobi, Westlands, Nairobi, Kenya</span>
+                  <span>Impact Hub Nairobi, Westlands, Nairobi, Kenya</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Globe className="h-4 w-4 mt-0.5 flex-shrink-0" />

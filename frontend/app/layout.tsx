@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s · Impact Hub Nairobi",
   },
   description:
-    "For impact startups and innovators. Impact Hub Nairobi's official member platform — book workspace at Ikigai, join programs and events, and connect with Kenya's impact community.",
+    "For impact startups and innovators. Impact Hub Nairobi's official member platform — book workspace, join programs and events, and connect with Kenya's impact community.",
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },

@@ -29,7 +29,8 @@
     "admin:create": "tsx scripts/create-admin.ts",
     "pwa:icons": "node scripts/generate-pwa-icons.mjs",
     "brand:assets": "node scripts/generate-brand-assets.mjs",
-    "landing:images": "node scripts/fetch-landing-images.mjs"
+    "landing:images": "node scripts/fetch-landing-images.mjs",
+    "partners:logos": "node scripts/fetch-partner-logos.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

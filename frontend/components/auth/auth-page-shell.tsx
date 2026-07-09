@@ -19,7 +19,7 @@ export function AuthPageShell({
   panelEyebrow = "Impact Hub Nairobi",
   panelTitle = "For Impact Startups & Innovators",
   panelDescription =
-    "Inclusive and sustainable innovation at scale — programs, co-working at Ikigai, events, and a local-to-global impact community.",
+    "Inclusive and sustainable innovation at scale — programs, workspace, events, and a local-to-global impact community.",
 }: AuthPageShellProps) {
   return (
     <div className="auth-page flex min-h-screen flex-col bg-[#faf9f6] lg:flex-row">

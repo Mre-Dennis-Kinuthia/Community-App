@@ -13,7 +13,7 @@ This platform helps members of Impact Hub Nairobi:
 - Part of the global Impact Hub network (100+ hubs worldwide)
 - Established in 2022
 - Focus on social innovation and entrepreneurship
-- Partnership with Ikigai for coworking spaces
+- Workspace booking at Impact Hub Nairobi locations in Westlands
 - Mission: Build a just and sustainable society
 
 ## Overview
