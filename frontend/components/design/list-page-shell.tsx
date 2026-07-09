@@ -71,7 +71,7 @@ export function ListPageShell({
   return (
     <div
       className={cn(
-        "mx-auto w-full space-y-4 overflow-x-hidden md:space-y-6",
+        "mx-auto w-full space-y-3 overflow-x-hidden md:space-y-6",
         maxWidth === "5xl" && "max-w-5xl",
         className
       )}
@@ -80,7 +80,7 @@ export function ListPageShell({
         <Breadcrumbs items={[{ label: breadcrumb }]} />
       </MobileBreadcrumbsHidden>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between md:gap-4">
         <MobilePageHeader title={title} description={description} className="flex-1" />
         {actions ? <div className="flex shrink-0 flex-wrap gap-2">{actions}</div> : null}
       </div>
@@ -94,7 +94,7 @@ export function ListPageShell({
       {toolbar}
 
       {mobileFilters ? (
-        <div className="space-y-3 md:hidden">
+        <div className="space-y-2 md:hidden">
           {mobileFilters}
           {showMobileMeta ? (
             <MobileFilterMeta
@@ -156,7 +156,7 @@ export function ListPageSearchField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
-        className="h-9 pl-8"
+        className="h-8 pl-8 text-sm md:h-9"
       />
     </div>
   )
@@ -201,7 +201,7 @@ export function ListPageBody({
 
 export function ListPageLoading({ message = "Loading…" }: { message?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+    <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground md:py-16">
       <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
       {message}
     </div>

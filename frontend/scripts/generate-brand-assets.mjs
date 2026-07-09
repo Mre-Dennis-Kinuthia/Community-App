@@ -44,25 +44,23 @@ function markVectorSvg(tile = 151) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${tile} ${tile}" role="img" aria-label="Impact Hub">
   <rect width="${tile}" height="${tile}" fill="${BRAND_RED}"/>
-  <text x="16" y="48" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" letter-spacing="0.02em">IMPACT</text>
-  <text x="16" y="112" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700" letter-spacing="-0.02em">HUB</text>
+  <text x="14" y="50" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="0.04em">IMPACT</text>
+  <text x="14" y="114" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="50" font-weight="700" letter-spacing="-0.02em">HUB</text>
 </svg>
 `
 }
 
 async function writePwaIcons(markPng) {
   await mkdir(iconsDir, { recursive: true })
-  const vectorMark = Buffer.from(markVectorSvg(512))
-  const mark512 = await sharp(vectorMark).resize(512, 512).png().toBuffer()
   const sizes = [
-    { name: "icon-192.png", size: 192, source: vectorMark },
-    { name: "icon-512.png", size: 512, source: vectorMark },
-    { name: "apple-touch-icon.png", size: 180, source: vectorMark },
+    { name: "icon-192.png", size: 192 },
+    { name: "icon-512.png", size: 512 },
+    { name: "apple-touch-icon.png", size: 180 },
   ]
-  for (const { name, size, source } of sizes) {
+  for (const { name, size } of sizes) {
     await writeFile(
       path.join(iconsDir, name),
-      await sharp(source).resize(size, size).png().toBuffer()
+      await sharp(markPng).resize(size, size, { kernel: sharp.kernel.lanczos3 }).png().toBuffer()
     )
   }
 
@@ -78,7 +76,7 @@ async function writePwaIcons(markPng) {
   })
     .composite([
       {
-        input: await sharp(vectorMark).resize(inner, inner).png().toBuffer(),
+        input: await sharp(markPng).resize(inner, inner, { kernel: sharp.kernel.lanczos3 }).png().toBuffer(),
         left: maskPad,
         top: maskPad,
       },
@@ -88,7 +86,7 @@ async function writePwaIcons(markPng) {
   await writeFile(path.join(iconsDir, "icon-maskable-512.png"), maskable)
   await writeFile(
     path.join(publicDir, "apple-touch-icon.png"),
-    await sharp(vectorMark).resize(180, 180).png().toBuffer()
+    await sharp(markPng).resize(180, 180, { kernel: sharp.kernel.lanczos3 }).png().toBuffer()
   )
   await writeFile(path.join(publicDir, "icon.svg"), markVectorSvg(151))
   await writeFile(path.join(root, "app", "icon.svg"), markVectorSvg(151))

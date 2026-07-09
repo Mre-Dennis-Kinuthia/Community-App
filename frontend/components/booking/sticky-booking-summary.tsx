@@ -47,7 +47,7 @@ export function StickyBookingSummary({
 
   return (
     <div
-      className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-[55] flex flex-col border-t border-border bg-background shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:hidden"
+      className="fixed bottom-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom))] left-0 right-0 z-[55] flex flex-col border-t border-border bg-background shadow-[0_-8px_30px_rgba(0,0,0,0.08)] lg:hidden"
       role="region"
       aria-label="Booking checkout"
     >

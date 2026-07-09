@@ -11,13 +11,9 @@ interface MobilePageHeaderProps {
 
 export function MobilePageHeader({ title, description, className }: MobilePageHeaderProps) {
   return (
-    <div className={cn("min-w-0 space-y-1", className)}>
-      <h1 className="text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">{title}</h1>
-      {description ? (
-        <p className="max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:text-base">
-          {description}
-        </p>
-      ) : null}
+    <div className={cn("min-w-0 space-y-0.5", className)}>
+      <h1 className="page-title">{title}</h1>
+      {description ? <p className="page-lead max-w-2xl">{description}</p> : null}
     </div>
   )
 }
@@ -35,17 +31,19 @@ interface MobileStatsStripProps {
 
 export function MobileStatsStrip({ items, loading }: MobileStatsStripProps) {
   return (
-    <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
+    <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
       {items.map((stat) => (
         <div
           key={stat.label}
-          className="flex min-w-[6.5rem] max-w-[9rem] shrink-0 flex-col rounded-xl border border-border/60 bg-muted/20 px-3 py-2.5"
+          className="flex min-w-[5.25rem] max-w-[7.5rem] shrink-0 flex-col rounded-lg border border-border/60 bg-muted/25 px-2.5 py-2"
         >
-          {stat.icon && <stat.icon className="mb-1 h-3.5 w-3.5 text-primary/70" />}
-          <span className="truncate text-lg font-semibold tabular-nums leading-none">
+          {stat.icon && <stat.icon className="mb-0.5 h-3 w-3 text-primary/70" aria-hidden />}
+          <span className="truncate text-base font-semibold tabular-nums leading-none">
             {loading ? "—" : stat.value}
           </span>
-          <span className="mt-1 text-[10px] text-muted-foreground">{stat.label}</span>
+          <span className="mt-0.5 truncate text-[10px] leading-tight text-muted-foreground">
+            {stat.label}
+          </span>
         </div>
       ))}
     </div>
@@ -70,7 +68,12 @@ export function MobileFilterMeta({
   className,
 }: MobileFilterMetaProps) {
   return (
-    <div className={cn("flex items-center justify-between text-xs text-muted-foreground md:hidden", className)}>
+    <div
+      className={cn(
+        "flex items-center justify-between text-[11px] text-muted-foreground md:hidden",
+        className
+      )}
+    >
       <span>
         {count} {countLabel}
         {filterCount > 0 && ` · ${filterCount} filter${filterCount !== 1 ? "s" : ""}`}

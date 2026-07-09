@@ -19,12 +19,12 @@ export function MobileSearchBar({
 }: MobileSearchBarProps) {
   return (
     <div className={cn("relative", className)}>
-      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-11 rounded-xl border-border/60 bg-muted/30 pl-10 pr-10 shadow-none focus-visible:ring-1"
+        className="h-9 rounded-lg border-border/60 bg-muted/30 pl-9 pr-9 text-sm shadow-none focus-visible:ring-1"
       />
       {value.length > 0 && (
         <button

@@ -37,7 +37,7 @@ export function DataListRow({
   showChevron = true,
 }: DataListRowProps) {
   const rowClass = cn(
-    "group flex min-w-0 items-center gap-3 border-b border-border px-4 py-3 text-sm transition-colors last:border-b-0",
+    "group flex min-w-0 items-center gap-2.5 border-b border-border px-3 py-2.5 text-[13px] transition-colors last:border-b-0 md:gap-3 md:px-4 md:py-3 md:text-sm",
     "hover:bg-muted/50",
     (href || onClick) && "cursor-pointer",
     className

@@ -2,27 +2,24 @@
 
 import Link from "next/link"
 import { ImpactHubMark } from "@/components/brand/impact-hub-mark"
-import {
-  BRAND_LOGO_PATH,
-  getBrandLogoDimensions,
-  getBrandMarkDimensions,
-} from "@/lib/brand"
+import { BRAND_LOGO_PATH, getBrandLogoDimensions } from "@/lib/brand"
 import { cn } from "@/lib/utils"
 
 interface LogoProps {
   href?: string
-  /** Full horizontal logo (default). Use `mark` for the square tile only. */
+  /**
+   * Full horizontal Impact Hub Nairobi logo (default).
+   * Use `mark` only for app-icon contexts (PWA install prompt, favicon slots).
+   */
   variant?: "default" | "compact" | "landing" | "mark"
-  /** Square mark on phone, full logo from `md` up */
-  responsive?: boolean
   className?: string
 }
 
 const heights = {
-  compact: 32,
+  compact: 30,
   default: 40,
   landing: 48,
-  mark: 36,
+  mark: 32,
 } as const
 
 function FullLogoImage({
@@ -48,22 +45,12 @@ function FullLogoImage({
   )
 }
 
-function MarkLogo({ height, className }: { height: number; className?: string }) {
-  const { width } = getBrandMarkDimensions(height)
-  return <ImpactHubMark size={width} className={className} />
-}
-
-export function Logo({ href, variant = "default", responsive = false, className }: LogoProps) {
+export function Logo({ href, variant = "default", className }: LogoProps) {
   const isMark = variant === "mark"
   const height = heights[isMark ? "mark" : variant]
 
-  const content = responsive ? (
-    <>
-      <MarkLogo height={heights.compact} className={cn("md:hidden", className)} />
-      <FullLogoImage height={heights.default} className={cn("hidden md:block", className)} />
-    </>
-  ) : isMark ? (
-    <MarkLogo height={height} className={className} />
+  const content = isMark ? (
+    <ImpactHubMark size={height} className={className} />
   ) : (
     <FullLogoImage height={height} className={className} />
   )

@@ -1,6 +1,5 @@
+import { BRAND_MARK_PATH } from "@/lib/brand"
 import { cn } from "@/lib/utils"
-
-const BRAND_RED = "#A6192E"
 
 type ImpactHubMarkProps = {
   size?: number
@@ -9,41 +8,21 @@ type ImpactHubMarkProps = {
   title?: string
 }
 
-/** Crisp vector square mark — scales cleanly on any screen density. */
+/**
+ * Square app-icon mark cropped from the official logo.
+ * Use only for favicon / PWA / install prompts — not in platform headers.
+ */
 export function ImpactHubMark({ size = 36, className, title = "Impact Hub" }: ImpactHubMarkProps) {
   return (
-    <svg
-      viewBox="0 0 151 151"
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={BRAND_MARK_PATH}
+      alt={title}
       width={size}
       height={size}
-      className={cn("block shrink-0", className)}
-      role="img"
-      aria-label={title}
-    >
-      <title>{title}</title>
-      <rect width="151" height="151" fill={BRAND_RED} />
-      <text
-        x="16"
-        y="48"
-        fill="#ffffff"
-        fontFamily="Arial, Helvetica, sans-serif"
-        fontSize="20"
-        fontWeight="400"
-        letterSpacing="0.02em"
-      >
-        IMPACT
-      </text>
-      <text
-        x="16"
-        y="112"
-        fill="#ffffff"
-        fontFamily="Arial, Helvetica, sans-serif"
-        fontSize="48"
-        fontWeight="700"
-        letterSpacing="-0.02em"
-      >
-        HUB
-      </text>
-    </svg>
+      className={cn("block shrink-0 object-contain", className)}
+      style={{ width: size, height: size, minWidth: size }}
+      decoding="async"
+    />
   )
 }

@@ -176,11 +176,11 @@ export default function DashboardPage() {
   }
 
   const dashboardFeedShell =
-    "flex min-h-[17.75rem] flex-col overflow-hidden rounded-md border border-border bg-card md:min-h-0"
+    "flex min-h-[14rem] flex-col overflow-hidden rounded-md border border-border bg-card md:min-h-0"
   const dashboardFeedLoading =
-    "flex flex-1 items-center justify-center py-8 text-sm text-muted-foreground"
+    "flex flex-1 items-center justify-center py-6 text-sm text-muted-foreground"
   const dashboardFeedEmpty =
-    "flex flex-1 flex-col items-center justify-center border-0 bg-transparent px-6 py-8 shadow-none"
+    "flex flex-1 flex-col items-center justify-center border-0 bg-transparent px-4 py-6 shadow-none md:px-6 md:py-8"
 
   return (
     <>
@@ -189,20 +189,20 @@ export default function DashboardPage() {
         userName={user?.name}
         onWelcomeComplete={() => setShowGettingStarted(shouldShowGettingStarted(true))}
       />
-      <div className="space-y-6 md:space-y-10">
+      <div className="space-y-4 md:space-y-10">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Dashboard" }]} />
         </MobileBreadcrumbsHidden>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{greeting}, {userName}</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-0.5">
+            <h1 className="page-title">{greeting}, {userName}</h1>
             <p className="hidden text-sm text-muted-foreground sm:block md:text-base">
               Welcome back to Impact Hub Nairobi. Continue building your impact.
             </p>
           </div>
-          <Button asChild className="shrink-0">
+          <Button asChild size="sm" className="h-9 shrink-0 text-sm md:h-10">
             <Link href="/booking">
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
               Book Workspace
             </Link>
           </Button>
@@ -219,7 +219,7 @@ export default function DashboardPage() {
 
         <DashboardAnnouncements />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <DashboardSpaceWidget />
           <DashboardVisitorsWidget />
           <DashboardDeliveriesWidget />
@@ -254,9 +254,9 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-3 md:gap-4">
                 <Link href="/booking" className="group">
-                  <div className="rounded-md border border-border p-4 transition-colors hover:bg-muted/50">
+                  <div className="rounded-md border border-border p-3 transition-colors hover:bg-muted/50 md:p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-primary" />
                       <span className="font-medium">Book Your First Workspace</span>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                   </div>
                 </Link>
                 <Link href="/community" className="group">
-                  <div className="rounded-md border border-border p-4 transition-colors hover:bg-muted/50">
+                  <div className="rounded-md border border-border p-3 transition-colors hover:bg-muted/50 md:p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <Users2 className="h-4 w-4 text-primary" />
                       <span className="font-medium">Explore the Community</span>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
                   </div>
                 </Link>
                 <Link href="/events" className="group">
-                  <div className="rounded-md border border-border p-4 transition-colors hover:bg-muted/50">
+                  <div className="rounded-md border border-border p-3 transition-colors hover:bg-muted/50 md:p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary" />
                       <span className="font-medium">Join an Event</span>
@@ -312,7 +312,7 @@ export default function DashboardPage() {
           </MetricCardGrid>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <h2 className="section-label">Upcoming bookings</h2>

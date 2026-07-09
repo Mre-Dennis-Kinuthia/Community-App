@@ -241,7 +241,7 @@ function OnboardingContent() {
     <div className="min-h-screen bg-muted/30 px-4 py-8 md:py-12">
       <div className="mx-auto max-w-lg space-y-6">
         <div className="flex justify-center">
-          <Logo href="/dashboard" variant="mark" />
+          <Logo href="/dashboard" variant="compact" />
         </div>
 
         <div className="text-center">

@@ -97,7 +97,7 @@ export function PwaInstallPrompt() {
   return (
     <div
       className="fixed inset-x-0 z-[60] px-4 md:hidden"
-      style={{ bottom: "calc(4.25rem + env(safe-area-inset-bottom))" }}
+      style={{ bottom: "calc(var(--mobile-nav-height) + env(safe-area-inset-bottom))" }}
       role="dialog"
       aria-labelledby="pwa-install-title"
       aria-describedby="pwa-install-desc"
