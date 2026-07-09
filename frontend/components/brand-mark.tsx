@@ -1,4 +1,4 @@
-import { BRAND_MARK_PATH, getBrandMarkDimensions } from "@/lib/brand"
+import { ImpactHubMark } from "@/components/brand/impact-hub-mark"
 import { cn } from "@/lib/utils"
 
 type BrandMarkProps = {
@@ -6,20 +6,11 @@ type BrandMarkProps = {
   className?: string
 }
 
-/** Square Impact Hub mark from the official logo (home-screen / favicon tile). */
+/** Decorative square mark (parent provides accessible name). */
 export function BrandMark({ size = 36, className }: BrandMarkProps) {
-  const { width, height } = getBrandMarkDimensions(size)
-
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={BRAND_MARK_PATH}
-      alt=""
-      width={width}
-      height={height}
-      aria-hidden
-      className={cn("shrink-0 object-contain", className)}
-      style={{ width, height, minWidth: width }}
-    />
+    <span aria-hidden className={cn("inline-flex shrink-0", className)}>
+      <ImpactHubMark size={size} title="Impact Hub" />
+    </span>
   )
 }

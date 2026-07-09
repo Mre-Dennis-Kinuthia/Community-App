@@ -25,7 +25,7 @@ export function MobileMoreSheet({ open, onOpenChange }: MobileMoreSheetProps) {
       <SheetContent side="bottom" className="max-h-[85vh] rounded-t-xl p-0 md:hidden">
         <SheetHeader className="border-b border-border px-4 py-4 text-left">
           <SheetTitle className="sr-only">More navigation</SheetTitle>
-          <Logo href="/dashboard" variant="compact" className="mt-0.5" />
+          <Logo href="/dashboard" variant="mark" className="mt-0.5" />
           <p className="text-sm text-muted-foreground">Programs, account, and more</p>
         </SheetHeader>
         <nav className="grid gap-1 overflow-y-auto p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
@@ -45,7 +45,7 @@ export function MobileMoreSheet({ open, onOpenChange }: MobileMoreSheetProps) {
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" aria-hidden />
-                <span>{item.title}</span>
+                <span className="min-w-0 truncate">{item.title}</span>
               </Link>
             )
           })}

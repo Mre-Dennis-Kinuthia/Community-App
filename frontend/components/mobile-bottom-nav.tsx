@@ -47,7 +47,9 @@ export function MobileBottomNav() {
                   className={cn("h-5 w-5", isActive ? "text-primary" : "text-muted-foreground")}
                   aria-hidden
                 />
-                <span>{item.title}</span>
+                <span className="w-full max-w-[4.5rem] truncate text-center text-[10px] font-medium leading-none whitespace-nowrap">
+                  {item.tabTitle ?? item.title}
+                </span>
               </Link>
             )
           })}
@@ -66,7 +68,9 @@ export function MobileBottomNav() {
               className={cn("h-5 w-5", moreActive ? "text-primary" : "text-muted-foreground")}
               aria-hidden
             />
-            <span>{MOBILE_MORE_TRIGGER.title}</span>
+            <span className="w-full max-w-[4.5rem] truncate text-center text-[10px] font-medium leading-none whitespace-nowrap">
+              {MOBILE_MORE_TRIGGER.title}
+            </span>
           </button>
         </div>
       </nav>

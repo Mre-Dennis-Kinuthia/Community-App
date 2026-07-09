@@ -109,7 +109,7 @@ export function PwaInstallPrompt() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center justify-between gap-2">
-              <Logo variant="compact" className="mt-0" />
+              <Logo variant="mark" className="mt-0" />
               <Button
                 type="button"
                 variant="ghost"

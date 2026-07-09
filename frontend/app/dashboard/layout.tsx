@@ -130,7 +130,7 @@ function DashboardLayoutContent({
       <header className="surface-header z-50 flex h-16 shrink-0 overflow-x-hidden border-b border-border">
         <div className="container flex h-full min-w-0 items-center justify-between gap-4 px-4 md:px-6">
           <div className="flex min-w-0 items-center gap-4 overflow-visible">
-            <Logo href="/dashboard" />
+            <Logo href="/dashboard" responsive />
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <div className="hidden md:block">

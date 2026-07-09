@@ -66,7 +66,7 @@ export function WelcomeModal({
     <Dialog open={open} onOpenChange={(next) => (!next ? handleClose() : setOpen(next))}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <Logo variant="compact" />
+          <Logo variant="mark" />
           <DialogTitle className="pt-2">
             {firstName ? `Welcome, ${firstName}` : "Welcome to Impact Hub Nairobi"}
           </DialogTitle>

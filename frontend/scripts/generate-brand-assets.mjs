@@ -16,7 +16,7 @@ const iconsDir = path.join(publicDir, "icons")
 const DEFAULT_SOURCE =
   "/home/nansi/.cursor/projects/home-nansi-Work/assets/c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_impact_hub_nairobi_logo-45ce02e4-a47a-43c1-9f69-2af60e7efdcd.png"
 
-const TARGET_WIDTH = 668
+const TARGET_WIDTH = 1000
 const BRAND_RED = "#A6192E"
 
 async function buildLogoPng(sourcePath) {
@@ -40,15 +40,6 @@ function logoSvg(viewBoxWidth, viewBoxHeight) {
 `
 }
 
-function markSvg(tile) {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${tile} ${tile}" role="img" aria-label="Impact Hub">
-  <image width="${tile}" height="${tile}" href="/brand/impact-hub-mark.png" />
-</svg>
-`
-}
-
-/** Lightweight vector mark for favicon / fallback (square tile only). */
 function markVectorSvg(tile = 151) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${tile} ${tile}" role="img" aria-label="Impact Hub">
@@ -61,13 +52,18 @@ function markVectorSvg(tile = 151) {
 
 async function writePwaIcons(markPng) {
   await mkdir(iconsDir, { recursive: true })
+  const vectorMark = Buffer.from(markVectorSvg(512))
+  const mark512 = await sharp(vectorMark).resize(512, 512).png().toBuffer()
   const sizes = [
-    { name: "icon-192.png", size: 192 },
-    { name: "icon-512.png", size: 512 },
-    { name: "apple-touch-icon.png", size: 180 },
+    { name: "icon-192.png", size: 192, source: vectorMark },
+    { name: "icon-512.png", size: 512, source: vectorMark },
+    { name: "apple-touch-icon.png", size: 180, source: vectorMark },
   ]
-  for (const { name, size } of sizes) {
-    await writeFile(path.join(iconsDir, name), await sharp(markPng).resize(size, size).png().toBuffer())
+  for (const { name, size, source } of sizes) {
+    await writeFile(
+      path.join(iconsDir, name),
+      await sharp(source).resize(size, size).png().toBuffer()
+    )
   }
 
   const maskPad = Math.round(512 * 0.1)
@@ -80,11 +76,20 @@ async function writePwaIcons(markPng) {
       background: BRAND_RED,
     },
   })
-    .composite([{ input: await sharp(markPng).resize(inner, inner).png().toBuffer(), left: maskPad, top: maskPad }])
+    .composite([
+      {
+        input: await sharp(vectorMark).resize(inner, inner).png().toBuffer(),
+        left: maskPad,
+        top: maskPad,
+      },
+    ])
     .png()
     .toBuffer()
   await writeFile(path.join(iconsDir, "icon-maskable-512.png"), maskable)
-  await writeFile(path.join(publicDir, "apple-touch-icon.png"), await sharp(markPng).resize(180, 180).png().toBuffer())
+  await writeFile(
+    path.join(publicDir, "apple-touch-icon.png"),
+    await sharp(vectorMark).resize(180, 180).png().toBuffer()
+  )
   await writeFile(path.join(publicDir, "icon.svg"), markVectorSvg(151))
   await writeFile(path.join(root, "app", "icon.svg"), markVectorSvg(151))
 }
@@ -123,7 +128,7 @@ async function main() {
   await writeFile(path.join(brandDir, "impact-hub-nairobi-logo.png"), logoPng)
   await writeFile(path.join(brandDir, "impact-hub-nairobi-logo.svg"), logoSvg(width, height))
   await writeFile(path.join(brandDir, "impact-hub-mark.png"), markPng)
-  await writeFile(path.join(brandDir, "impact-hub-mark.svg"), markSvg(tile))
+  await writeFile(path.join(brandDir, "impact-hub-mark.svg"), markVectorSvg(151))
 
   await writePwaIcons(markPng)
   await writeBrandMeta(width, height, tile)

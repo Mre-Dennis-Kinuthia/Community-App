@@ -39,6 +39,8 @@ export type MobileNavItem = {
   title: string
   href: string
   icon: LucideIcon
+  /** Extra-short label for the bottom tab bar (≤7 chars ideal) */
+  tabTitle?: string
 }
 
 export const NAV_GROUPS: NavGroupConfig[] = [
@@ -101,8 +103,27 @@ const MOBILE_MORE_HREFS = [
 const MOBILE_TITLE_OVERRIDES: Record<string, string> = {
   "/dashboard": "Home",
   "/booking": "Book",
+  "/community": "Community",
+  "/events": "Events",
   "/projects": "Projects",
-  "/dashboard/bookings": "My Bookings",
+  "/dashboard/bookings": "Bookings",
+  "/dashboard/projects": "My work",
+  "/dashboard/visitors": "Visitors",
+  "/dashboard/deliveries": "Packages",
+  "/dashboard/maintenance": "Repairs",
+  "/news": "News",
+  "/partners": "Partners",
+  "/opportunities": "Opportunities",
+  "/investments": "Dealflow",
+  "/profile": "Profile",
+}
+
+/** Ultra-short labels for the 5-column bottom tab bar */
+const MOBILE_TAB_TITLE_OVERRIDES: Record<string, string> = {
+  "/dashboard": "Home",
+  "/booking": "Book",
+  "/community": "Network",
+  "/events": "Events",
 }
 
 const NAV_ITEM_BY_HREF = new Map(
@@ -116,6 +137,7 @@ function toMobileNavItem(href: string): MobileNavItem | null {
     href: item.href,
     icon: item.icon,
     title: MOBILE_TITLE_OVERRIDES[href] ?? item.title,
+    tabTitle: MOBILE_TAB_TITLE_OVERRIDES[href],
   }
 }
 

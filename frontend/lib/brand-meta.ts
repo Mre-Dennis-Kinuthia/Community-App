@@ -5,11 +5,11 @@ export const BRAND_MARK_PATH = "/brand/impact-hub-mark.png"
 export const BRAND_MARK_SVG_PATH = "/brand/impact-hub-mark.svg"
 
 /** Full horizontal logo dimensions (source PNG). */
-export const BRAND_LOGO_WIDTH = 668
-export const BRAND_LOGO_HEIGHT = 283
+export const BRAND_LOGO_WIDTH = 1000
+export const BRAND_LOGO_HEIGHT = 424
 
 /** Square tile width in the full logo (left mark). */
-export const BRAND_LOGO_TILE_SIZE = 283
+export const BRAND_LOGO_TILE_SIZE = 424
 
-export const BRAND_LOGO_ASPECT_RATIO = 668 / 283
-export const BRAND_LOGO_TILE_RATIO = 283 / 668
+export const BRAND_LOGO_ASPECT_RATIO = 1000 / 424
+export const BRAND_LOGO_TILE_RATIO = 424 / 1000
