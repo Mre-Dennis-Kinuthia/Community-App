@@ -6,7 +6,10 @@ import {
 } from "@/lib/membership-tier"
 import { MEMBERSHIP_REGISTER_INTENT } from "@/lib/membership-register-intent"
 
-const ORGANISATIONAL_TICKET_CATEGORY = "organisational-registration"
+const ORGANISATIONAL_TICKET_CATEGORIES = [
+  "organisational-registration",
+  "organisational-inquiry",
+] as const
 
 function normalizeEmail(email: string): string {
   return email.toLowerCase().trim()
@@ -39,7 +42,7 @@ export async function detectMembershipTierFromEmail(
   const normalized = normalizeEmail(email)
 
   const orgTickets = await prisma.supportTicket.findMany({
-    where: { category: ORGANISATIONAL_TICKET_CATEGORY },
+    where: { category: { in: [...ORGANISATIONAL_TICKET_CATEGORIES] } },
     orderBy: { createdAt: "desc" },
     take: 40,
     select: { member: true, description: true },

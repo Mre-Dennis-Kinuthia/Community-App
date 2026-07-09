@@ -49,7 +49,11 @@ function RegisterForm() {
 
   useEffect(() => {
     if (organisationalIntent) markOrganisationalSignupPending()
-  }, [organisationalIntent])
+    const emailParam = searchParams.get("email")
+    if (emailParam && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailParam)) {
+      setFormData((prev) => ({ ...prev, email: emailParam.toLowerCase().trim() }))
+    }
+  }, [organisationalIntent, searchParams])
 
   const validateField = (
     field: "firstName" | "lastName" | "email" | "password" | "confirmPassword",
@@ -227,7 +231,7 @@ function RegisterForm() {
       title={organisationalIntent ? `${ORGANISATIONAL_PLAN_NAME} membership` : "Become a member"}
       subtitle={
         organisationalIntent
-          ? "Register on the platform. Our partnerships team will follow up after you complete your profile."
+          ? "Create your platform account after applying. Use the same email so we can link your partnership inquiry."
           : "Join Nairobi's impact community — free to start. Book workspace, join events, and connect with fellow innovators."
       }
       panelDescription={
@@ -385,7 +389,7 @@ function RegisterForm() {
         {organisationalIntent ? (
           <p className="text-center text-sm text-muted-foreground">
             <Link href="/membership/organisational" className="text-[#812926] hover:underline">
-              About organisational membership
+              Haven&apos;t applied yet? Start the partnership application
             </Link>
           </p>
         ) : null}

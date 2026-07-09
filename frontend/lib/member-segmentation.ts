@@ -103,11 +103,14 @@ export function validateOnboardingStep1(data: {
   sector: string
   role: string
   organization: string
+  requireOrganization?: boolean
 }): string | null {
   if (!data.memberType) return "Select how you identify in the community."
   if (!data.sector) return "Select your primary sector or focus area."
   if (!data.role) return "Select your primary role."
-  if (memberTypeRequiresOrganization(data.memberType) && !data.organization.trim()) {
+  const needsOrg =
+    data.requireOrganization || memberTypeRequiresOrganization(data.memberType)
+  if (needsOrg && !data.organization.trim()) {
     return "Enter your organization or institution."
   }
   return null

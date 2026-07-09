@@ -19,7 +19,7 @@ export function StatusDot({ label, variant = "neutral", className }: StatusDotPr
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 text-xs text-muted-foreground",
+        "inline-flex min-w-0 max-w-full items-center gap-1.5 text-xs text-muted-foreground sm:shrink-0",
         className
       )}
     >
@@ -27,7 +27,7 @@ export function StatusDot({ label, variant = "neutral", className }: StatusDotPr
         className={cn("h-1.5 w-1.5 shrink-0 rounded-full", statusColors[variant])}
         aria-hidden
       />
-      <span>{label}</span>
+      <span className="truncate">{label}</span>
     </span>
   )
 }

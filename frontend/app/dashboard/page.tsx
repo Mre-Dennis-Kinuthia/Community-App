@@ -176,7 +176,7 @@ export default function DashboardPage() {
   }
 
   const dashboardFeedShell =
-    "flex min-h-[14rem] flex-col overflow-hidden rounded-md border border-border bg-card md:min-h-0"
+    "flex min-h-[14rem] w-full min-w-0 max-w-full flex-col overflow-hidden rounded-md border border-border bg-card md:min-h-0"
   const dashboardFeedLoading =
     "flex flex-1 items-center justify-center py-6 text-sm text-muted-foreground"
   const dashboardFeedEmpty =
@@ -189,7 +189,7 @@ export default function DashboardPage() {
         userName={user?.name}
         onWelcomeComplete={() => setShowGettingStarted(shouldShowGettingStarted(true))}
       />
-      <div className="space-y-4 md:space-y-10">
+      <div className="min-w-0 space-y-4 md:space-y-10">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Dashboard" }]} />
         </MobileBreadcrumbsHidden>
@@ -321,10 +321,10 @@ export default function DashboardPage() {
           </MetricCardGrid>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="section-label">Upcoming bookings</h2>
+        <div className="grid min-w-0 gap-4 md:grid-cols-2 md:gap-6">
+          <div className="min-w-0 space-y-2">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <h2 className="section-label min-w-0 truncate">Upcoming bookings</h2>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/dashboard/bookings">View all</Link>
               </Button>
@@ -363,9 +363,9 @@ export default function DashboardPage() {
             )}
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="section-label">Community highlights</h2>
+          <div className="min-w-0 space-y-2">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <h2 className="section-label min-w-0 truncate">Community highlights</h2>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/events">View all</Link>
               </Button>
@@ -397,13 +397,22 @@ export default function DashboardPage() {
                     hour: "numeric",
                     minute: "2-digit",
                   })
+                  const compactDate = eventDate.toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })
                   return (
                     <DataListRow key={event.id} href={`/events/${event.id}`}>
                       <DataListPrimary
                         title={event.title}
                         subtitle={event.location || undefined}
                       />
-                      <DataListMeta>{formattedDate}</DataListMeta>
+                      <DataListMeta>
+                        <span className="sm:hidden">{compactDate}</span>
+                        <span className="hidden sm:inline">{formattedDate}</span>
+                      </DataListMeta>
                     </DataListRow>
                   )
                 })}

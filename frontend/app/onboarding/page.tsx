@@ -149,7 +149,7 @@ function OnboardingContent() {
   const displayName = session?.user?.name || "Member"
   const avatarSrc = getImageDisplayUrl(profileImage || session?.user?.image || undefined)
   const userInitials = getInitials(displayName, session?.user?.email)
-  const showOrganization = memberTypeRequiresOrganization(memberType)
+  const showOrganization = memberTypeRequiresOrganization(memberType) || organisationalIntent
 
   const handleNext = () => {
     setStepError(null)
@@ -159,6 +159,7 @@ function OnboardingContent() {
         sector,
         role,
         organization,
+        requireOrganization: organisationalIntent,
       })
       if (err) {
         setStepError(err)
@@ -210,7 +211,20 @@ function OnboardingContent() {
           err.error ? (details ? `${err.error}: ${details}` : err.error) : details || "Failed to save"
         )
       }
-      toast.success("You're all set", "Your profile helps us tailor programs and connections.")
+      if (organisationalIntent) {
+        fetch("/api/membership/organisational/profile-complete", {
+          method: "POST",
+          credentials: "include",
+        }).catch(() => {})
+      }
+      toast.success(
+        organisationalIntent
+          ? "Profile saved — partnerships team notified"
+          : "You're all set",
+        organisationalIntent
+          ? `Our team will follow up ${ORGANISATIONAL_RESPONSE_SLA} to scope your engagement.`
+          : "Your profile helps us tailor programs and connections."
+      )
       if (profileImage.trim()) {
         await updateSession({ user: { image: profileImage.trim() } })
       }
@@ -385,11 +399,16 @@ function OnboardingContent() {
                 {showOrganization ? (
                   <div className="space-y-2">
                     <Label htmlFor="organization">
-                      Organization / institution <span className="text-destructive">*</span>
+                      {organisationalIntent ? "Organisation / institution" : "Organization / institution"}{" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id="organization"
-                      placeholder="e.g. Acme Ventures, Ministry of X, University of Y"
+                      placeholder={
+                        organisationalIntent
+                          ? "e.g. Acme Foundation, Ministry of X, University of Y"
+                          : "e.g. Acme Ventures, Ministry of X, University of Y"
+                      }
                       value={organization}
                       onChange={(e) => setOrganization(e.target.value)}
                     />

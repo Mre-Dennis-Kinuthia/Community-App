@@ -1,10 +1,40 @@
-/** Organisational membership — register on platform (no application form) */
+/** Organisational membership — application then platform account */
 export const ORGANISATIONAL_PLAN_NAME = "Organisational"
 export const ORGANISATIONAL_MEMBERSHIP_PATH = "/membership/organisational"
 export const ORGANISATIONAL_REGISTER_PATH = "/register?intent=organisational"
 export const ORGANISATIONAL_RESPONSE_SLA = "within 2 business days"
 export const ORGANISATIONAL_DISCOVERY_CALL_URL =
   "https://calendar.app.google/9ZM6DNGjKgkTC88D7"
+
+export const ORGANISATION_TYPES = [
+  "NGO / Non-profit",
+  "Foundation / Philanthropy",
+  "Corporate / Private sector",
+  "Government / Public sector",
+  "University / Research institution",
+  "Multilateral / Development agency",
+  "Network / Association",
+  "Other",
+] as const
+
+export const ORGANISATION_TEAM_SIZES = [
+  "1–5 people",
+  "6–20 people",
+  "21–50 people",
+  "51–200 people",
+  "200+ people",
+] as const
+
+export const ORGANISATIONAL_PARTNERSHIP_INTERESTS = [
+  "Program & event co-creation",
+  "Ecosystem & network access",
+  "Workspace for teams",
+  "Acceleration & venture support",
+  "Research & knowledge sharing",
+  "Grant & investment introductions",
+  "Corporate innovation & CSR",
+  "Youth & talent programs",
+] as const
 
 /** Star Connect membership application — shared constants */
 export const STAR_CONNECT_PLAN_NAME = "Star Connect"

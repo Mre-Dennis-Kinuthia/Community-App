@@ -129,8 +129,8 @@ const MEMBERSHIP_TIERS = [
       "Strategic visibility across platforms",
       "Dedicated partnership manager",
     ],
-    cta: "Register on the platform",
-    helper: `Create your account · partnerships follow up ${ORGANISATIONAL_RESPONSE_SLA}`,
+    cta: "Apply for partnership",
+    helper: `2-step application · we respond ${ORGANISATIONAL_RESPONSE_SLA}`,
     href: ORGANISATIONAL_MEMBERSHIP_PATH,
     external: false,
     popular: false,
@@ -171,7 +171,7 @@ const FAQS = [
   {
     question: "How can my organization partner with Impact Hub Nairobi?",
     answer:
-      "Choose Organisational membership on this page and register on the platform — no lengthy application. Complete your profile with your institution details and our partnerships team will follow up to co-design programs, events, and bespoke engagement.",
+      "Choose Organisational membership and complete the 2-step partnership application. Create your platform account with the same email, finish your organisation profile, and our partnerships team will follow up to co-design programs, events, and bespoke engagement.",
   },
 ]
 
