@@ -245,16 +245,16 @@ function OnboardingContent() {
         </div>
 
         <div className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#812926]">
             Member onboarding
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0a1f38]">
             {firstName ? `Welcome, ${firstName}` : "Welcome to Impact Hub Nairobi"}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-[#1c395c]/80">
             {organisationalIntent
               ? `Complete your organisation profile for ${ORGANISATIONAL_PLAN_NAME} membership. Our partnerships team will follow up ${ORGANISATIONAL_RESPONSE_SLA}.`
-              : "A short setup so we can connect you with the right programs, people, and opportunities."}
+              : "A short setup so we can connect you with the right programs, people, and opportunities across Nairobi's impact ecosystem."}
           </p>
           <div
             className="mt-5 flex justify-center gap-2"

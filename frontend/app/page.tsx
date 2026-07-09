@@ -25,6 +25,9 @@ import { Logo } from "@/components/logo"
 import { LandingPartnerLogo, type LandingPartner } from "@/components/landing-partner-logo"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import { cn } from "@/lib/utils"
+import { LANDING_IMAGES } from "@/lib/landing-assets"
+import { HERO_AVATAR_COLORS, HERO_AVATAR_INITIALS } from "@/lib/landing-community"
+import { LandingCommunitySection } from "@/components/landing/landing-community-section"
 import {
   ORGANISATIONAL_MEMBERSHIP_PATH,
   ORGANISATIONAL_RESPONSE_SLA,
@@ -33,6 +36,7 @@ import {
 
 const NAV_LINKS = [
   { href: "#services", label: "What we offer" },
+  { href: "#community", label: "Community" },
   { href: "#membership", label: "Become a member" },
   { href: "#faq", label: "FAQ" },
   { href: "https://nairobi.impacthub.net/", label: "About IHN", external: true },
@@ -50,28 +54,28 @@ const PILLARS = [
     title: "Support for Socially-Driven Ventures and Innovations",
     description:
       "From idea-stage incubators and accelerators to tailored consulting — programs, events, and workshops that help entrepreneurs scale, operate efficiently, and accelerate social impact.",
-    image: "https://nairobi.impacthub.net/wp-content/uploads/2025/07/IHN-support-scaled.jpg",
+    image: LANDING_IMAGES.pillars.programs,
     accent: "#7ebb55",
   },
   {
     title: "Flexible, Inspiring Work Environment",
     description:
       "Co-working with Ikigai: beautiful indoor and outdoor workspaces with coffee bars, meeting rooms, and wellness zones — from day passes to company-level plans.",
-    image: "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Ikigai-Riverside-4-scaled.jpg",
+    image: LANDING_IMAGES.pillars.coworking,
     accent: "#f78a3c",
   },
   {
     title: "Driving Sustainable & Inclusive Innovation",
     description:
       "Inclusive and sustainable innovation at scale — supporting ventures in climate, circularity, agri-tech, gender equity, digital inclusion, and e-mobility.",
-    image: "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Global-gathering-group-photo.jpg",
+    image: LANDING_IMAGES.pillars.innovation,
     accent: "#41bed0",
   },
   {
     title: "Partnerships & Ecosystem Integration",
     description:
       "Strategic collaborations with corporations, foundations, and policymakers — plus action research and ecosystem mapping to shape local innovation.",
-    image: "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Partnership.jpg",
+    image: LANDING_IMAGES.pillars.partnerships,
     accent: "#ffd546",
   },
 ] as const
@@ -423,7 +427,27 @@ export default function HomePage() {
                 </Button>
               </Link>
             </div>
-            <ul className="mt-10 grid gap-3 sm:grid-cols-3">
+            <div className="mt-8 flex flex-col items-center gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2" aria-hidden>
+                  {HERO_AVATAR_INITIALS.map((initial, index) => (
+                    <span
+                      key={initial}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white shadow-sm"
+                      style={{ backgroundColor: HERO_AVATAR_COLORS[index] }}
+                    >
+                      {initial}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-left text-xs text-[#1c395c]/75 sm:text-sm">
+                  <span className="font-semibold text-[#812926]">Entrepreneurs</span>
+                  {" · "}
+                  investors · partners · creatives
+                </p>
+              </div>
+            </div>
+            <ul className="mt-8 grid gap-3 sm:grid-cols-3">
               {[
                 "300k+ impact makers globally",
                 "50+ impact hubs worldwide",
@@ -502,6 +526,8 @@ export default function HomePage() {
           for events, impact stories, and membership details.
         </p>
       </section>
+
+      <LandingCommunitySection />
 
       <section id="membership" className="landing-section-alt landing-section">
         <div className="container px-4">

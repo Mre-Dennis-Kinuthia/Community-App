@@ -6,12 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/lib/toast"
 import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
-import { Logo } from "@/components/logo"
 import { LegalLinks } from "@/components/legal-links"
+import { AuthPageShell } from "@/components/auth/auth-page-shell"
 import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter"
 import {
   isOrganisationalRegisterIntent,
@@ -224,180 +223,181 @@ function RegisterForm() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/50 p-4">
-      <Logo href="/" className="mb-6" />
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">
-            {organisationalIntent ? `${ORGANISATIONAL_PLAN_NAME} membership` : "Join the Community"}
-          </CardTitle>
-          <CardDescription>
-            {organisationalIntent
-              ? "Register on the platform. Our partnerships team will follow up after you complete your profile."
-              : "Create your account to get started with Impact Hub Nairobi"}
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first-name">First Name</Label>
-                <Input
-                  id="first-name"
-                  name="first-name"
-                  placeholder="First name"
-                  value={formData.firstName}
-                  onChange={(e) => handleChange("firstName", e.target.value)}
-                  onBlur={(e) => validateField("firstName", e.target.value)}
-                  required
-                  aria-invalid={errors.firstName ? "true" : "false"}
-                  aria-describedby={errors.firstName ? "first-name-error" : undefined}
-                />
-                {errors.firstName && (
-                  <p id="first-name-error" className="text-sm text-destructive" role="alert">
-                    {errors.firstName}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last-name">Last Name</Label>
-                <Input
-                  id="last-name"
-                  name="last-name"
-                  placeholder="Last name"
-                  value={formData.lastName}
-                  onChange={(e) => handleChange("lastName", e.target.value)}
-                  onBlur={(e) => validateField("lastName", e.target.value)}
-                  required
-                  aria-invalid={errors.lastName ? "true" : "false"}
-                  aria-describedby={errors.lastName ? "last-name-error" : undefined}
-                />
-                {errors.lastName && (
-                  <p id="last-name-error" className="text-sm text-destructive" role="alert">
-                    {errors.lastName}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@email.com"
-                value={formData.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                onBlur={(e) => validateField("email", e.target.value)}
-                required
-                aria-invalid={errors.email ? "true" : "false"}
-                aria-describedby={errors.email ? "email-error" : undefined}
-              />
-              {errors.email && (
-                <p id="email-error" className="text-sm text-destructive" role="alert">
-                  {errors.email}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter a secure password"
-                value={formData.password}
-                onChange={(e) => handleChange("password", e.target.value)}
-                onBlur={(e) => validateField("password", e.target.value)}
-                required
-                minLength={PASSWORD_MIN_LENGTH}
-                maxLength={PASSWORD_MAX_LENGTH}
-                aria-invalid={errors.password ? "true" : "false"}
-                aria-describedby="password-requirements password-strength password-error"
-              />
-              <PasswordStrengthMeter
-                password={formData.password}
-                email={formData.email}
-                name={`${formData.firstName} ${formData.lastName}`.trim()}
-                onPwnedChange={setPasswordPwned}
-                className="pt-1"
-              />
-              <ul id="password-requirements" className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
-                {PASSWORD_REQUIREMENTS_LINES.map((line) => (
-                  <li key={line}>{line}</li>
-                ))}
-              </ul>
-              {errors.password && (
-                <p id="password-error" className="text-sm text-destructive" role="alert">
-                  {errors.password}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <Input
-                id="confirm-password"
-                name="confirm-password"
-                type="password"
-                placeholder="Re-enter your password"
-                value={formData.confirmPassword}
-                onChange={(e) => handleChange("confirmPassword", e.target.value)}
-                onBlur={(e) => validateField("confirmPassword", e.target.value)}
-                required
-                aria-invalid={errors.confirmPassword ? "true" : "false"}
-                aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
-              />
-              {errors.confirmPassword && (
-                <p id="confirm-password-error" className="text-sm text-destructive" role="alert">
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Create Account"
-              )}
-            </Button>
-            <LegalLinks showAgreement className="px-1" />
-
-            <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link
-                href={
-                  organisationalIntent
-                    ? `/login?redirect=${encodeURIComponent("/onboarding?intent=organisational")}`
-                    : "/login"
-                }
-                className="text-primary hover:underline"
-              >
-                Sign in
-              </Link>
-            </p>
-            {organisationalIntent ? (
-              <p className="text-center text-sm text-muted-foreground">
-                <Link href="/membership/organisational" className="text-primary hover:underline">
-                  About organisational membership
-                </Link>
+    <AuthPageShell
+      title={organisationalIntent ? `${ORGANISATIONAL_PLAN_NAME} membership` : "Become a member"}
+      subtitle={
+        organisationalIntent
+          ? "Register on the platform. Our partnerships team will follow up after you complete your profile."
+          : "Join Nairobi's impact community — free to start. Book workspace, join events, and connect with fellow innovators."
+      }
+      panelDescription={
+        organisationalIntent
+          ? "Partner with Impact Hub Nairobi to co-design programs, events, and ecosystem initiatives that drive inclusive innovation."
+          : "Inclusive and sustainable innovation at scale — programs, co-working at Ikigai, events, and a local-to-global impact community."
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="first-name">First Name</Label>
+            <Input
+              id="first-name"
+              name="first-name"
+              placeholder="First name"
+              value={formData.firstName}
+              onChange={(e) => handleChange("firstName", e.target.value)}
+              onBlur={(e) => validateField("firstName", e.target.value)}
+              required
+              aria-invalid={errors.firstName ? "true" : "false"}
+              aria-describedby={errors.firstName ? "first-name-error" : undefined}
+            />
+            {errors.firstName && (
+              <p id="first-name-error" className="text-sm text-destructive" role="alert">
+                {errors.firstName}
               </p>
-            ) : null}
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="last-name">Last Name</Label>
+            <Input
+              id="last-name"
+              name="last-name"
+              placeholder="Last name"
+              value={formData.lastName}
+              onChange={(e) => handleChange("lastName", e.target.value)}
+              onBlur={(e) => validateField("lastName", e.target.value)}
+              required
+              aria-invalid={errors.lastName ? "true" : "false"}
+              aria-describedby={errors.lastName ? "last-name-error" : undefined}
+            />
+            {errors.lastName && (
+              <p id="last-name-error" className="text-sm text-destructive" role="alert">
+                {errors.lastName}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@email.com"
+            value={formData.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+            onBlur={(e) => validateField("email", e.target.value)}
+            required
+            aria-invalid={errors.email ? "true" : "false"}
+            aria-describedby={errors.email ? "email-error" : undefined}
+          />
+          {errors.email && (
+            <p id="email-error" className="text-sm text-destructive" role="alert">
+              {errors.email}
+            </p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Enter a secure password"
+            value={formData.password}
+            onChange={(e) => handleChange("password", e.target.value)}
+            onBlur={(e) => validateField("password", e.target.value)}
+            required
+            minLength={PASSWORD_MIN_LENGTH}
+            maxLength={PASSWORD_MAX_LENGTH}
+            aria-invalid={errors.password ? "true" : "false"}
+            aria-describedby="password-requirements password-strength password-error"
+          />
+          <PasswordStrengthMeter
+            password={formData.password}
+            email={formData.email}
+            name={`${formData.firstName} ${formData.lastName}`.trim()}
+            onPwnedChange={setPasswordPwned}
+            className="pt-1"
+          />
+          <ul id="password-requirements" className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+            {PASSWORD_REQUIREMENTS_LINES.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          {errors.password && (
+            <p id="password-error" className="text-sm text-destructive" role="alert">
+              {errors.password}
+            </p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirm-password">Confirm Password</Label>
+          <Input
+            id="confirm-password"
+            name="confirm-password"
+            type="password"
+            placeholder="Re-enter your password"
+            value={formData.confirmPassword}
+            onChange={(e) => handleChange("confirmPassword", e.target.value)}
+            onBlur={(e) => validateField("confirmPassword", e.target.value)}
+            required
+            aria-invalid={errors.confirmPassword ? "true" : "false"}
+            aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
+          />
+          {errors.confirmPassword && (
+            <p id="confirm-password-error" className="text-sm text-destructive" role="alert">
+              {errors.confirmPassword}
+            </p>
+          )}
+        </div>
+        <Button
+          type="submit"
+          className="w-full bg-[#812926] hover:bg-[#6b2120]"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : organisationalIntent ? (
+            "Create account"
+          ) : (
+            "Become a member"
+          )}
+        </Button>
+        <LegalLinks showAgreement className="px-1" />
+
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link
+            href={
+              organisationalIntent
+                ? `/login?redirect=${encodeURIComponent("/onboarding?intent=organisational")}`
+                : "/login"
+            }
+            className="font-medium text-[#812926] hover:underline"
+          >
+            Sign in
+          </Link>
+        </p>
+        {organisationalIntent ? (
+          <p className="text-center text-sm text-muted-foreground">
+            <Link href="/membership/organisational" className="text-[#812926] hover:underline">
+              About organisational membership
+            </Link>
+          </p>
+        ) : null}
+      </form>
+    </AuthPageShell>
   )
 }
 
 export default function RegisterPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[#faf9f6] p-4">
         <div className="text-center">
           <p className="text-muted-foreground">Loading...</p>
         </div>

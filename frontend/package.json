@@ -28,7 +28,8 @@
     "db:sync-schema:watch": "tsx scripts/sync-prisma-schema.ts --watch",
     "admin:create": "tsx scripts/create-admin.ts",
     "pwa:icons": "node scripts/generate-pwa-icons.mjs",
-    "brand:assets": "node scripts/generate-brand-assets.mjs"
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "landing:images": "node scripts/fetch-landing-images.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

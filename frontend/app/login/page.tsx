@@ -6,13 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { signIn } from "next-auth/react"
 import { toast } from "@/lib/toast"
 import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
-import { Logo } from "@/components/logo"
 import { LegalLinks } from "@/components/legal-links"
+import { AuthPageShell } from "@/components/auth/auth-page-shell"
 import { DEFAULT_POST_LOGIN_PATH } from "@/lib/auth-routes"
 
 function LoginForm() {
@@ -146,100 +145,96 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/50 p-4">
-      <Logo href="/" className="mb-6" />
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
-          <CardDescription>Enter your credentials to access your Impact Hub account</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  if (errors.email) setErrors({ ...errors, email: undefined })
-                }}
-                onBlur={(e) => validateField("email", e.target.value)}
-                required
-                aria-invalid={errors.email ? "true" : "false"}
-                aria-describedby={errors.email ? "email-error" : undefined}
-              />
-              {errors.email && (
-                <p id="email-error" className="text-sm text-destructive" role="alert">
-                  {errors.email}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="password123"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (errors.password) setErrors({ ...errors, password: undefined })
-                }}
-                onBlur={(e) => validateField("password", e.target.value)}
-                required
-                aria-invalid={errors.password ? "true" : "false"}
-                aria-describedby={errors.password ? "password-error" : undefined}
-              />
-              {errors.password && (
-                <p id="password-error" className="text-sm text-destructive" role="alert">
-                  {errors.password}
-                </p>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-            <LegalLinks showAgreement className="px-1" />
+    <AuthPageShell
+      title="Welcome back"
+      subtitle="Sign in to access your member platform — workspace, events, programs, and community."
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              if (errors.email) setErrors({ ...errors, email: undefined })
+            }}
+            onBlur={(e) => validateField("email", e.target.value)}
+            required
+            aria-invalid={errors.email ? "true" : "false"}
+            aria-describedby={errors.email ? "email-error" : undefined}
+          />
+          {errors.email && (
+            <p id="email-error" className="text-sm text-destructive" role="alert">
+              {errors.email}
+            </p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link href="/forgot-password" className="text-sm text-[#812926] hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="password123"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              if (errors.password) setErrors({ ...errors, password: undefined })
+            }}
+            onBlur={(e) => validateField("password", e.target.value)}
+            required
+            aria-invalid={errors.password ? "true" : "false"}
+            aria-describedby={errors.password ? "password-error" : undefined}
+          />
+          {errors.password && (
+            <p id="password-error" className="text-sm text-destructive" role="alert">
+              {errors.password}
+            </p>
+          )}
+        </div>
+        <Button
+          type="submit"
+          className="w-full bg-[#812926] hover:bg-[#6b2120]"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            "Sign in"
+          )}
+        </Button>
+        <LegalLinks showAgreement className="px-1" />
 
-            <p className="text-center text-sm text-muted-foreground">
-              {"Don't have an account? "}
-              <Link href="/register" className="text-primary hover:underline">
-                Join the community
-              </Link>
-            </p>
-            <p className="text-center text-xs text-muted-foreground">
-              Impact Hub staff can sign in with the same email and password used for the admin app.
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+        <p className="text-center text-sm text-muted-foreground">
+          {"Don't have an account? "}
+          <Link href="/register" className="font-medium text-[#812926] hover:underline">
+            Become a member
+          </Link>
+        </p>
+        <p className="text-center text-xs text-muted-foreground">
+          Impact Hub staff can sign in with the same email and password used for the admin app.
+        </p>
+      </form>
+    </AuthPageShell>
   )
 }
 
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
+      <div className="flex min-h-screen items-center justify-center bg-[#faf9f6] p-4">
         <div className="text-center">
           <p className="text-muted-foreground">Loading...</p>
         </div>

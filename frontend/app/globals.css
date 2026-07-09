@@ -359,7 +359,7 @@ html.pwa-standalone body {
         rgb(243 245 248 / 0.88) 45%,
         rgb(250 249 246 / 0.96) 100%
       ),
-      url("https://nairobi.impacthub.net/wp-content/uploads/2025/08/28-scaled.jpg");
+      url("/landing/hero.jpg");
     background-position: top center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -414,6 +414,48 @@ html.pwa-standalone body {
 
   .landing-page .landing-newsletter-panel {
     @apply overflow-hidden rounded-md border border-[#edeff2] bg-[#1c395c] text-white shadow-md;
+  }
+
+  /* Auth pages — same IHN brand as landing */
+  .auth-page-panel__overlay {
+    background: linear-gradient(
+      to top,
+      rgb(10 31 56 / 0.92) 0%,
+      rgb(28 57 92 / 0.55) 50%,
+      rgb(28 57 92 / 0.25) 100%
+    );
+  }
+
+  .auth-page .auth-page-card :is(input, button[type="submit"]) {
+    @apply min-h-9;
+  }
+
+  .landing-page .landing-community-pulse {
+    @apply rounded-md border border-[#edeff2] bg-white px-5 py-4 shadow-sm;
+  }
+
+  .landing-page .landing-community-member-card {
+    @apply rounded-md border border-[#edeff2] bg-white p-4 shadow-sm;
+  }
+
+  .landing-page .landing-community-chip {
+    @apply border border-[#edeff2] bg-white shadow-sm;
+  }
+
+  .landing-page .landing-community-voice {
+    @apply rounded-md border border-[#edeff2] border-t-[3px] bg-white p-5 shadow-sm;
+  }
+
+  .landing-page .landing-community-moment {
+    @apply min-h-[10rem] bg-[#1c395c];
+  }
+
+  .landing-page .landing-community-moment__caption {
+    @apply absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#0a1f38]/90 to-transparent px-3 py-3 text-xs font-medium text-white;
+  }
+
+  .landing-page .landing-community-event {
+    @apply border border-[#edeff2] bg-white/80;
   }
 
   /* Community opportunity rich HTML — prevent horizontal overflow on mobile */

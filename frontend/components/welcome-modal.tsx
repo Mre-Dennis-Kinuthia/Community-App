@@ -23,20 +23,20 @@ interface WelcomeModalProps {
 const QUICK_LINKS = [
   {
     icon: Calendar,
-    title: "Book workspace",
-    description: "Reserve desks, meeting rooms, or inquire about private office.",
+    title: "Book workspace at Ikigai",
+    description: "Reserve a desk, meeting room, or collaboration space in Westlands.",
     href: "/booking",
   },
   {
     icon: Users,
-    title: "Browse the community",
-    description: "Find members, collaborators, and mentors in the directory.",
+    title: "Meet the community",
+    description: "Browse members, find collaborators, and grow your impact network.",
     href: "/community",
   },
   {
     icon: BookOpen,
-    title: "View events",
-    description: "See upcoming workshops, programs, and networking sessions.",
+    title: "Join programs & events",
+    description: "Workshops, mixers, and acceleration programs for impact startups.",
     href: "/events",
   },
 ] as const
@@ -68,11 +68,11 @@ export function WelcomeModal({
         <DialogHeader>
           <Logo variant="compact" />
           <DialogTitle className="pt-2">
-            {firstName ? `Welcome, ${firstName}` : "Welcome to Impact Hub Nairobi"}
+            {firstName ? `You're in, ${firstName}` : "You're in — welcome to the community"}
           </DialogTitle>
           <DialogDescription>
-            You&apos;re all set. Here are three places to start — pick one, or explore the dashboard
-            on your own.
+            Inclusive and sustainable innovation at scale. You&apos;re now part of Impact Hub
+            Nairobi&apos;s member platform — here are three ways to get started.
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +102,7 @@ export function WelcomeModal({
 
         <div className="flex flex-col gap-2">
           <Button type="button" className="w-full" onClick={handleClose}>
-            Continue to dashboard
+            Explore the platform
           </Button>
           <Button type="button" variant="ghost" className="w-full text-muted-foreground" onClick={handleClose}>
             Skip tour

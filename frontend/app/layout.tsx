@@ -13,9 +13,12 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   metadataBase: new URL(getAppBaseUrl()),
-  title: "Impact Hub Nairobi Community Platform - Powered by Impact Hub Nairobi",
+  title: {
+    default: "Impact Hub Nairobi Community Platform",
+    template: "%s · Impact Hub Nairobi",
+  },
   description:
-    "Impact Hub Nairobi's official digital platform. Access programs, resources, and community connections distributed through our network. Join Kenya's leading innovation community.",
+    "For impact startups and innovators. Impact Hub Nairobi's official member platform — book workspace at Ikigai, join programs and events, and connect with Kenya's impact community.",
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -32,16 +35,27 @@ export const metadata: Metadata = {
     "mobile-web-app-capable": "yes",
   },
   openGraph: {
-    title: "Impact Hub Nairobi Community Platform",
+    title: "Impact Hub Nairobi — For Impact Startups & Innovators",
     description:
-      "Impact Hub Nairobi's official digital platform. Access programs, resources, and community connections.",
+      "Official member platform for workspace, events, programs, and community. Part of the global Impact Hub network.",
     type: "website",
+    siteName: "Impact Hub Nairobi",
+    locale: "en_KE",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Impact Hub Nairobi — For Impact Startups & Innovators",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Impact Hub Nairobi Community Platform",
+    title: "Impact Hub Nairobi — For Impact Startups & Innovators",
     description:
-      "Impact Hub Nairobi's official digital platform. Access programs, resources, and community connections.",
+      "Official member platform for workspace, events, programs, and community.",
+    images: ["/twitter-image"],
   },
 }
 

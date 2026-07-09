@@ -197,7 +197,8 @@ export default function DashboardPage() {
           <div className="space-y-0.5">
             <h1 className="page-title">{greeting}, {userName}</h1>
             <p className="hidden text-sm text-muted-foreground sm:block md:text-base">
-              Welcome back to Impact Hub Nairobi. Continue building your impact.
+              You&apos;re part of a local-to-global impact community. Book workspace, join events, and
+              connect with fellow innovators.
             </p>
           </div>
           <Button asChild size="sm" className="h-9 shrink-0 text-sm md:h-10">
@@ -235,8 +236,10 @@ export default function DashboardPage() {
                     <Sparkles className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle>Getting Started</CardTitle>
-                    <CardDescription>Three steps to get started on the member platform.</CardDescription>
+                    <CardTitle>Your first steps as a member</CardTitle>
+                    <CardDescription>
+                      Three quick wins to make the most of your Impact Hub Nairobi membership.
+                    </CardDescription>
                   </div>
                 </div>
                 <Button
@@ -259,27 +262,33 @@ export default function DashboardPage() {
                   <div className="rounded-md border border-border p-3 transition-colors hover:bg-muted/50 md:p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-primary" />
-                      <span className="font-medium">Book Your First Workspace</span>
+                      <span className="font-medium">Book workspace at Ikigai</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Reserve a meeting room or collaboration space</p>
+                    <p className="text-sm text-muted-foreground">
+                      Reserve a desk or meeting room in Westlands
+                    </p>
                   </div>
                 </Link>
                 <Link href="/community" className="group">
                   <div className="rounded-md border border-border p-3 transition-colors hover:bg-muted/50 md:p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <Users2 className="h-4 w-4 text-primary" />
-                      <span className="font-medium">Explore the Community</span>
+                      <span className="font-medium">Meet impact makers</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Connect with entrepreneurs and innovators</p>
+                    <p className="text-sm text-muted-foreground">
+                      Connect with entrepreneurs, partners, and mentors
+                    </p>
                   </div>
                 </Link>
                 <Link href="/events" className="group">
                   <div className="rounded-md border border-border p-3 transition-colors hover:bg-muted/50 md:p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary" />
-                      <span className="font-medium">Join an Event</span>
+                      <span className="font-medium">Join a program or event</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">Discover workshops and networking events</p>
+                    <p className="text-sm text-muted-foreground">
+                      Workshops, mixers, and acceleration sessions
+                    </p>
                   </div>
                 </Link>
               </div>
