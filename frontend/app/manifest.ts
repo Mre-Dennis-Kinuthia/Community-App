@@ -37,7 +37,7 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
       {
-        src: "/brand/impact-hub-mark.svg",
+        src: "/brand/impact-hub-app-icon.svg",
         sizes: "any",
         type: "image/svg+xml",
         purpose: "any",

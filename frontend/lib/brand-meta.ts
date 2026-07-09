@@ -3,6 +3,7 @@ export const BRAND_LOGO_PATH = "/brand/impact-hub-nairobi-logo.png"
 export const BRAND_LOGO_SVG_PATH = "/brand/impact-hub-nairobi-logo.svg"
 export const BRAND_MARK_PATH = "/brand/impact-hub-mark.png"
 export const BRAND_MARK_SVG_PATH = "/brand/impact-hub-mark.svg"
+export const BRAND_APP_ICON_SVG_PATH = "/brand/impact-hub-app-icon.svg"
 
 /** Full horizontal logo dimensions (source PNG). */
 export const BRAND_LOGO_WIDTH = 1000

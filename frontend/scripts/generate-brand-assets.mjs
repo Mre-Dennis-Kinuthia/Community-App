@@ -1,8 +1,9 @@
 /**
- * Builds official Impact Hub Nairobi brand assets from the source logo.
- * Run: node scripts/generate-brand-assets.mjs [path-to-source-image]
+ * Builds Impact Hub Nairobi brand assets.
+ * App icons use the official Impact Hub vector mark (impact-hub-app-icon.svg).
+ * Run: node scripts/generate-brand-assets.mjs [path-to-horizontal-logo-source]
  */
-import { readFile, writeFile, mkdir } from "node:fs/promises"
+import { readFile, writeFile, mkdir, copyFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import sharp from "sharp"
@@ -12,24 +13,22 @@ const root = path.join(__dirname, "..")
 const brandDir = path.join(root, "public", "brand")
 const publicDir = path.join(root, "public")
 const iconsDir = path.join(publicDir, "icons")
+const appDir = path.join(root, "app")
 
 const DEFAULT_SOURCE =
   "/home/nansi/.cursor/projects/home-nansi-Work/assets/c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_impact_hub_nairobi_logo-45ce02e4-a47a-43c1-9f69-2af60e7efdcd.png"
 
 const TARGET_WIDTH = 1000
-const BRAND_RED = "#A6192E"
+const APP_ICON_SVG = path.join(brandDir, "impact-hub-app-icon.svg")
 
 async function buildLogoPng(sourcePath) {
   const trimmed = await sharp(sourcePath).trim({ threshold: 12 }).png().toBuffer()
   const meta = await sharp(trimmed).metadata()
   const height = Math.round((TARGET_WIDTH * meta.height) / meta.width)
-  return sharp(trimmed).resize(TARGET_WIDTH, height, { fit: "fill" }).png({ compressionLevel: 9 }).toBuffer()
-}
-
-async function buildMarkPng(logoPng) {
-  const meta = await sharp(logoPng).metadata()
-  const tile = meta.height
-  return sharp(logoPng).extract({ left: 0, top: 0, width: tile, height: tile }).png().toBuffer()
+  return sharp(trimmed)
+    .resize(TARGET_WIDTH, height, { fit: "fill", kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9 })
+    .toBuffer()
 }
 
 function logoSvg(viewBoxWidth, viewBoxHeight) {
@@ -40,56 +39,43 @@ function logoSvg(viewBoxWidth, viewBoxHeight) {
 `
 }
 
-function markVectorSvg(tile = 151) {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${tile} ${tile}" role="img" aria-label="Impact Hub">
-  <rect width="${tile}" height="${tile}" fill="${BRAND_RED}"/>
-  <text x="14" y="50" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="0.04em">IMPACT</text>
-  <text x="14" y="114" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="50" font-weight="700" letter-spacing="-0.02em">HUB</text>
-</svg>
-`
+/** Rasterize the official vector app icon at a crisp PNG size. */
+async function rasterizeAppIcon(size) {
+  const svg = await readFile(APP_ICON_SVG)
+  const density = Math.max(384, Math.round(size * 3))
+  return sharp(svg, { density })
+    .resize(size, size, { kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9, effort: 10 })
+    .toBuffer()
 }
 
-async function writePwaIcons(markPng) {
+async function writePwaIcons() {
   await mkdir(iconsDir, { recursive: true })
+
   const sizes = [
     { name: "icon-192.png", size: 192 },
     { name: "icon-512.png", size: 512 },
     { name: "apple-touch-icon.png", size: 180 },
   ]
+
+  let icon512 = null
   for (const { name, size } of sizes) {
-    await writeFile(
-      path.join(iconsDir, name),
-      await sharp(markPng).resize(size, size, { kernel: sharp.kernel.lanczos3 }).png().toBuffer()
-    )
+    const png = await rasterizeAppIcon(size)
+    await writeFile(path.join(iconsDir, name), png)
+    if (size === 512) icon512 = png
   }
 
-  const maskPad = Math.round(512 * 0.1)
-  const inner = 512 - maskPad * 2
-  const maskable = await sharp({
-    create: {
-      width: 512,
-      height: 512,
-      channels: 4,
-      background: BRAND_RED,
-    },
-  })
-    .composite([
-      {
-        input: await sharp(markPng).resize(inner, inner, { kernel: sharp.kernel.lanczos3 }).png().toBuffer(),
-        left: maskPad,
-        top: maskPad,
-      },
-    ])
-    .png()
-    .toBuffer()
-  await writeFile(path.join(iconsDir, "icon-maskable-512.png"), maskable)
-  await writeFile(
-    path.join(publicDir, "apple-touch-icon.png"),
-    await sharp(markPng).resize(180, 180, { kernel: sharp.kernel.lanczos3 }).png().toBuffer()
-  )
-  await writeFile(path.join(publicDir, "icon.svg"), markVectorSvg(151))
-  await writeFile(path.join(root, "app", "icon.svg"), markVectorSvg(151))
+  // Full-bleed maskable icon — no inset frame (avoids double-square border artifacts)
+  await writeFile(path.join(iconsDir, "icon-maskable-512.png"), icon512)
+  await writeFile(path.join(publicDir, "apple-touch-icon.png"), await rasterizeAppIcon(180))
+
+  const appIconSvg = await readFile(APP_ICON_SVG, "utf8")
+  await writeFile(path.join(publicDir, "icon.svg"), appIconSvg)
+  await writeFile(path.join(appDir, "icon.svg"), appIconSvg)
+
+  // High-res PNG mark fallback (from vector, not JPEG crop)
+  await writeFile(path.join(brandDir, "impact-hub-mark.png"), await rasterizeAppIcon(1024))
+  await copyFile(APP_ICON_SVG, path.join(brandDir, "impact-hub-mark.svg"))
 }
 
 async function writeBrandMeta(width, height, tile) {
@@ -98,6 +84,7 @@ export const BRAND_LOGO_PATH = "/brand/impact-hub-nairobi-logo.png"
 export const BRAND_LOGO_SVG_PATH = "/brand/impact-hub-nairobi-logo.svg"
 export const BRAND_MARK_PATH = "/brand/impact-hub-mark.png"
 export const BRAND_MARK_SVG_PATH = "/brand/impact-hub-mark.svg"
+export const BRAND_APP_ICON_SVG_PATH = "/brand/impact-hub-app-icon.svg"
 
 /** Full horizontal logo dimensions (source PNG). */
 export const BRAND_LOGO_WIDTH = ${width}
@@ -116,8 +103,11 @@ async function main() {
   const sourcePath = process.argv[2] ?? DEFAULT_SOURCE
   await mkdir(brandDir, { recursive: true })
 
+  if (!(await readFile(APP_ICON_SVG).catch(() => null))) {
+    throw new Error("Missing public/brand/impact-hub-app-icon.svg — official vector app icon")
+  }
+
   const logoPng = await buildLogoPng(sourcePath)
-  const markPng = await buildMarkPng(logoPng)
   const meta = await sharp(logoPng).metadata()
   const width = meta.width
   const height = meta.height
@@ -125,14 +115,12 @@ async function main() {
 
   await writeFile(path.join(brandDir, "impact-hub-nairobi-logo.png"), logoPng)
   await writeFile(path.join(brandDir, "impact-hub-nairobi-logo.svg"), logoSvg(width, height))
-  await writeFile(path.join(brandDir, "impact-hub-mark.png"), markPng)
-  await writeFile(path.join(brandDir, "impact-hub-mark.svg"), markVectorSvg(151))
 
-  await writePwaIcons(markPng)
+  await writePwaIcons()
   await writeBrandMeta(width, height, tile)
 
   console.log(`Brand logo: ${width}×${height}px`)
-  console.log(`Square mark: ${tile}×${tile}px`)
+  console.log("App icons: rasterized from official Impact Hub vector mark")
   console.log("Wrote public/brand/*, lib/brand-meta.ts, and PWA icons")
 }
 

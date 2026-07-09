@@ -9,6 +9,7 @@ import {
   BRAND_LOGO_WIDTH,
   BRAND_MARK_PATH,
   BRAND_MARK_SVG_PATH,
+  BRAND_APP_ICON_SVG_PATH,
 } from "@/lib/brand-meta"
 
 export {
@@ -21,6 +22,7 @@ export {
   BRAND_LOGO_WIDTH,
   BRAND_MARK_PATH,
   BRAND_MARK_SVG_PATH,
+  BRAND_APP_ICON_SVG_PATH,
 }
 
 export function getBrandLogoUrl(): string {
