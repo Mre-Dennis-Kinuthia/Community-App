@@ -812,15 +812,7 @@ export async function sendVisitorRegisteredEmail(params: {
   expectedAt: Date
   dashboardUrl?: string
 }): Promise<SendEmailResult> {
-  const when = params.expectedAt.toLocaleString("en-KE", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  })
+  const when = formatHubDateTime(params.expectedAt)
   const appUrl = getAppBaseUrl()
 
   const bodyHtml = `

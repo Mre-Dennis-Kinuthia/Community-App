@@ -5,6 +5,7 @@ import {
   sendVisitorRegisteredEmail,
   sendVisitorRegisteredStaffEmail,
 } from "@/lib/email/messages"
+import { formatHubDateTime } from "@/lib/space/hub-timezone"
 
 function getAdminFrontDeskUrl(): string {
   const base =
@@ -33,7 +34,7 @@ export async function notifyVisitorRegistered(visitor: VisitorNotifyPayload) {
   await createNotification({
     userId: visitor.hostUserId,
     title: "Visitor registered",
-    message: `${visitor.name} is expected on ${visitor.expectedAt.toLocaleString("en-KE", { timeZone: "Africa/Nairobi" })}.`,
+    message: `${visitor.name} is expected on ${formatHubDateTime(visitor.expectedAt)}.`,
     type: "info",
     category: "visitor",
     actionUrl: "/dashboard/visitors",

@@ -14,6 +14,7 @@ import {
   Package,
   Wrench,
   User,
+  MoreHorizontal,
   type LucideIcon,
 } from "lucide-react"
 import { isNavHrefEnabled } from "@/lib/feature-flags"
@@ -32,6 +33,12 @@ export type NavItemConfig = {
 export type NavGroupConfig = {
   title: string
   items: NavItemConfig[]
+}
+
+export type MobileNavItem = {
+  title: string
+  href: string
+  icon: LucideIcon
 }
 
 export const NAV_GROUPS: NavGroupConfig[] = [
@@ -73,6 +80,66 @@ export const NAV_GROUPS: NavGroupConfig[] = [
   },
 ]
 
+/** Bottom tab bar — order and short labels */
+const MOBILE_PRIMARY_HREFS = ["/dashboard", "/booking", "/community", "/events"] as const
+
+/** "More" sheet — order matches desktop nav groups */
+const MOBILE_MORE_HREFS = [
+  "/news",
+  "/partners",
+  "/opportunities",
+  "/projects",
+  "/investments",
+  "/dashboard/bookings",
+  "/dashboard/projects",
+  "/profile",
+  "/dashboard/visitors",
+  "/dashboard/deliveries",
+  "/dashboard/maintenance",
+] as const
+
+const MOBILE_TITLE_OVERRIDES: Record<string, string> = {
+  "/dashboard": "Home",
+  "/booking": "Book",
+  "/projects": "Projects",
+  "/dashboard/bookings": "My Bookings",
+}
+
+const NAV_ITEM_BY_HREF = new Map(
+  NAV_GROUPS.flatMap((group) => group.items).map((item) => [item.href, item] as const)
+)
+
+function toMobileNavItem(href: string): MobileNavItem | null {
+  const item = NAV_ITEM_BY_HREF.get(href)
+  if (!item || !isNavHrefEnabled(href)) return null
+  return {
+    href: item.href,
+    icon: item.icon,
+    title: MOBILE_TITLE_OVERRIDES[href] ?? item.title,
+  }
+}
+
+export function getMobilePrimaryNav(): MobileNavItem[] {
+  return MOBILE_PRIMARY_HREFS.map((href) => toMobileNavItem(href)).filter(
+    (item): item is MobileNavItem => item !== null
+  )
+}
+
+export function getMobileMoreNav(): MobileNavItem[] {
+  return MOBILE_MORE_HREFS.map((href) => toMobileNavItem(href)).filter(
+    (item): item is MobileNavItem => item !== null
+  )
+}
+
+export const MOBILE_PRIMARY_NAV = getMobilePrimaryNav()
+export const MOBILE_MORE_NAV = getMobileMoreNav()
+
+export const MOBILE_MORE_TRIGGER: MobileNavItem = {
+  title: "More",
+  href: "#more",
+  icon: MoreHorizontal,
+}
+
 export function getVisibleNavGroups(): NavGroupConfig[] {
   return NAV_GROUPS.map((group) => ({
     ...group,
@@ -95,6 +162,15 @@ export function isNavPathActive(
     )
   }
   return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+/** Alias used by mobile navigation components */
+export function isNavItemActive(pathname: string, href: string): boolean {
+  return isNavPathActive(pathname, href, null)
+}
+
+export function isMoreNavActive(pathname: string): boolean {
+  return MOBILE_MORE_NAV.some((item) => isNavItemActive(pathname, item.href))
 }
 
 /** Expand only Main and the group containing the active route by default. */

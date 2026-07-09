@@ -10,7 +10,7 @@ import {
   isNavItemActive,
   MOBILE_MORE_TRIGGER,
   MOBILE_PRIMARY_NAV,
-} from "@/lib/mobile-nav-items"
+} from "@/lib/nav-config"
 
 const HIDDEN_PATHS = new Set(["/", "/login", "/register"])
 

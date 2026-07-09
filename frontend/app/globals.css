@@ -5,6 +5,15 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Installed PWA — full viewport including notches */
+html.pwa-standalone {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.pwa-standalone body {
+  min-height: 100dvh;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

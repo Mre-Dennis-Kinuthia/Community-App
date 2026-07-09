@@ -29,9 +29,8 @@ import {
   Link as LinkIcon,
   PlayCircle,
 } from "lucide-react"
-import { Breadcrumbs } from "@/components/breadcrumbs"
 import Link from "next/link"
-import { Loader2 } from "lucide-react"
+import { Breadcrumbs } from "@/components/breadcrumbs"
 import { OPPORTUNITY_STATUS_LABELS } from "@/lib/community-opportunity"
 import { OpportunityPreviewCard } from "@/components/opportunities/opportunity-preview-card"
 import { FilterChip } from "@/components/mobile/filter-chip"
@@ -39,14 +38,15 @@ import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
 import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
 import { PillTabs } from "@/components/mobile/pill-tabs"
-import {
-  MobilePageHeader,
-  MobileFilterMeta,
-  MobileBreadcrumbsHidden,
-  MobileSearchFilterRow,
-} from "@/components/mobile/mobile-page-shell"
-import { FilterBar, FilterBarItem } from "@/components/design/filter-bar"
+import { MobileSearchFilterRow } from "@/components/mobile/mobile-page-shell"
+import { FilterBarItem } from "@/components/design/filter-bar"
 import { EmptyState } from "@/components/design/empty-state"
+import {
+  ListPageBody,
+  ListPageFilterSection,
+  ListPageSearchField,
+  ListPageShell,
+} from "@/components/design/list-page-shell"
 import {
   DataList,
   DataListRow,
@@ -210,29 +210,33 @@ function ResourcesPageContent() {
     typeFilter !== "all",
   ].filter(Boolean).length
 
+  const resultCount =
+    activeTab === "programs" ? filteredOpportunities.length : filteredResources.length
+  const resultLabel = activeTab === "programs" ? "opportunities" : "resources"
+
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-5xl w-full space-y-4 overflow-x-hidden md:space-y-6">
-        <MobileBreadcrumbsHidden>
-          <Breadcrumbs items={[{ label: "Programs & Resources" }]} />
-        </MobileBreadcrumbsHidden>
-
-        <MobilePageHeader
-          title="Programs & Resources"
-          description="Scouted funding, programs, and roles — plus tools and guides for your impact journey."
-        />
-
-        <PillTabs
-          items={[
-            { value: "programs", label: "Opportunities" },
-            { value: "resources", label: "Resources" },
-          ]}
-          value={activeTab}
-          onChange={(v) => handleTabChange(v as "programs" | "resources")}
-        />
-
-        {/* Mobile filters */}
-        <div className="space-y-3 md:hidden">
+      <ListPageShell
+        breadcrumb="Programs & Resources"
+        title="Programs & Resources"
+        description="Scouted funding, programs, and roles — plus tools and guides for your impact journey."
+        resultCount={resultCount}
+        resultLabel={resultLabel}
+        filterCount={activeFilterCount}
+        hasActiveFilters={!!hasActiveFilters}
+        onClearFilters={clearFilters}
+        showDesktopFilterBadge={false}
+        toolbar={
+          <PillTabs
+            items={[
+              { value: "programs", label: "Opportunities" },
+              { value: "resources", label: "Resources" },
+            ]}
+            value={activeTab}
+            onChange={(v) => handleTabChange(v as "programs" | "resources")}
+          />
+        }
+        mobileFilters={
           <MobileSearchFilterRow
             search={
               <MobileSearchBar
@@ -251,17 +255,15 @@ function ResourcesPageContent() {
                 <div className="space-y-4">
                   {activeTab === "programs" ? (
                     <>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tag</p>
+                      <ListPageFilterSection label="Tag">
                         <FilterChipRow>
                           <FilterChip label="All" active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} />
                           {uniqueOpportunityTags.map((c) => (
                             <FilterChip key={c} label={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
                           ))}
                         </FilterChipRow>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</p>
+                      </ListPageFilterSection>
+                      <ListPageFilterSection label="Status">
                         <FilterChipRow>
                           <FilterChip label="All" active={statusFilter === "all"} onClick={() => setStatusFilter("all")} />
                           {opportunityStatuses.map((s) => (
@@ -273,60 +275,43 @@ function ResourcesPageContent() {
                             />
                           ))}
                         </FilterChipRow>
-                      </div>
+                      </ListPageFilterSection>
                     </>
                   ) : (
                     <>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Category</p>
+                      <ListPageFilterSection label="Category">
                         <FilterChipRow>
                           <FilterChip label="All" active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} />
                           {resourceCategoryNames.map((c) => (
                             <FilterChip key={c} label={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
                           ))}
                         </FilterChipRow>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Type</p>
+                      </ListPageFilterSection>
+                      <ListPageFilterSection label="Type">
                         <FilterChipRow>
                           <FilterChip label="All" active={typeFilter === "all"} onClick={() => setTypeFilter("all")} />
                           {uniqueResourceTypes.map((t) => (
                             <FilterChip key={t} label={t} active={typeFilter === t.toLowerCase()} onClick={() => setTypeFilter(t.toLowerCase())} />
                           ))}
                         </FilterChipRow>
-                      </div>
+                      </ListPageFilterSection>
                     </>
                   )}
                 </div>
               </MobileFilterSheet>
             }
           />
-          <MobileFilterMeta
-            count={activeTab === "programs" ? filteredOpportunities.length : filteredResources.length}
-            countLabel={activeTab === "programs" ? "opportunities" : "resources"}
-            filterCount={activeFilterCount}
-            hasFilters={!!hasActiveFilters}
-            onClear={clearFilters}
-          />
-        </div>
-
-        {/* Desktop search & filters */}
-        <div className="hidden md:block">
-          <FilterBar className="rounded-md border border-border bg-card p-4">
+        }
+        desktopFilters={
+          <>
             <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder={
-                    activeTab === "programs"
-                      ? "Search opportunities…"
-                      : "Search resources…"
-                  }
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-9 pl-8"
-                />
-              </div>
+              <ListPageSearchField
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={
+                  activeTab === "programs" ? "Search opportunities…" : "Search resources…"
+                }
+              />
             </FilterBarItem>
             {activeTab === "programs" ? (
               <>
@@ -394,13 +379,12 @@ function ResourcesPageContent() {
                 Clear
               </Button>
             ) : null}
-          </FilterBar>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {activeTab === "programs"
-              ? `${filteredOpportunities.length} opportunities`
-              : `${filteredResources.length} resources`}
-          </p>
-        </div>
+          </>
+        }
+      >
+        <p className="hidden text-xs text-muted-foreground md:block">
+          {resultCount} {resultLabel}
+        </p>
 
         {/* Opportunities Tab */}
         <div
@@ -408,26 +392,25 @@ function ResourcesPageContent() {
           style={{ display: activeTab === "programs" ? "block" : "none" }}
           aria-hidden={activeTab !== "programs"}
         >
-            {isLoadingOpportunities ? (
-              <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading opportunities…
-              </div>
-            ) : opportunitiesErrorMsg ? (
-              <EmptyState title="Could not load opportunities" description={opportunitiesErrorMsg} />
-            ) : filteredOpportunities.length === 0 ? (
-              <EmptyState
-                title="No opportunities found"
-                description="Check back soon — our team scouts new programs regularly."
-                action={
-                  hasActiveFilters ? (
-                    <Button variant="outline" onClick={clearFilters}>
-                      Clear filters
-                    </Button>
-                  ) : undefined
-                }
-              />
-            ) : (
+            <ListPageBody
+              loading={isLoadingOpportunities}
+              loadingMessage="Loading opportunities…"
+              error={opportunitiesErrorMsg}
+              isEmpty={filteredOpportunities.length === 0}
+              empty={
+                <EmptyState
+                  title="No opportunities found"
+                  description="Check back soon — our team scouts new programs regularly."
+                  action={
+                    hasActiveFilters ? (
+                      <Button variant="outline" onClick={clearFilters}>
+                        Clear filters
+                      </Button>
+                    ) : undefined
+                  }
+                />
+              }
+            >
               <div className="grid w-full min-w-0 grid-cols-1 items-stretch gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
                 {filteredOpportunities.map((item) => (
                   <Link
@@ -439,7 +422,7 @@ function ResourcesPageContent() {
                   </Link>
                 ))}
               </div>
-            )}
+            </ListPageBody>
         </div>
 
         {/* Resources Tab */}
@@ -448,31 +431,28 @@ function ResourcesPageContent() {
           style={{ display: activeTab === "resources" ? "block" : "none" }}
           aria-hidden={activeTab !== "resources"}
         >
-            {isLoadingResources ? (
-              <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Loading resources…
-              </div>
-            ) : resourcesErrorMsg ? (
-              <EmptyState
-                title="Could not load resources"
-                description={resourcesErrorMsg}
-                action={
-                  <Button variant="outline" onClick={() => window.location.reload()}>
-                    Retry
-                  </Button>
-                }
-              />
-            ) : filteredResources.length === 0 ? (
-              <EmptyState
-                title="No resources found"
-                action={
-                  <Button variant="outline" onClick={clearFilters}>
-                    Clear filters
-                  </Button>
-                }
-              />
-            ) : (
+            <ListPageBody
+              loading={isLoadingResources}
+              loadingMessage="Loading resources…"
+              error={resourcesErrorMsg}
+              errorAction={
+                <Button variant="outline" onClick={() => window.location.reload()}>
+                  Retry
+                </Button>
+              }
+              isEmpty={filteredResources.length === 0}
+              empty={
+                <EmptyState
+                  title="No resources found"
+                  description="Try clearing filters or check back when new guides are published."
+                  action={
+                    <Button variant="outline" onClick={clearFilters}>
+                      Clear filters
+                    </Button>
+                  }
+                />
+              }
+            >
               <>
                 <div className="grid gap-4 md:hidden">
                   {filteredResources.map((resource) => (
@@ -528,7 +508,6 @@ function ResourcesPageContent() {
                   </DataList>
                 </div>
               </>
-            )}
 
             <div className="rounded-md border border-dashed border-border bg-muted/20 p-4 text-sm">
               <p className="font-medium">Can&apos;t find what you&apos;re looking for?</p>
@@ -544,8 +523,9 @@ function ResourcesPageContent() {
                 Suggest resource
               </Button>
             </div>
+            </ListPageBody>
         </div>
-      </div>
+      </ListPageShell>
     </DashboardLayout>
   )
 }

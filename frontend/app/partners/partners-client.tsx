@@ -6,8 +6,6 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -15,19 +13,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Building2, Loader2, Search, Sparkles, Target, TrendingUp, X } from "lucide-react"
-import { Breadcrumbs } from "@/components/breadcrumbs"
+import { Building2, Loader2, Sparkles, Target, TrendingUp } from "lucide-react"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
 import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
+import { MobileSearchFilterRow } from "@/components/mobile/mobile-page-shell"
+import { FilterBarItem } from "@/components/design/filter-bar"
+import { EmptyState } from "@/components/design/empty-state"
 import {
-  MobilePageHeader,
-  MobileStatsStrip,
-  MobileFilterMeta,
-  MobileBreadcrumbsHidden,
-  MobileSearchFilterRow,
-} from "@/components/mobile/mobile-page-shell"
+  ListPageBody,
+  ListPageFilterSection,
+  ListPageSearchField,
+  ListPageShell,
+} from "@/components/design/list-page-shell"
 import { PartnerCard } from "@/components/partners/partner-card"
 import {
   countInvestorPartners,
@@ -117,48 +116,44 @@ export default function PartnersPageClient() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-5xl space-y-5 overflow-x-hidden md:space-y-8">
-        <MobileBreadcrumbsHidden>
-          <Breadcrumbs items={[{ label: "Partners & Network" }]} />
-        </MobileBreadcrumbsHidden>
-
-        <MobilePageHeader
-          title="Partners & network"
-          description="Investors, funders, and ecosystem partners supporting social innovation in Kenya and beyond."
-        />
-
-        <MobileStatsStrip
-          loading={isLoading}
-          items={[
-            { label: "Partners", value: partners.length, icon: Building2 },
-            { label: "Investors", value: countInvestorPartners(partners), icon: TrendingUp },
-            { label: "Opportunities", value: sumPartnerOpportunities(partners), icon: Target },
-          ]}
-        />
-
-        <div className="hidden gap-4 md:grid md:grid-cols-3">
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Total partners</p>
-              <p className="mt-1 text-2xl font-semibold">{partners.length}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Investors & funders</p>
-              <p className="mt-1 text-2xl font-semibold">{countInvestorPartners(partners)}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">Listed opportunities</p>
-              <p className="mt-1 text-2xl font-semibold">{sumPartnerOpportunities(partners)}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Mobile filters */}
-        <div className="space-y-3 md:hidden">
+      <ListPageShell
+        breadcrumb="Partners & Network"
+        title="Partners & network"
+        description="Investors, funders, and ecosystem partners supporting social innovation in Kenya and beyond."
+        stats={[
+          { label: "Partners", value: partners.length, icon: Building2 },
+          { label: "Investors", value: countInvestorPartners(partners), icon: TrendingUp },
+          { label: "Opportunities", value: sumPartnerOpportunities(partners), icon: Target },
+        ]}
+        statsLoading={isLoading}
+        metrics={
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="border-border">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Total partners</p>
+                <p className="mt-1 text-2xl font-semibold">{partners.length}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-border">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Investors & funders</p>
+                <p className="mt-1 text-2xl font-semibold">{countInvestorPartners(partners)}</p>
+              </CardContent>
+            </Card>
+            <Card className="border-border">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Listed opportunities</p>
+                <p className="mt-1 text-2xl font-semibold">{sumPartnerOpportunities(partners)}</p>
+              </CardContent>
+            </Card>
+          </div>
+        }
+        resultCount={partners.length}
+        resultLabel="partners"
+        filterCount={activeFilterCount}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+        mobileFilters={
           <MobileSearchFilterRow
             search={
               <MobileSearchBar
@@ -175,124 +170,120 @@ export default function PartnersPageClient() {
                 onClear={clearFilters}
               >
                 <div className="space-y-4">
-                  <FilterSection label="Type">
+                  <ListPageFilterSection label="Type">
                     <FilterChipRow>
                       <FilterChip label="All" active={typeFilter === "all"} onClick={() => setTypeFilter("all")} />
                       {uniqueTypes.map((t) => (
                         <FilterChip key={t} label={t} active={typeFilter === t} onClick={() => setTypeFilter(t)} />
                       ))}
                     </FilterChipRow>
-                  </FilterSection>
-                  <FilterSection label="Category">
+                  </ListPageFilterSection>
+                  <ListPageFilterSection label="Category">
                     <FilterChipRow>
                       <FilterChip label="All" active={categoryFilter === "all"} onClick={() => setCategoryFilter("all")} />
                       {uniqueCategories.map((c) => (
                         <FilterChip key={c} label={c} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
                       ))}
                     </FilterChipRow>
-                  </FilterSection>
-                  <FilterSection label="Reach">
+                  </ListPageFilterSection>
+                  <ListPageFilterSection label="Reach">
                     <FilterChipRow>
                       <FilterChip label="All" active={locationFilter === "all"} onClick={() => setLocationFilter("all")} />
                       {uniqueLocationTypes.map((l) => (
                         <FilterChip key={l} label={l} active={locationFilter === l} onClick={() => setLocationFilter(l)} />
                       ))}
                     </FilterChipRow>
-                  </FilterSection>
+                  </ListPageFilterSection>
                 </div>
               </MobileFilterSheet>
             }
           />
-          <MobileFilterMeta
-            count={partners.length}
-            countLabel="partners"
-            filterCount={activeFilterCount}
-            hasFilters={hasActiveFilters}
-            onClear={clearFilters}
-          />
-        </div>
-
-        {/* Desktop filters */}
-        <div className="hidden flex-col gap-3 md:flex">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative min-w-[220px] flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, description, or focus area…"
+        }
+        desktopFilters={
+          <>
+            <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
+              <ListPageSearchField
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                onChange={setSearchQuery}
+                placeholder="Search by name, description, or focus area…"
               />
-            </div>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[170px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All types</SelectItem>
-                {uniqueTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[170px]">
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {uniqueCategories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={locationFilter} onValueChange={setLocationFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Reach" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All reach</SelectItem>
-                {uniqueLocationTypes.map((location) => (
-                  <SelectItem key={location} value={location}>
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            </FilterBarItem>
+            <FilterBarItem>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="h-9 w-[170px]">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All types</SelectItem>
+                  {uniqueTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterBarItem>
+            <FilterBarItem>
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="h-9 w-[170px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {uniqueCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterBarItem>
+            <FilterBarItem>
+              <Select value={locationFilter} onValueChange={setLocationFilter}>
+                <SelectTrigger className="h-9 w-[150px]">
+                  <SelectValue placeholder="Reach" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All reach</SelectItem>
+                  {uniqueLocationTypes.map((location) => (
+                    <SelectItem key={location} value={location}>
+                      {location}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterBarItem>
             {hasActiveFilters ? (
               <Button variant="outline" size="sm" onClick={clearFilters}>
-                <X className="mr-2 h-4 w-4" />
                 Clear
               </Button>
             ) : null}
-          </div>
-          {activeFilterCount > 0 ? (
-            <Badge variant="secondary">
-              {activeFilterCount} filter{activeFilterCount !== 1 ? "s" : ""} applied · {partners.length}{" "}
-              result{partners.length !== 1 ? "s" : ""}
-            </Badge>
-          ) : null}
-        </div>
-
-        {isLoading ? (
-          <LoadingState />
-        ) : error ? (
-          <EmptyState
-            message={error.message || "Failed to load partners"}
-            actionLabel="Retry"
-            onAction={() => window.location.reload()}
-          />
-        ) : partners.length === 0 ? (
-          <EmptyState
-            message="No partners match your filters."
-            actionLabel="Clear filters"
-            onAction={clearFilters}
-          />
-        ) : (
+          </>
+        }
+      >
+        <ListPageBody
+          loading={isLoading}
+          loadingMessage="Loading partners…"
+          error={error?.message ?? null}
+          errorAction={
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          }
+          isEmpty={partners.length === 0}
+          empty={
+            <EmptyState
+              icon={Building2}
+              title="No partners match your filters"
+              description="Try clearing filters or broadening your search."
+              action={
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              }
+            />
+          }
+        >
           <div className="space-y-8">
             {featuredPartners.length > 0 ? (
               <section className="space-y-4">
@@ -323,50 +314,8 @@ export default function PartnersPageClient() {
               </div>
             </section>
           </div>
-        )}
-      </div>
+        </ListPageBody>
+      </ListPageShell>
     </DashboardLayout>
-  )
-}
-
-function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-2">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      {children}
-    </div>
-  )
-}
-
-function LoadingState() {
-  return (
-    <Card className="border-border">
-      <CardContent className="flex flex-col items-center justify-center py-16">
-        <Loader2 className="mb-4 h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Loading partners…</p>
-      </CardContent>
-    </Card>
-  )
-}
-
-function EmptyState({
-  message,
-  actionLabel,
-  onAction,
-}: {
-  message: string
-  actionLabel: string
-  onAction: () => void
-}) {
-  return (
-    <Card className="border-border">
-      <CardContent className="flex flex-col items-center justify-center py-16">
-        <Building2 className="mb-4 h-10 w-10 text-muted-foreground" />
-        <p className="text-center text-sm text-muted-foreground">{message}</p>
-        <Button variant="outline" className="mt-4" onClick={onAction}>
-          {actionLabel}
-        </Button>
-      </CardContent>
-    </Card>
   )
 }

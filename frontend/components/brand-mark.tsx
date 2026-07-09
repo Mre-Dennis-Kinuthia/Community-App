@@ -1,4 +1,4 @@
-import { BRAND_LOGO_PATH } from "@/lib/brand"
+import { BRAND_MARK_PATH, BRAND_MARK_SVG_PATH, getBrandMarkDimensions } from "@/lib/brand"
 import { cn } from "@/lib/utils"
 
 type BrandMarkProps = {
@@ -6,18 +6,26 @@ type BrandMarkProps = {
   className?: string
 }
 
-/** Square tile from the official Impact Hub Nairobi logo. */
+/** Square Impact Hub mark from the official logo (home-screen / favicon tile). */
 export function BrandMark({ size = 36, className }: BrandMarkProps) {
+  const { width, height } = getBrandMarkDimensions(size)
+
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={BRAND_LOGO_PATH}
+      src={BRAND_MARK_SVG_PATH}
       alt=""
-      width={size}
-      height={size}
+      width={width}
+      height={height}
       aria-hidden
-      className={cn("shrink-0 object-cover object-left", className)}
-      style={{ width: size, height: size, maxWidth: size }}
+      className={cn("shrink-0 object-contain", className)}
+      style={{ width, height, minWidth: width }}
+      onError={(event) => {
+        const img = event.currentTarget
+        if (img.dataset.fallbackApplied === "true") return
+        img.dataset.fallbackApplied = "true"
+        img.src = BRAND_MARK_PATH
+      }}
     />
   )
 }

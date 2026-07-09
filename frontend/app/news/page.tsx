@@ -5,13 +5,9 @@ import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Newspaper,
-  Search,
-  X,
   Calendar,
-  Loader2,
   ArrowRight,
   Clock,
   Eye,
@@ -22,17 +18,16 @@ import {
 import { format } from "date-fns"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import { Breadcrumbs } from "@/components/breadcrumbs"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileSearchBar } from "@/components/mobile/mobile-search-bar"
-import {
-  MobilePageHeader,
-  MobileFilterMeta,
-  MobileBreadcrumbsHidden,
-} from "@/components/mobile/mobile-page-shell"
-import { FilterBar, FilterBarItem } from "@/components/design/filter-bar"
+import { FilterBarItem } from "@/components/design/filter-bar"
 import { EmptyState } from "@/components/design/empty-state"
+import {
+  ListPageBody,
+  ListPageSearchField,
+  ListPageShell,
+} from "@/components/design/list-page-shell"
 import { cn } from "@/lib/utils"
 
 interface NewsTag {
@@ -159,71 +154,61 @@ export default function NewsPage() {
     return html.replace(/<[^>]*>/g, "").substring(0, 200)
   }
 
+  const filterCount = [searchQuery, categoryId, tagId].filter(Boolean).length
+
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-5xl space-y-4 overflow-x-hidden md:space-y-6">
-        <MobileBreadcrumbsHidden>
-          <Breadcrumbs items={[{ label: "News & Updates" }]} />
-        </MobileBreadcrumbsHidden>
-
-        <MobilePageHeader
-          title="News & updates"
-          description="Stories, announcements, and insights from Impact Hub Nairobi."
-        />
-
-        {/* Mobile search */}
-        <div className="space-y-3 md:hidden">
-          <MobileSearchBar
-            value={searchInput}
-            onChange={(v) => {
-              setSearchInput(v)
-              if (!v.trim() && searchQuery) applySearch("")
-            }}
-            placeholder="Search articles…"
-          />
-          <div className="flex gap-2">
-            <Button type="button" size="sm" className="h-9 rounded-lg px-4" onClick={() => applySearch()}>
-              Search
-            </Button>
-            {hasActiveFilters && (
-              <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg" onClick={clearFilters}>
-                Clear
+      <ListPageShell
+        breadcrumb="News & Updates"
+        title="News & updates"
+        description="Stories, announcements, and insights from Impact Hub Nairobi."
+        resultCount={news.length}
+        resultLabel="articles"
+        filterCount={filterCount}
+        hasActiveFilters={!!hasActiveFilters}
+        onClearFilters={clearFilters}
+        showDesktopFilterBadge={false}
+        mobileFilters={
+          <>
+            <MobileSearchBar
+              value={searchInput}
+              onChange={(v) => {
+                setSearchInput(v)
+                if (!v.trim() && searchQuery) applySearch("")
+              }}
+              placeholder="Search articles…"
+            />
+            <div className="flex gap-2">
+              <Button type="button" size="sm" className="h-9 rounded-lg px-4" onClick={() => applySearch()}>
+                Search
               </Button>
-            )}
-          </div>
-          <MobileFilterMeta
-            count={news.length}
-            countLabel="articles"
-            filterCount={[searchQuery, categoryId, tagId].filter(Boolean).length}
-            hasFilters={!!hasActiveFilters}
-            onClear={clearFilters}
-          />
-        </div>
-
-        {/* Desktop search */}
-        <div className="hidden md:block">
-          <FilterBar>
+              {hasActiveFilters ? (
+                <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg" onClick={clearFilters}>
+                  Clear
+                </Button>
+              ) : null}
+            </div>
+          </>
+        }
+        desktopFilters={
+          <>
             <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search articles…"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && applySearch()}
-                  className="h-9 pl-8"
-                />
-              </div>
+              <ListPageSearchField
+                value={searchInput}
+                onChange={setSearchInput}
+                onKeyDown={(e) => e.key === "Enter" && applySearch()}
+                placeholder="Search articles…"
+              />
             </FilterBarItem>
             {hasActiveFilters ? (
               <Button variant="outline" size="sm" onClick={clearFilters}>
                 Clear filters
               </Button>
             ) : null}
-          </FilterBar>
-        </div>
-
-        {(uniqueCategories.length > 0 || uniqueTags.length > 0) && (
+          </>
+        }
+        filterChips={
+          (uniqueCategories.length > 0 || uniqueTags.length > 0) ? (
           <FilterChipRow>
             <FilterChip
               label="All"
@@ -250,8 +235,9 @@ export default function NewsPage() {
               />
             ))}
           </FilterChipRow>
-        )}
-
+          ) : null
+        }
+      >
         {hasActiveFilters && (
           <div className="hidden flex-wrap items-center gap-2 md:flex">
             <span className="text-sm text-muted-foreground">Active:</span>
@@ -282,49 +268,39 @@ export default function NewsPage() {
           </p>
         )}
 
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading news…
-          </div>
-        ) : null}
-
-        {error && !loading ? (
-          <EmptyState
-            title="Could not load news"
-            description={error}
-            action={
-              <Button variant="outline" onClick={() => window.location.reload()}>
-                Retry
-              </Button>
-            }
-          />
-        ) : null}
-
-        {!loading && !error && news.length === 0 ? (
-          <EmptyState
-            icon={Newspaper}
-            title={hasActiveFilters ? "No articles match your filters" : "No articles yet"}
-            description={
-              hasActiveFilters
-                ? "Try clearing filters to see all published updates."
-                : "Hub news and announcements will appear here when published."
-            }
-            action={
-              hasActiveFilters ? (
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear filters
-                </Button>
-              ) : (
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard">Back to dashboard</Link>
-                </Button>
-              )
-            }
-          />
-        ) : null}
-
-        {!loading && !error && news.length > 0 && (
+        <ListPageBody
+          loading={loading}
+          loadingMessage="Loading news…"
+          error={error}
+          errorAction={
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          }
+          isEmpty={news.length === 0}
+          empty={
+            <EmptyState
+              icon={Newspaper}
+              title={hasActiveFilters ? "No articles match your filters" : "No articles yet"}
+              description={
+                hasActiveFilters
+                  ? "Try clearing filters to see all published updates."
+                  : "Hub news and announcements will appear here when published."
+              }
+              action={
+                hasActiveFilters ? (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                ) : (
+                  <Button variant="outline" asChild>
+                    <Link href="/dashboard">Back to dashboard</Link>
+                  </Button>
+                )
+              }
+            />
+          }
+        >
           <div className="news-feed-list">
             {news.map((item) => {
               const displayDate = getDisplayDate(item)
@@ -444,8 +420,8 @@ export default function NewsPage() {
               )
             })}
           </div>
-        )}
-      </div>
+        </ListPageBody>
+      </ListPageShell>
     </DashboardLayout>
   )
 }

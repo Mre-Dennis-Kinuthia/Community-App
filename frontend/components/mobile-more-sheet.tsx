@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { isNavItemActive, MOBILE_MORE_NAV } from "@/lib/mobile-nav-items"
+import { isNavItemActive, MOBILE_MORE_NAV } from "@/lib/nav-config"
 
 type MobileMoreSheetProps = {
   open: boolean
