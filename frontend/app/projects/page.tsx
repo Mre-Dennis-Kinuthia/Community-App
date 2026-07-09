@@ -18,7 +18,8 @@ import {
   Handshake,
   UserPlus,
   MapPin,
-  Star
+  Star,
+  DollarSign,
 } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
