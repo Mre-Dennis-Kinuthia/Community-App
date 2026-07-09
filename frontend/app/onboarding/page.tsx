@@ -26,6 +26,7 @@ import {
 import { Loader2, ArrowRight, ArrowLeft, Building2, Target, Linkedin } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { toast } from "@/lib/toast"
+import { resetWelcomeForNewMember } from "@/lib/getting-started"
 import { cn } from "@/lib/utils"
 import {
   ENGAGEMENT_GOALS,
@@ -213,7 +214,7 @@ function OnboardingContent() {
       }
       if (typeof window !== "undefined") {
         sessionStorage.setItem("onboardingJustCompleted", "true")
-        localStorage.removeItem("hasSeenWelcome")
+        resetWelcomeForNewMember()
       }
       router.replace("/dashboard")
     } catch (e: unknown) {

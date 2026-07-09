@@ -33,19 +33,19 @@ export const MOBILE_PRIMARY_NAV: MobileNavItem[] = [
   { title: "Events", href: "/events", icon: CalendarDays },
 ]
 
-/** Secondary destinations — "More" sheet */
+/** Secondary destinations — "More" sheet (workspace front-desk items grouped at end) */
 export const MOBILE_MORE_NAV: MobileNavItem[] = [
   { title: "News & Updates", href: "/news", icon: Newspaper },
   { title: "Partners", href: "/partners", icon: Handshake },
   { title: "Opportunities", href: "/opportunities", icon: Sparkles },
   { title: "Projects", href: "/projects", icon: Lightbulb },
   { title: "Investments", href: "/investments", icon: BarChart3 },
-  { title: "My bookings", href: "/dashboard/bookings", icon: BookOpen },
-  { title: "My visitors", href: "/dashboard/visitors", icon: UserRound },
-  { title: "My packages", href: "/dashboard/deliveries", icon: Package },
-  { title: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
+  { title: "My Bookings", href: "/dashboard/bookings", icon: BookOpen },
   { title: "My projects", href: "/dashboard/projects", icon: FolderOpen },
   { title: "Profile", href: "/profile", icon: User },
+  { title: "My Visitors", href: "/dashboard/visitors", icon: UserRound },
+  { title: "My Packages", href: "/dashboard/deliveries", icon: Package },
+  { title: "Maintenance", href: "/dashboard/maintenance", icon: Wrench },
 ].filter((item) => isNavHrefEnabled(item.href))
 
 export const MOBILE_MORE_TRIGGER: MobileNavItem = {

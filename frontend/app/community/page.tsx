@@ -495,11 +495,20 @@ function CommunityPageContent() {
                 Loading connections…
               </div>
             ) : error ? (
-              <EmptyState title="Error loading connections" description={error} />
+              <EmptyState
+                title="Error loading connections"
+                description={error}
+                action={
+                  <Button variant="outline" onClick={() => window.location.reload()}>
+                    Retry
+                  </Button>
+                }
+              />
             ) : filteredAndSortedMembers.length === 0 ? (
               <EmptyState
-                title="No connections found"
-                description="Start connecting with community members."
+                icon={Users}
+                title="No connections yet"
+                description="Browse the directory and send connection requests to members you'd like to collaborate with."
                 action={
                   <Button variant="outline" onClick={() => setActiveTab("all")}>
                     Browse all members

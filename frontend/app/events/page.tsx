@@ -666,7 +666,22 @@ export default function EventsPage() {
               Loading events…
             </div>
           ) : filteredEvents.length === 0 ? (
-            <EmptyState title="No events found" description="Try adjusting your filters." />
+            <EmptyState
+              icon={CalendarDays}
+              title="No events found"
+              description={
+                hasActiveFilters
+                  ? "Try clearing or broadening your filters to see more events."
+                  : "New workshops and programs are added regularly — check back soon."
+              }
+              action={
+                hasActiveFilters ? (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Clear filters
+                  </Button>
+                ) : undefined
+              }
+            />
           ) : (
             <div
               className="transition-opacity duration-200 ease-in-out"

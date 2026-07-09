@@ -303,14 +303,23 @@ export default function NewsPage() {
 
         {!loading && !error && news.length === 0 ? (
           <EmptyState
+            icon={Newspaper}
             title={hasActiveFilters ? "No articles match your filters" : "No articles yet"}
-            description={hasActiveFilters ? "Try clearing filters." : undefined}
+            description={
+              hasActiveFilters
+                ? "Try clearing filters to see all published updates."
+                : "Hub news and announcements will appear here when published."
+            }
             action={
               hasActiveFilters ? (
                 <Button variant="outline" onClick={clearFilters}>
                   Clear filters
                 </Button>
-              ) : undefined
+              ) : (
+                <Button variant="outline" asChild>
+                  <Link href="/dashboard">Back to dashboard</Link>
+                </Button>
+              )
             }
           />
         ) : null}

@@ -12,10 +12,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/logo"
 import { Calendar, Users, BookOpen, ArrowRight } from "lucide-react"
+import { markWelcomeSeen, hasSeenWelcome } from "@/lib/getting-started"
 
 interface WelcomeModalProps {
   onboardingComplete?: boolean
   userName?: string | null
+  onWelcomeComplete?: () => void
 }
 
 const QUICK_LINKS = [
@@ -39,25 +41,23 @@ const QUICK_LINKS = [
   },
 ] as const
 
-export function WelcomeModal({ onboardingComplete = true, userName }: WelcomeModalProps) {
+export function WelcomeModal({
+  onboardingComplete = true,
+  userName,
+  onWelcomeComplete,
+}: WelcomeModalProps) {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== "undefined" && onboardingComplete) {
-      const hasSeenWelcome = localStorage.getItem("hasSeenWelcome")
-      if (!hasSeenWelcome) {
-        setOpen(true)
-        sessionStorage.removeItem("onboardingJustCompleted")
-      }
+    if (typeof window !== "undefined" && onboardingComplete && !hasSeenWelcome()) {
+      setOpen(true)
     }
   }, [onboardingComplete])
 
   const handleClose = () => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("hasSeenWelcome", "true")
-      sessionStorage.removeItem("onboardingJustCompleted")
-    }
+    markWelcomeSeen()
     setOpen(false)
+    onWelcomeComplete?.()
   }
 
   const firstName = userName?.trim().split(/\s+/)[0] || ""
@@ -71,7 +71,8 @@ export function WelcomeModal({ onboardingComplete = true, userName }: WelcomeMod
             {firstName ? `Welcome, ${firstName}` : "Welcome to Impact Hub Nairobi"}
           </DialogTitle>
           <DialogDescription>
-            Here are the main areas of the member platform. You can revisit these anytime from the sidebar.
+            You&apos;re all set. Here are three places to start — pick one, or explore the dashboard
+            on your own.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,9 +100,14 @@ export function WelcomeModal({ onboardingComplete = true, userName }: WelcomeMod
           })}
         </ul>
 
-        <Button type="button" className="w-full" onClick={handleClose}>
-          Continue to dashboard
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button type="button" className="w-full" onClick={handleClose}>
+            Continue to dashboard
+          </Button>
+          <Button type="button" variant="ghost" className="w-full text-muted-foreground" onClick={handleClose}>
+            Skip tour
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -506,12 +506,23 @@ function ProjectsPageContent() {
           />
         ) : filteredAndSortedProjects.length === 0 ? (
           <EmptyState
-            title="No projects found"
-            description="Try adjusting your filters."
+            icon={Lightbulb}
+            title={hasActiveFilters ? "No projects match your filters" : "No projects yet"}
+            description={
+              hasActiveFilters
+                ? "Try clearing filters or broadening your search."
+                : "Community-led initiatives will appear here — explore the directory to find collaborators."
+            }
             action={
-              <Button variant="outline" onClick={clearFilters}>
-                Clear filters
-              </Button>
+              hasActiveFilters ? (
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              ) : (
+                <Button variant="outline" asChild>
+                  <Link href="/community">Browse community</Link>
+                </Button>
+              )
             }
           />
         ) : (

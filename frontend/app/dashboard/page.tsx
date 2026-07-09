@@ -30,6 +30,10 @@ import {
 import { StatusDot } from "@/components/design/status-dot"
 import { EmptyState } from "@/components/design/empty-state"
 import { cn } from "@/lib/utils"
+import {
+  dismissGettingStarted,
+  shouldShowGettingStarted,
+} from "@/lib/getting-started"
 
 function getGreeting() {
   const hour = new Date().getHours()
@@ -127,6 +131,12 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
+    if (onboardingComplete) {
+      setShowGettingStarted(shouldShowGettingStarted(true))
+    }
+  }, [onboardingComplete])
+
+  useEffect(() => {
     if (typeof window === "undefined") return
     const params = new URLSearchParams(window.location.search)
     if (params.get("notice") === "feature-unavailable") {
@@ -174,7 +184,11 @@ export default function DashboardPage() {
 
   return (
     <>
-      <WelcomeModal onboardingComplete={onboardingComplete ?? false} userName={user?.name} />
+      <WelcomeModal
+        onboardingComplete={onboardingComplete ?? false}
+        userName={user?.name}
+        onWelcomeComplete={() => setShowGettingStarted(shouldShowGettingStarted(true))}
+      />
       <div className="space-y-6 md:space-y-10">
         <MobileBreadcrumbsHidden>
           <Breadcrumbs items={[{ label: "Dashboard" }]} />
@@ -229,7 +243,10 @@ export default function DashboardPage() {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => setShowGettingStarted(false)}
+                  onClick={() => {
+                    dismissGettingStarted()
+                    setShowGettingStarted(false)
+                  }}
                   aria-label="Dismiss getting started"
                 >
                   <X className="h-4 w-4" />
@@ -309,7 +326,9 @@ export default function DashboardPage() {
               </div>
             ) : upcomingBookings.length === 0 ? (
               <EmptyState
+                icon={CalendarDays}
                 title="No upcoming bookings"
+                description="Reserve a desk or meeting room to work from the hub this week."
                 action={
                   <Button variant="outline" size="sm" asChild>
                     <Link href="/booking">Book a workspace</Link>
@@ -348,7 +367,9 @@ export default function DashboardPage() {
               </div>
             ) : recentEvents.length === 0 ? (
               <EmptyState
+                icon={Sparkles}
                 title="No upcoming events"
+                description="Workshops and networking sessions are added regularly — check back soon."
                 action={
                   <Button variant="outline" size="sm" asChild>
                     <Link href="/events">Browse events</Link>
