@@ -22,8 +22,8 @@ export function AuthPageShell({
     "Inclusive and sustainable innovation at scale — programs, workspace, events, and a local-to-global impact community.",
 }: AuthPageShellProps) {
   return (
-    <div className="auth-page flex min-h-screen flex-col bg-[#faf9f6] lg:flex-row">
-      <div className="auth-page-panel relative hidden min-h-screen w-full overflow-hidden lg:flex lg:w-[44%] xl:w-[42%]">
+    <div className="auth-page fixed inset-0 flex flex-col overflow-hidden bg-[#faf9f6] lg:flex-row">
+      <div className="auth-page-panel relative hidden h-full w-full shrink-0 overflow-hidden lg:flex lg:w-[44%] xl:w-[42%]">
         <Image
           src={LANDING_IMAGES.authPanel}
           alt=""
@@ -34,7 +34,7 @@ export function AuthPageShell({
           unoptimized
         />
         <div className="auth-page-panel__overlay absolute inset-0" aria-hidden />
-        <div className="relative z-10 flex min-h-screen flex-col justify-end p-10 xl:p-12">
+        <div className="relative z-10 flex h-full flex-col justify-end p-10 xl:p-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#ffd546]">
             {panelEyebrow}
           </p>
@@ -45,8 +45,8 @@ export function AuthPageShell({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 lg:py-12">
-        <div className="auth-page-mobile-hero relative mb-6 h-28 w-full max-w-md overflow-hidden rounded-md lg:hidden">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto overscroll-contain px-4 py-6 sm:px-6 lg:py-8">
+        <div className="auth-page-mobile-hero relative mb-4 h-20 w-full max-w-md shrink-0 overflow-hidden rounded-md sm:h-24 lg:hidden">
           <Image
             src={LANDING_IMAGES.authPanel}
             alt=""
@@ -64,8 +64,8 @@ export function AuthPageShell({
           </div>
         </div>
 
-        <Logo href="/" className="mb-6" />
-        <div className="mb-6 w-full max-w-md text-center lg:text-left">
+        <Logo href="/" className="mb-4 shrink-0" />
+        <div className="mb-4 w-full max-w-md shrink-0 text-center lg:text-left">
           <h1 className="text-2xl font-semibold tracking-tight text-[#0a1f38]">{title}</h1>
           <p className="mt-2 text-sm leading-relaxed text-[#1c395c]/80">{subtitle}</p>
         </div>

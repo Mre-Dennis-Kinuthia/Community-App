@@ -416,7 +416,14 @@ html.pwa-standalone body {
     @apply overflow-hidden rounded-md border border-[#edeff2] bg-[#1c395c] text-white shadow-md;
   }
 
-  /* Auth pages — same IHN brand as landing */
+  /* Auth pages — same IHN brand as landing; lock to viewport (no page Y-scroll) */
+  .auth-page {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   .auth-page-panel__overlay {
     background: linear-gradient(
       to top,

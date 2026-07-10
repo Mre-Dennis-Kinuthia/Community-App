@@ -1,4 +1,4 @@
-/** Local copies of Impact Hub Nairobi marketing imagery (see scripts/fetch-landing-images.mjs). */
+/** Local Impact Hub Nairobi space photos (see scripts/import-hub-photos.mjs). */
 export const LANDING_IMAGES = {
   hero: "/landing/hero.jpg",
   authPanel: "/landing/auth-panel.jpg",

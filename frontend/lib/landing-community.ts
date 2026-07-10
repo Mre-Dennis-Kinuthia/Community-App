@@ -36,7 +36,7 @@ export const MEMBER_ARCHETYPES = [
 export const COMMUNITY_MOMENTS = [
   {
     image: LANDING_IMAGES.pillars.innovation,
-    caption: "Global network gatherings",
+    caption: "Private offices & focus rooms",
   },
   {
     image: LANDING_IMAGES.pillars.coworking,
@@ -44,11 +44,11 @@ export const COMMUNITY_MOMENTS = [
   },
   {
     image: LANDING_IMAGES.pillars.programs,
-    caption: "Programs & workshops",
+    caption: "Branded community workspace",
   },
   {
     image: LANDING_IMAGES.hero,
-    caption: "Community in Nairobi",
+    caption: "Impact Hub Nairobi",
   },
 ] as const
 
