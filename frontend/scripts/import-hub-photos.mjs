@@ -2,7 +2,7 @@
  * Imports Impact Hub Nairobi space photos into public/landing and public/hub.
  * Run: node scripts/import-hub-photos.mjs
  */
-import { mkdir, copyFile } from "node:fs/promises"
+import { mkdir, copyFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import sharp from "sharp"
@@ -31,10 +31,18 @@ const SRC = {
 const LANDING = {
   "hero.jpg": { key: "ihn7", width: 1920 },
   "auth-panel.jpg": { key: "room1", width: 1400 },
-  "pillar-programs.jpg": { key: "room1", width: 1200 },
+  // Keep original IHN marketing art for most pillars; only coworking uses hub space photos.
   "pillar-coworking.jpg": { key: "room2", width: 1200 },
-  "pillar-innovation.jpg": { key: "ihn11", width: 1200 },
-  "pillar-partnerships.jpg": { key: "ihn9", width: 1200 },
+}
+
+/** Original nairobi.impacthub.net marketing images for non-coworking pillars. */
+const LANDING_REMOTE = {
+  "pillar-programs.jpg":
+    "https://nairobi.impacthub.net/wp-content/uploads/2025/07/IHN-support-1024x683.jpg",
+  "pillar-innovation.jpg":
+    "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Global-gathering-group-photo-1024x683.jpg",
+  "pillar-partnerships.jpg":
+    "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Partnership-1024x683.jpg",
 }
 
 const HUB = {
@@ -61,6 +69,12 @@ async function writeJpeg(srcPath, destPath, width) {
     .toFile(destPath)
 }
 
+async function fetchBuffer(url) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`)
+  return Buffer.from(await res.arrayBuffer())
+}
+
 async function main() {
   const landingDir = path.join(frontendRoot, "public", "landing")
   const hubDir = path.join(frontendRoot, "public", "hub")
@@ -72,6 +86,12 @@ async function main() {
     const dest = path.join(landingDir, filename)
     await writeJpeg(src, dest, width)
     console.log("landing/", filename)
+  }
+
+  for (const [filename, url] of Object.entries(LANDING_REMOTE)) {
+    const buf = await fetchBuffer(url)
+    await writeFile(path.join(landingDir, filename), buf)
+    console.log("landing/", filename, "(original)")
   }
 
   for (const [filename, { key, width }] of Object.entries(HUB)) {
