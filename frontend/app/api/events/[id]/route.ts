@@ -46,22 +46,58 @@ export async function GET(
 
     const eventId = event.id
 
-    const [confirmedCount, waitlistCount, userRegistration] = await Promise.all([
-      countConfirmedRegistrations(prisma, eventId),
-      prisma.eventRegistration.count({
-        where: { eventId, status: "waitlisted" },
-      }),
-      session?.user?.email
-        ? prisma.eventRegistration.findFirst({
-            where: {
-              eventId,
-              email: session.user.email.toLowerCase().trim(),
-              status: { in: ["registered", "waitlisted", "pending", "attended"] },
-            },
-            select: { id: true, status: true, createdAt: true },
+    const [confirmedCount, waitlistCount, userRegistration, attendeeRegs] =
+      await Promise.all([
+        countConfirmedRegistrations(prisma, eventId),
+        prisma.eventRegistration.count({
+          where: { eventId, status: "waitlisted" },
+        }),
+        session?.user?.email
+          ? prisma.eventRegistration.findFirst({
+              where: {
+                eventId,
+                email: session.user.email.toLowerCase().trim(),
+                status: { in: ["registered", "waitlisted", "pending", "attended"] },
+              },
+              select: { id: true, status: true, createdAt: true },
+            })
+          : Promise.resolve(null),
+        prisma.eventRegistration.findMany({
+          where: {
+            eventId,
+            status: { in: ["registered", "attended"] },
+          },
+          orderBy: { createdAt: "asc" },
+          take: 12,
+          select: { name: true, email: true, userId: true },
+        }),
+      ])
+
+    const userIds = [
+      ...new Set(
+        attendeeRegs
+          .map((r) => r.userId)
+          .filter((id): id is string => Boolean(id))
+      ),
+    ]
+    const users =
+      userIds.length > 0
+        ? await prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: { id: true, name: true, image: true },
           })
-        : Promise.resolve(null),
-    ])
+        : []
+    const userById = new Map(users.map((u) => [u.id, u]))
+
+    const attendeePreview = attendeeRegs.map((reg) => {
+      const linked = reg.userId ? userById.get(reg.userId) : undefined
+      const name =
+        (reg.name?.trim() || linked?.name?.trim() || reg.email.split("@")[0] || "Guest").trim()
+      return {
+        name,
+        image: linked?.image ?? null,
+      }
+    })
 
     return NextResponse.json(
       {
@@ -69,6 +105,7 @@ export async function GET(
           ...event,
           confirmedCount,
           waitlistCount,
+          attendeePreview,
         },
         userRegistration,
       },

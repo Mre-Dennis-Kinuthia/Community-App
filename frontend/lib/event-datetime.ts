@@ -121,6 +121,39 @@ export function formatEventDateTimeLine(
   }).format(toDate(utcDate))
 }
 
+/** Calendar-tile parts for public event layouts (e.g. NOV / 19). */
+export function formatEventDateBadge(
+  utcDate: Date | string,
+  timeZone: string
+): { month: string; day: string } {
+  const d = toDate(utcDate)
+  return {
+    month: new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      month: "short",
+    })
+      .format(d)
+      .toUpperCase(),
+    day: new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      day: "numeric",
+    }).format(d),
+  }
+}
+
+/** Short offset label like GMT+3 for the event timezone. */
+export function formatEventGmtOffset(
+  utcDate: Date | string,
+  timeZone: string
+): string {
+  const offsetMin = getTimezoneOffsetMinutes(timeZone, toDate(utcDate))
+  const sign = offsetMin >= 0 ? "+" : "-"
+  const abs = Math.abs(offsetMin)
+  const hours = Math.floor(abs / 60)
+  const mins = abs % 60
+  return mins === 0 ? `GMT${sign}${hours}` : `GMT${sign}${hours}:${String(mins).padStart(2, "0")}`
+}
+
 export function eventTimezone(timezone?: string | null): string {
   return timezone?.trim() || DEFAULT_EVENT_TIMEZONE
 }

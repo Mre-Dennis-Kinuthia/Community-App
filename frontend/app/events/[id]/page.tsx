@@ -1,31 +1,13 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { use, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  Loader2,
-  ExternalLink,
-  Ticket,
-} from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { isBefore } from "date-fns"
-import {
-  eventTimezone,
-  formatEventDate,
-  formatEventDateTimeLine,
-  formatEventTime,
-} from "@/lib/event-datetime"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
-import { displayLocation, eventTypeLabel, resolveEventPlatform } from "@/lib/event-constants"
-import { EventPlatformBadge } from "@/components/platform-icon"
 import {
   formatEventPrice,
   isPaidEvent,
@@ -33,10 +15,8 @@ import {
 } from "@/lib/event-questions"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { EventPublicLayout } from "@/components/events/event-public-layout"
-import { EventSharePanel } from "@/components/events/event-share-panel"
-import { EventCalendarActions } from "@/components/events/event-calendar-actions"
+import { EventPublicView } from "@/components/events/event-public-view"
 import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
-import { LumaRegistration } from "@/components/events/luma-registration"
 import { getEventCalendarLinks } from "@/lib/event-calendar"
 import { isLumaRegistration } from "@/lib/luma"
 import { isEventCuid } from "@/lib/event-slug"
@@ -73,6 +53,7 @@ interface EventData {
   registrationProvider?: string | null
   lumaEventUrl?: string | null
   lumaEventId?: string | null
+  attendeePreview?: Array<{ name: string; image: string | null }>
 }
 
 type UserRegistration = {
@@ -134,7 +115,6 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     }
   }, [id])
 
-  // Canonical URL: replace long cuid links with slug
   useEffect(() => {
     if (event?.slug && isEventCuid(id) && id !== event.slug) {
       router.replace(`/events/${event.slug}`, { scroll: false })
@@ -162,16 +142,8 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     (!isFull || event.waitlistEnabled) &&
     (!isLumaEvent || Boolean(event.lumaEventUrl))
 
-  const eventTz = event ? eventTimezone(event.timezone) : eventTimezone()
   const questions = parseRegistrationQuestions(event?.registrationQuestions)
   const priceLabel = event ? formatEventPrice(event.price, event.currency ?? "KES") : null
-  const platformInfo = event
-    ? resolveEventPlatform({
-        locationType: event.locationType,
-        onlineUrl: event.onlineUrl,
-        location: event.location,
-      })
-    : null
 
   const calendarLinks = event
     ? getEventCalendarLinks(
@@ -310,16 +282,14 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : !event ? (
-        <div className="mx-auto max-w-lg px-4 py-24 text-center space-y-4">
+        <div className="mx-auto max-w-lg space-y-4 px-4 py-24 text-center">
           <p className="text-muted-foreground">
             {error || "We couldn't find an event with this link."}
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             {!user && error?.toLowerCase().includes("log in") && (
               <Button asChild>
-                <Link
-                  href={`/login?redirect=${encodeURIComponent(`/events/${id}`)}`}
-                >
+                <Link href={`/login?redirect=${encodeURIComponent(`/events/${id}`)}`}>
                   Log in to view
                 </Link>
               </Button>
@@ -330,319 +300,24 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
           </div>
         </div>
       ) : (
-        <>
-          {/* Hero */}
-          <div className="relative border-b">
-            {event.imageUrl ? (
-              <div className="relative h-56 sm:h-72 md:h-80 overflow-hidden">
-                <img
-                  src={event.imageUrl}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-contain object-center"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-              </div>
-            ) : (
-              <div className="h-24 bg-gradient-to-b from-primary/10 to-background" />
-            )}
-            <div className="mx-auto max-w-5xl px-4 sm:px-6 -mt-16 sm:-mt-20 relative pb-6">
-              <div className="flex flex-wrap gap-2 mb-3">
-                {event.eventType && (
-                  <Badge variant="secondary">{eventTypeLabel(event.eventType)}</Badge>
-                )}
-                {platformInfo && (
-                  <Badge variant="outline" className="gap-1.5 font-normal">
-                    <EventPlatformBadge
-                      icon={platformInfo.icon}
-                      label={platformInfo.label}
-                      size={16}
-                    />
-                  </Badge>
-                )}
-                {isPastEvent && <Badge variant="outline">Past event</Badge>}
-                {priceLabel && (
-                  <Badge className="bg-primary text-primary-foreground">{priceLabel}</Badge>
-                )}
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
-                {event.title}
-              </h1>
-              {event.organizerName && (
-                <p className="text-muted-foreground mt-2">
-                  Hosted by {event.organizerName}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8 pb-28 md:pb-12">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
-              {/* Main content */}
-              <div className="lg:col-span-2 space-y-8">
-                <section className="grid sm:grid-cols-2 gap-4">
-                  <div className="flex gap-3 rounded-xl border p-4">
-                    <Calendar className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Date
-                      </p>
-                      <p className="font-medium">{formatEventDate(event.startDate, eventTz)}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3 rounded-xl border p-4">
-                    <Clock className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        Time
-                      </p>
-                      <p className="font-medium tabular-nums">
-                        {formatEventTime(event.startDate, eventTz)}
-                        {event.endDate && ` – ${formatEventTime(event.endDate, eventTz)}`}
-                      </p>
-                      {event.timezone && (
-                        <p className="text-xs text-muted-foreground mt-1">{eventTz.replace(/_/g, " ")}</p>
-                      )}
-                    </div>
-                  </div>
-                  {(event.location || event.onlineUrl) && (
-                    <div className="flex gap-3 rounded-xl border p-4 sm:col-span-2">
-                      {platformInfo ? (
-                        <div className="shrink-0 mt-0.5">
-                          <EventPlatformBadge
-                            icon={platformInfo.icon}
-                            label=""
-                            size={22}
-                            className="[&_span]:sr-only"
-                          />
-                        </div>
-                      ) : (
-                        <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                      )}
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          {platformInfo?.formatLabel ?? "Location"}
-                        </p>
-                        <p className="font-medium">{displayLocation(event)}</p>
-                        {event.onlineUrl && event.locationType !== "in-person" && (
-                          <a
-                            href={event.onlineUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-primary mt-1 hover:underline"
-                          >
-                            Join online <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </section>
-
-                {event.description && (
-                  <section>
-                    <h2 className="text-lg font-semibold mb-3">About this event</h2>
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                      {event.description}
-                    </p>
-                  </section>
-                )}
-
-                {event.tags && event.tags.length > 0 && (
-                  <section className="flex flex-wrap gap-2">
-                    {event.tags.map((tag) => (
-                      <Badge key={tag} variant="outline">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </section>
-                )}
-
-                {isLumaEvent && event.lumaEventUrl && (
-                  <section className="rounded-xl border p-5 bg-muted/20 space-y-3">
-                    <h2 className="font-semibold">Registration on Luma</h2>
-                    <p className="text-sm text-muted-foreground">
-                      This event is hosted on Luma. Register there to secure your spot and receive
-                      Luma updates.
-                    </p>
-                    <LumaRegistration event={event} />
-                  </section>
-                )}
-
-                {isRegistered && calendarLinks && (
-                  <section className="rounded-xl border p-5 space-y-3 bg-muted/20">
-                    <h2 className="font-semibold">On your calendar</h2>
-                    <p className="text-sm text-muted-foreground">
-                      A calendar invite was sent when you registered. Use these options if you need
-                      to add it again.
-                    </p>
-                    <EventCalendarActions links={calendarLinks} />
-                  </section>
-                )}
-
-                {isRegistered && ticket && (
-                  <section className="rounded-xl border p-6 flex flex-col sm:flex-row items-center gap-6 bg-muted/30">
-                    <img
-                      src={ticket.qrDataUrl}
-                      alt="Check-in QR code"
-                      className="w-44 h-44 rounded-lg border bg-white"
-                    />
-                    <div className="text-center sm:text-left">
-                      <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                        <Ticket className="h-5 w-5 text-primary" />
-                        <h2 className="font-semibold text-lg">Your ticket</h2>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Show this QR code at check-in
-                      </p>
-                      <p className="font-mono text-sm mt-3 tracking-widest">{ticket.checkInCode}</p>
-                    </div>
-                  </section>
-                )}
-
-                <EventSharePanel
-                  event={{
-                    id: event.id,
-                    title: event.title,
-                    startDate: event.startDate,
-                    slug: event.slug,
-                    shortCode: event.shortCode,
-                  }}
-                />
-              </div>
-
-              {/* Sticky registration sidebar */}
-              <aside className="lg:col-span-1">
-                <div className="lg:sticky lg:top-20 space-y-4">
-                  <div className="rounded-xl border bg-card p-5 shadow-sm space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        {formatEventDateTimeLine(event.startDate, eventTz)}
-                      </p>
-                      {priceLabel && (
-                        <p className="text-2xl font-bold mt-1">{priceLabel}</p>
-                      )}
-                    </div>
-
-                    {event.capacity != null && (
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            {confirmedCount} / {event.capacity} spots
-                          </span>
-                          {(event.waitlistCount ?? 0) > 0 && (
-                            <span className="text-muted-foreground text-xs">
-                              {event.waitlistCount} waitlisted
-                            </span>
-                          )}
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-primary transition-all"
-                            style={{
-                              width: `${Math.min(100, (confirmedCount / event.capacity) * 100)}%`,
-                            }}
-                          />
-                        </div>
-                        {isFull && event.waitlistEnabled && !isRegistered && !isWaitlisted && (
-                          <p className="text-xs text-muted-foreground">
-                            Event is full — join the waitlist for a chance to attend.
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {canRegister && isLumaEvent && (
-                      <LumaRegistration event={event} />
-                    )}
-
-                    {canRegister && !isLumaEvent && (
-                      <Button className="w-full" size="lg" onClick={handleRegister} disabled={registering}>
-                        {registering ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {isFull && event.waitlistEnabled ? "Joining..." : "Registering..."}
-                          </>
-                        ) : (
-                          registerLabel
-                        )}
-                      </Button>
-                    )}
-
-                    {isRegistered && (
-                      <Button variant="outline" className="w-full" disabled>
-                        ✓ Registered
-                      </Button>
-                    )}
-
-                    {isWaitlisted && (
-                      <Button variant="outline" className="w-full" disabled>
-                        On waitlist
-                      </Button>
-                    )}
-
-                    {isPendingApproval && (
-                      <Button variant="outline" className="w-full" disabled>
-                        Application pending approval
-                      </Button>
-                    )}
-
-                    {(isRegistered || isWaitlisted || isPendingApproval) && !isPastEvent && (
-                      <Button
-                        variant="ghost"
-                        className="w-full text-muted-foreground"
-                        size="sm"
-                        onClick={handleCancel}
-                        disabled={cancelling}
-                      >
-                        {cancelling
-                          ? "Cancelling..."
-                          : isPendingApproval
-                            ? "Withdraw application"
-                            : isWaitlisted
-                              ? "Leave waitlist"
-                              : "Cancel registration"}
-                      </Button>
-                    )}
-
-                    {isPastEvent && (
-                      <p className="text-sm text-center text-muted-foreground">This event has ended.</p>
-                    )}
-
-                    {!registrationRequired && !isPastEvent && (
-                      <p className="text-sm text-center text-muted-foreground">
-                        No registration required — just show up!
-                      </p>
-                    )}
-
-                    {!user && canRegister && !isLumaEvent && (
-                      <p className="text-xs text-center text-muted-foreground">
-                        <Link href={`/login?redirect=${encodeURIComponent(`/events/${event.id}`)}`} className="underline">
-                          Log in
-                        </Link>{" "}
-                        to register
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </aside>
-            </div>
-          </div>
-
-          {canRegister && (
-            <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur pb-[env(safe-area-inset-bottom)] lg:hidden">
-              <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-sm">{event.title}</p>
-                  {priceLabel && <p className="text-xs text-muted-foreground">{priceLabel}</p>}
-                </div>
-                <Button onClick={handleRegister} disabled={registering}>
-                  {registerLabel}
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
+        <EventPublicView
+          event={event}
+          isPastEvent={isPastEvent}
+          isRegistered={isRegistered}
+          isWaitlisted={isWaitlisted}
+          isPendingApproval={isPendingApproval}
+          canRegister={Boolean(canRegister)}
+          isLumaEvent={isLumaEvent}
+          registering={registering}
+          cancelling={cancelling}
+          registerLabel={registerLabel}
+          priceLabel={priceLabel}
+          calendarLinks={calendarLinks}
+          ticket={ticket}
+          isLoggedIn={Boolean(user)}
+          onRegister={handleRegister}
+          onCancel={handleCancel}
+        />
       )}
 
       {event && (
