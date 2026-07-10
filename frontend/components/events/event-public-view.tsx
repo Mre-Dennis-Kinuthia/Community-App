@@ -27,6 +27,7 @@ import { ImpactHubMark } from "@/components/brand/impact-hub-mark"
 import { EventSharePanel } from "@/components/events/event-share-panel"
 import { EventCalendarActions } from "@/components/events/event-calendar-actions"
 import { LumaRegistration } from "@/components/events/luma-registration"
+import { EventVenueMap } from "@/components/events/event-venue-map"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { HUB_PUBLIC_EMAIL } from "@/lib/hub-contact"
 import { cn } from "@/lib/utils"
@@ -46,6 +47,7 @@ export type PublicEventData = {
   location: string | null
   locationType?: string | null
   onlineUrl?: string | null
+  googleMapsUrl?: string | null
   capacity: number | null
   imageUrl: string | null
   eventType?: string | null
@@ -528,6 +530,12 @@ export function EventPublicView({
                 )}
               </div>
             </header>
+
+            <EventVenueMap
+              location={event.location}
+              locationType={event.locationType}
+              googleMapsUrl={event.googleMapsUrl}
+            />
 
             <div className="lg:hidden">{ctaBlock}</div>
 

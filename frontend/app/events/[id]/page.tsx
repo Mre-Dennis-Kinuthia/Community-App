@@ -34,6 +34,7 @@ interface EventData {
   location: string | null
   locationType?: string | null
   onlineUrl?: string | null
+  googleMapsUrl?: string | null
   capacity: number | null
   imageUrl: string | null
   eventType?: string | null

@@ -277,6 +277,7 @@ model Event {
   location             String?
   locationType         String   @default("in-person") // in-person, online, hybrid
   onlineUrl            String?
+  googleMapsUrl        String?  @map("google_maps_url")
   imageUrl             String?
   capacity             Int?
   eventType            String   @default("other") // workshop, meetup, conference, etc.
