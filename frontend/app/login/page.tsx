@@ -28,6 +28,7 @@ function LoginForm() {
   const [password, setPassword] = useState("")
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [resendingVerification, setResendingVerification] = useState(false)
 
   useEffect(() => {
     if (accountDeleted) {
@@ -41,11 +42,42 @@ function LoginForm() {
 
   useEffect(() => {
     if (isRegistered && registeredEmail) {
-      toast.success("Registration successful!", "You can now sign in with your credentials")
+      toast.success(
+        "Account created!",
+        "Check your inbox for a verification link, then sign in."
+      )
       // Clean up URL
       router.replace(`/login?redirect=${encodeURIComponent(redirect)}`)
     }
   }, [isRegistered, registeredEmail, redirect, router])
+
+  const handleResendVerification = async () => {
+    const normalizedEmail = email.toLowerCase().trim()
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      toast.error("Enter your email first", "We need your email to resend the verification link.")
+      return
+    }
+    try {
+      setResendingVerification(true)
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: normalizedEmail }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(data.error || "Could not resend verification email")
+      }
+      toast.success("Check your email", data.message || "Verification link sent if needed.")
+    } catch (error) {
+      toast.error(
+        "Could not resend",
+        error instanceof Error ? error.message : "Please try again later."
+      )
+    } finally {
+      setResendingVerification(false)
+    }
+  }
 
   const validateField = (field: "email" | "password", value: string) => {
     const newErrors: { email?: string; password?: string } = { ...errors }
@@ -222,6 +254,17 @@ function LoginForm() {
           <Link href="/register" className="font-medium text-[#812926] hover:underline">
             Become a member
           </Link>
+        </p>
+        <p className="text-center text-sm text-muted-foreground">
+          Need to verify your email?{" "}
+          <button
+            type="button"
+            className="font-medium text-[#812926] hover:underline disabled:opacity-60"
+            onClick={() => void handleResendVerification()}
+            disabled={resendingVerification}
+          >
+            {resendingVerification ? "Sending…" : "Resend verification link"}
+          </button>
         </p>
         <p className="text-center text-xs text-muted-foreground">
           Impact Hub staff can sign in with the same email and password used for the admin app.

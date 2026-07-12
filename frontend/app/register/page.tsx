@@ -208,8 +208,8 @@ function RegisterForm() {
       const successDetail = organisationalIntent
         ? data.emailsQueued === false
           ? "Sign in and complete your profile. Our partnerships team will follow up."
-          : "Check your email, then sign in to complete your organisation profile."
-        : "You can now sign in and complete your profile."
+          : "Check your email to verify your address, then sign in to complete your organisation profile."
+        : "Check your email to verify your address, then sign in to complete your profile."
       toast.success("Account created!", successDetail)
       startNavigation()
       router.push(

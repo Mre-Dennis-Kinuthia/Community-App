@@ -39,6 +39,22 @@ export async function sendPasswordResetEmail(params: {
   )
 }
 
+export async function sendEmailVerificationEmail(params: {
+  to: string
+  verifyUrl: string
+  name?: string | null
+}): Promise<SendEmailResult> {
+  return asSendResult(
+    await sendFromTemplate({
+      key: "email_verification",
+      to: params.to,
+      name: params.name,
+      vars: { verifyUrl: params.verifyUrl },
+      ctaUrl: params.verifyUrl,
+    })
+  )
+}
+
 export async function sendConnectionRequestEmail(params: {
   to: string
   name?: string | null

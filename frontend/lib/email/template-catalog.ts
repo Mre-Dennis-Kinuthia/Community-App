@@ -105,6 +105,25 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
     textBody: "Reset your password: {{resetUrl}}\nThis link expires in 1 hour.",
   },
   {
+    key: "email_verification",
+    name: "Email verification",
+    description: "Sent after signup so members can confirm their email address.",
+    category: "account",
+    sentFrom: "both",
+    variables: [
+      NAME,
+      { key: "verifyUrl", label: "Verify URL", sample: "https://example.com/verify-email" },
+    ],
+    subject: "Verify your Impact Hub Nairobi email",
+    preheader: "Confirm your email address",
+    title: "Verify your email",
+    eyebrow: "Account",
+    bodyHtml: `<p>Thanks for joining <strong>Impact Hub Nairobi</strong>. Please confirm your email address to finish setting up your account.</p>
+<p style="color:#71717A;font-size:13px;">This link expires in 48 hours. If you did not create an account, you can ignore this email.</p>`,
+    ctaLabel: "Verify email",
+    textBody: "Verify your email: {{verifyUrl}}\nThis link expires in 48 hours.",
+  },
+  {
     key: "member_platform_invite",
     name: "Member platform invite",
     description: "Invite a member to create their password and join the platform.",

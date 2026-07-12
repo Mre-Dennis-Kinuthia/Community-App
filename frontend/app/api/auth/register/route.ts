@@ -8,6 +8,7 @@ import { MEMBERSHIP_REGISTER_INTENT } from "@/lib/membership-register-intent"
 import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 import { validatePasswordAsync } from "@/lib/password-policy"
+import { issueEmailVerificationForEmail } from "@/lib/email-verification"
 import { z } from "zod"
 
 const registerSchema = z.object({
@@ -135,12 +136,21 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const verifyResult = await issueEmailVerificationForEmail(user.email, {
+      name: user.name,
+    })
+    const verificationEmailed = verifyResult.ok && verifyResult.emailed
+
     return NextResponse.json(
       {
-        message: "User created successfully",
+        message: verificationEmailed
+          ? "Account created. Check your email to verify your address."
+          : "User created successfully",
         user,
         membershipIntent: membershipIntent ?? null,
         emailsQueued,
+        verificationEmailed,
+        needsEmailVerification: true,
       },
       { status: 201 }
     )
