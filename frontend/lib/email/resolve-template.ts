@@ -13,13 +13,9 @@ import {
 import { sendEmail, type EmailAttachment, type SendEmailResult } from "./send"
 
 export type ResolvedEmailTemplate = {
-<<<<<<< HEAD
   id?: string
   key: string
   slot: string
-=======
-  key: string
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   name: string
   description: string | null
   category: string
@@ -31,11 +27,8 @@ export type ResolvedEmailTemplate = {
   ctaLabel: string | null
   textBody: string
   enabled: boolean
-<<<<<<< HEAD
   isActive: boolean
   isSystem: boolean
-=======
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   isCustomized: boolean
   updatedAt: Date | null
 }
@@ -54,10 +47,7 @@ export function interpolateTemplate(
 function definitionToResolved(def: EmailTemplateDefinition): ResolvedEmailTemplate {
   return {
     key: def.key,
-<<<<<<< HEAD
     slot: def.key,
-=======
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
     name: def.name,
     description: def.description,
     category: def.category,
@@ -69,17 +59,13 @@ function definitionToResolved(def: EmailTemplateDefinition): ResolvedEmailTempla
     ctaLabel: def.ctaLabel,
     textBody: def.textBody,
     enabled: true,
-<<<<<<< HEAD
     isActive: true,
     isSystem: true,
-=======
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
     isCustomized: false,
     updatedAt: null,
   }
 }
 
-<<<<<<< HEAD
 function rowToResolved(
   row: {
     id: string
@@ -110,82 +96,6 @@ function rowToResolved(
     name: row.name || slotDef?.name || row.key,
     description: row.description ?? slotDef?.description ?? null,
     category: row.category || slotDef?.category || "community",
-=======
-export async function ensureEmailTemplatesSeeded(): Promise<void> {
-  const existing = await prisma.emailTemplate.findMany({ select: { key: true } })
-  const existingKeys = new Set(existing.map((r) => r.key))
-  const missing = EMAIL_TEMPLATE_CATALOG.filter((d) => !existingKeys.has(d.key))
-  if (missing.length === 0) return
-
-  await prisma.emailTemplate.createMany({
-    data: missing.map((d) => ({
-      key: d.key,
-      name: d.name,
-      description: d.description,
-      category: d.category,
-      subject: d.subject,
-      preheader: d.preheader,
-      title: d.title,
-      eyebrow: d.eyebrow,
-      bodyHtml: d.bodyHtml,
-      ctaLabel: d.ctaLabel,
-      textBody: d.textBody,
-      enabled: true,
-    })),
-    skipDuplicates: true,
-  })
-}
-
-export async function listResolvedEmailTemplates(): Promise<ResolvedEmailTemplate[]> {
-  await ensureEmailTemplatesSeeded()
-  const rows = await prisma.emailTemplate.findMany()
-  const byKey = new Map(rows.map((r) => [r.key, r]))
-
-  return EMAIL_TEMPLATE_CATALOG.map((def) => {
-    const row = byKey.get(def.key)
-    if (!row) return definitionToResolved(def)
-    return {
-      key: def.key,
-      name: row.name || def.name,
-      description: row.description ?? def.description,
-      category: row.category || def.category,
-      subject: row.subject,
-      preheader: row.preheader,
-      title: row.title,
-      eyebrow: row.eyebrow,
-      bodyHtml: row.bodyHtml,
-      ctaLabel: row.ctaLabel,
-      textBody: row.textBody,
-      enabled: row.enabled,
-      isCustomized:
-        row.subject !== def.subject ||
-        row.title !== def.title ||
-        row.bodyHtml !== def.bodyHtml ||
-        row.ctaLabel !== def.ctaLabel ||
-        row.textBody !== def.textBody ||
-        (row.preheader ?? "") !== def.preheader ||
-        (row.eyebrow ?? "") !== def.eyebrow ||
-        !row.enabled,
-      updatedAt: row.updatedAt,
-    }
-  })
-}
-
-export async function resolveEmailTemplate(
-  key: string
-): Promise<ResolvedEmailTemplate | null> {
-  const def = getEmailTemplateDefinition(key)
-  if (!def) return null
-
-  const row = await prisma.emailTemplate.findUnique({ where: { key } })
-  if (!row) return definitionToResolved(def)
-
-  return {
-    key: def.key,
-    name: row.name || def.name,
-    description: row.description ?? def.description,
-    category: row.category || def.category,
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
     subject: row.subject,
     preheader: row.preheader,
     title: row.title,
@@ -194,7 +104,6 @@ export async function resolveEmailTemplate(
     ctaLabel: row.ctaLabel,
     textBody: row.textBody,
     enabled: row.enabled,
-<<<<<<< HEAD
     isActive: row.isActive,
     isSystem: row.isSystem,
     isCustomized: !row.isSystem || !!(slotDef && (
@@ -204,14 +113,10 @@ export async function resolveEmailTemplate(
       row.ctaLabel !== slotDef.ctaLabel ||
       row.textBody !== slotDef.textBody
     )),
-=======
-    isCustomized: true,
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
     updatedAt: row.updatedAt,
   }
 }
 
-<<<<<<< HEAD
 export function slugifyTemplateKey(name: string): string {
   const base = name
     .trim()
@@ -353,12 +258,6 @@ export async function resolveEmailTemplateByKey(
 function wrapBodyParagraphs(html: string): string {
   const trimmed = html.trim()
   if (!trimmed) return ""
-=======
-function wrapBodyParagraphs(html: string): string {
-  const trimmed = html.trim()
-  if (!trimmed) return ""
-  // If admin already included block tags, use as-is; otherwise wrap as a paragraph.
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   if (/<(p|div|table|ul|ol|h[1-6])\b/i.test(trimmed)) {
     return trimmed
   }
@@ -424,10 +323,7 @@ export async function sendFromTemplate(params: {
   attachments?: EmailAttachment[]
   replyTo?: string
 }): Promise<SendFromTemplateResult> {
-<<<<<<< HEAD
   // `key` is the send slot (welcome, booking_confirmation, …)
-=======
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   const template = await resolveEmailTemplate(params.key)
   if (!template) {
     return { ok: true, skipped: true, reason: "missing_template" }
@@ -467,7 +363,6 @@ export async function previewEmailTemplate(params: {
     bodyHtml: string
     ctaLabel: string | null
     textBody: string
-<<<<<<< HEAD
     slot?: string
   }>
   vars?: Record<string, string>
@@ -483,17 +378,6 @@ export async function previewEmailTemplate(params: {
     ...base,
     ...params.overrides,
     slot,
-=======
-  }>
-  vars?: Record<string, string>
-}): Promise<{ subject: string; html: string; text: string } | null> {
-  const base = await resolveEmailTemplate(params.key)
-  if (!base) return null
-  const def = getEmailTemplateDefinition(params.key)
-  const template: ResolvedEmailTemplate = {
-    ...base,
-    ...params.overrides,
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   }
   const sampleVars = Object.fromEntries(
     (def?.variables ?? []).map((v) => [v.key, v.sample])
@@ -507,7 +391,6 @@ export async function previewEmailTemplate(params: {
     vars,
     name: vars.name || "Jane Doe",
     detailsHtml,
-<<<<<<< HEAD
     ctaUrl:
       vars.onboardingUrl ||
       vars.bookingUrl ||
@@ -518,9 +401,6 @@ export async function previewEmailTemplate(params: {
       vars.inviteUrl ||
       vars.resetUrl ||
       "https://example.com",
-=======
-    ctaUrl: vars.onboardingUrl || vars.bookingUrl || vars.eventUrl || vars.payUrl || vars.actionUrl || vars.billingUrl || vars.inviteUrl || vars.resetUrl || "https://example.com",
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   })
   return { subject: built.subject, html: built.html, text: built.text }
 }

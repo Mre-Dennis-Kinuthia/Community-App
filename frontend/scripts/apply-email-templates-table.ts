@@ -1,9 +1,5 @@
 /**
-<<<<<<< HEAD
  * Create / upgrade email_templates for editable + linkable templates.
-=======
- * Create email_templates on Neon when migrate deploy is skipped on Vercel.
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
  *
  * Usage: npm run db:apply-email-templates
  */
@@ -31,10 +27,7 @@ async function main() {
     CREATE TABLE IF NOT EXISTS "email_templates" (
       "id" TEXT NOT NULL,
       "key" TEXT NOT NULL,
-<<<<<<< HEAD
       "slot" TEXT NOT NULL DEFAULT '',
-=======
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
       "name" TEXT NOT NULL,
       "description" TEXT,
       "category" TEXT NOT NULL,
@@ -46,7 +39,6 @@ async function main() {
       "ctaLabel" TEXT,
       "textBody" TEXT NOT NULL,
       "enabled" BOOLEAN NOT NULL DEFAULT true,
-<<<<<<< HEAD
       "isActive" BOOLEAN NOT NULL DEFAULT false,
       "isSystem" BOOLEAN NOT NULL DEFAULT false,
       "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -81,15 +73,6 @@ async function main() {
   await sql`CREATE INDEX IF NOT EXISTS "email_templates_category_idx" ON "email_templates"("category")`
   await sql`CREATE INDEX IF NOT EXISTS "email_templates_slot_idx" ON "email_templates"("slot")`
   await sql`CREATE INDEX IF NOT EXISTS "email_templates_slot_isActive_idx" ON "email_templates"("slot", "isActive")`
-=======
-      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      "updatedAt" TIMESTAMP(3) NOT NULL,
-      CONSTRAINT "email_templates_pkey" PRIMARY KEY ("id")
-    )
-  `
-  await sql`CREATE UNIQUE INDEX IF NOT EXISTS "email_templates_key_key" ON "email_templates"("key")`
-  await sql`CREATE INDEX IF NOT EXISTS "email_templates_category_idx" ON "email_templates"("category")`
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
 
   const rows = await sql`SELECT COUNT(*)::int AS n FROM "email_templates"`
   console.log("[apply-email-templates] Table ready. Row count:", rows[0]?.n ?? 0)

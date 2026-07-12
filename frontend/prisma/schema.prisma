@@ -1481,14 +1481,10 @@ model NewsPostComment {
 
 model EmailTemplate {
   id          String   @id @default(cuid())
-<<<<<<< HEAD
   /// Unique template id (system templates use the slot key; custom ones are slugged)
   key         String   @unique
   /// Send trigger this template can power (welcome, booking_confirmation, …)
   slot        String
-=======
-  key         String   @unique
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   name        String
   description String?  @db.Text
   category    String
@@ -1500,21 +1496,15 @@ model EmailTemplate {
   ctaLabel    String?
   textBody    String   @db.Text
   enabled     Boolean  @default(true)
-<<<<<<< HEAD
   /// When true, this template is used for `slot` sends (one active per slot)
   isActive    Boolean  @default(false)
   /// Seeded from code catalog — cannot delete
   isSystem    Boolean  @default(false)
-=======
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([category])
-<<<<<<< HEAD
   @@index([slot])
   @@index([slot, isActive])
-=======
->>>>>>> 35150d0b7b1ca08c599114d94918d96603e73111
   @@map("email_templates")
 }
