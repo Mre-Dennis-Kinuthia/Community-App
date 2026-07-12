@@ -9,6 +9,7 @@ export async function sendResendEmail(params: {
   html: string
   text?: string
   replyTo?: string
+  cc?: string | string[]
   attachments?: EmailAttachment[]
 }): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY?.trim()
@@ -20,6 +21,11 @@ export async function sendResendEmail(params: {
   }
 
   const to = Array.isArray(params.to) ? params.to : [params.to]
+  const cc = params.cc
+    ? Array.isArray(params.cc)
+      ? params.cc
+      : [params.cc]
+    : undefined
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -30,6 +36,7 @@ export async function sendResendEmail(params: {
     body: JSON.stringify({
       from,
       to,
+      ...(cc && cc.length > 0 ? { cc } : {}),
       subject: params.subject,
       html: params.html,
       text: params.text,

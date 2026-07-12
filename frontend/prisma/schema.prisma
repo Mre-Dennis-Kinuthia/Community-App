@@ -1476,6 +1476,20 @@ model NewsPostComment {
 }
 
 // ============================================
+// EMAIL DELIVERY (CC list editable from admin)
+// ============================================
+
+model EmailCcRecipient {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_cc_recipients")
+}
+
+// ============================================
 // EMAIL TEMPLATES (editable from admin)
 // ============================================
 

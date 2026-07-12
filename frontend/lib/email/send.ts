@@ -1,4 +1,6 @@
 import { after } from "next/server"
+import { normalizeEmailAddress, resolveEmailCc } from "./cc"
+import { getEmailFrom } from "./config"
 import { sendResendEmail } from "./resend"
 import { sendSmtpEmail } from "./smtp"
 import {
@@ -20,6 +22,7 @@ export type EmailProvider = "smtp" | "resend"
 export type EmailTask = () => Promise<SendEmailResult>
 
 export { getEmailFrom, getEmailStaffTo } from "./config"
+export { getConfiguredEmailCc, resolveEmailCc } from "./cc"
 
 /**
  * Active mail backend. Production uses Gmail via Google OAuth (see GOOGLE_WORKSPACE_EMAIL.md).
@@ -64,6 +67,9 @@ export async function sendEmail(params: {
   html: string
   text?: string
   replyTo?: string
+  cc?: string | string[]
+  /** When true, skip the admin-configured CC list (explicit `cc` still applies). */
+  skipConfiguredCc?: boolean
   attachments?: EmailAttachment[]
 }): Promise<SendEmailResult> {
   const provider = getEmailProvider()
@@ -72,10 +78,28 @@ export async function sendEmail(params: {
     return { ok: false, error: "Email service not configured" }
   }
 
-  if (provider === "smtp") {
-    return sendSmtpEmail(params)
+  const from = getEmailFrom()
+  const cc = await resolveEmailCc({
+    to: params.to,
+    cc: params.cc,
+    skipConfiguredCc: params.skipConfiguredCc,
+    fromEmail: normalizeEmailAddress(from),
+  })
+
+  const payload = {
+    to: params.to,
+    subject: params.subject,
+    html: params.html,
+    text: params.text,
+    replyTo: params.replyTo,
+    cc,
+    attachments: params.attachments,
   }
-  return sendResendEmail(params)
+
+  if (provider === "smtp") {
+    return sendSmtpEmail(payload)
+  }
+  return sendResendEmail(payload)
 }
 
 function logEmailResult(context: string, result: SendEmailResult) {

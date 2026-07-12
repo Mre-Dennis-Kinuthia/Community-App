@@ -1,5 +1,7 @@
 /**
- * Verify Google OAuth credentials can refresh an access token.
+ * Verify Google OAuth credentials can refresh an access token,
+ * and that the token belongs to the same mailbox as SMTP_USER.
+ *
  * Run: npx tsx --env-file=.env.local scripts/verify-google-oauth.ts
  */
 async function main() {
@@ -48,7 +50,61 @@ Fix — use the local OAuth script (not Playground):
   }
 
   console.log("Token refresh OK — access token received")
-  console.log("Next: npx tsx --env-file=.env.local scripts/test-smtp.ts", user)
+
+  const infoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+    headers: { Authorization: `Bearer ${body.access_token}` },
+  })
+  const profile = (await infoRes.json().catch(() => ({}))) as { email?: string; error?: string }
+
+  if (!infoRes.ok || !profile.email) {
+    // mail.google.com scope alone may not expose userinfo — try Gmail profile
+    const gmailRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
+      headers: { Authorization: `Bearer ${body.access_token}` },
+    })
+    const gmail = (await gmailRes.json().catch(() => ({}))) as {
+      emailAddress?: string
+      error?: { message?: string }
+    }
+    if (gmailRes.ok && gmail.emailAddress) {
+      printMatch(user, gmail.emailAddress)
+      return
+    }
+    console.warn("Could not resolve token mailbox (userinfo/gmail profile).")
+    console.warn("If SMTP still fails with 535 BadCredentials, re-run OAuth as", user)
+    console.log("Next: npx tsx --env-file=.env.local scripts/test-smtp.ts", user)
+    return
+  }
+
+  printMatch(user, profile.email)
+}
+
+function printMatch(smtpUser: string, tokenEmail: string) {
+  const match = smtpUser.toLowerCase() === tokenEmail.toLowerCase()
+  console.log("Token mailbox:", tokenEmail)
+  if (!match) {
+    console.error(`
+MISMATCH: SMTP_USER is ${smtpUser}
+but GOOGLE_REFRESH_TOKEN belongs to ${tokenEmail}.
+
+Gmail SMTP will fail with 535 BadCredentials until they match.
+
+If "${smtpUser}" is only a Send-as alias (not its own Google login):
+  - Set SMTP_USER=${tokenEmail}
+  - Keep EMAIL_FROM=Nairobi Membership <${smtpUser}>
+  - In Gmail (as ${tokenEmail}) → Settings → Accounts → Send mail as
+    → add ${smtpUser} and verify it
+
+If it is a real separate mailbox:
+  1. npx tsx --env-file=.env.local scripts/google-oauth-local.ts
+  2. Sign in as ${smtpUser} (use "Use another account" if Google offers ${tokenEmail})
+  3. Paste the NEW GOOGLE_REFRESH_TOKEN into both apps' .env.local
+  4. Re-run this script — Token mailbox must equal SMTP_USER
+`)
+    process.exit(1)
+  }
+
+  console.log("Mailbox match OK")
+  console.log("Next: npx tsx --env-file=.env.local scripts/test-smtp.ts", smtpUser)
 }
 
 main()

@@ -6,7 +6,7 @@
  * 2. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.local
  * 3. Run:
  *    npx tsx --env-file=.env.local scripts/google-oauth-local.ts
- * 4. Open the printed URL in browser → sign in as dennis.ndungu@impacthub.net → Allow
+ * 4. Open the printed URL in browser → sign in as nairobi.membership@impacthub.net → Allow
  * 5. Paste printed GOOGLE_REFRESH_TOKEN into both .env.local files
  * 6. npx tsx --env-file=.env.local scripts/verify-google-oauth.ts
  */
@@ -38,7 +38,7 @@ async function exchangeCode(code: string, clientId: string, clientSecret: string
 async function main() {
   const clientId = process.env.GOOGLE_CLIENT_ID?.trim()
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
-  const user = process.env.SMTP_USER?.trim() || "dennis.ndungu@impacthub.net"
+  const user = process.env.SMTP_USER?.trim() || "nairobi.membership@impacthub.net"
 
   if (!clientId || !clientSecret) {
     console.error("Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.local")
@@ -98,12 +98,33 @@ async function main() {
           return
         }
 
+        let tokenMailbox = "(unknown)"
+        try {
+          const accessToken = result.body.access_token as string | undefined
+          if (accessToken) {
+            const gmailRes = await fetch(
+              "https://gmail.googleapis.com/gmail/v1/users/me/profile",
+              { headers: { Authorization: `Bearer ${accessToken}` } }
+            )
+            const gmail = (await gmailRes.json()) as { emailAddress?: string }
+            if (gmail.emailAddress) tokenMailbox = gmail.emailAddress
+          }
+        } catch {
+          // best-effort
+        }
+
         res.writeHead(200, { "Content-Type": "text/html" })
         res.end(
-          "<h1>Success</h1><p>You can close this tab and return to the terminal.</p>"
+          `<h1>Success</h1><p>Authorized as <strong>${tokenMailbox}</strong>.</p><p>You can close this tab and return to the terminal.</p>`
         )
 
-        console.log("Success! Add to both .env.local files:\n")
+        console.log("Success! Authorized as:", tokenMailbox)
+        if (tokenMailbox.toLowerCase() !== user.toLowerCase()) {
+          console.warn(
+            `\nWARNING: You signed in as ${tokenMailbox}, but SMTP_USER is ${user}.\nRe-run and choose ${user}, or SMTP will fail with 535 BadCredentials.\n`
+          )
+        }
+        console.log("\nAdd to both .env.local files:\n")
         console.log(`GOOGLE_REFRESH_TOKEN=${result.body.refresh_token}\n`)
         if (!result.body.refresh_token) {
           console.warn("No refresh_token — revoke app at myaccount.google.com/permissions and run again.")

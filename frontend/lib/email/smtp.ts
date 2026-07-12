@@ -18,6 +18,7 @@ export async function sendSmtpEmail(params: {
   html: string
   text?: string
   replyTo?: string
+  cc?: string | string[]
   attachments?: EmailAttachment[]
 }): Promise<SendEmailResult> {
   const transport = await createSmtpTransport()
@@ -33,11 +34,17 @@ export async function sendSmtpEmail(params: {
   }
 
   const to = Array.isArray(params.to) ? params.to : [params.to]
+  const cc = params.cc
+    ? Array.isArray(params.cc)
+      ? params.cc
+      : [params.cc]
+    : []
 
   try {
     const info = await transport.sendMail({
       from: getEmailFrom(),
       to: to.join(", "),
+      cc: cc.length > 0 ? cc.join(", ") : undefined,
       subject: params.subject,
       html: params.html,
       text: params.text,

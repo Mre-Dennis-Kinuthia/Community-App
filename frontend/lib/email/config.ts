@@ -1,9 +1,9 @@
-import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
+import { HUB_CONTACT_EMAIL, HUB_EMAIL_FROM_NAME } from "@/lib/hub-contact"
 
 export function getEmailFrom(): string {
   return (
     process.env.EMAIL_FROM?.trim() ||
-    `Impact Hub Nairobi <${HUB_CONTACT_EMAIL}>`
+    `${HUB_EMAIL_FROM_NAME} <${HUB_CONTACT_EMAIL}>`
   )
 }
 
