@@ -1,14 +1,17 @@
-import { getEmailFrom } from "./config"
-import { sendEmail, type SendEmailResult } from "./send"
-import {
-  escapeHtml,
-  layoutEmail,
-  emailGreeting,
-  emailParagraph,
-  emailDetailCard,
-  emailMutedNote,
-} from "./templates"
+import type { SendEmailResult } from "./send"
+import { escapeHtml, emailDetailCard } from "./templates"
 import { getCommunityOpportunityUrl } from "@/lib/app-url"
+import {
+  sendFromTemplate,
+  type SendFromTemplateResult,
+} from "./resolve-template"
+
+function asSendResult(result: SendFromTemplateResult): SendEmailResult {
+  if ("skipped" in result && result.skipped) {
+    return { ok: true, id: `skipped:${result.reason}` }
+  }
+  return result
+}
 
 export async function sendCommunityOpportunityEmail(params: {
   to: string
@@ -29,32 +32,19 @@ export async function sendCommunityOpportunityEmail(params: {
     ...(summary ? [{ label: "Summary", value: escapeHtml(summary) }] : []),
   ]
 
-  const bodyHtml = `
-    ${emailGreeting(params.name)}
-    ${emailParagraph("We've scouted a new opportunity that may be relevant for your impact journey.")}
-    ${emailDetailCard(rows, { title: "Program details" })}
-    ${emailMutedNote("Applications are hosted externally — review details on the platform first.")}
-  `
-
-  return sendEmail({
-    from: getEmailFrom(),
-    to: params.to,
-    subject: `New opportunity: ${params.title}`,
-    html: layoutEmail({
-      preheader: params.title,
-      title: "New community opportunity",
-      eyebrow: "Programs",
-      bodyHtml,
-      ctaLabel: "View & apply",
+  return asSendResult(
+    await sendFromTemplate({
+      key: "community_opportunity",
+      to: params.to,
+      name: params.name,
+      vars: {
+        opportunityTitle: params.title,
+        summary: summary || "",
+        source: params.source?.trim() || "",
+        detailUrl,
+      },
+      detailsHtml: emailDetailCard(rows, { title: "Program details" }),
       ctaUrl: detailUrl,
-    }),
-    text: [
-      `New opportunity: ${params.title}`,
-      params.source ? `Source: ${params.source}` : "",
-      summary ?? "",
-      detailUrl,
-    ]
-      .filter(Boolean)
-      .join("\n\n"),
-  })
+    })
+  )
 }

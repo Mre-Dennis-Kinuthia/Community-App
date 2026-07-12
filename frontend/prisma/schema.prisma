@@ -1474,3 +1474,37 @@ model NewsPostComment {
   @@index([approved])
   @@map("news_post_comments")
 }
+
+// ============================================
+// EMAIL TEMPLATES (editable from admin)
+// ============================================
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  /// Unique template id (system templates use the slot key; custom ones are slugged)
+  key         String   @unique
+  /// Send trigger this template can power (welcome, booking_confirmation, …)
+  slot        String
+  name        String
+  description String?  @db.Text
+  category    String
+  subject     String
+  preheader   String?
+  title       String
+  eyebrow     String?
+  bodyHtml    String   @db.Text
+  ctaLabel    String?
+  textBody    String   @db.Text
+  enabled     Boolean  @default(true)
+  /// When true, this template is used for `slot` sends (one active per slot)
+  isActive    Boolean  @default(false)
+  /// Seeded from code catalog — cannot delete
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([slot])
+  @@index([slot, isActive])
+  @@map("email_templates")
+}
