@@ -1,21 +1,19 @@
-import { sendEmail, type SendEmailResult } from "./send"
+import type { SendEmailResult } from "./send"
 import {
   escapeHtml,
-  layoutEmail,
-  emailGreeting,
-  emailParagraph,
   emailDetailCard,
-  emailMutedNote,
   emailHighlightBox,
 } from "./templates"
+import {
+  sendFromTemplate,
+  type SendFromTemplateResult,
+} from "./resolve-template"
 
-function getAppBaseUrl(): string {
-  const url =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.VERCEL_URL?.trim() ||
-    "http://localhost:3000"
-  const withProtocol = url.startsWith("http") ? url : `https://${url}`
-  return withProtocol.replace(/\/$/, "")
+function asSendResult(result: SendFromTemplateResult): SendEmailResult {
+  if ("skipped" in result && result.skipped) {
+    return { ok: true, id: `skipped:${result.reason}` }
+  }
+  return result
 }
 
 export async function sendMembershipPaymentLinkEmail(params: {
@@ -36,41 +34,37 @@ export async function sendMembershipPaymentLinkEmail(params: {
     month: "long",
     year: "numeric",
   })
+  const adminNoteHtml = params.adminNote?.trim()
+    ? emailHighlightBox(
+        `<strong>Note from our team</strong><br />${escapeHtml(params.adminNote.trim())}`
+      )
+    : ""
 
-  const bodyHtml = `
-    ${emailGreeting(params.recipientName)}
-    ${emailParagraph(
-      `You have been invited to complete your <strong>${escapeHtml(params.planName)}</strong> membership at Impact Hub Nairobi.`
-    )}
-    ${emailDetailCard(
-      [
-        { label: "Plan", value: escapeHtml(params.planName) },
-        { label: "Amount", value: `${escapeHtml(amountLabel)} per ${escapeHtml(intervalLabel)}` },
-        { label: "Expires", value: escapeHtml(expires) },
-      ],
-      { title: "Payment details" }
-    )}
-    ${
-      params.adminNote?.trim()
-        ? emailHighlightBox(`<strong>Note from our team</strong><br />${escapeHtml(params.adminNote.trim())}`)
-        : ""
-    }
-    ${emailMutedNote(
-      "If you do not yet have a community account, you can create one when you open the link using the same email address."
-    )}
-  `
-
-  return sendEmail({
-    to: params.to,
-    subject: `Complete your Impact Hub Nairobi membership — ${params.planName}`,
-    html: layoutEmail({
-      preheader: `Pay ${amountLabel} for ${params.planName}`,
-      title: "Membership payment",
-      eyebrow: "Membership",
-      bodyHtml,
-      ctaLabel: "Pay membership",
+  return asSendResult(
+    await sendFromTemplate({
+      key: "membership_payment_link",
+      to: params.to,
+      name: params.recipientName,
+      vars: {
+        planName: params.planName,
+        amountLabel,
+        intervalLabel,
+        expires,
+        payUrl: params.payUrl,
+        adminNoteHtml,
+      },
+      detailsHtml: emailDetailCard(
+        [
+          { label: "Plan", value: escapeHtml(params.planName) },
+          {
+            label: "Amount",
+            value: `${escapeHtml(amountLabel)} per ${escapeHtml(intervalLabel)}`,
+          },
+          { label: "Expires", value: escapeHtml(expires) },
+        ],
+        { title: "Payment details" }
+      ),
       ctaUrl: params.payUrl,
-    }),
-    text: `Complete your ${params.planName} membership (${amountLabel}/${intervalLabel}). Pay here: ${params.payUrl}\nExpires: ${expires}`,
-  })
+    })
+  )
 }

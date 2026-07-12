@@ -1,12 +1,10 @@
 import { getAppBaseUrl } from "@/lib/app-url"
+import { escapeHtml } from "./templates"
+import type { SendEmailResult } from "./send"
 import {
-  layoutEmail,
-  escapeHtml,
-  emailGreeting,
-  emailParagraph,
-  emailMutedNote,
-} from "./templates"
-import { sendEmail, type SendEmailResult } from "./send"
+  sendFromTemplate,
+  type SendFromTemplateResult,
+} from "./resolve-template"
 
 export function resolveNotificationActionUrl(actionUrl?: string | null): string | undefined {
   if (!actionUrl?.trim()) return undefined
@@ -14,6 +12,13 @@ export function resolveNotificationActionUrl(actionUrl?: string | null): string 
   if (/^https?:\/\//i.test(trimmed)) return trimmed
   const base = getAppBaseUrl()
   return `${base}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`
+}
+
+function asSendResult(result: SendFromTemplateResult): SendEmailResult {
+  if ("skipped" in result && result.skipped) {
+    return { ok: true, id: `skipped:${result.reason}` }
+  }
+  return result
 }
 
 export async function sendNotificationEmail(params: {
@@ -25,23 +30,17 @@ export async function sendNotificationEmail(params: {
 }): Promise<SendEmailResult> {
   const actionFullUrl = resolveNotificationActionUrl(params.actionUrl)
 
-  const bodyHtml = `
-    ${emailGreeting(params.name)}
-    ${emailParagraph(escapeHtml(params.message))}
-    ${emailMutedNote("You can also find this in your notifications on the community platform.")}
-  `
-
-  return sendEmail({
-    to: params.to,
-    subject: params.title,
-    html: layoutEmail({
-      preheader: params.message.slice(0, 120),
-      title: params.title,
-      eyebrow: "Notification",
-      bodyHtml,
-      ctaLabel: actionFullUrl ? "View in platform" : undefined,
+  return asSendResult(
+    await sendFromTemplate({
+      key: "notification",
+      to: params.to,
+      name: params.name,
+      vars: {
+        notificationTitle: params.title,
+        message: escapeHtml(params.message),
+        actionUrl: actionFullUrl || "",
+      },
       ctaUrl: actionFullUrl,
-    }),
-    text: `${params.title}\n\n${params.message}${actionFullUrl ? `\n\n${actionFullUrl}` : ""}`,
-  })
+    })
+  )
 }
