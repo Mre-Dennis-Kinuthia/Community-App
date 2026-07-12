@@ -70,6 +70,10 @@ export async function sendEmail(params: {
   cc?: string | string[]
   /** When true, skip the admin-configured CC list (explicit `cc` still applies). */
   skipConfiguredCc?: boolean
+  /** Email kind / template category (membership, events, …) for scoped CC. */
+  emailCategory?: string | null
+  /** Template slot key — used to derive category when emailCategory is omitted. */
+  emailSlot?: string | null
   attachments?: EmailAttachment[]
 }): Promise<SendEmailResult> {
   const provider = getEmailProvider()
@@ -84,6 +88,8 @@ export async function sendEmail(params: {
     cc: params.cc,
     skipConfiguredCc: params.skipConfiguredCc,
     fromEmail: normalizeEmailAddress(from),
+    emailCategory: params.emailCategory,
+    emailSlot: params.emailSlot,
   })
 
   const payload = {

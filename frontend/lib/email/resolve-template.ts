@@ -348,6 +348,8 @@ export async function sendFromTemplate(params: {
     text: built.text,
     attachments: params.attachments,
     replyTo: params.replyTo,
+    emailSlot: params.key,
+    emailCategory: template.category,
   })
 
   return { ...result, skipped: false }

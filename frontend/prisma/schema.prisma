@@ -1483,6 +1483,9 @@ model EmailCcRecipient {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
+  /// Email kinds this address is CC'd on (account, membership, events, …).
+  /// Empty array = all kinds.
+  categories String[] @default([])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
