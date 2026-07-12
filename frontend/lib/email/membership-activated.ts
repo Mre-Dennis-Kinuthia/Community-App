@@ -1,12 +1,19 @@
-import { sendEmail } from "./send"
 import {
-  layoutEmail,
   escapeHtml,
-  emailGreeting,
-  emailParagraph,
   emailDetailCard,
-  emailMutedNote,
 } from "./templates"
+import {
+  sendFromTemplate,
+  type SendFromTemplateResult,
+} from "./resolve-template"
+import type { SendEmailResult } from "./send"
+
+function asSendResult(result: SendFromTemplateResult): SendEmailResult {
+  if ("skipped" in result && result.skipped) {
+    return { ok: true, id: `skipped:${result.reason}` }
+  }
+  return result
+}
 
 export async function sendMembershipActivatedEmail(params: {
   to: string
@@ -21,30 +28,24 @@ export async function sendMembershipActivatedEmail(params: {
     year: "numeric",
   })
 
-  const bodyHtml = `
-    ${emailGreeting(params.name)}
-    ${emailParagraph(`Your <strong>${escapeHtml(params.planName)}</strong> membership at Impact Hub Nairobi is now active.`)}
-    ${emailDetailCard(
-      [
-        { label: "Plan", value: escapeHtml(params.planName) },
-        { label: "Active until", value: escapeHtml(until) },
-      ],
-      { title: "Membership" }
-    )}
-    ${emailMutedNote("Manage your plan, invoices, and renewal settings anytime from billing.")}
-  `
-
-  return sendEmail({
-    to: params.to,
-    subject: `Membership active — ${params.planName}`,
-    html: layoutEmail({
-      preheader: "Your membership is active",
-      title: "Welcome aboard",
-      eyebrow: "Membership",
-      bodyHtml,
-      ctaLabel: "View billing",
+  return asSendResult(
+    await sendFromTemplate({
+      key: "membership_activated",
+      to: params.to,
+      name: params.name,
+      vars: {
+        planName: params.planName,
+        periodEnd: until,
+        billingUrl: params.billingUrl,
+      },
+      detailsHtml: emailDetailCard(
+        [
+          { label: "Plan", value: escapeHtml(params.planName) },
+          { label: "Active until", value: escapeHtml(until) },
+        ],
+        { title: "Membership" }
+      ),
       ctaUrl: params.billingUrl,
-    }),
-    text: `Your ${params.planName} membership is active until ${until}. Billing: ${params.billingUrl}`,
-  })
+    })
+  )
 }

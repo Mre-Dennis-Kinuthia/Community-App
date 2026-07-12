@@ -1474,3 +1474,28 @@ model NewsPostComment {
   @@index([approved])
   @@map("news_post_comments")
 }
+
+// ============================================
+// EMAIL TEMPLATES (editable from admin)
+// ============================================
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?  @db.Text
+  category    String
+  subject     String
+  preheader   String?
+  title       String
+  eyebrow     String?
+  bodyHtml    String   @db.Text
+  ctaLabel    String?
+  textBody    String   @db.Text
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@map("email_templates")
+}

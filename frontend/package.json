@@ -32,7 +32,8 @@
     "landing:images": "node scripts/fetch-landing-images.mjs",
     "db:apply-marketing": "tsx scripts/apply-marketing-schema.ts",
     "partners:logos": "node scripts/fetch-partner-logos.mjs",
-    "partners:seed": "tsx scripts/seed-partners.ts"
+    "partners:seed": "tsx scripts/seed-partners.ts",
+    "db:apply-email-templates": "tsx scripts/apply-email-templates-table.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
