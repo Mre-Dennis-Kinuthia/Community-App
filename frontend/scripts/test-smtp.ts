@@ -2,16 +2,14 @@
  * Test SMTP (Google OAuth or App Password).
  * Run: npx tsx --env-file=.env.local scripts/test-smtp.ts [recipient@email.com]
  */
+import { getEmailFrom, getEmailFromParts } from "../lib/email/config"
 import { createSmtpTransport, isSmtpConfigured } from "../lib/email/smtp-transport"
 
 const to = process.argv[2] || process.env.EMAIL_STAFF_TO || "dennis.ndungu@impacthub.net"
 
 async function main() {
-  const from = process.env.EMAIL_FROM
-  if (!from) {
-    console.error("Missing EMAIL_FROM in env")
-    process.exit(1)
-  }
+  const from = getEmailFrom()
+  console.log("From:", from)
 
   if (!isSmtpConfigured()) {
     console.error(
@@ -35,7 +33,7 @@ async function main() {
   console.log("Verify OK. Sending test to", to)
 
   const info = await transport.sendMail({
-    from,
+    from: getEmailFromParts(),
     to,
     subject: "Community App SMTP test",
     text: "If you received this, Google SMTP is working.",

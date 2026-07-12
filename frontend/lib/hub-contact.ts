@@ -1,8 +1,8 @@
 /** Primary staff / notification email (overridable via EMAIL_STAFF_TO). */
-export const HUB_CONTACT_EMAIL = "nairobi.membership@impacthub.net"
+export const HUB_CONTACT_EMAIL = "Nairobi.Membership@impacthub.net"
 
-/** Display name used in the From header when EMAIL_FROM is unset. */
-export const HUB_EMAIL_FROM_NAME = "Nairobi Membership"
+/** Display name shown in the From header. */
+export const HUB_EMAIL_FROM_NAME = "Impact Hub Nairobi"
 
 /** Public-facing contact on marketing pages and footers. */
 export const HUB_PUBLIC_EMAIL = "nairobi@impacthub.net"

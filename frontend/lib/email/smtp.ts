@@ -1,5 +1,5 @@
 import type { SendEmailResult } from "./send"
-import { getEmailFrom } from "./config"
+import { getEmailFromParts } from "./config"
 import { createSmtpTransport, getLastSmtpSetupError } from "./smtp-transport"
 
 export {
@@ -42,7 +42,7 @@ export async function sendSmtpEmail(params: {
 
   try {
     const info = await transport.sendMail({
-      from: getEmailFrom(),
+      from: getEmailFromParts(),
       to: to.join(", "),
       cc: cc.length > 0 ? cc.join(", ") : undefined,
       subject: params.subject,

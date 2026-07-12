@@ -18,7 +18,10 @@ dns.setDefaultResultOrder("ipv4first")
 
 const PORT = 3333
 const REDIRECT_URI = `http://localhost:${PORT}/oauth/callback`
-const SCOPE = "https://mail.google.com/"
+const SCOPE = [
+  "https://mail.google.com/",
+  "https://www.googleapis.com/auth/gmail.settings.basic",
+].join(" ")
 
 async function exchangeCode(code: string, clientId: string, clientSecret: string) {
   const res = await fetch("https://oauth2.googleapis.com/token", {
