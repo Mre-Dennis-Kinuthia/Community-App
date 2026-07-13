@@ -110,5 +110,6 @@ export async function sendMembershipTierRecognizedEmail(params: {
     ]
       .filter(Boolean)
       .join("\n"),
+    emailCategory: "membership",
   })
 }

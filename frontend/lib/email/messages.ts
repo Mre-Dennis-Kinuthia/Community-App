@@ -128,6 +128,7 @@ export async function sendConnectedMemberMessageEmail(params: {
       "",
       "Reply to this email to respond directly.",
     ].join("\n"),
+    emailCategory: "community",
   })
 }
 
@@ -261,6 +262,7 @@ export async function sendEventBlastEmail(params: {
       ctaUrl: params.eventUrl,
     }),
     text: `${params.blastTitle}\n\n${params.message}\n\n${params.eventTitle}\n${params.eventUrl}`,
+    emailCategory: "events",
   })
 }
 
@@ -525,6 +527,7 @@ export async function sendNewsletterSubscribeEmail(params: {
       footerExtraHtml: unsubscribeUrl ? emailUnsubscribeFooter(unsubscribeUrl) : undefined,
     }),
     text: `Thanks for subscribing to Impact Hub Nairobi updates.\n${appUrl}${unsubscribeUrl ? `\nUnsubscribe: ${unsubscribeUrl}` : ""}`,
+    emailCategory: "requests",
   })
 }
 
@@ -567,6 +570,7 @@ async function sendStaffAlertEmail(params: {
   text: string
   replyTo?: string
   eyebrow?: string
+  emailCategory?: string
 }): Promise<SendEmailResult> {
   return sendEmail({
     to: getEmailStaffTo(),
@@ -578,6 +582,7 @@ async function sendStaffAlertEmail(params: {
     }),
     text: params.text,
     replyTo: params.replyTo,
+    emailCategory: params.emailCategory ?? "admin",
   })
 }
 
@@ -636,6 +641,7 @@ export async function sendNewBookingStaffEmail(params: {
     bodyHtml,
     text: `New booking\nMember: ${params.memberName ?? params.memberEmail}\n${resource}\n${when}\n${time}\nAdd-ons:\n${addOnsText}\nKES ${params.totalPrice}`,
     replyTo: params.memberEmail,
+    emailCategory: "bookings",
   })
 }
 
@@ -659,6 +665,7 @@ export async function sendNewAccountStaffEmail(params: {
     bodyHtml,
     text: `New account: ${params.name ?? params.email} (${params.email})`,
     replyTo: params.email,
+    emailCategory: "requests",
   })
 }
 
@@ -701,6 +708,7 @@ export async function sendEventRegistrationStaffEmail(params: {
     bodyHtml,
     text: `Event registration (${statusLabel})\n${params.memberName ?? params.memberEmail}\n${params.eventTitle}\n${when}`,
     replyTo: params.memberEmail,
+    emailCategory: "events",
   })
 }
 
@@ -719,6 +727,7 @@ export async function sendNewsletterSubscribeStaffEmail(params: {
     bodyHtml,
     text: `Newsletter subscriber: ${params.email}`,
     replyTo: params.email,
+    emailCategory: "requests",
   })
 }
 
@@ -754,6 +763,7 @@ export async function sendWorkspaceInquiryStaffEmail(params: {
     }),
     text: `${params.inquiryLabel}\n${params.name}\n${params.email}\n${params.phone}\n\n${params.details}`,
     replyTo: params.email,
+    emailCategory: "requests",
   })
 }
 
@@ -849,6 +859,7 @@ export async function sendVisitorRegisteredStaffEmail(params: {
       ctaUrl: params.frontDeskUrl || undefined,
     }),
     text: `New visitor: ${params.visitorName}\nHost: ${hostLabel}\nExpected: ${when}`,
+    emailCategory: "space",
   })
 }
 

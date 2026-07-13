@@ -120,6 +120,7 @@ export async function sendStarConnectInquiryStaffEmail(
     }),
     text: buildStarConnectInquiryPlainText(params),
     replyTo: params.email,
+    emailCategory: "requests",
   })
 }
 
@@ -162,5 +163,6 @@ export async function sendStarConnectInquiryConfirmationEmail(
       `We received your ${STAR_CONNECT_PLAN_NAME} application and will respond ${STAR_CONNECT_RESPONSE_SLA}.`,
       `Book a call: ${STAR_CONNECT_DISCOVERY_CALL_URL}`,
     ].join("\n"),
+    emailCategory: "requests",
   })
 }

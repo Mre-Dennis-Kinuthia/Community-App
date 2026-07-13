@@ -69,6 +69,7 @@ export async function sendMembershipCancelledMemberEmail(params: {
     text: params.immediate
       ? `Your ${params.planName} membership was cancelled. Billing: ${billingUrl}`
       : `Your ${params.planName} membership ends ${params.accessUntil?.toISOString().slice(0, 10)}.`,
+    emailCategory: "membership",
   })
 }
 
@@ -111,5 +112,6 @@ export async function sendMembershipCancelledStaffEmail(params: {
     }),
     text: `Membership cancellation: ${params.memberName ?? params.memberEmail}\n${params.planName}\n${when}`,
     replyTo: params.memberEmail,
+    emailCategory: "membership",
   })
 }

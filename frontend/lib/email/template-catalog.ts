@@ -8,6 +8,7 @@ export type EmailTemplateCategory =
   | "bookings"
   | "events"
   | "membership"
+  | "requests"
   | "space"
   | "news"
   | "community"
@@ -215,7 +216,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
     key: "workspace_inquiry_confirmation",
     name: "Workspace inquiry confirmation",
     description: "Confirms a workspace inquiry was received.",
-    category: "bookings",
+    category: "requests",
     sentFrom: "member",
     variables: [
       NAME,
@@ -689,6 +690,7 @@ export const EMAIL_TEMPLATE_CATEGORY_LABELS: Record<EmailTemplateCategory, strin
   bookings: "Bookings",
   events: "Events",
   membership: "Membership",
+  requests: "Member requests & inquiries",
   space: "Space / front desk",
   news: "News",
   community: "Community",

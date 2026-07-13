@@ -134,6 +134,7 @@ export async function sendOrganisationalInquiryStaffEmail(
     }),
     text: buildOrganisationalInquiryPlainText(params),
     replyTo: params.email,
+    emailCategory: "requests",
   })
 }
 
@@ -181,6 +182,7 @@ export async function sendOrganisationalInquiryConfirmationEmail(
       `Create your account: ${registerUrl}`,
       `Book a call: ${ORGANISATIONAL_DISCOVERY_CALL_URL}`,
     ].join("\n"),
+    emailCategory: "requests",
   })
 }
 
@@ -258,5 +260,6 @@ export async function sendOrganisationalProfileCompletedStaffEmail(
     }),
     text: buildOrganisationalProfileCompletedPlainText(params),
     replyTo: params.email,
+    emailCategory: "requests",
   })
 }

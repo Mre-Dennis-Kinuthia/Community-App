@@ -73,6 +73,7 @@ export async function sendOrganisationalRegistrationStaffEmail(
     }),
     text: buildOrganisationalRegistrationPlainText(params),
     replyTo: params.email,
+    emailCategory: "requests",
   })
 }
 
@@ -121,5 +122,6 @@ export async function sendOrganisationalRegistrationWelcomeEmail(
       `Our partnerships team will follow up ${ORGANISATIONAL_RESPONSE_SLA}.`,
       `Optional call: ${ORGANISATIONAL_DISCOVERY_CALL_URL}`,
     ].join("\n"),
+    emailCategory: "requests",
   })
 }

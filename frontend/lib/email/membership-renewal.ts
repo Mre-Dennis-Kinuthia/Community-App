@@ -50,5 +50,6 @@ export async function sendMembershipRenewalReminderEmail(params: {
       ctaUrl: params.billingUrl,
     }),
     text: `Your ${params.planName} membership renews ${when} (${amountLabel}). ${params.billingUrl}`,
+    emailCategory: "billing",
   })
 }

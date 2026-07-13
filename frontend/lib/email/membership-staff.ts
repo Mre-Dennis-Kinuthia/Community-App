@@ -68,5 +68,6 @@ export async function sendNewMembershipStaffEmail(params: {
     }),
     text: `New membership: ${params.memberName ?? params.memberEmail}\nPlan: ${params.planName}\n${amountLabel}\n${sourceLabel}\nUntil: ${until}`,
     replyTo: params.memberEmail,
+    emailCategory: "membership",
   })
 }
