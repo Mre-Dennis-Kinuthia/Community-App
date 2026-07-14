@@ -40,20 +40,23 @@ export function MembershipTierBadge({
 
   if (interactive) {
     return (
-      <Badge
-        variant="outline"
-        asChild
-        className={styles}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          onClick?.()
+        }}
+        aria-haspopup="dialog"
+        aria-label={`View ${label} membership card`}
+        className={cn(
+          "inline-flex items-center justify-center rounded-sm border px-2 py-0.5 text-xs",
+          "w-fit whitespace-nowrap shrink-0",
+          styles
+        )}
       >
-        <button
-          type="button"
-          onClick={onClick}
-          aria-haspopup="dialog"
-          aria-label={`View ${label} membership card`}
-        >
-          {label}
-        </button>
-      </Badge>
+        {label}
+      </button>
     )
   }
 

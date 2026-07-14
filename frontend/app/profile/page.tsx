@@ -197,6 +197,17 @@ export default function ProfilePage() {
   const avatarSrc = getImageDisplayUrl(form.image || user?.image || undefined)
   const userInitials = getInitials(displayName, user?.email)
   const memberSince = joinedAt ? format(new Date(joinedAt), "MMM yyyy") : null
+  const membershipDisplay: MembershipBenefits = membership ?? {
+    tier: "community",
+    label: "Community member",
+    canBookHotDesk: true,
+    meetingRoom: {
+      allowanceMinutes: 0,
+      usedMinutes: 0,
+      remainingMinutes: 0,
+      periodStart: new Date().toISOString(),
+    },
+  }
 
   const toggleAvailability = (option: string) => {
     setForm((prev) => ({
@@ -465,7 +476,7 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{displayName}</h1>
                     <MembershipTierBadge
-                      membership={membership}
+                      membership={membershipDisplay}
                       interactive
                       onClick={() => setMembershipCardOpen(true)}
                     />
@@ -479,7 +490,7 @@ export default function ProfilePage() {
                       role={form.role.trim() || null}
                       organization={form.organization.trim() || null}
                       memberSince={memberSince}
-                      membership={membership}
+                      membership={membershipDisplay}
                     />
                   </div>
                 )}

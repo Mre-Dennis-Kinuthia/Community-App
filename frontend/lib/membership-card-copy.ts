@@ -52,11 +52,9 @@ function organisationalBenefits(membership?: MembershipBenefits | null): string[
 
 export function getMembershipCardCopy(
   membership?: MembershipBenefits | null
-): MembershipCardCopy | null {
+): MembershipCardCopy {
   const tier =
-    parseMembershipTier(membership?.tier) ??
-    (membership?.label ? MEMBERSHIP_TIERS.COMMUNITY : null)
-  if (!tier) return null
+    parseMembershipTier(membership?.tier) ?? MEMBERSHIP_TIERS.COMMUNITY
 
   const label =
     membership?.label?.trim() || MEMBERSHIP_TIER_LABELS[tier]

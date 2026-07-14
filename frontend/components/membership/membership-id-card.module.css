@@ -1,13 +1,14 @@
 .scene {
-  perspective: 1200px;
-  width: min(100%, 20.5rem);
-  margin-inline: auto;
+  perspective: 1400px;
+  width: 20.5rem;
+  max-width: calc(100vw - 3rem);
 }
 
 .card {
   position: relative;
   width: 100%;
-  aspect-ratio: 5 / 8;
+  height: 32.8rem; /* 5:8 of 20.5rem */
+  max-height: min(32.8rem, calc(100vh - 8rem));
   transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(0.4, 0.15, 0.2, 1);
   cursor: pointer;
@@ -36,7 +37,7 @@
 }
 
 .front {
-  /* front face — default orientation */
+  transform: rotateY(0deg);
 }
 
 .back {
@@ -88,14 +89,16 @@
 
   .cardFlipped .front {
     visibility: hidden;
-  }
-
-  .back {
-    transform: none;
+    pointer-events: none;
   }
 
   .card:not(.cardFlipped) .back {
     visibility: hidden;
+    pointer-events: none;
+  }
+
+  .back {
+    transform: none;
   }
 
   .shine {

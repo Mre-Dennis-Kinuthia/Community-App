@@ -104,9 +104,6 @@ export function MembershipIdCard({
   const [uncontrolledFlipped, setUncontrolledFlipped] = useState(false)
   const flipped = controlledFlipped ?? uncontrolledFlipped
   const titleId = useId()
-
-  if (!copy) return null
-
   const palette = TIER_PALETTE[copy.tier]
   const subtitle = [role, organization].filter(Boolean).join(" · ") || null
 
