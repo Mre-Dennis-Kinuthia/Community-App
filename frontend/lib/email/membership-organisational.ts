@@ -73,7 +73,7 @@ export async function sendOrganisationalRegistrationStaffEmail(
     }),
     text: buildOrganisationalRegistrationPlainText(params),
     replyTo: params.email,
-    emailCategory: "requests",
+    emailCategory: "tickets",
   })
 }
 
@@ -101,7 +101,7 @@ export async function sendOrganisationalRegistrationWelcomeEmail(
       { title: "Become a member" }
     )}
     ${emailMutedNote(
-      `You may also book a short call: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">Community Office Hours</a>`
+      `You may also book a short call: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:#822929;font-weight:600;text-decoration:none;">Community Office Hours</a>`
     )}
   `
 

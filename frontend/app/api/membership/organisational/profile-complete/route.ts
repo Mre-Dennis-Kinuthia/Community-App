@@ -76,7 +76,7 @@ export async function POST() {
     return NextResponse.json({ message: "Already notified.", alreadyRecorded: true })
   }
 
-  await prisma.supportTicket.create({
+  const ticket = await prisma.supportTicket.create({
     data: {
       member: user.name?.trim()
         ? `${user.name.trim()} <${user.email}>`
@@ -88,6 +88,9 @@ export async function POST() {
       category: PROFILE_COMPLETE_CATEGORY,
     },
   })
+
+  const { notifyStaffSupportTicketCreated } = await import("@/lib/staff-alerts")
+  void notifyStaffSupportTicketCreated(ticket)
 
   let emailsQueued = false
   if (isEmailConfigured()) {

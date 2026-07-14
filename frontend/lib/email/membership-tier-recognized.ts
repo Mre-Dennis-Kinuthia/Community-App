@@ -62,11 +62,11 @@ export async function sendMembershipTierRecognizedEmail(params: {
     ${
       params.tier === MEMBERSHIP_TIERS.STAR_CONNECT
         ? emailMutedNote(
-            `Optional: <a href="${escapeHtml(STAR_CONNECT_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">book a discovery call</a> with our team.`
+            `Optional: <a href="${escapeHtml(STAR_CONNECT_DISCOVERY_CALL_URL)}" style="color:#822929;font-weight:600;text-decoration:none;">book a discovery call</a> with our team.`
           )
         : params.tier === MEMBERSHIP_TIERS.ORGANISATIONAL
           ? emailMutedNote(
-              `Optional: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:#A6192E;font-weight:600;text-decoration:none;">book a partnership call</a>.`
+              `Optional: <a href="${escapeHtml(ORGANISATIONAL_DISCOVERY_CALL_URL)}" style="color:#822929;font-weight:600;text-decoration:none;">book a partnership call</a>.`
             )
           : ""
     }

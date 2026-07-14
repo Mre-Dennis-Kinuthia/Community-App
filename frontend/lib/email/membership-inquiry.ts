@@ -120,7 +120,7 @@ export async function sendStarConnectInquiryStaffEmail(
     }),
     text: buildStarConnectInquiryPlainText(params),
     replyTo: params.email,
-    emailCategory: "requests",
+    emailCategory: "tickets",
   })
 }
 

@@ -65,6 +65,8 @@ export function EventSpaceInquiryForm({ workspaceId, workspaceName, onSuccess }:
           expectedAttendees: pax,
           preferredDate: form.preferredDate.trim() || undefined,
           eventTitle: form.eventTitle.trim() || undefined,
+          eventDetails: form.details.trim() || undefined,
+          cateringNotes: form.menuNotes.trim() || undefined,
           message: messageParts.join("\n"),
         }),
       })

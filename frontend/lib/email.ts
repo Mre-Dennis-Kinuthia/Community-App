@@ -37,6 +37,7 @@ export {
   sendNewsletterSubscribeStaffEmail,
   sendWorkspaceInquiryConfirmationEmail,
   sendWorkspaceInquiryStaffEmail,
+  sendSupportTicketStaffEmail,
 } from "@/lib/email/messages"
 
 export {

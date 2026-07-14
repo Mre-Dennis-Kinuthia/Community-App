@@ -1,0 +1,108 @@
+.scene {
+  perspective: 1200px;
+  width: min(100%, 20.5rem);
+  margin-inline: auto;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5 / 8;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.4, 0.15, 0.2, 1);
+  cursor: pointer;
+  outline: none;
+}
+
+.card:focus-visible {
+  box-shadow: 0 0 0 3px rgba(130, 41, 41, 0.45);
+  border-radius: 1.35rem;
+}
+
+.cardFlipped {
+  transform: rotateY(180deg);
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 1.35rem;
+  overflow: hidden;
+  box-shadow:
+    0 18px 40px rgba(10, 31, 56, 0.28),
+    0 2px 8px rgba(10, 31, 56, 0.12);
+}
+
+.front {
+  /* front face — default orientation */
+}
+
+.back {
+  transform: rotateY(180deg);
+}
+
+.shine {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.28) 48%,
+    transparent 62%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.9s ease;
+}
+
+.card:hover .shine,
+.card:focus-visible .shine {
+  transform: translateX(120%);
+}
+
+.enter {
+  animation: cardEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
+  .cardFlipped {
+    transform: none;
+  }
+
+  .cardFlipped .front {
+    visibility: hidden;
+  }
+
+  .back {
+    transform: none;
+  }
+
+  .card:not(.cardFlipped) .back {
+    visibility: hidden;
+  }
+
+  .shine {
+    display: none;
+  }
+
+  .enter {
+    animation: none;
+  }
+}

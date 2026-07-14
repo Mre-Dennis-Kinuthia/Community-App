@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { syncAccessForBooking } from "@/lib/integrations/access-control"
+import { createNotification, NotificationTemplates } from "@/lib/notifications"
+import { sendBookingCancelledEmail, sendEmailInBackground } from "@/lib/email"
 
 async function resolveUserId(session: Awaited<ReturnType<typeof auth>>) {
   if (!session?.user?.id) return null
@@ -25,7 +27,10 @@ export async function PATCH(
       return NextResponse.json({ error: "Only cancellation is supported" }, { status: 400 })
     }
 
-    const existing = await prisma.workspaceBooking.findUnique({ where: { id } })
+    const existing = await prisma.workspaceBooking.findUnique({
+      where: { id },
+      include: { user: { select: { email: true, name: true } } },
+    })
     if (!existing || existing.userId !== userId) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 })
     }
@@ -36,6 +41,38 @@ export async function PATCH(
     })
 
     await syncAccessForBooking(booking).catch((err) => console.error("[ACCESS BOOKING CANCEL]", err))
+
+    const formattedDate = new Date(booking.date).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+
+    await createNotification({
+      userId,
+      ...NotificationTemplates.bookingCancelled(
+        booking.id,
+        booking.resourceType.replace("-", " "),
+        formattedDate
+      ),
+      skipEmail: true,
+    })
+
+    if (existing.user?.email) {
+      sendEmailInBackground(
+        () =>
+          sendBookingCancelledEmail({
+            to: existing.user!.email!,
+            name: existing.user!.name,
+            resourceType: booking.resourceType,
+            date: booking.date,
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+          }),
+        "booking-cancelled"
+      )
+    }
 
     return NextResponse.json({ booking })
   } catch (error) {

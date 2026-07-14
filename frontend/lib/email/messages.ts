@@ -6,7 +6,7 @@ import {
 import { formatBookingAddOnsHtml, formatBookingAddOnsPlainText } from "@/lib/booking-add-ons"
 import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl, getNewsletterUnsubscribeUrl } from "@/lib/app-url"
 import { formatHubDateTime } from "@/lib/space/hub-timezone"
-import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph, emailDetailCard, emailMutedNote, emailHighlightBox, emailUnsubscribeFooter } from "./templates"
+import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph, emailDetailCard, emailMutedNote, emailHighlightBox, emailUnsubscribeFooter, EMAIL_BRAND } from "./templates"
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type EmailAttachment, type SendEmailResult } from "./send"
 import { sendFromTemplate, type SendFromTemplateResult } from "./resolve-template"
@@ -733,37 +733,183 @@ export async function sendNewsletterSubscribeStaffEmail(params: {
 
 export async function sendWorkspaceInquiryStaffEmail(params: {
   inquiryLabel: string
+  inquiryType?: "private-office" | "event-space"
   name: string
   email: string
   phone: string
-  details: string
+  workspaceName?: string | null
+  workspaceLocation?: string | null
+  expectedAttendees?: number | null
+  preferredDate?: string | null
+  eventTitle?: string | null
+  eventDetails?: string | null
+  cateringNotes?: string | null
+  /** @deprecated Prefer structured fields; kept for older callers. */
+  details?: string
+  helpdeskUrl?: string | null
 }): Promise<SendEmailResult> {
-  const staffTo = getEmailStaffTo()
+  const isEventSpace = params.inquiryType === "event-space"
+  const workspaceName = params.workspaceName?.trim() || "Impact Hub Nairobi"
+  const helpdeskUrl = params.helpdeskUrl?.trim() || ""
+
+  const contactRows = [
+    { label: "Name", value: escapeHtml(params.name) },
+    {
+      label: "Email",
+      value: `<a href="mailto:${escapeHtml(params.email)}" style="color:${EMAIL_BRAND.primary};text-decoration:none;font-weight:600;">${escapeHtml(params.email)}</a>`,
+    },
+    {
+      label: "Phone",
+      value: `<a href="tel:${escapeHtml(params.phone.replace(/\s+/g, ""))}" style="color:${EMAIL_BRAND.primary};text-decoration:none;font-weight:600;">${escapeHtml(params.phone)}</a>`,
+    },
+  ]
+
+  const requestRows: Array<{ label: string; value: string }> = [
+    { label: "Type", value: escapeHtml(params.inquiryLabel) },
+    { label: "Workspace", value: escapeHtml(workspaceName) },
+  ]
+  if (params.workspaceLocation?.trim()) {
+    requestRows.push({ label: "Location", value: escapeHtml(params.workspaceLocation.trim()) })
+  }
+  if (isEventSpace && params.expectedAttendees != null) {
+    requestRows.push({
+      label: "Guests",
+      value: escapeHtml(`${params.expectedAttendees} PAX (max 70)`),
+    })
+  }
+  if (params.preferredDate?.trim()) {
+    requestRows.push({ label: "Preferred date", value: escapeHtml(params.preferredDate.trim()) })
+  }
+  if (params.eventTitle?.trim()) {
+    requestRows.push({ label: "Event title", value: escapeHtml(params.eventTitle.trim()) })
+  }
+
+  const notesBlocks: string[] = []
+  if (params.eventDetails?.trim()) {
+    notesBlocks.push(
+      emailHighlightBox(
+        `<strong style="display:block;margin-bottom:6px;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:${EMAIL_BRAND.primary};">${isEventSpace ? "Event details" : "Request notes"}</strong>${escapeHtml(params.eventDetails.trim()).replace(/\n/g, "<br />")}`
+      )
+    )
+  }
+  if (params.cateringNotes?.trim()) {
+    notesBlocks.push(
+      emailHighlightBox(
+        `<strong style="display:block;margin-bottom:6px;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:${EMAIL_BRAND.primary};">Catering preferences</strong>${escapeHtml(params.cateringNotes.trim()).replace(/\n/g, "<br />")}`
+      )
+    )
+  }
+  if (!notesBlocks.length && params.details?.trim()) {
+    notesBlocks.push(
+      emailHighlightBox(
+        `<strong style="display:block;margin-bottom:6px;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:${EMAIL_BRAND.primary};">Details</strong>${escapeHtml(params.details.trim()).replace(/\n/g, "<br />")}`
+      )
+    )
+  }
+
+  const intro = isEventSpace
+    ? `A new <strong>event space</strong> request arrived for <strong>${escapeHtml(workspaceName)}</strong>. Review the guest count and date, then follow up with availability and pricing.`
+    : `A new <strong>private office</strong> inquiry arrived for <strong>${escapeHtml(workspaceName)}</strong>. Follow up to discuss availability and next steps.`
 
   const bodyHtml = `
-    ${emailParagraph(`<strong>${escapeHtml(params.inquiryLabel)}</strong>`)}
+    ${emailParagraph(intro)}
+    ${emailDetailCard(contactRows, { title: "Contact" })}
+    ${emailDetailCard(requestRows, { title: "Request" })}
+    ${notesBlocks.join("")}
+    ${emailMutedNote("Reply to this email to reach the requester directly.")}
+  `
+
+  const textParts = [
+    params.inquiryLabel,
+    workspaceName,
+    "",
+    `${params.name} · ${params.email} · ${params.phone}`,
+    params.expectedAttendees != null ? `Guests: ${params.expectedAttendees}` : null,
+    params.preferredDate ? `Preferred date: ${params.preferredDate}` : null,
+    params.eventTitle ? `Event: ${params.eventTitle}` : null,
+    params.eventDetails ? `\nDetails:\n${params.eventDetails}` : null,
+    params.cateringNotes ? `\nCatering:\n${params.cateringNotes}` : null,
+    params.details && !params.eventDetails ? `\n${params.details}` : null,
+    helpdeskUrl ? `\nOpen helpdesk: ${helpdeskUrl}` : null,
+  ].filter(Boolean)
+
+  return sendEmail({
+    to: getEmailStaffTo(),
+    subject: isEventSpace
+      ? `[Event space] ${params.eventTitle?.trim() || params.name} — ${workspaceName}`
+      : `[Private office] ${params.name} — ${workspaceName}`,
+    html: layoutEmail({
+      preheader: `${params.inquiryLabel} from ${params.name}`,
+      title: params.inquiryLabel,
+      eyebrow: "Workspace inquiry",
+      bodyHtml,
+      ctaLabel: helpdeskUrl ? "Open in helpdesk" : undefined,
+      ctaUrl: helpdeskUrl || undefined,
+    }),
+    text: textParts.join("\n"),
+    replyTo: params.email,
+    emailCategory: "tickets",
+  })
+}
+
+/** Staff alert when a support / helpdesk ticket is created. */
+export async function sendSupportTicketStaffEmail(params: {
+  member: string
+  subject: string
+  description: string
+  priority?: string | null
+  category?: string | null
+  ticketUrl?: string | null
+  replyTo?: string | null
+}): Promise<SendEmailResult> {
+  const priority = params.priority?.trim() || "medium"
+  const category = params.category?.trim() || "general"
+  const ticketUrl = params.ticketUrl?.trim() || ""
+  const descriptionPreview =
+    params.description.length > 1200
+      ? `${params.description.slice(0, 1200)}…`
+      : params.description
+
+  const bodyHtml = `
+    ${emailParagraph("A new support ticket was created.")}
     ${emailDetailCard(
       [
-        { label: "Name", value: escapeHtml(params.name) },
-        { label: "Email", value: escapeHtml(params.email) },
-        { label: "Phone", value: escapeHtml(params.phone) },
+        { label: "Requester", value: escapeHtml(params.member) },
+        { label: "Subject", value: escapeHtml(params.subject) },
+        { label: "Priority", value: escapeHtml(priority) },
+        { label: "Category", value: escapeHtml(category) },
       ],
-      { title: "Inquiry details" }
+      { title: "Ticket" }
     )}
-    ${emailHighlightBox(escapeHtml(params.details).replace(/\n/g, "<br />"))}
+    ${emailHighlightBox(
+      `<strong>Details</strong><br />${escapeHtml(descriptionPreview).replace(/\n/g, "<br />")}`
+    )}
   `
 
   return sendEmail({
-    to: staffTo,
-    subject: `[Workspace] ${params.inquiryLabel} — ${params.name}`,
+    to: getEmailStaffTo(),
+    subject: `[Ticket] ${params.subject} — ${params.member}`,
     html: layoutEmail({
-      title: "New workspace inquiry",
-      eyebrow: "Workspace",
+      title: "New support ticket",
+      eyebrow: "Support",
       bodyHtml,
+      ctaLabel: ticketUrl ? "Open helpdesk" : undefined,
+      ctaUrl: ticketUrl || undefined,
     }),
-    text: `${params.inquiryLabel}\n${params.name}\n${params.email}\n${params.phone}\n\n${params.details}`,
-    replyTo: params.email,
-    emailCategory: "requests",
+    text: [
+      "New support ticket",
+      params.subject,
+      params.member,
+      `Priority: ${priority}`,
+      `Category: ${category}`,
+      "",
+      descriptionPreview,
+      ticketUrl ? `\n${ticketUrl}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    replyTo: params.replyTo || undefined,
+    emailCategory: "tickets",
   })
 }
 

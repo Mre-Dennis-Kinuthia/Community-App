@@ -7,10 +7,10 @@ export const BRAND_APP_ICON_SVG_PATH = "/brand/impact-hub-app-icon.svg"
 
 /** Full horizontal logo dimensions (source PNG). */
 export const BRAND_LOGO_WIDTH = 1000
-export const BRAND_LOGO_HEIGHT = 424
+export const BRAND_LOGO_HEIGHT = 413
 
 /** Square tile width in the full logo (left mark). */
-export const BRAND_LOGO_TILE_SIZE = 424
+export const BRAND_LOGO_TILE_SIZE = 413
 
-export const BRAND_LOGO_ASPECT_RATIO = 1000 / 424
-export const BRAND_LOGO_TILE_RATIO = 424 / 1000
+export const BRAND_LOGO_ASPECT_RATIO = 1000 / 413
+export const BRAND_LOGO_TILE_RATIO = 413 / 1000

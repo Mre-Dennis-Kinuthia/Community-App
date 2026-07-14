@@ -134,7 +134,7 @@ export async function sendOrganisationalInquiryStaffEmail(
     }),
     text: buildOrganisationalInquiryPlainText(params),
     replyTo: params.email,
-    emailCategory: "requests",
+    emailCategory: "tickets",
   })
 }
 
@@ -260,6 +260,6 @@ export async function sendOrganisationalProfileCompletedStaffEmail(
     }),
     text: buildOrganisationalProfileCompletedPlainText(params),
     replyTo: params.email,
-    emailCategory: "requests",
+    emailCategory: "tickets",
   })
 }

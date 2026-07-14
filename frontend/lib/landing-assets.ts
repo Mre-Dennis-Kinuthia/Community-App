@@ -11,7 +11,7 @@ export const LANDING_IMAGES = {
 } as const
 
 export const IHN_BRAND = {
-  primary: "#812926",
+  primary: "#822929",
   navy: "#1c395c",
   navyDeep: "#0a1f38",
   surface: "#f3f5f8",

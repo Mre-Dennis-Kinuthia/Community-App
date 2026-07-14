@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     const data = schema.parse(await request.json())
     const payload = toPayload(data)
 
-    await prisma.supportTicket.create({
+    const ticket = await prisma.supportTicket.create({
       data: {
         member: `${payload.fullName} <${payload.email}>`,
         subject: `Star Connect membership — ${payload.organization}`,
@@ -132,6 +132,9 @@ export async function POST(request: NextRequest) {
         category: "membership-inquiry",
       },
     })
+
+    const { notifyStaffSupportTicketCreated } = await import("@/lib/staff-alerts")
+    void notifyStaffSupportTicketCreated(ticket)
 
     const emailsQueued = queueStarConnectInquiryEmails(payload)
 

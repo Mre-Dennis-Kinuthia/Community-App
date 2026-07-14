@@ -16,6 +16,19 @@ export function getAppBaseUrl(): string {
   return "http://localhost:3000"
 }
 
+export function getAdminAppBaseUrl(): string {
+  const configured =
+    process.env.NEXT_PUBLIC_ADMIN_APP_URL?.trim() ||
+    process.env.ADMIN_APP_URL?.trim()
+
+  if (configured) {
+    const withProtocol = configured.startsWith("http") ? configured : `https://${configured}`
+    return withProtocol.replace(/\/$/, "")
+  }
+
+  return "http://localhost:3001"
+}
+
 /** Public privacy policy path (no trailing slash). */
 export const PRIVACY_POLICY_PATH = "/privacy"
 

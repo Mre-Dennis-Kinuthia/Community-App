@@ -292,6 +292,38 @@ export async function POST(
       "event-registration-staff"
     )
 
+    if (userId) {
+      const { createNotification, NotificationTemplates } = await import("@/lib/notifications")
+      const template =
+        status === "waitlisted"
+          ? {
+              title: "Added to waitlist",
+              message: `You're on the waitlist for ${event.title}. We'll notify you if a spot opens.`,
+              type: "info" as const,
+              category: "event",
+              actionUrl: `/events/${eventId}`,
+              relatedId: eventId,
+              relatedType: "event",
+            }
+          : status === "pending"
+            ? {
+                title: "Application submitted",
+                message: `Your registration for ${event.title} is pending organizer approval.`,
+                type: "info" as const,
+                category: "event",
+                actionUrl: `/events/${eventId}`,
+                relatedId: eventId,
+                relatedType: "event",
+              }
+            : NotificationTemplates.eventRegistration(eventId, event.title)
+
+      await createNotification({
+        userId,
+        ...template,
+        skipEmail: true,
+      })
+    }
+
     const message =
       status === "pending"
         ? "Application submitted — the organizer will review your registration"
@@ -403,6 +435,21 @@ export async function DELETE(
         }),
       "event-registration-cancelled"
     )
+
+    if (registration.userId) {
+      const { createNotification } = await import("@/lib/notifications")
+      await createNotification({
+        userId: registration.userId,
+        title: "Event registration cancelled",
+        message: `Your registration for ${registration.event.title} was cancelled.`,
+        type: "info",
+        category: "event",
+        actionUrl: `/events/${eventId}`,
+        relatedId: eventId,
+        relatedType: "event",
+        skipEmail: true,
+      })
+    }
 
     return NextResponse.json(
       { message: "Registration cancelled" },

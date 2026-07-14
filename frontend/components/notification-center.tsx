@@ -206,6 +206,27 @@ export function NotificationCenter() {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    if (!open) return
+    async function refresh() {
+      try {
+        const response = await fetch("/api/notifications?limit=10", { credentials: "include" })
+        if (!response.ok) return
+        const data = await response.json()
+        const list = data.notifications || []
+        setNotifications(list)
+        setUnreadCount(
+          typeof data.unreadCount === "number"
+            ? data.unreadCount
+            : list.filter((n: Notification) => !n.read).length
+        )
+      } catch {
+        // ignore
+      }
+    }
+    refresh()
+  }, [open])
+
   const markAsRead = async (id: string) => {
     setNotifications(
       notifications.map((n) => (n.id === id ? { ...n, read: true, readAt: new Date().toISOString() } : n))

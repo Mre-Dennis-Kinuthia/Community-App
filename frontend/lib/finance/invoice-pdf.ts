@@ -4,8 +4,8 @@ import { PDFDocument, rgb, StandardFonts, type PDFPage, type PDFFont } from "pdf
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 
 export const INVOICE_BRAND = {
-  primary: rgb(166 / 255, 25 / 255, 46 / 255),
-  primaryDark: rgb(128 / 255, 43 / 255, 43 / 255),
+  primary: rgb(130 / 255, 41 / 255, 41 / 255),
+  primaryDark: rgb(106 / 255, 33 / 255, 33 / 255),
   primaryLight: rgb(253 / 255, 242 / 255, 244 / 255),
   text: rgb(24 / 255, 24 / 255, 27 / 255),
   textMuted: rgb(113 / 255, 113 / 255, 122 / 255),

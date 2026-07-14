@@ -5,6 +5,7 @@ import {
   sendWorkspaceInquiryStaffEmail,
   sendEmailInBackground,
 } from "@/lib/email"
+import { getAdminAppBaseUrl } from "@/lib/app-url"
 import { z } from "zod"
 
 const inquirySchema = z
@@ -18,6 +19,8 @@ const inquirySchema = z
     expectedAttendees: z.number().int().min(1).max(70).optional(),
     preferredDate: z.string().optional(),
     eventTitle: z.string().optional(),
+    eventDetails: z.string().optional(),
+    cateringNotes: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.inquiryType === "event-space") {
@@ -31,41 +34,91 @@ const inquirySchema = z
     }
   })
 
+function formatPreferredDate(value?: string): string | undefined {
+  if (!value?.trim()) return undefined
+  const parsed = new Date(`${value.trim()}T12:00:00`)
+  if (Number.isNaN(parsed.getTime())) return value.trim()
+  return new Intl.DateTimeFormat("en-KE", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(parsed)
+}
+
+function extractSection(message: string | undefined, heading: string): string | undefined {
+  if (!message?.trim()) return undefined
+  const pattern = new RegExp(
+    `${heading}\\s*:\\s*([\\s\\S]*?)(?=\\n\\s*\\n[A-Z][^\\n]*:|$)`,
+    "i"
+  )
+  const match = message.match(pattern)
+  const value = match?.[1]?.trim()
+  return value || undefined
+}
+
 export async function POST(request: NextRequest) {
   try {
     const json = await request.json()
     const data = inquirySchema.parse(json)
 
-    const subject =
-      data.inquiryType === "event-space" ? "Event space inquiry (up to 70 PAX)" : "Private office inquiry"
+    const workspace = await prisma.workspace.findFirst({
+      where: {
+        OR: [{ id: data.workspaceId }, { slug: data.workspaceId }],
+        deletedAt: null,
+      },
+      select: { id: true, name: true, location: true, slug: true },
+    })
 
-    const description = [
-      `Type: ${data.inquiryType}`,
-      `Workspace: ${data.workspaceId}`,
+    const isEventSpace = data.inquiryType === "event-space"
+    const inquiryLabel = isEventSpace ? "Event space inquiry" : "Private office inquiry"
+    const workspaceName = workspace?.name || "Impact Hub Nairobi"
+    const preferredDateLabel = formatPreferredDate(data.preferredDate)
+
+    const eventDetails =
+      data.eventDetails?.trim() ||
+      extractSection(data.message, "Event details") ||
+      (!isEventSpace ? data.message?.trim() : undefined)
+
+    const cateringNotes =
+      data.cateringNotes?.trim() || extractSection(data.message, "Menu / catering preferences")
+
+    const subject = isEventSpace
+      ? `Event space inquiry — ${data.eventTitle?.trim() || data.name}`
+      : `Private office inquiry — ${data.name}`
+
+    const descriptionLines = [
+      `Inquiry: ${inquiryLabel}`,
+      `Workspace: ${workspaceName}`,
+      workspace?.location ? `Location: ${workspace.location}` : null,
+      `Contact: ${data.name}`,
+      `Email: ${data.email}`,
       `Phone: ${data.phone}`,
-      data.inquiryType === "event-space" && data.expectedAttendees != null
+      isEventSpace && data.expectedAttendees != null
         ? `Expected guests: ${data.expectedAttendees}`
-        : "",
-      data.preferredDate ? `Preferred date: ${data.preferredDate}` : "",
-      data.eventTitle ? `Event title: ${data.eventTitle}` : "",
-      data.message ? `\nDetails:\n${data.message}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n")
+        : null,
+      preferredDateLabel ? `Preferred date: ${preferredDateLabel}` : null,
+      data.eventTitle?.trim() ? `Event title: ${data.eventTitle.trim()}` : null,
+      eventDetails ? `\nEvent / request details:\n${eventDetails}` : null,
+      cateringNotes ? `\nCatering preferences:\n${cateringNotes}` : null,
+    ].filter(Boolean)
 
-    await prisma.supportTicket.create({
+    const ticket = await prisma.supportTicket.create({
       data: {
         member: `${data.name} <${data.email}>`,
         subject,
-        description,
+        description: descriptionLines.join("\n"),
         status: "open",
-        priority: "medium",
+        priority: isEventSpace ? "high" : "medium",
         category: "workspace-inquiry",
       },
     })
 
-    const inquiryLabel =
-      data.inquiryType === "event-space" ? "Event space inquiry" : "Private office inquiry"
+    const { notifyStaffSupportTicketCreated } = await import("@/lib/staff-alerts")
+    void notifyStaffSupportTicketCreated({
+      ...ticket,
+      subject: `${inquiryLabel} · ${workspaceName}`,
+    })
 
     sendEmailInBackground(
       () =>
@@ -77,14 +130,24 @@ export async function POST(request: NextRequest) {
       "workspace-inquiry-confirmation"
     )
 
+    const helpdeskUrl = `${getAdminAppBaseUrl()}/dashboard/support`
+
     sendEmailInBackground(
       () =>
         sendWorkspaceInquiryStaffEmail({
           inquiryLabel,
+          inquiryType: data.inquiryType || "private-office",
           name: data.name,
           email: data.email,
           phone: data.phone,
-          details: description,
+          workspaceName,
+          workspaceLocation: workspace?.location,
+          expectedAttendees: data.expectedAttendees,
+          preferredDate: preferredDateLabel,
+          eventTitle: data.eventTitle?.trim() || undefined,
+          eventDetails,
+          cateringNotes,
+          helpdeskUrl,
         }),
       "workspace-inquiry-staff"
     )

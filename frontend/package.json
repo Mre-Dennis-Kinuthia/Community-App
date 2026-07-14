@@ -29,6 +29,7 @@
     "admin:create": "tsx scripts/create-admin.ts",
     "pwa:icons": "node scripts/generate-pwa-icons.mjs",
     "brand:assets": "node scripts/generate-brand-assets.mjs",
+    "brand:logo": "node scripts/update-logo-only.mjs",
     "landing:images": "node scripts/fetch-landing-images.mjs",
     "db:apply-marketing": "tsx scripts/apply-marketing-schema.ts",
     "partners:logos": "node scripts/fetch-partner-logos.mjs",

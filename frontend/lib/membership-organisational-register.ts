@@ -41,7 +41,7 @@ export async function recordOrganisationalRegistration(
     return { emailsQueued: false, alreadyRecorded: true }
   }
 
-  await prisma.supportTicket.create({
+  const ticket = await prisma.supportTicket.create({
     data: {
       member: ticketMemberField(payload),
       subject: `${ORGANISATIONAL_PLAN_NAME} membership — platform registration`,
@@ -51,6 +51,9 @@ export async function recordOrganisationalRegistration(
       category: TICKET_CATEGORY,
     },
   })
+
+  const { notifyStaffSupportTicketCreated } = await import("@/lib/staff-alerts")
+  void notifyStaffSupportTicketCreated(ticket)
 
   const emailsQueued = queueOrganisationalRegistrationEmails(payload)
   return { emailsQueued, alreadyRecorded: false }

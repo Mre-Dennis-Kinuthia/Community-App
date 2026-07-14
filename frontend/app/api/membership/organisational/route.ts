@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     const data = schema.parse(await request.json())
     const payload = toPayload(data)
 
-    await prisma.supportTicket.create({
+    const ticket = await prisma.supportTicket.create({
       data: {
         member: `${payload.fullName} <${payload.email}>`,
         subject: `${ORGANISATIONAL_PLAN_NAME} partnership — ${payload.organizationName}`,
@@ -143,6 +143,9 @@ export async function POST(request: NextRequest) {
         category: ORGANISATIONAL_INQUIRY_TICKET_CATEGORY,
       },
     })
+
+    const { notifyStaffSupportTicketCreated } = await import("@/lib/staff-alerts")
+    void notifyStaffSupportTicketCreated(ticket)
 
     const emailsQueued = queueOrganisationalInquiryEmails(payload)
 

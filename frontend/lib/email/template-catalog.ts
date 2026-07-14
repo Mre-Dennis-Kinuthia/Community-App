@@ -9,6 +9,7 @@ export type EmailTemplateCategory =
   | "events"
   | "membership"
   | "requests"
+  | "tickets"
   | "space"
   | "news"
   | "community"
@@ -231,6 +232,30 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
     ctaLabel: null,
     textBody:
       "We received your {{inquiryLabel}} request. Our team will contact you soon.",
+  },
+  {
+    key: "support_ticket_staff_alert",
+    name: "Support ticket staff alert",
+    description: "Notifies staff when a new support / helpdesk ticket is created.",
+    category: "tickets",
+    sentFrom: "both",
+    variables: [
+      { key: "member", label: "Member / requester", sample: "Jane Doe <jane@example.com>" },
+      { key: "ticketSubject", label: "Ticket subject", sample: "Private office inquiry" },
+      { key: "priority", label: "Priority", sample: "medium" },
+      { key: "ticketCategory", label: "Ticket category", sample: "workspace-inquiry" },
+      { key: "description", label: "Description", sample: "Looking for a 4-person office from August." },
+      { key: "ticketUrl", label: "Admin ticket URL", sample: "https://admin.example.com/dashboard/support" },
+    ],
+    subject: "[Ticket] {{ticketSubject}} — {{member}}",
+    preheader: "New support ticket",
+    title: "New support ticket",
+    eyebrow: "Support",
+    bodyHtml: `<p>A new support ticket was created.</p>
+<p><strong>{{ticketSubject}}</strong></p>
+<p>{{description}}</p>`,
+    ctaLabel: "Open helpdesk",
+    textBody: "New support ticket\n{{ticketSubject}}\n{{member}}\n{{priority}}\n{{description}}\n{{ticketUrl}}",
   },
   {
     key: "event_registration_confirmed",
@@ -691,12 +716,94 @@ export const EMAIL_TEMPLATE_CATEGORY_LABELS: Record<EmailTemplateCategory, strin
   events: "Events",
   membership: "Membership",
   requests: "Member requests & inquiries",
+  tickets: "Support tickets",
   space: "Space / front desk",
   news: "News",
   community: "Community",
   billing: "Billing",
   admin: "Admin",
 }
+
+/**
+ * Guidance for admin CC lists.
+ * - direction: inbound = staff alerts about things arriving at the hub;
+ *   outbound = emails the platform sends to members / applicants.
+ * - recommended = ops should usually watch these.
+ */
+export const EMAIL_CC_CATEGORY_GUIDANCE: Record<
+  EmailTemplateCategory,
+  {
+    recommended: boolean
+    direction: "inbound" | "outbound"
+    reason: string
+  }
+> = {
+  tickets: {
+    recommended: true,
+    direction: "inbound",
+    reason:
+      "Inbound staff alerts — helpdesk tickets, workspace inquiries, Star Connect & partnership applications.",
+  },
+  bookings: {
+    recommended: true,
+    direction: "inbound",
+    reason:
+      "Inbound staff alerts when a new workspace booking is placed (front-of-house / space ops).",
+  },
+  space: {
+    recommended: true,
+    direction: "inbound",
+    reason: "Inbound front-desk alerts — visitor registrations and reception activity.",
+  },
+  requests: {
+    recommended: true,
+    direction: "inbound",
+    reason:
+      "Inbound lead alerts — newsletter signups, new accounts, and related inquiry traffic.",
+  },
+  membership: {
+    recommended: true,
+    direction: "outbound",
+    reason:
+      "Outbound to members — activations, cancellations, payment links, and approval notices.",
+  },
+  billing: {
+    recommended: true,
+    direction: "outbound",
+    reason: "Outbound to members — payment and renewal reminders (finance / membership).",
+  },
+  account: {
+    recommended: false,
+    direction: "outbound",
+    reason: "Outbound private account mail — password resets and email verification. Do not CC.",
+  },
+  events: {
+    recommended: false,
+    direction: "outbound",
+    reason:
+      "Outbound to members — registration confirmations and reminders (high volume; use tickets for ops).",
+  },
+  news: {
+    recommended: false,
+    direction: "outbound",
+    reason: "Outbound marketing — published article emails to members.",
+  },
+  community: {
+    recommended: false,
+    direction: "outbound",
+    reason: "Outbound peer traffic — connection requests and member messages.",
+  },
+  admin: {
+    recommended: false,
+    direction: "outbound",
+    reason: "Outbound admin invites / internal admin mail — already goes to the recipient.",
+  },
+}
+
+/** Categories recommended when adding an ops / membership admin to CC. */
+export const EMAIL_CC_RECOMMENDED_CATEGORIES = (
+  Object.keys(EMAIL_CC_CATEGORY_GUIDANCE) as EmailTemplateCategory[]
+).filter((key) => EMAIL_CC_CATEGORY_GUIDANCE[key].recommended)
 
 export function getEmailTemplateDefinition(key: string): EmailTemplateDefinition | undefined {
   return EMAIL_TEMPLATE_CATALOG.find((t) => t.key === key)

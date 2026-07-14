@@ -5,7 +5,7 @@ import { eventTimezone } from "@/lib/event-datetime"
 
 /** Impact Hub Nairobi brand palette for email clients (inline styles only). */
 export const EMAIL_BRAND = {
-  primary: "#812926",
+  primary: "#822929",
   primaryDark: "#0a1f38",
   navy: "#1c395c",
   accent: "#ffd546",

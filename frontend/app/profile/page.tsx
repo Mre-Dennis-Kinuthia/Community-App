@@ -39,6 +39,7 @@ import {
 import { validateLinkedInInput } from "@/lib/member-social-links"
 import { Linkedin } from "lucide-react"
 import { MembershipTierBadge } from "@/components/membership-tier-badge"
+import { MembershipCardDialog } from "@/components/membership/membership-card-dialog"
 import type { MembershipBenefits } from "@/lib/hooks/use-membership"
 
 const EXPERIENCE_LEVELS = ["Early Career", "Mid-Level", "Senior", "Expert"] as const
@@ -117,6 +118,7 @@ export default function ProfilePage() {
   const [followingLoading, setFollowingLoading] = useState(true)
   const [joinedAt, setJoinedAt] = useState<string | null>(null)
   const [membership, setMembership] = useState<MembershipBenefits | null>(null)
+  const [membershipCardOpen, setMembershipCardOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deletePassword, setDeletePassword] = useState("")
@@ -462,7 +464,23 @@ export default function ProfilePage() {
                 ) : (
                   <div className="space-y-2">
                     <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{displayName}</h1>
-                    <MembershipTierBadge membership={membership} />
+                    <MembershipTierBadge
+                      membership={membership}
+                      interactive
+                      onClick={() => setMembershipCardOpen(true)}
+                    />
+                    <MembershipCardDialog
+                      open={membershipCardOpen}
+                      onOpenChange={setMembershipCardOpen}
+                      name={displayName}
+                      email={user.email}
+                      avatarUrl={avatarSrc}
+                      initials={userInitials}
+                      role={form.role.trim() || null}
+                      organization={form.organization.trim() || null}
+                      memberSince={memberSince}
+                      membership={membership}
+                    />
                   </div>
                 )}
                 <p className="break-all text-sm text-muted-foreground">

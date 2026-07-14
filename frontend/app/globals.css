@@ -25,7 +25,7 @@ html.pwa-standalone body {
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
 
-  /* Impact Hub Nairobi #A6192E */
+  /* Impact Hub Nairobi #822929 */
   --primary: oklch(0.38 0.18 10);
   --primary-foreground: oklch(1 0 0);
 
@@ -329,7 +329,7 @@ html.pwa-standalone body {
 
   /* Impact Hub Nairobi marketing site — aligned with nairobi.impacthub.net */
   .landing-page {
-    --ihn-primary: #812926;
+    --ihn-primary: #822929;
     --ihn-navy: #1c395c;
     --ihn-navy-deep: #0a1f38;
     --ihn-surface: #f3f5f8;
