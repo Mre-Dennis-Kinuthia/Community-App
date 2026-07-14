@@ -1,27 +1,32 @@
 .scene {
-  perspective: 1400px;
+  perspective: 1600px;
   width: 20.5rem;
   max-width: calc(100vw - 3rem);
 }
 
 .card {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --glare-x: 50%;
+  --glare-y: 50%;
   position: relative;
   width: 100%;
   height: 32.8rem; /* 5:8 of 20.5rem */
   max-height: min(32.8rem, calc(100vh - 8rem));
   transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
   transition: transform 0.7s cubic-bezier(0.4, 0.15, 0.2, 1);
   cursor: pointer;
   outline: none;
 }
 
 .card:focus-visible {
-  box-shadow: 0 0 0 3px rgba(130, 41, 41, 0.45);
-  border-radius: 1.35rem;
+  box-shadow: 0 0 0 3px rgba(255, 213, 70, 0.55);
+  border-radius: 1.5rem;
 }
 
 .cardFlipped {
-  transform: rotateY(180deg);
+  transform: rotateX(var(--tilt-x)) rotateY(calc(180deg + var(--tilt-y)));
 }
 
 .face {
@@ -29,11 +34,13 @@
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: 1.35rem;
+  border-radius: 1.5rem;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow:
-    0 18px 40px rgba(10, 31, 56, 0.28),
-    0 2px 8px rgba(10, 31, 56, 0.12);
+    0 30px 60px -12px rgba(0, 0, 0, 0.55),
+    0 8px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .front {
@@ -44,43 +51,77 @@
   transform: rotateY(180deg);
 }
 
-.shine {
+/* Iridescent holo band that slowly drifts */
+.holo {
+  pointer-events: none;
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(65, 190, 208, 0.14) 60deg,
+    rgba(255, 213, 70, 0.12) 120deg,
+    rgba(247, 138, 60, 0.1) 180deg,
+    rgba(126, 187, 85, 0.1) 240deg,
+    transparent 320deg
+  );
+  animation: holoSpin 14s linear infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes holoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pointer-follow glare highlight */
+.glare {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    115deg,
-    transparent 35%,
-    rgba(255, 255, 255, 0.28) 48%,
-    transparent 62%
+  background: radial-gradient(
+    380px circle at var(--glare-x) var(--glare-y),
+    rgba(255, 255, 255, 0.18),
+    transparent 55%
   );
-  transform: translateX(-120%);
-  transition: transform 0.9s ease;
+  opacity: 0;
+  transition: opacity 0.35s ease;
 }
 
-.card:hover .shine,
-.card:focus-visible .shine {
-  transform: translateX(120%);
+.card:hover .glare,
+.card:focus-visible .glare {
+  opacity: 1;
+}
+
+/* Fine film-grain so flat gradients feel like card stock */
+.noise {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
 }
 
 .enter {
-  animation: cardEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: cardEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes cardEnter {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.94);
+    transform: translateY(24px) scale(0.92) rotateX(8deg);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scale(1) rotateX(0deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card {
     transition: none;
+    transform: none;
   }
 
   .cardFlipped {
@@ -101,7 +142,11 @@
     transform: none;
   }
 
-  .shine {
+  .holo {
+    animation: none;
+  }
+
+  .glare {
     display: none;
   }
 
