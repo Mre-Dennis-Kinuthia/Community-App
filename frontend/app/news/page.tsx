@@ -5,17 +5,7 @@ import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Button } from "@/components/ui/button"
-import {
-  Newspaper,
-  Calendar,
-  ArrowRight,
-  Clock,
-  Eye,
-  Pin,
-  Star,
-  Tag,
-} from "lucide-react"
-import { format } from "date-fns"
+import { Newspaper } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { FilterChip } from "@/components/mobile/filter-chip"
@@ -28,48 +18,9 @@ import {
   ListPageSearchField,
   ListPageShell,
 } from "@/components/design/list-page-shell"
-import { cn } from "@/lib/utils"
+import { NewsCard, type NewsCardPost } from "@/components/news/news-card"
 
-interface NewsTag {
-  id: string
-  name: string
-  slug: string
-}
-
-interface NewsPostTag {
-  tag: NewsTag
-}
-
-interface Category {
-  id: string
-  name: string
-  slug: string
-  color: string | null
-}
-
-interface Author {
-  id: string
-  name: string | null
-  email: string
-}
-
-interface NewsPost {
-  id: string
-  title: string
-  slug: string
-  content: string
-  excerpt: string | null
-  imageUrl: string | null
-  publishedAt: Date | null
-  createdAt: Date
-  isFeatured: boolean
-  isPinned: boolean
-  viewCount: number
-  readingTimeMinutes: number | null
-  author: Author | null
-  category: Category | null
-  tags: NewsPostTag[]
-}
+type NewsPost = NewsCardPost
 
 export default function NewsPage() {
   const searchParams = useSearchParams()
@@ -143,18 +94,21 @@ export default function NewsPage() {
   const activeTagName =
     tagId && (news.find((p) => p.tags?.some((t) => t.tag.id === tagId))?.tags?.find((t) => t.tag.id === tagId)?.tag.name ?? "Tag")
 
-  const getDisplayDate = (item: NewsPost) => {
-    if (item.publishedAt) {
-      return new Date(item.publishedAt)
-    }
-    return new Date(item.createdAt)
-  }
-
-  const stripHtml = (html: string) => {
-    return html.replace(/<[^>]*>/g, "").substring(0, 200)
-  }
-
   const filterCount = [searchQuery, categoryId, tagId].filter(Boolean).length
+
+  /* Editorial partition: hierarchy only when browsing, plain grid when filtering. */
+  const showHierarchy = !hasActiveFilters && news.length > 2
+  const lead = showHierarchy
+    ? news.find((p) => p.isPinned) ?? news.find((p) => p.isFeatured) ?? news[0]
+    : null
+  const afterLead = lead ? news.filter((p) => p.id !== lead.id) : news
+  const secondary = showHierarchy
+    ? [...afterLead].sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured)).slice(0, 2)
+    : []
+  const secondaryIds = new Set(secondary.map((p) => p.id))
+  const rest = showHierarchy
+    ? afterLead.filter((p) => !secondaryIds.has(p.id))
+    : news
 
   return (
     <DashboardLayout>
@@ -301,124 +255,34 @@ export default function NewsPage() {
             />
           }
         >
-          <div className="news-feed-list">
-            {news.map((item) => {
-              const displayDate = getDisplayDate(item)
-              const preview = item.excerpt || stripHtml(item.content)
+          <div className="space-y-5 md:space-y-6">
+            {lead ? <NewsCard post={lead} variant="hero" /> : null}
 
-              return (
-                <article
-                  key={item.id}
-                  className={cn(
-                    "news-feed-card",
-                    item.isPinned && "ring-2 ring-primary ring-offset-2"
-                  )}
-                >
-                  {(item.category || (item.tags?.length ?? 0) > 0) && (
-                    <div className="news-feed-card-badges">
-                      {item.category && (
-                        <button
-                          type="button"
-                          className="transition-opacity hover:opacity-80"
-                          onClick={() =>
-                            setCategoryFilter(categoryId === item.category!.id ? "" : item.category!.id)
-                          }
-                        >
-                          <Badge
-                            variant="outline"
-                            className={cn("text-xs", categoryId === item.category.id && "ring-2 ring-primary ring-offset-1")}
-                            style={item.category.color ? { borderColor: item.category.color, color: item.category.color } : undefined}
-                          >
-                            {item.category.name}
-                          </Badge>
-                        </button>
-                      )}
-                      {(item.tags ?? []).slice(0, 3).map((postTag) => (
-                        <button
-                          key={postTag.tag.id}
-                          type="button"
-                          className="transition-opacity hover:opacity-80"
-                          onClick={() =>
-                            setTagFilter(tagId === postTag.tag.id ? "" : postTag.tag.id)
-                          }
-                        >
-                          <Badge
-                            variant="outline"
-                            className={cn("flex items-center gap-1 text-xs", tagId === postTag.tag.id && "ring-2 ring-primary ring-offset-1")}
-                          >
-                            <Tag className="h-3 w-3" />
-                            {postTag.tag.name}
-                          </Badge>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+            {secondary.length > 0 ? (
+              <div className="grid gap-5 md:grid-cols-2">
+                {secondary.map((item) => (
+                  <NewsCard key={item.id} post={item} variant="featured" />
+                ))}
+              </div>
+            ) : null}
 
-                  <Link href={`/news/${item.id}`} className="news-feed-card-link">
-                    <div className="news-feed-card-media">
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className="h-full w-full object-cover transition-transform duration-500 ease-out hover:scale-[1.02]"
-                        />
-                      ) : (
-                        <div className="flex aspect-[16/9] items-center justify-center">
-                          <Newspaper className="h-10 w-10 text-muted-foreground/50" />
-                        </div>
-                      )}
-                      {(item.isPinned || item.isFeatured) && (
-                        <div className="absolute top-2 left-2 flex gap-2">
-                          {item.isPinned && (
-                            <Badge variant="default" className="flex items-center gap-1 shadow-sm">
-                              <Pin className="h-3 w-3" />
-                              Pinned
-                            </Badge>
-                          )}
-                          {item.isFeatured && (
-                            <Badge variant="secondary" className="flex items-center gap-1 shadow-sm">
-                              <Star className="h-3 w-3" />
-                              Featured
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="news-feed-card-body">
-                      <h2 className="news-feed-card-title">{item.title}</h2>
-
-                      {preview && (
-                        <p className="news-feed-card-excerpt line-clamp-2">{preview}</p>
-                      )}
-
-                      <div className="news-feed-card-meta">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5 shrink-0" />
-                          {format(displayDate, "MMM d, yyyy")}
-                        </span>
-                        {item.readingTimeMinutes && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5 shrink-0" />
-                            {item.readingTimeMinutes} min
-                          </span>
-                        )}
-                        {item.viewCount > 0 && (
-                          <span className="flex items-center gap-1">
-                            <Eye className="h-3.5 w-3.5 shrink-0" />
-                            {item.viewCount}
-                          </span>
-                        )}
-                        <span className="news-feed-card-read">
-                          Read
-                          <ArrowRight className="h-3 w-3 shrink-0" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                </article>
-              )
-            })}
+            {rest.length > 0 ? (
+              <>
+                {showHierarchy ? (
+                  <div className="flex items-center gap-3 pt-1">
+                    <span className="h-1 w-8 rounded-full bg-primary" aria-hidden />
+                    <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                      Latest stories
+                    </h2>
+                  </div>
+                ) : null}
+                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                  {rest.map((item) => (
+                    <NewsCard key={item.id} post={item} variant="standard" />
+                  ))}
+                </div>
+              </>
+            ) : null}
           </div>
         </ListPageBody>
       </ListPageShell>

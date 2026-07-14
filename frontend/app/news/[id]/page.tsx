@@ -210,7 +210,53 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
           </Link>
         </Button>
 
-        <MobilePageHeader title={newsItem.title} description={newsItem.excerpt ?? undefined} />
+        {newsItem.imageUrl ? (
+          <div className="relative overflow-hidden rounded-xl border border-border">
+            <div className="relative aspect-[16/9] bg-muted sm:aspect-[16/7]">
+              <img
+                src={newsItem.imageUrl}
+                alt={newsItem.title}
+                className="h-full w-full object-cover"
+              />
+              <div
+                aria-hidden
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "linear-gradient(0deg, rgba(10,31,56,0.92) 0%, rgba(10,31,56,0.4) 45%, transparent 70%)",
+                }}
+              />
+            </div>
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6 md:p-8">
+              {newsItem.category ? (
+                <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#0a1f38]/75 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+                  <span
+                    aria-hidden
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: newsItem.category.color || "#ffd546" }}
+                  />
+                  {newsItem.category.name}
+                </span>
+              ) : null}
+              <h1 className="max-w-2xl text-xl font-bold leading-tight tracking-tight text-white sm:text-2xl md:text-3xl">
+                {newsItem.title}
+              </h1>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div
+              aria-hidden
+              className="h-1.5 w-24 rounded-full"
+              style={{ background: "linear-gradient(90deg, #822929, #ffd546)" }}
+            />
+            <MobilePageHeader title={newsItem.title} description={newsItem.excerpt ?? undefined} />
+          </div>
+        )}
+
+        {newsItem.imageUrl && newsItem.excerpt ? (
+          <p className="news-article-deck">{newsItem.excerpt}</p>
+        ) : null}
 
         <div className="news-article-meta">
           {newsItem.author && (
@@ -257,16 +303,6 @@ export default function NewsDetailPage({ params }: { params: Promise<{ id: strin
                 </Badge>
               </Link>
             ))}
-          </div>
-        )}
-
-        {newsItem.imageUrl && (
-          <div className="news-article-featured-image overflow-hidden rounded-lg border border-border">
-            <img
-              src={newsItem.imageUrl}
-              alt={newsItem.title}
-              className="h-auto w-full"
-            />
           </div>
         )}
 
