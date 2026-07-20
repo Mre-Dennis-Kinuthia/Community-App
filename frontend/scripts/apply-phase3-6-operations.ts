@@ -29,33 +29,9 @@ async function trySql(query: TemplateStringsArray, ...values: unknown[]) {
 }
 
 async function main() {
-  await trySql`CREATE TYPE "MaintenanceCategory" AS ENUM ('internet', 'cleaning', 'printer', 'hvac', 'other')`
-  await trySql`CREATE TYPE "MaintenancePriority" AS ENUM ('low', 'medium', 'high', 'urgent')`
-  await trySql`CREATE TYPE "MaintenanceStatus" AS ENUM ('open', 'in_progress', 'resolved', 'cancelled')`
   await trySql`CREATE TYPE "CleaningFrequency" AS ENUM ('daily', 'weekly')`
   await trySql`CREATE TYPE "SurveyStatus" AS ENUM ('draft', 'active', 'closed')`
   await trySql`CREATE TYPE "AnnouncementType" AS ENUM ('normal', 'pinned', 'urgent')`
-
-  await sql`
-    CREATE TABLE IF NOT EXISTS "maintenance_tickets" (
-      "id" TEXT NOT NULL,
-      "title" TEXT NOT NULL,
-      "description" TEXT NOT NULL,
-      "category" "MaintenanceCategory" NOT NULL,
-      "priority" "MaintenancePriority" NOT NULL DEFAULT 'medium',
-      "status" "MaintenanceStatus" NOT NULL DEFAULT 'open',
-      "location_id" TEXT NOT NULL,
-      "space_asset_id" TEXT,
-      "assigned_to" TEXT,
-      "reported_by" TEXT,
-      "resolved_at" TIMESTAMP(3),
-      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      "updatedAt" TIMESTAMP(3) NOT NULL,
-      CONSTRAINT "maintenance_tickets_pkey" PRIMARY KEY ("id")
-    )
-  `
-  await sql`CREATE INDEX IF NOT EXISTS "maintenance_tickets_status_idx" ON "maintenance_tickets"("status")`
-  await sql`CREATE INDEX IF NOT EXISTS "maintenance_tickets_location_id_idx" ON "maintenance_tickets"("location_id")`
 
   await sql`
     CREATE TABLE IF NOT EXISTS "vendors" (

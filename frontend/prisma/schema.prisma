@@ -75,7 +75,6 @@ model User {
   checkIns  CheckIn[]
   hostedVisitors Visitor[] @relation("HostedVisitors")
   deliveries Delivery[]
-  maintenanceTicketsReported MaintenanceTicket[] @relation("ReportedMaintenance")
   surveyResponses SurveyResponse[]
   notifications Notification[]
   subscriptions Subscription[]
@@ -653,7 +652,6 @@ model Location {
   checkIns    CheckIn[]
   visitors    Visitor[]
   deliveries  Delivery[]
-  maintenanceTickets MaintenanceTicket[]
   cleaningSchedules CleaningSchedule[]
   utilities   UtilityInventory[]
 
@@ -711,7 +709,6 @@ model SpaceAsset {
 
   bookings    WorkspaceBooking[]
   assignments DeskAssignment[]
-  maintenanceTickets MaintenanceTicket[]
 
   @@unique([zoneId, slug])
   @@map("space_assets")
@@ -839,28 +836,6 @@ model Delivery {
 // OPERATIONS & FACILITIES
 // ============================================
 
-enum MaintenanceCategory {
-  internet
-  cleaning
-  printer
-  hvac
-  other
-}
-
-enum MaintenancePriority {
-  low
-  medium
-  high
-  urgent
-}
-
-enum MaintenanceStatus {
-  open
-  in_progress
-  resolved
-  cancelled
-}
-
 enum CleaningFrequency {
   daily
   weekly
@@ -876,32 +851,6 @@ enum AnnouncementType {
   normal
   pinned
   urgent
-}
-
-model MaintenanceTicket {
-  id           String              @id @default(cuid())
-  title        String
-  description  String              @db.Text
-  category     MaintenanceCategory
-  priority     MaintenancePriority   @default(medium)
-  status       MaintenanceStatus     @default(open)
-  locationId   String                @map("location_id")
-  location     Location              @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  spaceAssetId String?               @map("space_asset_id")
-  spaceAsset   SpaceAsset?           @relation(fields: [spaceAssetId], references: [id], onDelete: SetNull)
-  assignedTo   String?               @map("assigned_to")
-  reportedBy   String?               @map("reported_by")
-  reporter     User?                 @relation("ReportedMaintenance", fields: [reportedBy], references: [id], onDelete: SetNull)
-  resolvedAt   DateTime?             @map("resolved_at")
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
-
-  @@map("maintenance_tickets")
-  @@index([status])
-  @@index([priority])
-  @@index([locationId])
-  @@index([reportedBy])
-  @@index([createdAt])
 }
 
 model Vendor {

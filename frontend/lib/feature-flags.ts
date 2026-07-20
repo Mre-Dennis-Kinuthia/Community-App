@@ -28,7 +28,6 @@ const NAV_HREF_FLAGS: Record<string, FeatureFlagKey> = {
   "/dashboard/projects": "myProjects",
   "/dashboard/visitors": "visitorManagement",
   "/dashboard/deliveries": "deliveryManagement",
-  "/dashboard/maintenance": "operationsModule",
   "/investments": "investmentsDealflow",
   "/projects": "projectsAndInitiatives",
 }
@@ -60,9 +59,6 @@ export function isDeactivatedRoute(pathname: string): boolean {
   }
   if (!FEATURE_FLAGS.deliveryManagement) {
     if (pathname === "/dashboard/deliveries" || pathname.startsWith("/dashboard/deliveries/")) return true
-  }
-  if (!FEATURE_FLAGS.operationsModule) {
-    if (pathname === "/dashboard/maintenance" || pathname.startsWith("/dashboard/maintenance/")) return true
   }
   return false
 }

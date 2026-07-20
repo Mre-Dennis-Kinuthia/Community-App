@@ -12,7 +12,6 @@ import {
   Sparkles,
   UserRound,
   Package,
-  Wrench,
   User,
   MoreHorizontal,
   type LucideIcon,
@@ -55,7 +54,6 @@ export const NAV_GROUPS: NavGroupConfig[] = [
       { title: "My Bookings", href: "/dashboard/bookings", icon: BookOpen },
       { title: "My Visitors", href: "/dashboard/visitors", icon: UserRound, frontDesk: true },
       { title: "My Packages", href: "/dashboard/deliveries", icon: Package, frontDesk: true },
-      { title: "Maintenance", href: "/dashboard/maintenance", icon: Wrench, frontDesk: true },
     ],
   },
   {
@@ -94,7 +92,6 @@ const MOBILE_MORE_HREFS = [
   "/profile",
   "/dashboard/visitors",
   "/dashboard/deliveries",
-  "/dashboard/maintenance",
 ] as const
 
 const MOBILE_TITLE_OVERRIDES: Record<string, string> = {
@@ -107,7 +104,6 @@ const MOBILE_TITLE_OVERRIDES: Record<string, string> = {
   "/dashboard/projects": "My work",
   "/dashboard/visitors": "Visitors",
   "/dashboard/deliveries": "Packages",
-  "/dashboard/maintenance": "Repairs",
   "/news": "News",
   "/partners": "Partners",
   "/opportunities": "Opportunities",
