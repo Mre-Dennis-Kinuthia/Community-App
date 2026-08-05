@@ -1,3 +1,8 @@
+function normalizePublicOrigin(value: string): string {
+  const withProtocol = value.startsWith("http") ? value : `https://${value}`
+  return withProtocol.replace(/\/$/, "")
+}
+
 export function getAppBaseUrl(): string {
   const configured =
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
@@ -5,8 +10,7 @@ export function getAppBaseUrl(): string {
     process.env.VERCEL_URL?.trim()
 
   if (configured) {
-    const withProtocol = configured.startsWith("http") ? configured : `https://${configured}`
-    return withProtocol.replace(/\/$/, "")
+    return normalizePublicOrigin(configured)
   }
 
   if (typeof window !== "undefined") {

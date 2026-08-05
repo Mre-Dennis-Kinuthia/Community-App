@@ -1,6 +1,7 @@
 "use client"
 
 import type { LucideIcon } from "lucide-react"
+import Link from "next/link"
 import { cn } from "@/lib/utils"
 
 interface MobilePageHeaderProps {
@@ -22,6 +23,7 @@ export interface MobileStatItem {
   label: string
   value: string | number
   icon?: LucideIcon
+  href?: string
 }
 
 interface MobileStatsStripProps {
@@ -32,20 +34,39 @@ interface MobileStatsStripProps {
 export function MobileStatsStrip({ items, loading }: MobileStatsStripProps) {
   return (
     <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
-      {items.map((stat) => (
-        <div
-          key={stat.label}
-          className="flex min-w-[5.25rem] max-w-[7.5rem] shrink-0 flex-col rounded-lg border border-border/60 bg-muted/25 px-2.5 py-2"
-        >
-          {stat.icon && <stat.icon className="mb-0.5 h-3 w-3 text-primary/70" aria-hidden />}
-          <span className="truncate text-base font-semibold tabular-nums leading-none">
-            {loading ? "—" : stat.value}
-          </span>
-          <span className="mt-0.5 truncate text-[10px] leading-tight text-muted-foreground">
-            {stat.label}
-          </span>
-        </div>
-      ))}
+      {items.map((stat) => {
+        const content = (
+          <>
+            {stat.icon && <stat.icon className="mb-0.5 h-3 w-3 text-primary/70" aria-hidden />}
+            <span className="truncate text-base font-semibold tabular-nums leading-none">
+              {loading ? "—" : stat.value}
+            </span>
+            <span className="mt-0.5 truncate text-[10px] leading-tight text-muted-foreground">
+              {stat.label}
+            </span>
+          </>
+        )
+        const className =
+          "flex min-w-[5.25rem] max-w-[7.5rem] shrink-0 flex-col rounded-lg border border-border/60 bg-muted/25 px-2.5 py-2"
+
+        if (stat.href && !loading) {
+          return (
+            <Link
+              key={stat.label}
+              href={stat.href}
+              className={cn(className, "transition-colors hover:bg-muted/50 hover:border-border")}
+            >
+              {content}
+            </Link>
+          )
+        }
+
+        return (
+          <div key={stat.label} className={className}>
+            {content}
+          </div>
+        )
+      })}
     </div>
   )
 }

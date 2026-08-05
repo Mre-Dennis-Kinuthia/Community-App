@@ -1,4 +1,5 @@
 import { after } from "next/server"
+import { mergeEmailAttachments } from "./brand-assets"
 import { normalizeEmailAddress, resolveEmailCc } from "./cc"
 import { getEmailFrom } from "./config"
 import { sendResendEmail } from "./resend"
@@ -15,6 +16,9 @@ export type EmailAttachment = {
   filename: string
   content: string
   contentType?: string
+  /** Inline Content-ID for `<img src="cid:…">` (SMTP / Resend). */
+  contentId?: string
+  encoding?: "base64" | "utf8"
 }
 
 export type EmailProvider = "smtp" | "resend"
@@ -99,7 +103,7 @@ export async function sendEmail(params: {
     text: params.text,
     replyTo: params.replyTo,
     cc,
-    attachments: params.attachments,
+    attachments: mergeEmailAttachments(params.attachments),
   }
 
   if (provider === "smtp") {

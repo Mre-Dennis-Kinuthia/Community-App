@@ -25,7 +25,14 @@ export {
   BRAND_APP_ICON_SVG_PATH,
 }
 
+/** Absolute logo URL for web / fallback when inline CID attachment is unavailable. */
 export function getBrandLogoUrl(): string {
+  const override =
+    process.env.EMAIL_BRAND_LOGO_URL?.trim() ||
+    process.env.NEXT_PUBLIC_BRAND_LOGO_URL?.trim()
+  if (override) {
+    return override.startsWith("http") ? override : `https://${override}`
+  }
   return `${getAppBaseUrl()}${BRAND_LOGO_PATH}`
 }
 

@@ -1,5 +1,6 @@
 import { getAppBaseUrl } from "@/lib/app-url"
 import { getBrandLogoUrl } from "@/lib/brand"
+import { getEmailLogoImgSrc, getEmailLogoAttachment } from "@/lib/email/brand-assets"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { eventTimezone } from "@/lib/event-datetime"
 
@@ -100,7 +101,7 @@ export function emailHighlightBox(html: string): string {
 }
 
 function emailLogoHeader(): string {
-  const logoUrl = getBrandLogoUrl()
+  const logoUrl = getEmailLogoAttachment() ? getEmailLogoImgSrc() : getBrandLogoUrl()
   const appUrl = getAppBaseUrl()
   return `<a href="${escapeHtml(appUrl)}" style="display:inline-block;text-decoration:none;line-height:0;">
     <img src="${escapeHtml(logoUrl)}" alt="Impact Hub Nairobi" width="200" height="auto" style="display:block;max-width:200px;height:auto;border:0;" />

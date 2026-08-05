@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Edit, Save, X, Plus, Loader2, CreditCard, Users, CalendarDays, Briefcase, AlertTriangle, Heart } from "lucide-react"
+import { Edit, Save, X, Plus, Loader2, CreditCard, Users, CalendarDays, Briefcase, AlertTriangle, Heart, ChevronDown, UserCheck } from "lucide-react"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { MobilePageHeader, MobileStatsStrip, MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { DashboardLayout } from "@/app/dashboard/layout"
@@ -35,7 +35,15 @@ import {
   IMPACT_SECTORS,
   MEMBER_TYPES,
   PRIMARY_ROLES,
+  ENGAGEMENT_GOALS,
+  BIO_MAX_LENGTH,
+  availabilityOptionsForEdit,
+  normalizeAvailabilityList,
+  memberTypeRequiresOrganization,
+  isOnboardingComplete,
 } from "@/lib/member-segmentation"
+import { getProfileCompleteness, validateProfileOrganization } from "@/lib/profile-completeness"
+import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { validateLinkedInInput } from "@/lib/member-social-links"
 import { Linkedin } from "lucide-react"
 import { MembershipTierBadge } from "@/components/membership-tier-badge"
@@ -44,13 +52,9 @@ import type { MembershipBenefits } from "@/lib/hooks/use-membership"
 
 const EXPERIENCE_LEVELS = ["Early Career", "Mid-Level", "Senior", "Expert"] as const
 
-const AVAILABILITY_OPTIONS = [
-  "Open to Collaboration",
-  "Seeking Mentorship",
-  "Offering Mentorship",
-  "Open to Partnerships",
-  "Looking for Volunteers",
-] as const
+function emptyFieldHint(hint: string) {
+  return <p className="text-sm text-muted-foreground italic">{hint}</p>
+}
 
 type FollowingMember = {
   id: string
@@ -124,6 +128,9 @@ export default function ProfilePage() {
   const [deletePassword, setDeletePassword] = useState("")
   const [deleteConfirmation, setDeleteConfirmation] = useState("")
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
+  const [canDeleteWithPassword, setCanDeleteWithPassword] = useState(true)
+  const [dangerZoneOpen, setDangerZoneOpen] = useState(false)
 
   const [form, setForm] = useState(emptyForm())
   const [newSkill, setNewSkill] = useState("")
@@ -173,6 +180,8 @@ export default function ProfilePage() {
       if (data.stats) {
         setStats(data.stats)
       }
+      setNeedsOnboarding(data.needsOnboarding === true)
+      setCanDeleteWithPassword(data.canDeleteWithPassword !== false)
 
       if (followingRes.ok) {
         const followingData = await followingRes.json()
@@ -209,6 +218,22 @@ export default function ProfilePage() {
     },
   }
 
+  const profileCompleteness = getProfileCompleteness({
+    memberType: form.memberType,
+    role: form.role,
+    industry: form.industry,
+    organization: form.organization,
+    bio: form.bio,
+    skills: form.skills,
+    interests: form.interests,
+    availability: form.availability,
+    image: form.image || user?.image,
+    linkedin: form.linkedin,
+  })
+
+  const availabilityEditOptions = availabilityOptionsForEdit(form.availability)
+  const suggestedInterests = ENGAGEMENT_GOALS.filter((goal) => !form.interests.includes(goal))
+
   const toggleAvailability = (option: string) => {
     setForm((prev) => ({
       ...prev,
@@ -224,8 +249,21 @@ export default function ProfilePage() {
       toast.error("Invalid LinkedIn URL", linkedinError)
       return
     }
+    const orgError = validateProfileOrganization({
+      memberType: form.memberType,
+      organization: form.organization,
+    })
+    if (orgError) {
+      toast.error("Organization required", orgError)
+      return
+    }
+    if (form.bio.trim().length > BIO_MAX_LENGTH) {
+      toast.error("Bio too long", `Keep your bio under ${BIO_MAX_LENGTH} characters.`)
+      return
+    }
     setSaving(true)
     try {
+      const normalizedAvailability = normalizeAvailabilityList(form.availability)
       const res = await fetch("/api/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -241,7 +279,7 @@ export default function ProfilePage() {
           organization: form.organization.trim() ? form.organization.trim() : null,
           role: form.role.trim() ? form.role.trim() : null,
           experienceLevel: form.experienceLevel.trim() ? form.experienceLevel.trim() : null,
-          availability: form.availability,
+          availability: normalizedAvailability,
           interests: form.interests,
           socialLinks: form.linkedin.trim()
             ? { linkedin: form.linkedin.trim() }
@@ -256,12 +294,15 @@ export default function ProfilePage() {
         applyProfile(data.profile)
         setMembership(data.profile.membership ?? null)
         setJoinedAt(data.profile.user?.createdAt ?? null)
+        setNeedsOnboarding(!isOnboardingComplete(data.profile))
         const savedImage = data.profile.user?.image
         if (savedImage) {
-          await updateSession({ user: { image: savedImage } })
+          await updateSession({ user: { image: savedImage, name: data.profile.user?.name ?? undefined } })
           window.dispatchEvent(
             new CustomEvent("profile-image-updated", { detail: { url: savedImage } })
           )
+        } else if (form.name.trim()) {
+          await updateSession({ user: { name: form.name.trim() } })
         }
       }
       setIsEditing(false)
@@ -416,13 +457,55 @@ export default function ProfilePage() {
 
         <MobileStatsStrip
           items={[
-            { label: "Connections", value: stats?.connections ?? 0, icon: Users },
-            { label: "Following", value: stats?.following ?? 0, icon: Heart },
-            { label: "Event sign-ups", value: stats?.events ?? 0, icon: CalendarDays },
+            { label: "Connections", value: stats?.connections ?? 0, icon: Users, href: "/community" },
+            { label: "Following", value: stats?.following ?? 0, icon: Heart, href: "/community" },
+            { label: "Followers", value: stats?.followers ?? 0, icon: UserCheck, href: "/community" },
+            { label: "Events", value: stats?.events ?? 0, icon: CalendarDays, href: "/events" },
             { label: "Projects", value: stats?.projects ?? 0, icon: Briefcase },
           ]}
           loading={loading}
         />
+
+        {(needsOnboarding || profileCompleteness.percent < 100) && !isEditing ? (
+          <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 md:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-1">
+                <p className="font-medium text-foreground">
+                  {needsOnboarding ? "Complete your directory profile" : "Strengthen your public profile"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {needsOnboarding
+                    ? "Add your member type, role, and sector so you appear in community filters."
+                    : `${profileCompleteness.completed} of ${profileCompleteness.total} recommended sections complete.`}
+                </p>
+              </div>
+              <Button size="sm" className="shrink-0" onClick={() => setIsEditing(true)}>
+                {needsOnboarding ? "Complete profile" : "Continue editing"}
+              </Button>
+            </div>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-primary transition-all"
+                style={{ width: `${profileCompleteness.percent}%` }}
+                role="progressbar"
+                aria-valuenow={profileCompleteness.percent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Profile completeness"
+              />
+            </div>
+            <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+              {profileCompleteness.items
+                .filter((item) => !item.optional && !item.complete)
+                .slice(0, 4)
+                .map((item) => (
+                  <li key={item.id} className="text-xs text-muted-foreground">
+                    · {item.action ?? item.label}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className="flex gap-2 lg:hidden">
           <Button variant="outline" size="sm" className="flex-1 rounded-lg" asChild>
@@ -455,19 +538,13 @@ export default function ProfilePage() {
                     </div>
                     <PresetAvatarPicker
                       value={form.image}
-                      onChange={async (path) => {
-                        setForm((p) => ({ ...p, image: path }))
-                        await updateSession({ user: { image: path } })
-                      }}
+                      onChange={(path) => setForm((p) => ({ ...p, image: path }))}
                     />
                     <ImageUpload
                       label="Or upload a photo"
-                      description="JPEG, PNG, WebP, or GIF. Max 2MB. Stored securely on the platform."
+                      description="JPEG, PNG, WebP, or GIF. Max 2MB. Saved when you click Save."
                       value={form.image}
-                      onChange={async (url) => {
-                        setForm((p) => ({ ...p, image: url }))
-                        await updateSession({ user: { image: url } })
-                      }}
+                      onChange={(url) => setForm((p) => ({ ...p, image: url }))}
                       category="profile"
                       previewClassName="size-24 md:size-32"
                     />
@@ -532,14 +609,24 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-6 p-4 pt-0 md:p-6 md:pt-0">
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="bio">Bio</Label>
+                    {isEditing ? (
+                      <span className="text-xs text-muted-foreground">
+                        {form.bio.length}/{BIO_MAX_LENGTH}
+                      </span>
+                    ) : null}
+                  </div>
                   {isEditing ? (
                     <Textarea
                       id="bio"
                       placeholder="What you work on, what you are looking for, how others can help."
                       className="min-h-[120px] resize-y"
                       value={form.bio}
-                      onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
+                      maxLength={BIO_MAX_LENGTH}
+                      onChange={(e) =>
+                        setForm((p) => ({ ...p, bio: e.target.value.slice(0, BIO_MAX_LENGTH) }))
+                      }
                     />
                   ) : (
                     <p className="rounded-md border border-border bg-muted/30 px-3 py-3 text-sm leading-relaxed text-foreground/90 min-h-[120px]">
@@ -570,14 +657,21 @@ export default function ProfilePage() {
                           ))}
                         </SelectContent>
                       </Select>
-                    ) : (
+                    ) : form.memberType ? (
                       <p className="text-sm text-muted-foreground">
-                        {getMemberTypeLabel(form.memberType) || "—"}
+                        {getMemberTypeLabel(form.memberType)}
                       </p>
+                    ) : (
+                      emptyFieldHint("Select your member type to appear in directory filters.")
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="organization">Organization</Label>
+                    <Label htmlFor="organization">
+                      Organization
+                      {isEditing && memberTypeRequiresOrganization(form.memberType) ? (
+                        <span className="text-destructive"> *</span>
+                      ) : null}
+                    </Label>
                     {isEditing ? (
                       <Input
                         id="organization"
@@ -585,8 +679,14 @@ export default function ProfilePage() {
                         value={form.organization}
                         onChange={(e) => setForm((p) => ({ ...p, organization: e.target.value }))}
                       />
+                    ) : form.organization.trim() ? (
+                      <p className="text-sm text-muted-foreground">{form.organization.trim()}</p>
                     ) : (
-                      <p className="text-sm text-muted-foreground">{form.organization.trim() || "—"}</p>
+                      emptyFieldHint(
+                        memberTypeRequiresOrganization(form.memberType)
+                          ? "Required for your member type."
+                          : "Add your company, NGO, or institution."
+                      )
                     )}
                   </div>
                   <div className="space-y-2">
@@ -610,8 +710,10 @@ export default function ProfilePage() {
                           ))}
                         </SelectContent>
                       </Select>
+                    ) : form.role.trim() ? (
+                      <p className="text-sm text-muted-foreground">{form.role.trim()}</p>
                     ) : (
-                      <p className="text-sm text-muted-foreground">{form.role.trim() || "—"}</p>
+                      emptyFieldHint("Select your primary role for better matching.")
                     )}
                   </div>
                   <div className="space-y-2">
@@ -635,46 +737,31 @@ export default function ProfilePage() {
                           ))}
                         </SelectContent>
                       </Select>
+                    ) : form.industry.trim() ? (
+                      <p className="text-sm text-muted-foreground">{form.industry.trim()}</p>
                     ) : (
-                      <p className="text-sm text-muted-foreground">{form.industry.trim() || "—"}</p>
+                      emptyFieldHint("Choose a sector so members can find you in filters.")
                     )}
                   </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="linkedin" className="flex items-center gap-2">
-                      <Linkedin className="h-4 w-4 text-[#0A66C2]" aria-hidden />
-                      LinkedIn
-                    </Label>
-                    {isEditing ? (
-                      <>
-                        <Input
-                          id="linkedin"
-                          type="url"
-                          inputMode="url"
-                          placeholder="linkedin.com/in/yourname"
-                          value={form.linkedin}
-                          onChange={(e) => setForm((p) => ({ ...p, linkedin: e.target.value }))}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Shown on your public community profile when you add a link.
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        {form.linkedin.trim() ? (
-                          <a
-                            href={form.linkedin.trim()}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline"
-                          >
-                            {form.linkedin.trim()}
-                          </a>
-                        ) : (
-                          "—"
-                        )}
+                  {isEditing ? (
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="linkedin" className="flex items-center gap-2">
+                        <Linkedin className="h-4 w-4 text-[#0A66C2]" aria-hidden />
+                        LinkedIn
+                      </Label>
+                      <Input
+                        id="linkedin"
+                        type="url"
+                        inputMode="url"
+                        placeholder="linkedin.com/in/yourname"
+                        value={form.linkedin}
+                        onChange={(e) => setForm((p) => ({ ...p, linkedin: e.target.value }))}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Shown on your public community profile when you add a link.
                       </p>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                   <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="location">Location</Label>
                     {isEditing ? (
@@ -684,8 +771,10 @@ export default function ProfilePage() {
                         value={form.location}
                         onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
                       />
+                    ) : form.location.trim() ? (
+                      <p className="text-sm text-muted-foreground">{form.location.trim()}</p>
                     ) : (
-                      <p className="text-sm text-muted-foreground">{form.location.trim() || "—"}</p>
+                      emptyFieldHint("Add your city or country.")
                     )}
                   </div>
                   <div className="space-y-2 sm:col-span-2">
@@ -709,10 +798,10 @@ export default function ProfilePage() {
                           ))}
                         </SelectContent>
                       </Select>
+                    ) : form.experienceLevel.trim() ? (
+                      <p className="text-sm text-muted-foreground">{form.experienceLevel.trim()}</p>
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        {form.experienceLevel.trim() || "—"}
-                      </p>
+                      emptyFieldHint("Optional — helps others understand your experience.")
                     )}
                   </div>
                 </div>
@@ -791,6 +880,25 @@ export default function ProfilePage() {
                       )}
                     </Badge>
                   ))}
+                  {isEditing && suggestedInterests.length > 0 ? (
+                    <div className="flex w-full flex-wrap gap-2 pt-1">
+                      {suggestedInterests.slice(0, 6).map((interest) => (
+                        <button
+                          key={interest}
+                          type="button"
+                          onClick={() =>
+                            setForm((prev) => ({
+                              ...prev,
+                              interests: [...prev.interests, interest],
+                            }))
+                          }
+                          className="rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+                        >
+                          + {interest}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                   {isEditing && (
                     <div className="flex w-full max-w-sm gap-2 sm:w-auto">
                       <Input
@@ -821,7 +929,7 @@ export default function ProfilePage() {
               <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                 {isEditing ? (
                   <div className="flex flex-wrap gap-2">
-                    {AVAILABILITY_OPTIONS.map((option) => {
+                    {availabilityEditOptions.map((option) => {
                       const on = form.availability.includes(option)
                       return (
                         <button
@@ -930,6 +1038,13 @@ export default function ProfilePage() {
                 </div>
                 <div className="rounded-md border border-border px-4 py-3">
                   <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                    <UserCheck className="h-3.5 w-3.5" />
+                    Followers
+                  </div>
+                  <p className="mt-1 text-2xl font-semibold tabular-nums">{stats?.followers ?? 0}</p>
+                </div>
+                <div className="rounded-md border border-border px-4 py-3">
+                  <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium uppercase tracking-wide">
                     <CalendarDays className="h-3.5 w-3.5" />
                     Event sign-ups
                   </div>
@@ -1020,57 +1135,88 @@ export default function ProfilePage() {
           </aside>
         </div>
 
-        <Card className="border-destructive/40">
-          <CardHeader className="p-4 pb-3 md:p-6">
-            <CardTitle className="flex items-center gap-2 text-lg text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              Delete account
-            </CardTitle>
-            <CardDescription>
-              Permanently remove your account, profile, bookings, and sign-in access. You will receive
-              a confirmation email at {user.email}. This cannot be undone.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 p-4 pt-0 md:p-6 md:pt-0">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="delete-password">Current password</Label>
-                <Input
-                  id="delete-password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={deletePassword}
-                  onChange={(e) => setDeletePassword(e.target.value)}
-                  disabled={deletingAccount}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="delete-confirmation">Type DELETE to confirm</Label>
-                <Input
-                  id="delete-confirmation"
-                  value={deleteConfirmation}
-                  onChange={(e) => setDeleteConfirmation(e.target.value)}
-                  placeholder="DELETE"
-                  disabled={deletingAccount}
-                />
-              </div>
+        <Card className="border-destructive/30">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-3 p-4 text-left md:p-6"
+            onClick={() => setDangerZoneOpen((open) => !open)}
+            aria-expanded={dangerZoneOpen}
+          >
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base text-destructive">
+                <AlertTriangle className="h-4 w-4" />
+                Account & danger zone
+              </CardTitle>
+              <CardDescription className="mt-1 text-left">
+                Permanently delete your account and all associated data.
+              </CardDescription>
             </div>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDeleteAccount}
-              disabled={deletingAccount}
-            >
-              {deletingAccount ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting account…
-                </>
-              ) : (
-                "Permanently delete my account"
+            <ChevronDown
+              className={cn(
+                "h-5 w-5 shrink-0 text-muted-foreground transition-transform",
+                dangerZoneOpen && "rotate-180"
               )}
-            </Button>
-          </CardContent>
+              aria-hidden
+            />
+          </button>
+          {dangerZoneOpen ? (
+            <CardContent className="space-y-4 border-t border-destructive/20 p-4 pt-4 md:p-6 md:pt-4">
+              {!canDeleteWithPassword ? (
+                <p className="text-sm text-muted-foreground">
+                  You signed in with Google, so account deletion must be handled by our team. Email{" "}
+                  <a href={`mailto:${HUB_CONTACT_EMAIL}`} className="font-medium text-primary hover:underline">
+                    {HUB_CONTACT_EMAIL}
+                  </a>{" "}
+                  from {user.email} to request removal.
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Permanently remove your account, profile, bookings, and sign-in access. You will
+                    receive a confirmation email at {user.email}. This cannot be undone.
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="delete-password">Current password</Label>
+                      <Input
+                        id="delete-password"
+                        type="password"
+                        autoComplete="current-password"
+                        value={deletePassword}
+                        onChange={(e) => setDeletePassword(e.target.value)}
+                        disabled={deletingAccount}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="delete-confirmation">Type DELETE to confirm</Label>
+                      <Input
+                        id="delete-confirmation"
+                        value={deleteConfirmation}
+                        onChange={(e) => setDeleteConfirmation(e.target.value)}
+                        placeholder="DELETE"
+                        disabled={deletingAccount}
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleDeleteAccount}
+                    disabled={deletingAccount}
+                  >
+                    {deletingAccount ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting account…
+                      </>
+                    ) : (
+                      "Permanently delete my account"
+                    )}
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          ) : null}
         </Card>
       </div>
     </DashboardLayout>

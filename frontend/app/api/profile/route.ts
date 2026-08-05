@@ -17,6 +17,7 @@ import {
   socialLinksFromInput,
   validateLinkedInInput,
 } from "@/lib/member-social-links"
+import { normalizeAvailabilityList } from "@/lib/member-segmentation"
 
 /**
  * Handle OPTIONS preflight for CORS
@@ -58,12 +59,19 @@ function formatProfileResponse<
     membershipTier?: string | null
     meetingRoomFreeMinutesUsed?: number
     meetingRoomAllowancePeriodStart?: Date | null
+    availability?: string[]
   },
 >(profile: T) {
-  const { membershipTier, meetingRoomFreeMinutesUsed, meetingRoomAllowancePeriodStart, ...rest } =
-    profile
+  const {
+    membershipTier,
+    meetingRoomFreeMinutesUsed,
+    meetingRoomAllowancePeriodStart,
+    availability,
+    ...rest
+  } = profile
   return {
     ...rest,
+    availability: normalizeAvailabilityList(availability ?? []),
     socialLinks: parseMemberSocialLinks(profile.socialLinks),
     membership: buildMembershipSummary({
       membershipTier: membershipTier ?? null,
@@ -116,7 +124,7 @@ export async function GET(request: NextRequest) {
 
     const accountMeta = await prisma.user.findUnique({
       where: { id: userId },
-      select: { createdAt: true },
+      select: { createdAt: true, password: true },
     })
 
     const userEmail =
@@ -186,6 +194,7 @@ export async function GET(request: NextRequest) {
             needsOnboarding && accountMeta
               ? shouldShowOnboardingNudge(accountMeta.createdAt)
               : false,
+          canDeleteWithPassword: Boolean(accountMeta?.password),
           stats: { connections, events, projects, following, followers },
         },
         { headers: corsHeaders }
@@ -222,6 +231,7 @@ export async function GET(request: NextRequest) {
           needsOnboarding && accountMeta
             ? shouldShowOnboardingNudge(accountMeta.createdAt)
             : false,
+        canDeleteWithPassword: Boolean(accountMeta?.password),
         stats: { connections, events, projects, following, followers },
       },
       { headers: corsHeaders }
@@ -300,7 +310,7 @@ export async function PUT(request: NextRequest) {
       update: {
         ...profileData,
         skills: profileData.skills ?? [],
-        availability: profileData.availability ?? [],
+        availability: normalizeAvailabilityList(profileData.availability ?? []),
         interests: profileData.interests ?? [],
         ...(socialLinksPayload !== undefined ? { socialLinks: socialLinksPayload } : {}),
         updatedAt: new Date(),
@@ -309,7 +319,7 @@ export async function PUT(request: NextRequest) {
         userId,
         ...profileData,
         skills: profileData.skills ?? [],
-        availability: profileData.availability ?? [],
+        availability: normalizeAvailabilityList(profileData.availability ?? []),
         interests: profileData.interests ?? [],
         ...(socialLinksPayload !== undefined ? { socialLinks: socialLinksPayload } : {}),
       },

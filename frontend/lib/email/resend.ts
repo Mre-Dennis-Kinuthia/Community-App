@@ -43,8 +43,12 @@ export async function sendResendEmail(params: {
       reply_to: params.replyTo,
       attachments: (params.attachments ?? []).map((file) => ({
         filename: file.filename,
-        content: Buffer.from(file.content, "utf8").toString("base64"),
+        content:
+          file.encoding === "base64"
+            ? file.content
+            : Buffer.from(file.content, "utf8").toString("base64"),
         content_type: file.contentType ?? "application/octet-stream",
+        ...(file.contentId ? { content_id: file.contentId } : {}),
       })),
     }),
   })

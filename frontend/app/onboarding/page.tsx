@@ -36,12 +36,12 @@ import {
   PRIMARY_ROLES,
   memberTypeRequiresOrganization,
   validateOnboardingStep1,
+  BIO_MAX_LENGTH,
 } from "@/lib/member-segmentation"
 import { isOrganisationalRegisterIntent } from "@/lib/membership-register-intent"
 import { ORGANISATIONAL_PLAN_NAME, ORGANISATIONAL_RESPONSE_SLA } from "@/lib/membership-inquiry"
 import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
 
-const BIO_MAX_LENGTH = 280
 const STEP_LABELS = ["Your profile", "Goals & community"] as const
 const TOTAL_STEPS = STEP_LABELS.length
 

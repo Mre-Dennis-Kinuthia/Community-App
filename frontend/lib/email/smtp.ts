@@ -51,8 +51,12 @@ export async function sendSmtpEmail(params: {
       replyTo: params.replyTo,
       attachments: (params.attachments ?? []).map((file) => ({
         filename: file.filename,
-        content: file.content,
+        content:
+          file.encoding === "base64"
+            ? Buffer.from(file.content, "base64")
+            : file.content,
         contentType: file.contentType ?? "application/octet-stream",
+        ...(file.contentId ? { cid: file.contentId } : {}),
       })),
     })
     return { ok: true, id: info.messageId }
