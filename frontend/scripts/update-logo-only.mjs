@@ -72,6 +72,16 @@ async function main() {
   await writeFile(path.join(adminBrandDir, "impact-hub-nairobi-logo.png"), logoPng)
   await writeBrandMeta(width, height, tile)
 
+  const { spawn } = await import("node:child_process")
+  await new Promise((resolve, reject) => {
+    const child = spawn("node", ["scripts/generate-email-logo-data.mjs"], {
+      cwd: root,
+      stdio: "inherit",
+    })
+    child.on("error", reject)
+    child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`email logo data exit ${code}`))))
+  })
+
   console.log(`Brand logo: ${width}×${height}px`)
   console.log("Wrote Community-App + Community-app-admin logos (app icons untouched)")
 }

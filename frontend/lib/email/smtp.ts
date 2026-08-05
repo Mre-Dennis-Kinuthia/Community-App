@@ -56,7 +56,12 @@ export async function sendSmtpEmail(params: {
             ? Buffer.from(file.content, "base64")
             : file.content,
         contentType: file.contentType ?? "application/octet-stream",
-        ...(file.contentId ? { cid: file.contentId } : {}),
+        ...(file.contentId
+          ? {
+              cid: file.contentId,
+              contentDisposition: file.inline === false ? "attachment" : "inline",
+            }
+          : {}),
       })),
     })
     return { ok: true, id: info.messageId }

@@ -7,6 +7,7 @@ export function getAppBaseUrl(): string {
   const configured =
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     process.env.AUTH_URL?.trim() ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
     process.env.VERCEL_URL?.trim()
 
   if (configured) {

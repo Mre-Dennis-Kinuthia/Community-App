@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { BRAND_LOGO_PATH } from "@/lib/brand-meta"
+import { EMAIL_LOGO_PNG_BASE64 } from "@/lib/email/brand-logo-data"
 import type { EmailAttachment } from "./send"
 
 /** Content-ID referenced in HTML: `<img src="cid:…" />` */
@@ -12,27 +13,42 @@ function resolveLogoFilePath(): string {
   return path.join(process.cwd(), "public", BRAND_LOGO_PATH.replace(/^\//, ""))
 }
 
+function buildLogoAttachment(base64: string): EmailAttachment {
+  return {
+    filename: "impact-hub-nairobi-logo.png",
+    content: base64,
+    contentType: "image/png",
+    contentId: EMAIL_LOGO_CONTENT_ID,
+    encoding: "base64",
+    inline: true,
+  }
+}
+
+/** True when an inline logo attachment can be sent with the email. */
+export function hasEmbeddedEmailLogo(): boolean {
+  return Boolean(EMAIL_LOGO_PNG_BASE64?.length)
+}
+
 /** Inline image src for email HTML (paired with {@link getEmailLogoAttachment}). */
 export function getEmailLogoImgSrc(): string {
   return `cid:${EMAIL_LOGO_CONTENT_ID}`
 }
 
-/** Read the brand PNG once and reuse for subsequent sends in the same process. */
+/** Logo attachment for outgoing mail — uses bundled base64 (works on Vercel). */
 export function getEmailLogoAttachment(): EmailAttachment | null {
   if (cachedLogoAttachment !== undefined) {
+    return cachedLogoAttachment
+  }
+
+  if (EMAIL_LOGO_PNG_BASE64?.length) {
+    cachedLogoAttachment = buildLogoAttachment(EMAIL_LOGO_PNG_BASE64)
     return cachedLogoAttachment
   }
 
   try {
     const logoPath = resolveLogoFilePath()
     const buffer = fs.readFileSync(logoPath)
-    cachedLogoAttachment = {
-      filename: "impact-hub-nairobi-logo.png",
-      content: buffer.toString("base64"),
-      contentType: "image/png",
-      contentId: EMAIL_LOGO_CONTENT_ID,
-      encoding: "base64",
-    }
+    cachedLogoAttachment = buildLogoAttachment(buffer.toString("base64"))
     return cachedLogoAttachment
   } catch (error) {
     console.warn("[EMAIL] Brand logo file not found for inline attachment:", error)

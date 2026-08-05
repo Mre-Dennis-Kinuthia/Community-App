@@ -19,6 +19,8 @@ export type EmailAttachment = {
   /** Inline Content-ID for `<img src="cid:…">` (SMTP / Resend). */
   contentId?: string
   encoding?: "base64" | "utf8"
+  /** When true, send as inline/related MIME part (required for email logos). */
+  inline?: boolean
 }
 
 export type EmailProvider = "smtp" | "resend"
