@@ -1,5 +1,4 @@
 import { after } from "next/server"
-import { mergeEmailAttachments } from "./brand-assets"
 import { normalizeEmailAddress, resolveEmailCc } from "./cc"
 import { getEmailFrom } from "./config"
 import { sendResendEmail } from "./resend"
@@ -105,7 +104,7 @@ export async function sendEmail(params: {
     text: params.text,
     replyTo: params.replyTo,
     cc,
-    attachments: mergeEmailAttachments(params.attachments),
+    attachments: params.attachments,
   }
 
   if (provider === "smtp") {

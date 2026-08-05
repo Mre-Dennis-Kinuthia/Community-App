@@ -1,6 +1,4 @@
 import { getAppBaseUrl } from "@/lib/app-url"
-import { getBrandLogoUrl } from "@/lib/brand"
-import { getEmailLogoImgSrc, hasEmbeddedEmailLogo } from "@/lib/email/brand-assets"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { eventTimezone } from "@/lib/event-datetime"
 
@@ -100,14 +98,6 @@ export function emailHighlightBox(html: string): string {
   </table>`
 }
 
-function emailLogoHeader(): string {
-  const logoUrl = hasEmbeddedEmailLogo() ? getEmailLogoImgSrc() : getBrandLogoUrl()
-  const appUrl = getAppBaseUrl()
-  return `<a href="${escapeHtml(appUrl)}" style="display:inline-block;text-decoration:none;line-height:0;">
-    <img src="${escapeHtml(logoUrl)}" alt="Impact Hub Nairobi" width="200" height="83" style="display:block;max-width:200px;width:200px;height:83px;border:0;outline:none;text-decoration:none;" />
-  </a>`
-}
-
 function emailFooter(): string {
   const appUrl = getAppBaseUrl()
   return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:${EMAIL_BRAND.footerBg};border-top:1px solid ${EMAIL_BRAND.border};">
@@ -183,8 +173,7 @@ export function layoutEmail(params: {
           </tr>
           <tr>
             <td style="padding:32px 32px 20px;text-align:left;">
-              ${emailLogoHeader()}
-              <p style="margin:20px 0 8px;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${EMAIL_BRAND.primary};">
+              <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${EMAIL_BRAND.primary};">
                 ${escapeHtml(eyebrow)}
               </p>
               <h1 style="margin:0;font-size:26px;line-height:1.25;font-weight:700;color:${EMAIL_BRAND.text};letter-spacing:-0.02em;">

@@ -25,15 +25,46 @@ export {
   BRAND_APP_ICON_SVG_PATH,
 }
 
-/** Absolute logo URL for web / fallback when inline CID attachment is unavailable. */
+/** Known production origin — used so emails never point at localhost. */
+export const PRODUCTION_APP_ORIGIN = "https://impacthubnairobi-app.vercel.app"
+
+function isUsablePublicOrigin(url: string): boolean {
+  try {
+    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`)
+    if (parsed.protocol !== "https:") return false
+    const host = parsed.hostname.toLowerCase()
+    if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".local")) return false
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Absolute logo URL for the web app (may be localhost in local dev). */
 export function getBrandLogoUrl(): string {
+  return `${getAppBaseUrl()}${BRAND_LOGO_PATH}`
+}
+
+/**
+ * Absolute HTTPS logo URL for outbound email HTML.
+ * Prefer env override, then public app origin, then production fallback.
+ * Do not use CID here — Google Workspace SMTP often strips/breaks inline CID images.
+ */
+export function getEmailBrandLogoUrl(): string {
   const override =
     process.env.EMAIL_BRAND_LOGO_URL?.trim() ||
     process.env.NEXT_PUBLIC_BRAND_LOGO_URL?.trim()
   if (override) {
-    return override.startsWith("http") ? override : `https://${override}`
+    const withProtocol = override.startsWith("http") ? override : `https://${override}`
+    if (isUsablePublicOrigin(withProtocol)) return withProtocol.replace(/\/$/, "")
   }
-  return `${getAppBaseUrl()}${BRAND_LOGO_PATH}`
+
+  const base = getAppBaseUrl()
+  if (isUsablePublicOrigin(base)) {
+    return `${base.replace(/\/$/, "")}${BRAND_LOGO_PATH}`
+  }
+
+  return `${PRODUCTION_APP_ORIGIN}${BRAND_LOGO_PATH}`
 }
 
 export function getBrandLogoDimensions(height: number): { width: number; height: number } {

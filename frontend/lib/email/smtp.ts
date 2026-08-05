@@ -41,6 +41,41 @@ export async function sendSmtpEmail(params: {
     : []
 
   try {
+    const attachments = (params.attachments ?? []).map((file) => {
+      const isInline = Boolean(file.contentId) && file.inline !== false
+      const content =
+        file.encoding === "base64"
+          ? Buffer.from(file.content, "base64")
+          : Buffer.isBuffer(file.content)
+            ? file.content
+            : Buffer.from(String(file.content), "utf8")
+
+      // Nodemailer: set `cid` for multipart/related inline images referenced as cid:…
+      // Keep the shape minimal — extra fields can confuse Gmail SMTP rewriting.
+      if (isInline && file.contentId) {
+        return {
+          filename: file.filename,
+          content,
+          contentType: file.contentType ?? "image/png",
+          cid: file.contentId,
+          contentDisposition: "inline" as const,
+        }
+      }
+
+      return {
+        filename: file.filename,
+        content,
+        contentType: file.contentType ?? "application/octet-stream",
+      }
+    })
+
+    if (attachments.some((a) => "cid" in a)) {
+      console.log(
+        "[EMAIL] Inline attachments:",
+        attachments.filter((a) => "cid" in a).map((a) => `${a.filename} cid=${(a as { cid?: string }).cid}`)
+      )
+    }
+
     const info = await transport.sendMail({
       from: getEmailFromParts(),
       to: to.join(", "),
@@ -49,20 +84,7 @@ export async function sendSmtpEmail(params: {
       html: params.html,
       text: params.text,
       replyTo: params.replyTo,
-      attachments: (params.attachments ?? []).map((file) => ({
-        filename: file.filename,
-        content:
-          file.encoding === "base64"
-            ? Buffer.from(file.content, "base64")
-            : file.content,
-        contentType: file.contentType ?? "application/octet-stream",
-        ...(file.contentId
-          ? {
-              cid: file.contentId,
-              contentDisposition: file.inline === false ? "attachment" : "inline",
-            }
-          : {}),
-      })),
+      attachments,
     })
     return { ok: true, id: info.messageId }
   } catch (error) {
