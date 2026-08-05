@@ -320,12 +320,12 @@ export default function StarConnectApplicationPage() {
                   />
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-5">
                   <div className="space-y-2">
                     <Label htmlFor="role">Your role</Label>
                     <Select value={form.role} onValueChange={(v) => update("role", v)}>
-                      <SelectTrigger id="role">
-                        <SelectValue placeholder="Role" />
+                      <SelectTrigger id="role" className="w-full">
+                        <SelectValue placeholder="Select your role" />
                       </SelectTrigger>
                       <SelectContent>
                         {PRIMARY_ROLES.map((r) => (
@@ -339,8 +339,8 @@ export default function StarConnectApplicationPage() {
                   <div className="space-y-2">
                     <Label htmlFor="sector">Sector</Label>
                     <Select value={form.sector} onValueChange={(v) => update("sector", v)}>
-                      <SelectTrigger id="sector">
-                        <SelectValue placeholder="Sector" />
+                      <SelectTrigger id="sector" className="w-full">
+                        <SelectValue placeholder="Select your sector" />
                       </SelectTrigger>
                       <SelectContent>
                         {IMPACT_SECTORS.map((s) => (
@@ -351,14 +351,14 @@ export default function StarConnectApplicationPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2 sm:col-span-1">
+                  <div className="space-y-2">
                     <Label htmlFor="ventureStage">Stage</Label>
                     <Select
                       value={form.ventureStage}
                       onValueChange={(v) => update("ventureStage", v)}
                     >
-                      <SelectTrigger id="ventureStage">
-                        <SelectValue placeholder="Stage" />
+                      <SelectTrigger id="ventureStage" className="w-full">
+                        <SelectValue placeholder="Select venture stage" />
                       </SelectTrigger>
                       <SelectContent>
                         {VENTURE_STAGES.map((s) => (
