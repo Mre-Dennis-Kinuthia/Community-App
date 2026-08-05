@@ -196,7 +196,7 @@ export function NewsCard({
   variant?: NewsCardVariant
   className?: string
 }) {
-  const href = `/news/${post.id}`
+  const href = `/news/${post.slug || post.id}`
   const preview = post.excerpt || stripHtml(post.content)
 
   if (variant === "hero") {

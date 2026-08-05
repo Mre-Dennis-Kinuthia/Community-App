@@ -19,10 +19,10 @@ const DEFAULT_PLANS = [
     name: "Star Connect",
     description:
       "For early and growth-stage founders ready to scale with dedicated support.",
-    price: 13000,
+    price: 15000,
     interval: "monthly",
     features: [
-      "Global Passport — 120+ hubs",
+      "Global Passport — 117 hubs across 68 countries",
       "Business development services",
       "Thematic acceleration programs",
       "Grants & funding opportunities",

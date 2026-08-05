@@ -7,6 +7,7 @@ import { connectionPairFilter } from "@/lib/connection-requests"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 import { getCommunityMemberProfileUrl } from "@/lib/app-url"
 import { isEmailConfigured, sendConnectedMemberMessageEmail } from "@/lib/email"
+import { resolveMemberIdByPublicParam } from "@/lib/member-slug"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -20,18 +21,27 @@ const memberEmailSchema = z.object({
 /**
  * POST /api/community/[id]/email
  * Send an email to a connected member (platform relay with reply-to).
+ * `id` may be a cuid or public profile slug.
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id: recipientId } = await params
+    const { id: recipientParam } = await params
     const session = await auth()
     const senderId = await resolveUserIdFromSession(session)
 
     if (!senderId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders })
+    }
+
+    const recipientId = await resolveMemberIdByPublicParam(prisma, recipientParam)
+    if (!recipientId) {
+      return NextResponse.json(
+        { error: "Member not found" },
+        { status: 404, headers: corsHeaders }
+      )
     }
 
     if (senderId === recipientId) {
@@ -75,7 +85,7 @@ export async function POST(
     const [sender, recipient] = await Promise.all([
       prisma.user.findUnique({
         where: { id: senderId },
-        select: { name: true, email: true },
+        select: { id: true, name: true, email: true, profile: { select: { slug: true } } },
       }),
       prisma.user.findUnique({
         where: { id: recipientId },
@@ -104,7 +114,7 @@ export async function POST(
       fromEmail: sender.email,
       subject: parsed.data.subject,
       message: parsed.data.message,
-      senderProfileUrl: getCommunityMemberProfileUrl(senderId),
+      senderProfileUrl: getCommunityMemberProfileUrl(sender),
     })
 
     if (!result.ok) {

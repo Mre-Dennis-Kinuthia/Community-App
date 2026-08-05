@@ -37,6 +37,7 @@ import {
 } from "@/lib/event-constants"
 import { formatEventPrice, isPaidEvent, parseRegistrationQuestions } from "@/lib/event-questions"
 import { eventCalendarDate, formatEventTime24 } from "@/lib/event-datetime"
+import { getEventPublicUrl } from "@/lib/event-url"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
 
@@ -329,7 +330,11 @@ export default function EventsPage() {
   }
 
   const handleShareEvent = async (event: Event) => {
-    const eventUrl = `${window.location.origin}/events/${event.id}`
+    const eventUrl = getEventPublicUrl({
+      id: String(event.id),
+      slug: event.slug,
+      shortCode: event.shortCode,
+    })
     const shareText = `Check out this event: ${event.title}`
     
     if (navigator.share) {

@@ -10,7 +10,7 @@ import Link from "next/link"
 import { toast } from "@/lib/toast"
 import { badgeClassForLabel, badgePrimary, badgeNeutral, badgeDestructive } from "@/lib/badge-styles"
 import { cn } from "@/lib/utils"
-import { getEventPublicUrl, getEventShareText } from "@/lib/event-url"
+import { getEventPublicUrl, getEventPublicPath, getEventShareText } from "@/lib/event-url"
 
 interface EventCardProps {
   event: {
@@ -58,7 +58,11 @@ export function EventCard({
   isRegistering = false,
   activeTab,
 }: EventCardProps) {
-  const eventPageUrl = `/events/${event.id}`
+  const eventPageUrl = getEventPublicPath({
+    id: String(event.id),
+    slug: event.slug,
+    shortCode: event.shortCode,
+  })
   const formatClock = (hhmm: string) => {
     const [h, m] = hhmm.split(":").map(Number)
     const d = new Date()

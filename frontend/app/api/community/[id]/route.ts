@@ -10,6 +10,7 @@ import {
 import type { MemberConnectionStatus } from "@/types/community"
 import { connectionPairFilter } from "@/lib/connection-requests"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
+import { findMemberByPublicParam } from "@/lib/member-slug"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -29,45 +30,18 @@ function connectionStatusFor(
 
 /**
  * GET /api/community/[id]
- * Get a single community member's profile
+ * Get a single community member's profile (id = cuid or public slug)
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
+    const { id: param } = await params
     const session = await auth()
     const viewerId = (await resolveUserIdFromSession(session)) ?? undefined
 
-    const member = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        createdAt: true,
-        profile: {
-          select: {
-            bio: true,
-            skills: true,
-            location: true,
-            industry: true,
-            memberType: true,
-            membershipTier: true,
-            organization: true,
-            role: true,
-            experienceLevel: true,
-            availability: true,
-            interests: true,
-            socialLinks: true,
-            isFeatured: true,
-            updatedAt: true,
-          },
-        },
-      },
-    })
+    const member = await findMemberByPublicParam(prisma, param)
 
     if (!member) {
       return NextResponse.json(
@@ -162,6 +136,8 @@ export async function GET(
               select: {
                 id: true,
                 title: true,
+                slug: true,
+                shortCode: true,
                 startDate: true,
                 location: true,
               },
@@ -175,6 +151,7 @@ export async function GET(
     let mutualConnections: {
       id: string
       name: string
+      slug: string | null
       avatar: string | null
       role: string | null
     }[] = []
@@ -203,12 +180,13 @@ export async function GET(
             id: true,
             name: true,
             image: true,
-            profile: { select: { role: true } },
+            profile: { select: { role: true, slug: true } },
           },
         })
         mutualConnections = mutualUsers.map((u) => ({
           id: u.id,
           name: u.name || "Member",
+          slug: u.profile?.slug ?? null,
           avatar: u.image,
           role: u.profile?.role ?? null,
         }))
@@ -217,6 +195,7 @@ export async function GET(
 
     const formattedMember = {
       id: member.id,
+      slug: profile?.slug ?? null,
       name: member.name || "Community member",
       email: isSelf || isConnected ? member.email : "",
       avatar: member.image || null,
@@ -247,6 +226,8 @@ export async function GET(
         .filter(Boolean)
         .map((e) => ({
           id: e.id,
+          slug: e.slug,
+          shortCode: e.shortCode,
           title: e.title,
           startDate: e.startDate.toISOString(),
           location: e.location,

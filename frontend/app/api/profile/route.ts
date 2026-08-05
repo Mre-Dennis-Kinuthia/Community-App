@@ -18,6 +18,7 @@ import {
   validateLinkedInInput,
 } from "@/lib/member-social-links"
 import { normalizeAvailabilityList } from "@/lib/member-segmentation"
+import { ensureMemberSlug } from "@/lib/member-slug"
 
 /**
  * Handle OPTIONS preflight for CORS
@@ -27,6 +28,7 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 const profileSelect = {
+  slug: true,
   bio: true,
   skills: true,
   location: true,
@@ -165,6 +167,17 @@ export async function GET(request: NextRequest) {
         },
         select: profileSelect,
       })
+      const userForSlug = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true },
+      })
+      if (userForSlug) {
+        await ensureMemberSlug(prisma, userForSlug)
+      }
+      const profileAfterSlug = await prisma.memberProfile.findUnique({
+        where: { userId },
+        select: profileSelect,
+      })
       const [connections, events, projects, following, followers] = await Promise.all([
         prisma.connection.count({
           where: {
@@ -185,10 +198,10 @@ export async function GET(request: NextRequest) {
           where: { followingId: userId },
         }),
       ])
-      const needsOnboarding = !isOnboardingComplete(newProfile)
+      const needsOnboarding = !isOnboardingComplete(profileAfterSlug ?? newProfile)
       return NextResponse.json(
         {
-          profile: formatProfileResponse(newProfile),
+          profile: formatProfileResponse(profileAfterSlug ?? newProfile),
           needsOnboarding,
           showOnboardingNudge:
             needsOnboarding && accountMeta
@@ -223,9 +236,24 @@ export async function GET(request: NextRequest) {
     ])
 
     const needsOnboarding = !isOnboardingComplete(profile)
+    const userForSlug = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true },
+    })
+    if (userForSlug && !profile.slug) {
+      await ensureMemberSlug(prisma, userForSlug)
+    }
+    const profileOut =
+      !profile.slug && userForSlug
+        ? await prisma.memberProfile.findUnique({
+            where: { userId },
+            select: profileSelect,
+          })
+        : profile
+
     return NextResponse.json(
       {
-        profile: formatProfileResponse(profile),
+        profile: formatProfileResponse(profileOut ?? profile),
         needsOnboarding,
         showOnboardingNudge:
           needsOnboarding && accountMeta
@@ -326,8 +354,24 @@ export async function PUT(request: NextRequest) {
       select: profileSelect,
     })
 
+    const userForSlug = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true },
+    })
+    if (userForSlug) {
+      await ensureMemberSlug(prisma, userForSlug)
+    }
+
+    const profileWithSlug = await prisma.memberProfile.findUnique({
+      where: { userId },
+      select: profileSelect,
+    })
+
     return NextResponse.json(
-      { message: "Profile updated successfully", profile: formatProfileResponse(profile) },
+      {
+        message: "Profile updated successfully",
+        profile: formatProfileResponse(profileWithSlug ?? profile),
+      },
       { headers: corsHeaders }
     )
   } catch (error: any) {

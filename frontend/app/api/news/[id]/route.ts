@@ -23,12 +23,16 @@ export async function GET(
 
     const post = await prisma.newsPost.findFirst({
       where: {
-        id,
         deletedAt: null,
         status: "published",
         OR: [
           { publishedAt: null }, // Allow posts without publishedAt if status is published
           { publishedAt: { lte: now } }, // Only show posts published in the past
+        ],
+        AND: [
+          {
+            OR: [{ id }, { slug: id }],
+          },
         ],
       },
       select: {

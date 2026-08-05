@@ -9,6 +9,16 @@ export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
 }
 
+async function findPublishedPost(param: string) {
+  return prisma.newsPost.findFirst({
+    where: {
+      deletedAt: null,
+      status: "published",
+      OR: [{ id: param }, { slug: param }],
+    },
+  })
+}
+
 /**
  * Get comments for a news post (public endpoint)
  */
@@ -19,14 +29,7 @@ export async function GET(
   try {
     const { id } = await params
 
-    // Verify post exists and is published
-    const post = await prisma.newsPost.findFirst({
-      where: {
-        id,
-        deletedAt: null,
-        status: "published",
-      },
-    })
+    const post = await findPublishedPost(id)
 
     if (!post) {
       return NextResponse.json(
@@ -41,7 +44,7 @@ export async function GET(
     // Get top-level comments (no parent) with their replies
     const comments = await prisma.newsPostComment.findMany({
       where: {
-        postId: id,
+        postId: post.id,
         parentId: null, // Top-level comments only
         approved: true,
         deletedAt: null,
@@ -108,14 +111,7 @@ export async function POST(
       )
     }
 
-    // Verify post exists and is published
-    const post = await prisma.newsPost.findFirst({
-      where: {
-        id,
-        deletedAt: null,
-        status: "published",
-      },
-    })
+    const post = await findPublishedPost(id)
 
     if (!post) {
       return NextResponse.json(
@@ -132,7 +128,7 @@ export async function POST(
       const parent = await prisma.newsPostComment.findFirst({
         where: {
           id: parentId,
-          postId: id,
+          postId: post.id,
           deletedAt: null,
         },
       })
@@ -151,7 +147,7 @@ export async function POST(
     // Create comment
     const comment = await prisma.newsPostComment.create({
       data: {
-        postId: id,
+        postId: post.id,
         content: content.trim(),
         authorName: authorName.trim(),
         authorEmail: authorEmail?.trim() || null,

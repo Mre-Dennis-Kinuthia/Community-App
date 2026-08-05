@@ -43,6 +43,7 @@ import {
   isOnboardingComplete,
 } from "@/lib/member-segmentation"
 import { getProfileCompleteness, validateProfileOrganization } from "@/lib/profile-completeness"
+import { getCommunityMemberProfilePath } from "@/lib/member-slug"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { validateLinkedInInput } from "@/lib/member-social-links"
 import { Linkedin } from "lucide-react"
@@ -61,6 +62,7 @@ type FollowingMember = {
   name: string
   avatar: string | null
   role: string | null
+  slug?: string | null
 }
 
 type ProfileStats = {
@@ -72,6 +74,7 @@ type ProfileStats = {
 }
 
 type ProfilePayload = {
+  slug?: string | null
   bio: string | null
   skills: string[]
   location: string | null
@@ -133,10 +136,12 @@ export default function ProfilePage() {
   const [dangerZoneOpen, setDangerZoneOpen] = useState(false)
 
   const [form, setForm] = useState(emptyForm())
+  const [profileSlug, setProfileSlug] = useState<string | null>(null)
   const [newSkill, setNewSkill] = useState("")
   const [newInterest, setNewInterest] = useState("")
 
   const applyProfile = useCallback((profile: ProfilePayload) => {
+    setProfileSlug(profile.slug ?? null)
     setForm({
       name: profile.user.name?.trim() || "",
       image: profile.user.image?.trim() || "",
@@ -442,7 +447,16 @@ export default function ProfilePage() {
             ) : (
               <>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={user?.id ? `/community/${user.id}` : "/community"}>
+                  <Link
+                    href={
+                      user?.id
+                        ? getCommunityMemberProfilePath({
+                            id: user.id,
+                            slug: profileSlug,
+                          })
+                        : "/community"
+                    }
+                  >
                     View public profile
                   </Link>
                 </Button>
@@ -992,7 +1006,7 @@ export default function ProfilePage() {
                   followingMembers.map((member) => (
                     <Link
                       key={member.id}
-                      href={`/community/${member.id}`}
+                      href={getCommunityMemberProfilePath(member)}
                       className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
                     >
                       <Avatar className="h-8 w-8">
@@ -1088,7 +1102,7 @@ export default function ProfilePage() {
                   followingMembers.map((member) => (
                     <Link
                       key={member.id}
-                      href={`/community/${member.id}`}
+                      href={getCommunityMemberProfilePath(member)}
                       className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
                     >
                       <Avatar className="h-8 w-8">

@@ -21,6 +21,8 @@ export interface MemberEventSummary {
   title: string
   startDate: string
   location: string | null
+  slug?: string | null
+  shortCode?: string | null
 }
 
 export interface MutualConnectionSummary {
@@ -28,10 +30,13 @@ export interface MutualConnectionSummary {
   name: string
   avatar: string | null
   role: string | null
+  slug?: string | null
 }
 
 export interface CommunityMember {
   id: string
+  /** Public URL slug when available */
+  slug?: string | null
   name: string
   email: string
   avatar: string | null

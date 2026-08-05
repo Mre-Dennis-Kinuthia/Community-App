@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           deletedAt: null,
           OR: [{ title: contains }, { description: contains }],
         },
-        select: { id: true, title: true, description: true },
+        select: { id: true, title: true, description: true, slug: true, shortCode: true },
         take: MAX_PER_TYPE,
         orderBy: { startDate: "asc" },
       }),
@@ -91,7 +91,11 @@ export async function GET(request: NextRequest) {
           name: contains,
           profile: { isNot: null },
         },
-        select: { id: true, name: true, profile: { select: { bio: true, industry: true } } },
+        select: {
+          id: true,
+          name: true,
+          profile: { select: { bio: true, industry: true, slug: true } },
+        },
         take: MAX_PER_TYPE,
       }),
     ])
@@ -108,7 +112,11 @@ export async function GET(request: NextRequest) {
         id: e.id,
         title: e.title,
         type: "event" as const,
-        href: `/events/${e.id}`,
+        href: e.shortCode
+          ? `/e/${e.shortCode}`
+          : e.slug
+            ? `/events/${e.slug}`
+            : `/events/${e.id}`,
         description: e.description?.slice(0, 120) || undefined,
       })),
       ...projects.map((p) => ({
@@ -138,7 +146,7 @@ export async function GET(request: NextRequest) {
           id: m.id,
           title: m.name!,
           type: "member" as const,
-          href: `/community/${m.id}`,
+          href: `/community/${m.profile?.slug || m.id}`,
           description: m.profile?.industry || m.profile?.bio?.slice(0, 120) || undefined,
         })),
     ]

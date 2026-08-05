@@ -19,6 +19,7 @@ import { FilterChipRow } from "@/components/mobile/filter-chip-row"
 import { MobileFilterSheet } from "@/components/mobile/mobile-filter-sheet"
 import { DirectoryMemberCard } from "@/components/community/directory-member-card"
 import { DirectoryPillSearch } from "@/components/community/directory-pill-search"
+import { getCommunityMemberProfilePath } from "@/lib/member-slug"
 import {
   getRecommendedMembers,
   RECOMMENDED_PREVIEW_LIMIT,
@@ -226,7 +227,7 @@ function CommunityPageContent() {
                 className="group flex min-w-0 items-center gap-2.5 border-b border-border px-3 py-2.5 last:border-b-0 md:gap-3 md:px-4 md:py-3"
               >
                 <Link
-                  href={`/community/${member.id}`}
+                  href={getCommunityMemberProfilePath(member)}
                   className="flex min-w-0 flex-1 items-center gap-2.5 md:gap-3"
                 >
                   {rowBody}
@@ -246,7 +247,7 @@ function CommunityPageContent() {
           }
 
           return (
-            <DataListRow key={member.id} href={`/community/${member.id}`}>
+            <DataListRow key={member.id} href={getCommunityMemberProfilePath(member)}>
               {rowBody}
               {member.role ? <DataListMeta>{member.role}</DataListMeta> : null}
             </DataListRow>

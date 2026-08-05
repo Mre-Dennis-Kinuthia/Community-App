@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { EventPublicLayout } from "@/components/events/event-public-layout"
 import { eventTypeLabel } from "@/lib/event-constants"
 import { formatEventPrice } from "@/lib/event-questions"
+import { getEventPublicPath } from "@/lib/event-url"
 
 interface PublicEvent {
   id: string
@@ -16,6 +17,8 @@ interface PublicEvent {
   eventType: string
   price?: number | null
   currency?: string | null
+  slug?: string | null
+  shortCode?: string | null
 }
 
 function formatWhen(iso: string) {
@@ -78,7 +81,7 @@ export default function PublicEventsPage() {
               {events.map((event) => (
                 <li key={event.id}>
                   <Link
-                    href={`/events/${event.id}`}
+                    href={getEventPublicPath(event)}
                     className="block rounded-md border border-[#edeff2] bg-white p-4 transition-colors hover:border-[#812926]/30 hover:bg-white"
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">

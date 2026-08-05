@@ -3,7 +3,8 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
-import { getAppBaseUrl } from "@/lib/app-url"
+import { getCommunityMemberProfileUrl } from "@/lib/app-url"
+import { getCommunityMemberProfilePath } from "@/lib/member-slug"
 import {
   isEmailConfigured,
   sendConnectionRequestEmail,
@@ -161,16 +162,17 @@ export async function POST(request: NextRequest) {
 
     const sender = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, email: true },
+      select: { id: true, name: true, email: true, profile: { select: { slug: true } } },
     })
     const senderLabel =
       sender?.name?.trim() || sender?.email?.split("@")[0] || "A community member"
-    const profileUrl = `${getAppBaseUrl()}/community/${userId}`
+    const profilePath = getCommunityMemberProfilePath(sender ?? { id: userId })
+    const profileUrl = getCommunityMemberProfileUrl(sender ?? { id: userId })
 
     await createNotification({
       userId: toUserId,
       skipEmail: true,
-      ...NotificationTemplates.connectionRequest(userId, senderLabel, connection.id),
+      ...NotificationTemplates.connectionRequest(userId, senderLabel, connection.id, profilePath),
     })
 
     if (isEmailConfigured() && recipient.email) {

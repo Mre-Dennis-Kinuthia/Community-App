@@ -172,6 +172,7 @@ export async function GET(request: NextRequest) {
           createdAt: true,
           profile: {
             select: {
+              slug: true,
               bio: true,
               skills: true,
               location: true,
@@ -266,6 +267,7 @@ export async function GET(request: NextRequest) {
 
       return {
         id: member.id,
+        slug: member.profile?.slug || null,
         name: member.name || "Anonymous",
         email: canSeeEmail ? member.email : "",
         avatar: member.image || null,

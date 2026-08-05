@@ -48,8 +48,11 @@ export function getTermsOfServiceUrl(): string {
   return `${getAppBaseUrl()}${TERMS_OF_SERVICE_PATH}`
 }
 
-export function getNewsArticleUrl(postId: string): string {
-  return `${getAppBaseUrl()}/news/${postId}`
+export function getNewsArticleUrl(post: { id: string; slug?: string | null } | string): string {
+  if (typeof post === "string") {
+    return `${getAppBaseUrl()}/news/${post}`
+  }
+  return `${getAppBaseUrl()}/news/${post.slug || post.id}`
 }
 
 export function getCommunityOpportunityUrl(opportunityId: string): string {
@@ -60,8 +63,13 @@ export function getDashboardBookingUrl(bookingId: string): string {
   return `${getAppBaseUrl()}/dashboard/bookings/${bookingId}`
 }
 
-export function getCommunityMemberProfileUrl(memberId: string): string {
-  return `${getAppBaseUrl()}/community/${memberId}`
+export function getCommunityMemberProfileUrl(member: {
+  id: string
+  slug?: string | null
+  profile?: { slug?: string | null } | null
+}): string {
+  const slug = member.slug ?? member.profile?.slug ?? null
+  return `${getAppBaseUrl()}/community/${slug || member.id}`
 }
 
 export function getNewsletterUnsubscribeUrl(token: string): string {

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { cn, getInitials } from "@/lib/utils"
 import type { CommunityMember } from "@/types/community"
+import { getCommunityMemberProfilePath } from "@/lib/member-slug"
 
 type DirectoryMemberCardProps = {
   member: CommunityMember
@@ -54,7 +55,7 @@ export function DirectoryMemberCard({
 
   return (
     <Link
-      href={`/community/${member.id}`}
+      href={getCommunityMemberProfilePath(member)}
       className={cn("block shrink-0", carousel ? "w-[9.5rem]" : "w-full")}
     >
       {content}

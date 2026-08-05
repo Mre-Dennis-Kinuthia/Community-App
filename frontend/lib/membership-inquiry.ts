@@ -91,7 +91,7 @@ export const ORGANISATIONAL_PARTNERSHIP_INTERESTS = ORGANISATIONAL_ENGAGEMENT_MO
 
 /** Star Connect membership application — shared constants */
 export const STAR_CONNECT_PLAN_NAME = "Star Connect"
-export const STAR_CONNECT_PRICE_LABEL = "KES 13,000 / month"
+export const STAR_CONNECT_PRICE_LABEL = "KES 15,000 / month"
 export const STAR_CONNECT_DISCOVERY_CALL_URL =
   "https://calendar.app.google/9ZM6DNGjKgkTC88D7"
 export const STAR_CONNECT_RESPONSE_SLA = "within 2 hours"
@@ -122,7 +122,7 @@ export const TARGET_START = [
 export const STAR_CONNECT_PRIMARY_NEEDS = [
   "Business development & advisory",
   "Workspace & meeting rooms",
-  "Global Impact Hub Passport (120+ hubs)",
+  "Global Impact Hub Passport (117 hubs, 68 countries)",
   "Acceleration & thematic programs",
   "Investor & grant introductions",
   "Strategic partnerships",

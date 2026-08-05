@@ -537,8 +537,9 @@ export async function sendNewsArticleEmail(params: {
   title: string
   excerpt?: string | null
   postId: string
+  slug?: string | null
 }): Promise<SendEmailResult> {
-  const articleUrl = getNewsArticleUrl(params.postId)
+  const articleUrl = getNewsArticleUrl({ id: params.postId, slug: params.slug })
   const excerpt = params.excerpt?.trim() || ""
 
   return asSendResult(

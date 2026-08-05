@@ -15,6 +15,7 @@ export function DashboardAnnouncements() {
   const announcements = (data?.announcements || []) as Array<{
     id: string
     title: string
+    slug?: string | null
     excerpt: string | null
     announcementType: string
   }>
@@ -36,7 +37,7 @@ export function DashboardAnnouncements() {
             <Megaphone className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <Link href={`/news/${post.id}`} className="font-medium hover:underline">
+                <Link href={`/news/${post.slug || post.id}`} className="font-medium hover:underline">
                   {post.title}
                 </Link>
                 {post.announcementType !== "normal" ? (

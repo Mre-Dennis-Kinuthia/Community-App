@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
+import { getCommunityMemberProfilePath } from "@/lib/member-slug"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 import { z } from "zod"
 
@@ -62,15 +63,21 @@ export async function PUT(
     if (status === "accepted") {
       const accepter = await prisma.user.findUnique({
         where: { id: userId },
-        select: { name: true, email: true },
+        select: { id: true, name: true, email: true, profile: { select: { slug: true } } },
       })
       const accepterLabel =
         accepter?.name?.trim() || accepter?.email?.split("@")[0] || "A community member"
+      const profilePath = getCommunityMemberProfilePath(accepter ?? { id: userId })
 
       await createNotification({
         userId: connection.fromUserId,
         skipEmail: true,
-        ...NotificationTemplates.connectionAccepted(userId, accepterLabel, connectionId),
+        ...NotificationTemplates.connectionAccepted(
+          userId,
+          accepterLabel,
+          connectionId,
+          profilePath
+        ),
       })
     }
 

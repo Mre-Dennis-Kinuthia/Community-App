@@ -43,10 +43,10 @@ import {
 const NAV_LINKS = LANDING_HEADER_LINKS
 
 const IMPACT_STATS = [
+  { label: "Impact Hubs", value: "117" },
+  { label: "Countries", value: "68" },
+  { label: "Continents", value: "5" },
   { label: "Impact Makers", value: "300k+" },
-  { label: "Impact Hubs", value: "50+" },
-  { label: "Thematic Focus Areas", value: "6" },
-  { label: "Years in Nairobi", value: "15+" },
 ]
 
 const PILLARS = [
@@ -101,11 +101,11 @@ const MEMBERSHIP_TIERS = [
   },
   {
     name: "Star Connect",
-    price: "KES 13,000",
+    price: "KES 15,000",
     period: "/ month",
     description: "For early and growth-stage founders ready to scale with dedicated support.",
     features: [
-      "Global Passport — 120+ hubs, 60+ countries",
+      "Global Passport — 117 hubs across 68 countries",
       "Dedicated business development services",
       "Thematic acceleration programs",
       "Grants & funding opportunities",
@@ -444,7 +444,7 @@ export default function HomePage() {
             <ul className="mt-8 grid gap-3 sm:grid-cols-3">
               {[
                 "300k+ impact makers globally",
-                "50+ impact hubs worldwide",
+                "117 hubs in 68 countries",
                 "Free community membership",
               ].map((item) => (
                 <li
@@ -707,7 +707,7 @@ export default function HomePage() {
             description="Inclusive and sustainable innovation at scale — starting in Nairobi, connected to a global network of impact makers."
           />
           <p className="text-xs text-[#1c395c]/70">
-            Part of the global Impact Hub network · 300k+ impact makers · 50+ hubs
+            Part of the global Impact Hub network · 117 hubs · 68 countries · 5 continents
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <Link href="/register">

@@ -10,10 +10,11 @@ import Link from "next/link"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 import { cn } from "@/lib/utils"
 import { EventSharePanel } from "@/components/events/event-share-panel"
+import { getEventPublicPath } from "@/lib/event-url"
 
 interface EventDetailSheetProps {
   event: {
-    id: number
+    id: number | string
     title: string
     type: string
     category: string
@@ -33,6 +34,8 @@ interface EventDetailSheetProps {
     waitlistEnabled?: boolean
     registrationDeadline?: Date
     priceLabel?: string | null
+    slug?: string
+    shortCode?: string
   }
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -47,7 +50,11 @@ export function EventDetailSheet({
   onRegister,
   isRegistering = false,
 }: EventDetailSheetProps) {
-  const eventPageUrl = `/events/${event.id}`
+  const eventPageUrl = getEventPublicPath({
+    id: String(event.id),
+    slug: event.slug,
+    shortCode: event.shortCode,
+  })
 
   const timeString = format(
     new Date().setHours(parseInt(event.time.split(":")[0]), parseInt(event.time.split(":")[1])),

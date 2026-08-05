@@ -164,32 +164,47 @@ export const NotificationTemplates = {
     relatedType: "booking",
   }),
 
-  connectionRequest: (fromUserId: string, fromName: string, connectionId: string) => ({
+  connectionRequest: (
+    fromUserId: string,
+    fromName: string,
+    connectionId: string,
+    profilePath?: string
+  ) => ({
     title: "New connection request",
     message: `${fromName} wants to connect with you on Impact Hub Nairobi.`,
     type: "info" as const,
     category: "connection",
-    actionUrl: `/community/${fromUserId}`,
+    actionUrl: profilePath ?? `/community/${fromUserId}`,
     relatedId: connectionId,
     relatedType: "connection",
   }),
 
-  connectionAccepted: (accepterUserId: string, accepterName: string, connectionId: string) => ({
+  connectionAccepted: (
+    accepterUserId: string,
+    accepterName: string,
+    connectionId: string,
+    profilePath?: string
+  ) => ({
     title: "Connection accepted",
     message: `${accepterName} accepted your connection request.`,
     type: "success" as const,
     category: "connection",
-    actionUrl: `/community/${accepterUserId}`,
+    actionUrl: profilePath ?? `/community/${accepterUserId}`,
     relatedId: connectionId,
     relatedType: "connection",
   }),
 
-  memberFollowed: (followerUserId: string, followerName: string, followId: string) => ({
+  memberFollowed: (
+    followerUserId: string,
+    followerName: string,
+    followId: string,
+    profilePath?: string
+  ) => ({
     title: "New follower",
     message: `${followerName} started following you.`,
     type: "info" as const,
     category: "follow",
-    actionUrl: `/community/${followerUserId}`,
+    actionUrl: profilePath ?? `/community/${followerUserId}`,
     relatedId: followId,
     relatedType: "follow",
   }),

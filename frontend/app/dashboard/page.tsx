@@ -20,6 +20,7 @@ import {
 import { DashboardAnnouncements } from "@/components/dashboard-announcements"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
+import { getEventPublicPath } from "@/lib/event-url"
 import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
 import {
   DataList,
@@ -66,6 +67,8 @@ interface Event {
   description: string
   startDate: string
   location: string | null
+  slug?: string | null
+  shortCode?: string | null
 }
 
 export default function DashboardPage() {
@@ -404,7 +407,7 @@ export default function DashboardPage() {
                     minute: "2-digit",
                   })
                   return (
-                    <DataListRow key={event.id} href={`/events/${event.id}`}>
+                    <DataListRow key={event.id} href={getEventPublicPath(event)}>
                       <DataListPrimary
                         title={event.title}
                         subtitle={event.location || undefined}

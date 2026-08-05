@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { eventTypeLabel } from "@/lib/event-constants"
 import { formatEventPrice } from "@/lib/event-questions"
 import { getImageDisplayUrl } from "@/lib/stored-image"
+import { getEventPublicPath } from "@/lib/event-url"
 import { cn } from "@/lib/utils"
 
 export interface LandingEventTeaser {
@@ -20,6 +21,8 @@ export interface LandingEventTeaser {
   imageUrl: string | null
   price: number | null
   currency: string | null
+  slug?: string | null
+  shortCode?: string | null
 }
 
 function SectionHeader({
@@ -132,7 +135,7 @@ export function LandingEventsSection() {
                   <div className="mt-auto flex items-center justify-between gap-2 pt-4">
                     <span className="text-xs font-medium text-[#812926]">{priceLabel}</span>
                     <Link
-                      href={`/events/${event.id}`}
+                      href={getEventPublicPath(event)}
                       className="inline-flex items-center gap-1 text-xs font-semibold text-[#1c395c] transition-colors hover:text-[#812926]"
                     >
                       View & register

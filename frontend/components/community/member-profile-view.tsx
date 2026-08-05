@@ -28,6 +28,8 @@ import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 import { FEATURE_FLAGS } from "@/lib/feature-flags"
 import { toast } from "@/lib/toast"
+import { getCommunityMemberProfilePath } from "@/lib/member-slug"
+import { getEventPublicPath } from "@/lib/event-url"
 import {
   respondToConnectionRequest,
   sendConnectionRequest,
@@ -567,7 +569,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                 {events.map((event) => (
                   <li key={event.id}>
                     <Link
-                      href={`/events/${event.id}`}
+                      href={getEventPublicPath(event)}
                       className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/30"
                     >
                       <div className="min-w-0">
@@ -628,7 +630,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
                 {member.mutualConnections.map((connection) => (
                   <Link
                     key={connection.id}
-                    href={`/community/${connection.id}`}
+                    href={getCommunityMemberProfilePath(connection)}
                     className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
                   >
                     <Avatar className="h-8 w-8">

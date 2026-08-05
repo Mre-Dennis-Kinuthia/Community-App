@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
+import { getCommunityMemberProfilePath } from "@/lib/member-slug"
 import { z } from "zod"
 
 /**
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
         name: true,
         email: true,
         image: true,
-        profile: { select: { role: true } },
+        profile: { select: { role: true, slug: true } },
       },
     })
 
@@ -77,6 +78,7 @@ export async function GET(request: NextRequest) {
         name: u!.name?.trim() || u!.email?.split("@")[0] || "Member",
         avatar: u!.image,
         role: u!.profile?.role ?? null,
+        slug: u!.profile?.slug ?? null,
       }))
 
     return NextResponse.json({ following }, { headers: corsHeaders })
@@ -153,15 +155,16 @@ export async function POST(request: NextRequest) {
 
     const follower = await prisma.user.findUnique({
       where: { id: viewerId },
-      select: { name: true, email: true },
+      select: { id: true, name: true, email: true, profile: { select: { slug: true } } },
     })
     const followerLabel =
       follower?.name?.trim() || follower?.email?.split("@")[0] || "A community member"
+    const profilePath = getCommunityMemberProfilePath(follower ?? { id: viewerId })
 
     await createNotification({
       userId: followingId,
       skipEmail: true,
-      ...NotificationTemplates.memberFollowed(viewerId, followerLabel, follow.id),
+      ...NotificationTemplates.memberFollowed(viewerId, followerLabel, follow.id, profilePath),
     })
 
     return NextResponse.json(

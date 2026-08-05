@@ -138,6 +138,8 @@ model MemberProfile {
   id        String   @id @default(cuid())
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Public URL segment: /community/{slug}
+  slug      String?  @unique
   bio       String?   @db.Text
   skills    String[] // array of skills
   location  String?
@@ -169,6 +171,7 @@ model MemberProfile {
   thesis        String?
   investmentAlertPreferences Json?
 
+  @@index([slug])
   @@map("member_profiles")
 }
 

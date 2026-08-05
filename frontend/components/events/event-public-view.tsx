@@ -30,6 +30,7 @@ import { LumaRegistration } from "@/components/events/luma-registration"
 import { EventVenueMap } from "@/components/events/event-venue-map"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { HUB_PUBLIC_EMAIL } from "@/lib/hub-contact"
+import { getEventPublicPath } from "@/lib/event-url"
 import { cn } from "@/lib/utils"
 import type { EventCalendarLinks } from "@/lib/event-calendar"
 
@@ -271,7 +272,7 @@ export function EventPublicView({
           {!isLoggedIn && !isLumaEvent && (
             <p className="text-center text-xs text-[#1c395c]/70">
               <Link
-                href={`/login?redirect=${encodeURIComponent(`/events/${event.id}`)}`}
+                href={`/login?redirect=${encodeURIComponent(getEventPublicPath(event))}`}
                 className="underline underline-offset-2"
               >
                 Log in

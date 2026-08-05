@@ -1,6 +1,20 @@
 /**
  * Canonical public URL for an event (short share link preferred).
  */
+export function getEventPublicPath(event: {
+  id: string
+  shortCode?: string | null
+  slug?: string | null
+}): string {
+  if (event.shortCode) {
+    return `/e/${event.shortCode}`
+  }
+  if (event.slug) {
+    return `/events/${event.slug}`
+  }
+  return `/events/${event.id}`
+}
+
 export function getEventPublicUrl(event: {
   id: string
   shortCode?: string | null
@@ -10,13 +24,7 @@ export function getEventPublicUrl(event: {
     process.env.NEXT_PUBLIC_APP_URL ||
     (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000")
   const root = base.replace(/\/$/, "")
-  if (event.shortCode) {
-    return `${root}/e/${event.shortCode}`
-  }
-  if (event.slug) {
-    return `${root}/events/${event.slug}`
-  }
-  return `${root}/events/${event.id}`
+  return `${root}${getEventPublicPath(event)}`
 }
 
 export function getEventShareText(title: string, startDate?: Date | string): string {
