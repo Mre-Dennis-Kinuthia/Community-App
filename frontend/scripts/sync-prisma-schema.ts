@@ -42,7 +42,13 @@ function syncSchema() {
     }
 
     console.log("[PRISMA SYNC] Reading schema from:", SOURCE_SCHEMA)
-    const schemaContent = readFileSync(SOURCE_SCHEMA, "utf-8")
+    let schemaContent = readFileSync(SOURCE_SCHEMA, "utf-8")
+
+    // Admin app uses Prisma 7 — datasource URL lives in prisma.config.ts, not schema.prisma
+    schemaContent = schemaContent.replace(
+      /datasource db \{[\s\S]*?\n\}/,
+      `datasource db {\n  provider = "postgresql"\n}`
+    )
     
     console.log("[PRISMA SYNC] Writing schema to:", TARGET_SCHEMA)
     writeFileSync(TARGET_SCHEMA, schemaContent, "utf-8")

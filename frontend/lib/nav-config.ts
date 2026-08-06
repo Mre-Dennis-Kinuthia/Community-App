@@ -7,6 +7,7 @@ import {
   Handshake,
   Lightbulb,
   Newspaper,
+  Mail,
   FolderOpen,
   BarChart3,
   Sparkles,
@@ -64,6 +65,7 @@ export const NAV_GROUPS: NavGroupConfig[] = [
       { title: "Investments & Dealflow", href: "/investments", icon: BarChart3 },
       { title: "My projects", href: "/dashboard/projects", icon: FolderOpen },
       { title: "News & Updates", href: "/news", icon: Newspaper },
+      { title: "Newsletters", href: "/newsletters", icon: Mail },
       { title: "Partners & Network", href: "/partners", icon: Handshake },
     ],
   },
@@ -86,6 +88,7 @@ const MOBILE_PRIMARY_HREFS = ["/dashboard", "/booking", "/community", "/events"]
 /** "More" sheet — order matches desktop nav groups (disabled routes omitted at source). */
 const MOBILE_MORE_HREFS = [
   "/news",
+  "/newsletters",
   "/partners",
   "/opportunities",
   "/dashboard/bookings",
@@ -105,6 +108,7 @@ const MOBILE_TITLE_OVERRIDES: Record<string, string> = {
   "/dashboard/visitors": "Visitors",
   "/dashboard/deliveries": "Packages",
   "/news": "News",
+  "/newsletters": "Newsletters",
   "/partners": "Partners",
   "/opportunities": "Opportunities",
   "/investments": "Dealflow",

@@ -40,6 +40,7 @@ const protectedRoutes = [
   "/partners",
   "/projects",
   "/news",
+  "/newsletters",
   "/investments",
   "/onboarding",
 ]

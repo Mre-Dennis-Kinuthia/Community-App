@@ -218,6 +218,7 @@ model AdminUser {
 
   // Relations
   newsPosts NewsPost[]
+  newsletterCampaigns NewsletterCampaign[]
 
   @@map("admin_users")
 }
@@ -1352,9 +1353,80 @@ model NewsletterSubscriber {
   unsubscribedAt   DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  sends            NewsletterSend[]
 
   @@index([subscribedAt])
   @@map("newsletter_subscribers")
+}
+
+/// Mailchimp-style newsletter campaign (section JSON + send lifecycle)
+model NewsletterCampaign {
+  id             String   @id @default(cuid())
+  title          String
+  slug           String   @unique
+  subject        String
+  preheader      String?
+  /// Canonical section blocks (Zod-validated in app code)
+  sections       Json     @default("[]")
+  brandPrimary   String?
+  brandAccent    String?
+  /// draft | scheduled | sending | sent | cancelled
+  status         String   @default("draft")
+  /// subscribers | members | both
+  audience       String   @default("subscribers")
+  scheduledAt    DateTime?
+  sentAt         DateTime?
+  publishedToWeb Boolean  @default(true)
+  authorId       String?
+  author         AdminUser? @relation(fields: [authorId], references: [id])
+  sentCount      Int      @default(0)
+  openCount      Int      @default(0)
+  clickCount     Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+  sends          NewsletterSend[]
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([sentAt])
+  @@index([publishedToWeb])
+  @@map("newsletter_campaigns")
+}
+
+model NewsletterSend {
+  id             String   @id @default(cuid())
+  campaignId     String
+  campaign       NewsletterCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  email          String
+  userId         String?
+  subscriberId   String?
+  subscriber     NewsletterSubscriber? @relation(fields: [subscriberId], references: [id], onDelete: SetNull)
+  trackingToken  String   @unique @default(cuid())
+  sentAt         DateTime?
+  openedAt       DateTime?
+  clickCount     Int      @default(0)
+  createdAt      DateTime @default(now())
+  events         NewsletterEvent[]
+
+  @@unique([campaignId, email])
+  @@index([campaignId])
+  @@index([trackingToken])
+  @@map("newsletter_sends")
+}
+
+model NewsletterEvent {
+  id        String   @id @default(cuid())
+  sendId    String
+  send      NewsletterSend @relation(fields: [sendId], references: [id], onDelete: Cascade)
+  /// open | click
+  type      String
+  url       String?
+  createdAt DateTime @default(now())
+
+  @@index([sendId])
+  @@index([type])
+  @@map("newsletter_events")
 }
 
 // ============================================
