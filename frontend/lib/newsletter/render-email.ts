@@ -1,6 +1,6 @@
 import { EMAIL_BRAND, escapeHtml } from "@/lib/email/templates"
 import { getEmailBrandLogoUrl } from "@/lib/brand"
-import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
+import { HUB_CONTACT_EMAIL, HUB_MAILING_ADDRESS } from "@/lib/hub-contact"
 import type { NewsletterSection } from "./section-schema"
 
 export type NewsletterBrand = {
@@ -189,6 +189,7 @@ function renderSectionHtml(
                 ? `<p style="margin:0 0 10px;font-size:12px;line-height:1.5;color:${brand.textMuted};">${escapeHtml(section.note)}</p>`
                 : ""
             }
+            <p style="margin:0 0 10px;font-size:11px;line-height:1.5;color:${brand.textMuted};">${escapeHtml(HUB_MAILING_ADDRESS)}</p>
             <p style="margin:0;font-size:12px;">
               <a href="${escapeHtml(appBaseUrl)}" style="color:${brand.primary};text-decoration:none;font-weight:600;">Visit platform</a>
               <span style="color:${brand.border};margin:0 8px;">|</span>

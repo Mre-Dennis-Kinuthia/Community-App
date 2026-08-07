@@ -3,7 +3,7 @@
 import type { CSSProperties, ReactNode } from "react"
 import Link from "next/link"
 import { getBrandLogoUrl } from "@/lib/brand"
-import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
+import { HUB_CONTACT_EMAIL, HUB_MAILING_ADDRESS } from "@/lib/hub-contact"
 import {
   resolveNewsletterBrand,
   type NewsletterBrand,
@@ -222,6 +222,9 @@ function SectionView({
               {section.note}
             </p>
           ) : null}
+          <p className="mb-3 text-[11px]" style={{ color: brand.textMuted }}>
+            {HUB_MAILING_ADDRESS}
+          </p>
           <p className="text-xs">
             <a href={appBaseUrl} className="font-semibold" style={{ color: brand.primary }}>
               Visit platform
@@ -248,25 +251,40 @@ export function NewsletterWebRenderer({
   brandAccent,
   appBaseUrl = "",
   className = "",
+  /** Public archive: no nested “email card” chrome — page provides the frame. */
+  variant = "card",
 }: {
   sections: NewsletterSection[]
   brandPrimary?: string | null
   brandAccent?: string | null
   appBaseUrl?: string
   className?: string
+  variant?: "card" | "article"
 }) {
   const brand = resolveNewsletterBrand({ brandPrimary, brandAccent })
+  const isArticle = variant === "article"
+
   return (
     <article
-      className={`mx-auto max-w-[600px] rounded-xl border bg-white p-6 shadow-sm sm:p-8 ${className}`}
-      style={{ borderColor: brand.border, background: brand.surface }}
+      className={
+        isArticle
+          ? `mx-auto w-full max-w-2xl ${className}`
+          : `mx-auto max-w-[600px] rounded-xl border bg-white p-6 shadow-sm sm:p-8 ${className}`
+      }
+      style={
+        isArticle
+          ? { color: brand.text }
+          : { borderColor: brand.border, background: brand.surface }
+      }
     >
-      <div
-        className="-mx-6 -mt-6 mb-6 h-1.5 rounded-t-xl sm:-mx-8 sm:-mt-8"
-        style={{
-          background: `linear-gradient(90deg, ${brand.primaryDark} 0%, ${brand.navy} 45%, ${brand.primary} 100%)`,
-        }}
-      />
+      {!isArticle ? (
+        <div
+          className="-mx-6 -mt-6 mb-6 h-1.5 rounded-t-xl sm:-mx-8 sm:-mt-8"
+          style={{
+            background: `linear-gradient(90deg, ${brand.primaryDark} 0%, ${brand.navy} 45%, ${brand.primary} 100%)`,
+          }}
+        />
+      ) : null}
       {sections.map((section) => (
         <SectionView
           key={section.id}

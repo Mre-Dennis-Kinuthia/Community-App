@@ -1377,9 +1377,12 @@ model NewsletterCampaign {
   scheduledAt    DateTime?
   sentAt         DateTime?
   publishedToWeb Boolean  @default(true)
+  /// Snapshot of email HTML at send time (web archive source of truth)
+  renderedHtml   String?  @db.Text
   authorId       String?
   author         AdminUser? @relation(fields: [authorId], references: [id])
   sentCount      Int      @default(0)
+  failCount      Int      @default(0)
   openCount      Int      @default(0)
   clickCount     Int      @default(0)
   createdAt      DateTime @default(now())
@@ -1403,6 +1406,9 @@ model NewsletterSend {
   subscriberId   String?
   subscriber     NewsletterSubscriber? @relation(fields: [subscriberId], references: [id], onDelete: SetNull)
   trackingToken  String   @unique @default(cuid())
+  /// pending | sent | failed
+  status         String   @default("pending")
+  lastError      String?
   sentAt         DateTime?
   openedAt       DateTime?
   clickCount     Int      @default(0)

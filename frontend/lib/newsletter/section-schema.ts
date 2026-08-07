@@ -18,26 +18,38 @@ export type NewsletterCampaignStatus = z.infer<
   typeof newsletterCampaignStatusSchema
 >
 
-const ctaSchema = z
-  .object({
-    label: z.string().min(1).max(80),
-    url: z.string().min(1).max(2000),
-  })
-  .optional()
+/** Empty CTA fields are treated as "no CTA" for draft saves. */
+const ctaSchema = z.preprocess(
+  (val) => {
+    if (val == null || val === "") return undefined
+    if (typeof val !== "object") return undefined
+    const obj = val as { label?: unknown; url?: unknown }
+    const label = typeof obj.label === "string" ? obj.label.trim() : ""
+    const url = typeof obj.url === "string" ? obj.url.trim() : ""
+    if (!label && !url) return undefined
+    return { label: label || "Learn more", url: url || "/" }
+  },
+  z
+    .object({
+      label: z.string().min(1).max(80),
+      url: z.string().min(1).max(2000),
+    })
+    .optional()
+)
 
 export const newsletterSectionSchema = z.discriminatedUnion("type", [
   z.object({
     id: z.string().min(1),
     type: z.literal("header"),
-    eyebrow: z.string().max(80).optional(),
-    showLogo: z.boolean().optional().default(true),
+    eyebrow: z.string().max(80).optional().nullable(),
+    showLogo: z.boolean().optional(),
   }),
   z.object({
     id: z.string().min(1),
     type: z.literal("hero"),
     headline: z.string().min(1).max(200),
-    subcopy: z.string().max(500).optional(),
-    imageUrl: z.string().max(2000).optional(),
+    subcopy: z.string().max(500).optional().nullable(),
+    imageUrl: z.string().max(2000).optional().nullable(),
     cta: ctaSchema,
   }),
   z.object({
@@ -48,17 +60,17 @@ export const newsletterSectionSchema = z.discriminatedUnion("type", [
   z.object({
     id: z.string().min(1),
     type: z.literal("image"),
-    imageUrl: z.string().min(1).max(2000),
-    alt: z.string().max(200).optional(),
-    caption: z.string().max(300).optional(),
-    linkUrl: z.string().max(2000).optional(),
+    imageUrl: z.string().max(2000).optional().default(""),
+    alt: z.string().max(200).optional().nullable(),
+    caption: z.string().max(300).optional().nullable(),
+    linkUrl: z.string().max(2000).optional().nullable(),
   }),
   z.object({
     id: z.string().min(1),
     type: z.literal("button"),
     label: z.string().min(1).max(80),
     url: z.string().min(1).max(2000),
-    align: z.enum(["left", "center"]).optional().default("center"),
+    align: z.enum(["left", "center"]).optional(),
   }),
   z.object({
     id: z.string().min(1),
@@ -67,7 +79,7 @@ export const newsletterSectionSchema = z.discriminatedUnion("type", [
   z.object({
     id: z.string().min(1),
     type: z.literal("spacer"),
-    size: z.enum(["sm", "md", "lg"]).optional().default("md"),
+    size: z.enum(["sm", "md", "lg"]).optional(),
   }),
   z.object({
     id: z.string().min(1),
@@ -78,17 +90,17 @@ export const newsletterSectionSchema = z.discriminatedUnion("type", [
   z.object({
     id: z.string().min(1),
     type: z.literal("news_card"),
-    newsPostId: z.string().max(100).optional().default(""),
-    title: z.string().optional(),
-    excerpt: z.string().optional(),
-    imageUrl: z.string().optional(),
-    url: z.string().optional(),
+    newsPostId: z.string().max(100).optional().nullable(),
+    title: z.string().optional().nullable(),
+    excerpt: z.string().optional().nullable(),
+    imageUrl: z.string().optional().nullable(),
+    url: z.string().optional().nullable(),
   }),
   z.object({
     id: z.string().min(1),
     type: z.literal("footer"),
-    showUnsubscribe: z.boolean().optional().default(true),
-    note: z.string().max(400).optional(),
+    showUnsubscribe: z.boolean().optional(),
+    note: z.string().max(400).optional().nullable(),
   }),
 ])
 
@@ -118,7 +130,7 @@ export function defaultNewsletterSections(): NewsletterSection[] {
       id: newSectionId(),
       type: "hero",
       headline: "Your community update",
-      subcopy: "News, opportunities, and what’s happening at the Hub.",
+      subcopy: "News, opportunities, and what's happening at the Hub.",
       imageUrl: "",
     },
     {
@@ -130,7 +142,7 @@ export function defaultNewsletterSections(): NewsletterSection[] {
       id: newSectionId(),
       type: "footer",
       showUnsubscribe: true,
-      note: "You’re receiving this because you subscribed to Impact Hub Nairobi updates.",
+      note: "You're receiving this because you subscribed to Impact Hub Nairobi updates.",
     },
   ]
 }

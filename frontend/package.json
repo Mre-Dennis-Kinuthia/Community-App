@@ -37,7 +37,7 @@
     "partners:seed": "tsx scripts/seed-partners.ts",
     "db:apply-email-templates": "tsx scripts/apply-email-templates-table.ts",
     "db:apply-newsletter-campaigns": "tsx scripts/apply-newsletter-campaigns.ts",
-    "db:apply-newsletter-campaigns": "tsx scripts/apply-newsletter-campaigns.ts",
+    "db:apply-newsletter-v2": "tsx scripts/apply-newsletter-v2.ts",
     "db:apply-member-profile-slug": "tsx scripts/apply-member-profile-slug.ts",
     "db:backfill-member-slugs": "tsx scripts/backfill-member-slugs.ts"
   },

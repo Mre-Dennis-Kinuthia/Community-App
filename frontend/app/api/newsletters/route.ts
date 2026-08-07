@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { parseNewsletterSections } from "@/lib/newsletter"
+import type { NewsletterSection } from "@/lib/newsletter"
+
+function coverFromSections(sections: NewsletterSection[]): string | null {
+  for (const s of sections) {
+    if (s.type === "hero" && s.imageUrl) return s.imageUrl
+    if (s.type === "image" && s.imageUrl) return s.imageUrl
+    if (s.type === "news_card" && s.imageUrl) return s.imageUrl
+  }
+  return null
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +25,7 @@ export async function GET(request: NextRequest) {
       status: "sent",
     }
 
-    const [campaigns, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       prisma.newsletterCampaign.findMany({
         where,
         skip,
@@ -28,10 +39,25 @@ export async function GET(request: NextRequest) {
           subject: true,
           sentAt: true,
           brandPrimary: true,
+          sections: true,
         },
       }),
       prisma.newsletterCampaign.count({ where }),
     ])
+
+    const campaigns = rows.map((c) => {
+      const sections = parseNewsletterSections(c.sections)
+      return {
+        id: c.id,
+        title: c.title,
+        slug: c.slug,
+        preheader: c.preheader,
+        subject: c.subject,
+        sentAt: c.sentAt,
+        brandPrimary: c.brandPrimary,
+        coverImageUrl: coverFromSections(sections),
+      }
+    })
 
     return NextResponse.json({
       campaigns,
