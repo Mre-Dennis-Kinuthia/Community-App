@@ -10,6 +10,7 @@ export type LandingFooterLink = {
 export function getLandingFooterPlatformLinks(): LandingFooterLink[] {
   const links: LandingFooterLink[] = [
     { href: "/community", label: "Community" },
+    { href: "/programs", label: "Programs & Initiatives" },
     { href: "/events/public", label: "Events & Programs" },
     { href: "/booking", label: "Book Workspace" },
   ]
@@ -30,6 +31,7 @@ export function getLandingFooterPlatformLinks(): LandingFooterLink[] {
 /** Landing header anchor links */
 export const LANDING_HEADER_LINKS = [
   { href: "#services", label: "What we offer" },
+  { href: "/programs", label: "Programs" },
   { href: "#events", label: "Events" },
   { href: "#community", label: "Community" },
   { href: "#membership", label: "Become a member" },

@@ -32,6 +32,7 @@ import { HERO_AVATAR_COLORS, HERO_AVATAR_INITIALS } from "@/lib/landing-communit
 import { LandingCommunitySection } from "@/components/landing/landing-community-section"
 import { LandingEventsSection } from "@/components/landing/landing-events-section"
 import { LandingImpactStories } from "@/components/landing/landing-impact-stories"
+import { LandingProgramsSection } from "@/components/landing/landing-programs-section"
 import { getLandingFooterPlatformLinks, LANDING_HEADER_LINKS } from "@/lib/public-nav-links"
 import { HUB_PUBLIC_EMAIL, HUB_PUBLIC_PHONE, HUB_PUBLIC_PHONE_HREF } from "@/lib/hub-contact"
 import {
@@ -520,6 +521,8 @@ export default function HomePage() {
           for events, impact stories, and membership details.
         </p>
       </section>
+
+      <LandingProgramsSection />
 
       <LandingEventsSection />
 
