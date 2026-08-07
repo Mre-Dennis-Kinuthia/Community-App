@@ -234,3 +234,108 @@ export const AAC_CONTACT_EMAIL = "ihn.programs@impacthub.net"
 export const AAC_TAGLINE = "Closing the loop, together."
 
 export const AAC_REPORTING_PERIOD = "September 2025 – August 2026"
+
+export const AAC_SECTIONS = [
+  { id: "impact", label: "Impact" },
+  { id: "pathway", label: "Pathway" },
+  { id: "pilots", label: "Pilots" },
+  { id: "data", label: "Data" },
+  { id: "journey", label: "Journey" },
+  { id: "stories", label: "Stories" },
+  { id: "videos", label: "Videos" },
+] as const
+
+export const AAC_STORY_ARC = [
+  {
+    step: "Learn",
+    title: "Live-in Lab",
+    description:
+      "Extension officers encounter practical, farm-tested regenerative methods at Sylvia's Basket Farm — then carry that knowledge into communities.",
+    image: AAC_IMAGES.agroforestryLesson,
+    accent: "#7ebb55",
+  },
+  {
+    step: "Apply",
+    title: "Farmer training",
+    description:
+      "150 farmers across Kikuyu, Kabete and Limuru adapt regenerative practices — mulching, composting, farm-waste reuse and more.",
+    image: AAC_IMAGES.fieldTraining,
+    accent: "#41bed0",
+  },
+  {
+    step: "Connect",
+    title: "Ecosystem exchange",
+    description:
+      "Working Group members, producers and partners compare evidence, build confidence and co-design the next phase together.",
+    image: AAC_IMAGES.communityTraining,
+    accent: "#822929",
+  },
+  {
+    step: "Scale",
+    title: "Market activation",
+    description:
+      "Regenerative products meet consumers at HereAfrica — testing trust, traceability and demand in a collective, consumer-facing environment.",
+    image: AAC_IMAGES.discoveryBooth,
+    accent: "#ffd546",
+  },
+] as const
+
+export const AAC_PRACTICE_ADOPTION = [
+  { label: "Mulching", value: 88.9 },
+  { label: "Composting", value: 84.7 },
+  { label: "Farm waste reuse", value: 81.2 },
+  { label: "Manure management", value: 78.5 },
+  { label: "Seed saving", value: 75.0 },
+  { label: "Crop rotation", value: 74.3 },
+  { label: "Natural pest control", value: 73.6 },
+  { label: "Water conservation", value: 72.2 },
+] as const
+
+export const AAC_UNDERSTANDING_BY_TOPIC = [
+  { label: "Farm-waste reduction & reuse", value: 96.5 },
+  { label: "Soil fertility (local resources)", value: 95.7 },
+  { label: "Compost & manure management", value: 92.3 },
+  { label: "Crop rotation & agroforestry", value: 90.8 },
+  { label: "Natural pest management", value: 83.8 },
+  { label: "Post-harvest handling", value: 77.7 },
+  { label: "Market access", value: 60.6 },
+] as const
+
+export const AAC_BASELINE_CHALLENGES = [
+  { label: "Climate & weather changes", value: 86.2 },
+  { label: "High input costs", value: 84.8 },
+  { label: "Pests & diseases", value: 81.4 },
+  { label: "Water shortage", value: 71.0 },
+  { label: "Low income from sales", value: 64.8 },
+] as const
+
+export const AAC_STAKEHOLDER_QUOTES = [
+  {
+    quote:
+      "It's a simple shift with a big impact — beginning with minimal soil disturbance and building from there.",
+    name: "Eunice Wainana",
+    role: "Extension Officer, Kabete Sub-County",
+    theme: "Knowledge that travels",
+  },
+  {
+    quote:
+      "The hardest part isn't the soil — it's the capital. Regenerative systems need financial instruments that recognise the time required for soil, tree and market systems to mature.",
+    name: "Sven Verwiel",
+    role: "Founder, Forest Foods",
+    theme: "Financing regeneration",
+  },
+  {
+    quote:
+      "Good food has a story. Hear it here — the solutions already exist. The task ahead is building the partnerships that allow them to flourish.",
+    name: "Dr. Keni Kariuki",
+    role: "Director, Impact Hub Nairobi",
+    theme: "Closing the loop",
+  },
+] as const
+
+export const AAC_SUPPORT_NEEDS = [
+  { label: "Access to finance", value: 61.1 },
+  { label: "Extension support", value: 56.9 },
+  { label: "Follow-up visits", value: 54.9 },
+  { label: "More training", value: 54.9 },
+] as const

@@ -14,6 +14,7 @@ import { MarketingPublicLayout } from "@/components/marketing/marketing-public-l
 import {
   LANDING_PROGRAMS,
   LANDING_THEMATIC_AREAS,
+  getLandingProgramBySlug,
   type LandingProgram,
 } from "@/lib/landing-programs"
 import { cn } from "@/lib/utils"
@@ -158,7 +159,8 @@ function ProgramCard({ program, featured = false }: { program: LandingProgram; f
 }
 
 export default function ProgramsPageClient() {
-  const featured = LANDING_PROGRAMS.filter((p) => p.featured)
+  const aac = getLandingProgramBySlug("aac")
+  const featured = LANDING_PROGRAMS.filter((p) => p.featured && p.slug !== "aac")
   const other = LANDING_PROGRAMS.filter((p) => !p.featured)
 
   return (
@@ -179,6 +181,43 @@ export default function ProgramsPageClient() {
             </p>
           </div>
         </section>
+
+        {aac ? (
+          <section className="mx-auto max-w-5xl px-4 pt-10 sm:px-6 md:pt-14">
+            <Link
+              href="/programs/aac"
+              className="group relative block overflow-hidden rounded-lg border border-[#edeff2] bg-[#0a1f38] shadow-md"
+            >
+              <div className="absolute inset-0">
+                <Image
+                  src={aac.image}
+                  alt=""
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 80vw"
+                  className="object-cover opacity-40 transition-transform duration-700 group-hover:scale-[1.02]"
+                  unoptimized
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#0a1f38]/95 via-[#1c395c]/85 to-[#1c395c]/60" />
+              </div>
+              <div className="relative flex flex-col gap-4 p-6 md:flex-row md:items-end md:justify-between md:p-10">
+                <div className="max-w-xl text-white">
+                  <span className="rounded-full border border-[#7ebb55]/40 bg-[#7ebb55]/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#7ebb55]">
+                    Featured · Year One complete
+                  </span>
+                  <h2 className="mt-4 text-2xl font-semibold md:text-3xl">{aac.name}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-white/85">{aac.tagline}</p>
+                  <p className="mt-3 text-xs text-white/60">
+                    150 farmers trained · 38 Working Group members · 2 pilots implemented
+                  </p>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#7ebb55] px-5 py-2.5 text-sm font-semibold text-white transition-colors group-hover:bg-[#6aaa48]">
+                  Explore Year One report
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </span>
+              </div>
+            </Link>
+          </section>
+        ) : null}
 
         <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 md:py-14">
           <div className="mb-8 flex items-center gap-2">
