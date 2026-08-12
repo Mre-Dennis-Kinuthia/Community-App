@@ -33,16 +33,23 @@ if (direct.includes("-pooler")) {
 }
 
 const host = direct.match(/@([^/]+)/)?.[1] ?? "unknown"
-console.log(`[optional-migrate] Running prisma migrate deploy via ${host}`)
 
-execSync("npx prisma migrate deploy", {
-  cwd: root,
-  stdio: "inherit",
-  env: {
-    ...process.env,
-    DATABASE_URL: direct,
-  },
-})
+try {
+  console.log(`[optional-migrate] Running prisma migrate deploy via ${host}`)
+  execSync("npx prisma migrate deploy", {
+    cwd: root,
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      DATABASE_URL: direct,
+    },
+  })
+} catch (err) {
+  console.warn(
+    "[optional-migrate] migrate deploy failed (build continues):",
+    err instanceof Error ? err.message : err
+  )
+}
 
 const applyScripts = [
   "db:apply-newsletter-campaigns",
@@ -50,10 +57,17 @@ const applyScripts = [
 ]
 
 for (const script of applyScripts) {
-  console.log(`[optional-migrate] Running ${script}`)
-  execSync(`npm run ${script}`, {
-    cwd: root,
-    stdio: "inherit",
-    env: process.env,
-  })
+  try {
+    console.log(`[optional-migrate] Running ${script}`)
+    execSync(`npm run ${script}`, {
+      cwd: root,
+      stdio: "inherit",
+      env: process.env,
+    })
+  } catch (err) {
+    console.warn(
+      `[optional-migrate] ${script} failed (build continues):`,
+      err instanceof Error ? err.message : err
+    )
+  }
 }

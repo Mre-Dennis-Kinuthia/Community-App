@@ -18,3 +18,10 @@ export {
   newsletterPlainText,
   type NewsletterBrand,
 } from "./render-email"
+export {
+  coverFromSections,
+  enrichNewsletterSections,
+  getPublishedCampaignBySlug,
+  listPublishedCampaigns,
+  parseCampaignSections,
+} from "./db"

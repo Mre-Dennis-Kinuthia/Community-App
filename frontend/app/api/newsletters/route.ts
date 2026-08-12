@@ -1,18 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { parseNewsletterSections } from "@/lib/newsletter"
-import type { NewsletterSection } from "@/lib/newsletter"
+import {
+  coverFromSections,
+  listPublishedCampaigns,
+  parseCampaignSections,
+} from "@/lib/newsletter/db"
 
 export const runtime = "nodejs"
-
-function coverFromSections(sections: NewsletterSection[]): string | null {
-  for (const s of sections) {
-    if (s.type === "hero" && s.imageUrl) return s.imageUrl
-    if (s.type === "image" && s.imageUrl) return s.imageUrl
-    if (s.type === "news_card" && s.imageUrl) return s.imageUrl
-  }
-  return null
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,34 +14,10 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get("limit") || "12", 10), 50)
     const skip = (page - 1) * limit
 
-    const where = {
-      deletedAt: null,
-      publishedToWeb: true,
-      status: "sent",
-    }
-
-    const [rows, total] = await Promise.all([
-      prisma.newsletterCampaign.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { sentAt: "desc" },
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          preheader: true,
-          subject: true,
-          sentAt: true,
-          brandPrimary: true,
-          sections: true,
-        },
-      }),
-      prisma.newsletterCampaign.count({ where }),
-    ])
+    const { rows, total } = await listPublishedCampaigns({ skip, limit })
 
     const campaigns = rows.map((c) => {
-      const sections = parseNewsletterSections(c.sections)
+      const sections = parseCampaignSections(c.sections)
       return {
         id: c.id,
         title: c.title,
