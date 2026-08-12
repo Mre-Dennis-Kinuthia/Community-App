@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { parseNewsletterSections } from "@/lib/newsletter"
 import type { NewsletterSection } from "@/lib/newsletter"
 
+export const runtime = "nodejs"
+
 function coverFromSections(sections: NewsletterSection[]): string | null {
   for (const s of sections) {
     if (s.type === "hero" && s.imageUrl) return s.imageUrl
@@ -70,8 +72,12 @@ export async function GET(request: NextRequest) {
     })
   } catch (err) {
     console.error("[NEWSLETTERS API]", err)
+    const detail = err instanceof Error ? err.message : String(err)
     return NextResponse.json(
-      { error: "Failed to list newsletters" },
+      {
+        error: "Failed to list newsletters",
+        ...(process.env.NODE_ENV !== "production" ? { detail } : {}),
+      },
       { status: 500 }
     )
   }

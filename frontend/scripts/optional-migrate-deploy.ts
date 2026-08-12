@@ -43,3 +43,17 @@ execSync("npx prisma migrate deploy", {
     DATABASE_URL: direct,
   },
 })
+
+const applyScripts = [
+  "db:apply-newsletter-campaigns",
+  "db:apply-newsletter-v2",
+]
+
+for (const script of applyScripts) {
+  console.log(`[optional-migrate] Running ${script}`)
+  execSync(`npm run ${script}`, {
+    cwd: root,
+    stdio: "inherit",
+    env: process.env,
+  })
+}

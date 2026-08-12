@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { parseNewsletterSections } from "@/lib/newsletter"
 import type { NewsletterSection } from "@/lib/newsletter"
 
+export const runtime = "nodejs"
+
 async function enrichSections(
   sections: NewsletterSection[]
 ): Promise<NewsletterSection[]> {
@@ -84,6 +86,13 @@ export async function GET(
     })
   } catch (err) {
     console.error("[NEWSLETTER DETAIL API]", err)
-    return NextResponse.json({ error: "Failed to load newsletter" }, { status: 500 })
+    const detail = err instanceof Error ? err.message : String(err)
+    return NextResponse.json(
+      {
+        error: "Failed to load newsletter",
+        ...(process.env.NODE_ENV !== "production" ? { detail } : {}),
+      },
+      { status: 500 }
+    )
   }
 }

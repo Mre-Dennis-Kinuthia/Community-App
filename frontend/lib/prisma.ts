@@ -52,17 +52,31 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-// Create or get cached Prisma client
-export const prisma = (() => {
+// Create or get cached Prisma client (lazy — avoids build-time proxy leaking into runtime)
+function getPrismaClient(): PrismaClient {
   if (globalForPrisma.prisma) {
-    return globalForPrisma.prisma;
+    return globalForPrisma.prisma
   }
 
-  const client = createPrismaClient();
-  
-  if (process.env.NODE_ENV !== "production" && !isBuildTime) {
-    globalForPrisma.prisma = client;
+  const client = createPrismaClient()
+
+  if (process.env.DATABASE_URL) {
+    globalForPrisma.prisma = client
   }
-  
-  return client;
-})();
+
+  return client
+}
+
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    if (prop === "then" || typeof prop === "symbol") {
+      return undefined
+    }
+    const client = getPrismaClient()
+    const value = client[prop as keyof PrismaClient]
+    if (typeof value === "function") {
+      return (value as (...args: unknown[]) => unknown).bind(client)
+    }
+    return value
+  },
+})
