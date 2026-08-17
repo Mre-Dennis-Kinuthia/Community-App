@@ -16,7 +16,7 @@ const iconsDir = path.join(publicDir, "icons")
 const appDir = path.join(root, "app")
 
 const DEFAULT_SOURCE =
-  "/home/nansi/.cursor/projects/home-nansi-Work/assets/c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_RED-Nairobi-Up_and_Running_-_DG__1_-fe6a0165-505d-4a04-b572-8c97bb562b6f.png"
+  "/home/nansi/.cursor/projects/home-nansi-Work/assets/c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_RED-Nairobi-Up_and_Running_-_PR-f0363563-26b2-4f05-ae47-f05e4aee11dc.png"
 
 const TARGET_WIDTH = 1000
 const APP_ICON_SVG = path.join(brandDir, "impact-hub-app-icon.svg")

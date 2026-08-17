@@ -14,18 +14,12 @@ import { fileURLToPath } from "node:url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.join(__dirname, "..")
-const adminRoot = path.join(root, "..", "Community-app-admin")
+const adminRootCandidates = [
+  path.join(root, "..", "..", "Community-app-admin"),
+  path.join(root, "..", "Community-app-admin"),
+]
 
 const SOURCE = path.join(root, "public", "brand", "impact-hub-nairobi-logo.png")
-
-const OUTPUTS = [
-  { path: path.join(root, "lib", "email", "brand-logo-data.ts"), required: true },
-  {
-    path: path.join(adminRoot, "lib", "email", "brand-logo-data.ts"),
-    required: false,
-    requireDir: adminRoot,
-  },
-]
 
 async function pathExists(target) {
   try {
@@ -34,6 +28,13 @@ async function pathExists(target) {
   } catch {
     return false
   }
+}
+
+async function resolveAdminRoot() {
+  for (const candidate of adminRootCandidates) {
+    if (await pathExists(candidate)) return candidate
+  }
+  return null
 }
 
 async function generateForOutput(output, base64) {
@@ -56,7 +57,19 @@ export const EMAIL_LOGO_PNG_BASE64 = "${base64}"
 async function main() {
   const buffer = await readFile(SOURCE)
   const base64 = buffer.toString("base64")
-  for (const output of OUTPUTS) {
+  const adminRoot = await resolveAdminRoot()
+  const outputs = [
+    { path: path.join(root, "lib", "email", "brand-logo-data.ts"), required: true },
+    adminRoot
+      ? {
+          path: path.join(adminRoot, "lib", "email", "brand-logo-data.ts"),
+          required: false,
+          requireDir: adminRoot,
+        }
+      : null,
+  ].filter(Boolean)
+
+  for (const output of outputs) {
     await generateForOutput(output, base64)
   }
   console.log(`[email-logo] Embedded ${buffer.length} bytes (${base64.length} base64 chars)`)
