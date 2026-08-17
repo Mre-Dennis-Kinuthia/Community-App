@@ -1,4 +1,4 @@
-import { getAppBaseUrl } from "@/lib/app-url"
+import { getAppBaseUrl, PRODUCTION_APP_ORIGIN } from "@/lib/app-url"
 import {
   BRAND_LOGO_ASPECT_RATIO,
   BRAND_LOGO_HEIGHT,
@@ -25,8 +25,7 @@ export {
   BRAND_APP_ICON_SVG_PATH,
 }
 
-/** Known production origin — used so emails never point at localhost. */
-export const PRODUCTION_APP_ORIGIN = "https://impacthubnairobi-app.vercel.app"
+export { PRODUCTION_APP_ORIGIN }
 
 function isUsablePublicOrigin(url: string): boolean {
   try {

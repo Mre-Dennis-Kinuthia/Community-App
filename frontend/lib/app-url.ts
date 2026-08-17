@@ -1,3 +1,6 @@
+/** Known production origin — Paystack callbacks and emails must use this, not *.vercel.app. */
+export const PRODUCTION_APP_ORIGIN = "https://impacthubnairobi.com"
+
 function normalizePublicOrigin(value: string): string {
   const withProtocol = value.startsWith("http") ? value : `https://${value}`
   return withProtocol.replace(/\/$/, "")
@@ -7,6 +10,7 @@ export function getAppBaseUrl(): string {
   const configured =
     process.env.NEXT_PUBLIC_APP_URL?.trim() ||
     process.env.AUTH_URL?.trim() ||
+    (process.env.VERCEL_ENV === "production" ? PRODUCTION_APP_ORIGIN : "") ||
     process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
     process.env.VERCEL_URL?.trim()
 

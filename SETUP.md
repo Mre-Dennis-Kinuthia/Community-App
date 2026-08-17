@@ -17,7 +17,7 @@ Set these in Vercel and custom DNS when ready.
 
 | App | Vercel project (default) | Production URL | Local |
 |-----|--------------------------|----------------|-------|
-| **Member web** | `impacthubnairobi-app` | `https://impacthubnairobi-app.vercel.app` | `http://localhost:3000` |
+| **Member web** | `impacthubnairobi-app` | `https://impacthubnairobi.com` | `http://localhost:3000` |
 | **Staff admin** | `impacthubnairobi-app-admin` | `https://impacthubnairobi-app-admin.vercel.app` | `http://localhost:3001` |
 
 **Custom domains (when configured):** point each Vercel project to your domain and update all env vars below to use `https://` custom URLs instead of `*.vercel.app`.
@@ -109,7 +109,7 @@ Admin needs the **exact** member app URL for each preview environment:
 
 | Vercel project | Variable | Production value | Preview value |
 |----------------|----------|------------------|---------------|
-| **Admin** | `NEXT_PUBLIC_COMMUNITY_APP_URL` | `https://impacthubnairobi-app.vercel.app` | URL of the **web** preview for the same PR/branch |
+| **Admin** | `NEXT_PUBLIC_COMMUNITY_APP_URL` | `https://impacthubnairobi.com` | URL of the **web** preview for the same PR/branch |
 | **Web** (optional) | `ADMIN_APP_URL` / `NEXT_PUBLIC_ADMIN_APP_URL` | `https://impacthubnairobi-app-admin.vercel.app` | Admin preview URL if you link back to staff tools |
 
 **Per-PR workflow**
@@ -133,12 +133,13 @@ Configure **Production**, **Preview**, and **Development** scopes per variable i
 |----------|----------|------------|-------------------|
 | `DATABASE_URL` | Yes | Neon **production** branch | Neon **staging** branch (recommended) |
 | `AUTH_SECRET` | Yes | 32+ chars | May differ from prod |
-| `NEXT_PUBLIC_APP_URL` | Yes (prod) | `https://impacthubnairobi-app.vercel.app` | Web preview URL |
+| `NEXT_PUBLIC_APP_URL` | Yes (prod) | `https://impacthubnairobi.com` | Web preview URL |
 | `GOOGLE_CLIENT_ID` | No | Production OAuth client | Same client + preview redirect URI (below) |
 | `GOOGLE_CLIENT_SECRET` | No | | |
 | `RESEND_API_KEY` | For password reset | Production key | Staging key or same |
 | `EMAIL_FROM` | For password reset | `noreply@yourdomain.org` | |
 | `ADMIN_APP_URL` | No | `https://impacthubnairobi-app-admin.vercel.app` | Admin preview URL |
+| `PAYSTACK_SECRET_KEY` | Yes (payments) | `sk_live_...` | `sk_test_...` |
 
 ### Staff admin (`impacthubnairobi-app-admin`)
 
@@ -146,7 +147,7 @@ Configure **Production**, **Preview**, and **Development** scopes per variable i
 |----------|----------|------------|-------------------|
 | `DATABASE_URL` | Yes | Same Neon branch as web (per environment) | Staging branch with web |
 | `ADMIN_SESSION_SECRET` | Yes | 32+ chars | Staging-specific secret |
-| `NEXT_PUBLIC_COMMUNITY_APP_URL` | Yes | `https://impacthubnairobi-app.vercel.app` | **Exact web preview URL** |
+| `NEXT_PUBLIC_COMMUNITY_APP_URL` | Yes | `https://impacthubnairobi.com` | **Exact web preview URL** |
 | `CRON_SECRET` | Yes in prod | Strong secret | Set for preview cron tests |
 
 Generate secrets:

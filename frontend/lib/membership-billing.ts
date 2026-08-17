@@ -1,18 +1,12 @@
 import { randomBytes } from "crypto"
 import type { Plan, PrismaClient } from "@prisma/client"
 import { Prisma } from "@prisma/client"
+import { getAppBaseUrl } from "@/lib/app-url"
+
+export { getAppBaseUrl }
 
 export function generateMembershipPayToken(): string {
   return randomBytes(24).toString("base64url")
-}
-
-export function getAppBaseUrl(): string {
-  const url =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.VERCEL_URL?.trim() ||
-    "http://localhost:3000"
-  const withProtocol = url.startsWith("http") ? url : `https://${url}`
-  return withProtocol.replace(/\/$/, "")
 }
 
 export function buildMembershipPayUrl(token: string): string {

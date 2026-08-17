@@ -1,5 +1,5 @@
 import { createHmac, randomBytes } from "crypto"
-import { getAppBaseUrl } from "@/lib/membership-billing"
+import { getAppBaseUrl } from "@/lib/app-url"
 
 const PAYSTACK_BASE = "https://api.paystack.co"
 
