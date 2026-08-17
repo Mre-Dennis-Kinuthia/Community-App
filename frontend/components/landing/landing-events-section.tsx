@@ -82,7 +82,7 @@ export function LandingEventsSection() {
         <SectionHeader
           label="Events & programs"
           title="What's happening at Impact Hub Nairobi"
-          description="Workshops, mixers, and programs open to the public — register to join the community in person or online."
+          description="Workshops, mixers, and programs open to the public. Register and join in person or online."
           className="mb-10 md:mb-12"
         />
 

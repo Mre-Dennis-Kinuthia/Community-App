@@ -8,11 +8,9 @@ import { Breadcrumbs } from "@/components/breadcrumbs"
 import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/lib/toast"
-import { Phone, Loader2, ArrowLeft, Calendar, Clock, Building2 } from "lucide-react"
+import { Loader2, ArrowLeft, Calendar, Clock, Building2 } from "lucide-react"
 import { format } from "date-fns"
 
 const PENDING_BOOKING_KEY = "pendingWorkspaceBooking"
@@ -63,7 +61,6 @@ function getDurationLabel(duration: string, meetingRoomHours?: number) {
 export default function BookingPaymentPage() {
   const router = useRouter()
   const [pending, setPending] = useState<PendingBookingPayload | null>(null)
-  const [mpesaPhone, setMpesaPhone] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
 
@@ -118,10 +115,10 @@ export default function BookingPaymentPage() {
       throw new Error(details ? `${msg}: ${details}` : msg)
     }
 
-    return bookingData.booking as { id: string }
+    return bookingData.booking as { id: string; totalPrice: number; paymentStatus: string }
   }
 
-  const handleConfirmWithoutPayment = async () => {
+  const handleConfirmFree = async () => {
     if (!pending) return
     setIsProcessing(true)
     try {
@@ -136,35 +133,25 @@ export default function BookingPaymentPage() {
     }
   }
 
-  const handlePayAndConfirm = async () => {
+  const handlePayWithPaystack = async () => {
     if (!pending) return
-    const phone = mpesaPhone.trim().replace(/\D/g, "")
-    if (phone.length < 10) {
-      toast.error("Invalid phone", "Enter a valid M-Pesa number.")
-      return
-    }
-
     setIsProcessing(true)
     try {
-      const mpesaRes = await fetch("/api/billing/mpesa", {
+      const booking = await createBooking()
+      const payRes = await fetch("/api/billing/paystack/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phoneNumber: phone.startsWith("254") ? phone : `254${phone.replace(/^0/, "")}`,
-          amount: Math.round(pending.totalPrice),
-          description: `Workspace booking - ${getResourceName(pending.resourceType)}`,
-        }),
+        body: JSON.stringify({ type: "booking", bookingId: booking.id }),
       })
-      const mpesaData = await mpesaRes.json()
-      if (!mpesaRes.ok) throw new Error(mpesaData.error || "Payment failed")
+      const payData = await payRes.json()
+      if (!payRes.ok) throw new Error(payData.error || "Could not start payment")
+      if (!payData.authorizationUrl) throw new Error("Missing Paystack checkout URL")
 
-      const booking = await createBooking()
       sessionStorage.removeItem(PENDING_BOOKING_KEY)
       setIsRedirecting(true)
-      toast.success("Booking confirmed", mpesaData.message || "Check your phone for M-Pesa.")
-      router.replace(`/booking/success?id=${booking.id}`)
+      window.location.href = payData.authorizationUrl as string
     } catch (err) {
-      toast.error("Failed", err instanceof Error ? err.message : "Please try again.")
+      toast.error("Payment failed", err instanceof Error ? err.message : "Please try again.")
       setIsProcessing(false)
     }
   }
@@ -181,6 +168,7 @@ export default function BookingPaymentPage() {
 
   const bookingDate = pending ? new Date(pending.date) : null
   const busy = isProcessing || isRedirecting
+  const isFree = (pending?.totalPrice ?? 0) <= 0
 
   return (
     <DashboardLayout>
@@ -223,14 +211,11 @@ export default function BookingPaymentPage() {
                   </span>
                 </div>
                 <Separator />
-                {typeof pending.listPrice === "number" &&
-                pending.listPrice > pending.totalPrice ? (
+                {typeof pending.listPrice === "number" && pending.listPrice > pending.totalPrice ? (
                   <>
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>Subtotal</span>
-                      <span className="tabular-nums">
-                        KES {pending.listPrice.toLocaleString()}
-                      </span>
+                      <span className="tabular-nums">KES {pending.listPrice.toLocaleString()}</span>
                     </div>
                     {(pending.membershipDiscount ?? 0) > 0 ? (
                       <div className="flex justify-between text-sm text-primary">
@@ -245,9 +230,7 @@ export default function BookingPaymentPage() {
                 <div className="flex justify-between font-semibold">
                   <span>Total</span>
                   <span className="tabular-nums">
-                    {pending.totalPrice <= 0
-                      ? "Free"
-                      : `KES ${pending.totalPrice.toLocaleString()}`}
+                    {isFree ? "Free" : `KES ${pending.totalPrice.toLocaleString()}`}
                   </span>
                 </div>
               </CardContent>
@@ -258,36 +241,37 @@ export default function BookingPaymentPage() {
                 <CardTitle className="text-base">Payment</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button className="w-full" size="lg" onClick={handleConfirmWithoutPayment} disabled={busy}>
-                  {busy ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Confirming…
-                    </>
-                  ) : (
-                    "Confirm booking"
-                  )}
-                </Button>
-                <p className="text-center text-xs text-muted-foreground">
-                  No payment required now — pay on-site or via M-Pesa later.
-                </p>
-                <Separator />
-                <div className="space-y-2">
-                  <Label htmlFor="mpesa-phone" className="text-xs text-muted-foreground">
-                    Optional: M-Pesa
-                  </Label>
-                  <Input
-                    id="mpesa-phone"
-                    placeholder="07XX XXX XXX"
-                    value={mpesaPhone}
-                    onChange={(e) => setMpesaPhone(e.target.value)}
-                    disabled={busy}
-                  />
-                  <Button variant="outline" className="w-full" onClick={handlePayAndConfirm} disabled={busy}>
-                    <Phone className="mr-2 h-4 w-4" />
-                    Pay with M-Pesa
-                  </Button>
-                </div>
+                {isFree ? (
+                  <>
+                    <Button className="w-full" size="lg" onClick={() => void handleConfirmFree()} disabled={busy}>
+                      {busy ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Confirming…
+                        </>
+                      ) : (
+                        "Confirm booking"
+                      )}
+                    </Button>
+                    <p className="text-center text-xs text-muted-foreground">No payment required.</p>
+                  </>
+                ) : (
+                  <>
+                    <Button className="w-full" size="lg" onClick={() => void handlePayWithPaystack()} disabled={busy}>
+                      {busy ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Redirecting…
+                        </>
+                      ) : (
+                        "Pay with Paystack"
+                      )}
+                    </Button>
+                    <p className="text-center text-xs text-muted-foreground">
+                      Card or M-Pesa via Paystack. Your booking is confirmed after payment.
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
 
@@ -305,10 +289,15 @@ export default function BookingPaymentPage() {
         <div className="fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-border bg-background lg:hidden">
           <div className="mx-auto flex h-[4.25rem] max-w-lg items-center justify-between gap-3 px-4">
             <p className="text-base font-semibold tabular-nums">
-              KES {pending.totalPrice.toLocaleString()}
+              {isFree ? "Free" : `KES ${pending.totalPrice.toLocaleString()}`}
             </p>
-            <Button size="lg" className="h-11 min-w-[7.5rem]" onClick={handleConfirmWithoutPayment} disabled={busy}>
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm"}
+            <Button
+              size="lg"
+              className="h-11 min-w-[7.5rem]"
+              onClick={() => void (isFree ? handleConfirmFree() : handlePayWithPaystack())}
+              disabled={busy}
+            >
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : isFree ? "Confirm" : "Pay"}
             </Button>
           </div>
         </div>

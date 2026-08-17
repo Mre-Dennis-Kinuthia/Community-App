@@ -10,6 +10,24 @@ export const LANDING_IMAGES = {
   },
 } as const
 
+/**
+ * Hub interior/exterior photos for landing sections.
+ * Avoid pairing with LANDING_IMAGES that share the same source
+ * (hero≈exterior-day, coworking≈coworking-shared, auth≈coworking-branded).
+ */
+export const HUB_IMAGES = {
+  exteriorDayAlt: "/hub/exterior-day-alt.jpg",
+  exteriorDusk: "/hub/exterior-dusk.jpg",
+  exteriorDuskAlt: "/hub/exterior-dusk-alt.jpg",
+  exteriorPath: "/hub/exterior-path.jpg",
+  coworkingPlants: "/hub/coworking-plants.jpg",
+  privateOffice: "/hub/private-office.jpg",
+  privateOfficeAlt: "/hub/private-office-alt.jpg",
+  privateOfficeLamps: "/hub/private-office-lamps.jpg",
+  privateOfficeWindow: "/hub/private-office-window.jpg",
+  deskDetail: "/hub/desk-detail.jpg",
+} as const
+
 export const IHN_BRAND = {
   primary: "#822929",
   navy: "#1c395c",

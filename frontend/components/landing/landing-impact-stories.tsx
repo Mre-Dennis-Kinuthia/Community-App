@@ -6,21 +6,21 @@ const STORIES = [
   {
     title: "Ventures scaling impact across Kenya",
     description:
-      "Meet founders building in climate, agri-tech, and circularity — supported through programs and community at Impact Hub Nairobi.",
+      "Meet founders building in climate, agri-tech, and circularity, with support from programs and community at Impact Hub Nairobi.",
     href: "https://nairobi.impacthub.net/impact-stories/",
     external: true,
   },
   {
     title: "Programs & ecosystem partnerships",
     description:
-      "How institutions, funders, and innovators collaborate to drive inclusive innovation at scale in Nairobi.",
+      "How institutions, funders, and innovators work together to grow inclusive innovation in Nairobi.",
     href: "https://nairobi.impacthub.net/",
     external: true,
   },
   {
     title: "News from our community",
     description:
-      "Updates on events, opportunities, and member milestones — published on the Impact Hub Nairobi platform.",
+      "Updates on events, opportunities, and member milestones on the Impact Hub Nairobi platform.",
     href: "/news",
     external: false,
   },
@@ -34,8 +34,8 @@ export function LandingImpactStories() {
           <p className="section-label mb-3">Impact stories</p>
           <h2 className="section-title text-balance">Stories from Nairobi</h2>
           <p className="section-lead mx-auto mt-4 max-w-2xl text-pretty">
-            Real ventures, programs, and partnerships shaping inclusive innovation — from our
-            workspace to the wider ecosystem.
+            Real ventures, programs, and partnerships, from our workspace out into the wider
+            ecosystem.
           </p>
         </div>
 

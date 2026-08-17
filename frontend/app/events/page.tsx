@@ -271,6 +271,13 @@ export default function EventsPage() {
       const data = await response.json()
       setRegDialogOpen(false)
       setPendingRegistration(null)
+
+      if (data.authorizationUrl) {
+        toast.success(data.message || "Redirecting to Paystack…")
+        window.location.href = data.authorizationUrl as string
+        return
+      }
+
       await mutateEvents()
       if (data.registration?.status === "registered") {
         void autoImportFromRegistrationResponse(data)

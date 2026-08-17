@@ -231,6 +231,71 @@ export async function POST(
       },
     })
 
+    let authorizationUrl: string | undefined
+    let paymentId: string | undefined
+
+    const shouldCollectPayment =
+      isPaidEvent(event.price) &&
+      (event.price ?? 0) > 0 &&
+      status === "registered"
+
+    if (shouldCollectPayment) {
+      const { resolveUserForMembership } = await import("@/lib/membership-billing")
+      const { startPaystackCheckout } = await import("@/lib/paystack-checkout")
+      const { isPaystackConfigured } = await import("@/lib/paystack")
+
+      if (!isPaystackConfigured()) {
+        return NextResponse.json(
+          {
+            error: "Paystack is not configured. Set PAYSTACK_SECRET_KEY.",
+            registration: {
+              id: registration.id,
+              paymentStatus: registration.paymentStatus,
+            },
+          },
+          { status: 503, headers: corsHeaders(request) }
+        )
+      }
+
+      const payerUserId =
+        userId ??
+        (await resolveUserForMembership(prisma, {
+          email,
+          name: name || null,
+        }))
+
+      if (!registration.userId) {
+        await prisma.eventRegistration.update({
+          where: { id: registration.id },
+          data: { userId: payerUserId },
+        })
+      }
+
+      const checkout = await startPaystackCheckout(prisma, {
+        userId: payerUserId,
+        email,
+        amount: event.price!,
+        currency: event.currency || "KES",
+        metadata: {
+          type: "event_registration",
+          successPath: `/events/${event.id}?paid=1`,
+        },
+        eventRegistrationId: registration.id,
+        paymentMeta: {
+          eventId: event.id,
+          eventTitle: event.title,
+        },
+      })
+      authorizationUrl = checkout.authorizationUrl
+      paymentId = checkout.paymentId
+    } else if (isPaidEvent(event.price) && status !== "registered") {
+      await prisma.eventRegistration.update({
+        where: { id: registration.id },
+        data: { paymentStatus: "not_required" },
+      })
+      registration.paymentStatus = "not_required"
+    }
+
     const eventUrl = getEventPublicUrl({
       id: event.id,
       slug: event.slug,
@@ -329,8 +394,8 @@ export async function POST(
         ? "Application submitted — the organizer will review your registration"
         : status === "waitlisted"
           ? "You have been added to the waitlist"
-          : isPaidEvent(event.price)
-            ? "Registered — payment can be completed at the venue (online payments coming soon)"
+          : authorizationUrl
+            ? "Registered — complete payment on Paystack to confirm your ticket"
             : "Successfully registered for event"
 
     return NextResponse.json(
@@ -343,6 +408,8 @@ export async function POST(
           checkInCode: registration.checkInCode,
           paymentStatus: registration.paymentStatus,
         },
+        authorizationUrl,
+        paymentId,
         calendarLinks: status === "registered" ? calendarLinks : undefined,
         calendarInvite,
       },

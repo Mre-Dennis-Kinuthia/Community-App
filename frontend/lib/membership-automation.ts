@@ -11,7 +11,7 @@ import { queueMembershipTierRecognitionEmail } from "@/lib/membership-tier-notif
 import { sendMembershipPaymentLinkEmail } from "@/lib/email/membership-payment-link"
 import { sendMembershipRenewalReminderEmail } from "@/lib/email/membership-renewal"
 import { notifyMembershipActivated } from "@/lib/membership-notifications"
-import { isDarajaConfigured, initiateMpesaStkPush } from "@/lib/mpesa-stk"
+import { startPaystackCheckout } from "@/lib/paystack-checkout"
 import { isEmailConfigured } from "@/lib/email/send"
 
 const DEFAULT_PLANS = [
@@ -22,7 +22,7 @@ const DEFAULT_PLANS = [
     price: 15000,
     interval: "monthly",
     features: [
-      "Global Passport — 117 hubs across 68 countries",
+      "Global Passport: 117 hubs across 68 countries",
       "Business development services",
       "Thematic acceleration programs",
       "Grants & funding opportunities",
@@ -189,73 +189,40 @@ export async function createMembershipPaymentLink(
 
 export type InitiateMembershipPaymentParams = {
   userId: string
+  email: string
   plan: Plan
   amount: Prisma.Decimal
   currency: string
-  phoneNumber: string
   membershipPaymentLinkId?: string
+  successPath?: string
 }
 
-/** Creates pending payment; completes automatically when Daraja is not configured. */
+/** Creates a pending Paystack payment and returns the hosted checkout URL. */
 export async function initiateMembershipPayment(
   prisma: PrismaClient,
   params: InitiateMembershipPaymentParams
 ) {
-  const payment = await prisma.payment.create({
-    data: {
-      userId: params.userId,
-      amount: params.amount,
-      currency: params.currency,
-      method: "mpesa",
-      status: "pending",
-      metadata: {
-        type: "membership",
-        planId: params.plan.id,
-        planName: params.plan.name,
-        phoneNumber: params.phoneNumber,
-        membershipPaymentLinkId: params.membershipPaymentLinkId,
-      },
+  const checkout = await startPaystackCheckout(prisma, {
+    userId: params.userId,
+    email: params.email,
+    amount: Number(params.amount),
+    currency: params.currency,
+    metadata: {
+      type: "membership",
+      successPath: params.successPath ?? "/billing?paid=1",
+    },
+    paymentMeta: {
+      planId: params.plan.id,
+      planName: params.plan.name,
+      membershipPaymentLinkId: params.membershipPaymentLinkId,
     },
   })
 
-  if (isDarajaConfigured()) {
-    const stk = await initiateMpesaStkPush({
-      phoneNumber: params.phoneNumber,
-      amount: Number(params.amount),
-      accountReference: payment.id.slice(0, 12),
-      transactionDesc: `Membership ${params.plan.name}`.slice(0, 13),
-    })
-    if (!stk.ok) {
-      await prisma.payment.update({
-        where: { id: payment.id },
-        data: { status: "failed", metadata: { ...(payment.metadata as object), stkError: stk.error } },
-      })
-      throw new Error(stk.error || "M-Pesa request failed")
-    }
-    await prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        metadata: {
-          ...(payment.metadata as object),
-          checkoutRequestId: stk.checkoutRequestId,
-          merchantRequestId: stk.merchantRequestId,
-        },
-      },
-    })
-    return {
-      paymentId: payment.id,
-      pending: true,
-      message: "Check your phone to approve the M-Pesa payment.",
-    }
-  }
-
-  const result = await completeMembershipPaymentById(prisma, payment.id)
   return {
-    paymentId: payment.id,
-    pending: false,
-    message: "Membership activated.",
-    subscription: result.subscription,
-    plan: result.plan,
+    paymentId: checkout.paymentId,
+    pending: true as const,
+    authorizationUrl: checkout.authorizationUrl,
+    message: checkout.message,
   }
 }
 
@@ -285,7 +252,6 @@ export async function completeMembershipPaymentById(prisma: PrismaClient, paymen
     type?: string
     planId?: string
     membershipPaymentLinkId?: string
-    phoneNumber?: string
   } | null
 
   if (meta?.type !== "membership" || !meta.planId) {
@@ -300,9 +266,8 @@ export async function completeMembershipPaymentById(prisma: PrismaClient, paymen
       ? await fulfillMembershipPayment(prisma, {
           linkId: meta.membershipPaymentLinkId,
           userId: payment.userId,
-          method: "mpesa",
-          phoneNumber: meta.phoneNumber,
-          transactionId: payment.id,
+          method: "paystack",
+          transactionId: payment.transactionId ?? payment.id,
           existingPaymentId: payment.id,
         })
       : await activateMembershipPlan(prisma, {
@@ -310,9 +275,8 @@ export async function completeMembershipPaymentById(prisma: PrismaClient, paymen
           plan,
           amount: payment.amount,
           currency: payment.currency,
-          method: "mpesa",
-          phoneNumber: meta.phoneNumber,
-          transactionId: payment.id,
+          method: "paystack",
+          transactionId: payment.transactionId ?? payment.id,
           existingPaymentId: payment.id,
         })
 

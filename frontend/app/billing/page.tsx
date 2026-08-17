@@ -14,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -39,7 +38,6 @@ import {
   CreditCard,
   Download,
   ExternalLink,
-  Phone,
   Loader2,
   Receipt,
   HelpCircle,
@@ -151,10 +149,7 @@ export default function BillingPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [mpesaPhone, setMpesaPhone] = useState("")
-  const [mpesaAmount, setMpesaAmount] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
 
   const [changePlanOpen, setChangePlanOpen] = useState(false)
   const [scheduleCancelOpen, setScheduleCancelOpen] = useState(false)
@@ -164,7 +159,6 @@ export default function BillingPage() {
   const [plansLoading, setPlansLoading] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState("")
   const [subscriptionActionLoading, setSubscriptionActionLoading] = useState(false)
-  const [subscribePhone, setSubscribePhone] = useState("")
   const [subscribePlanId, setSubscribePlanId] = useState("")
   const [subscribeLoading, setSubscribeLoading] = useState(false)
   const [availablePlans, setAvailablePlans] = useState<BillingPlan[]>([])
@@ -208,8 +202,8 @@ export default function BillingPage() {
   }, [isLoading, subscription])
 
   async function handleSubscribe() {
-    if (!subscribePlanId || !subscribePhone.trim()) {
-      toast.error("Choose a plan and enter your M-Pesa number")
+    if (!subscribePlanId) {
+      toast.error("Choose a plan")
       return
     }
     setSubscribeLoading(true)
@@ -218,28 +212,13 @@ export default function BillingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ planId: subscribePlanId, phoneNumber: subscribePhone.trim() }),
+        body: JSON.stringify({ planId: subscribePlanId }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Subscribe failed")
 
-      if (data.pending && data.paymentId) {
-        toast.success(data.message || "Check your phone to approve M-Pesa")
-        const paymentId = data.paymentId as string
-        for (let i = 0; i < 40; i++) {
-          await new Promise((r) => setTimeout(r, 3000))
-          const statusRes = await fetch(`/api/billing/payments/${paymentId}/status`, {
-            credentials: "include",
-          })
-          const status = await statusRes.json()
-          if (status.completed) {
-            toast.success("Membership activated")
-            await loadBilling({ silent: true })
-            return
-          }
-          if (status.failed) throw new Error("M-Pesa payment was not completed")
-        }
-        toast.error("Payment still pending. Refresh billing after approving on your phone.")
+      if (data.authorizationUrl) {
+        window.location.href = data.authorizationUrl as string
         return
       }
 
@@ -301,53 +280,6 @@ export default function BillingPage() {
       toast.error("Update failed", "Network error — try again.")
     } finally {
       setSubscriptionActionLoading(false)
-    }
-  }
-
-  const handleMpesaPayment = async () => {
-    if (!mpesaPhone.trim()) {
-      toast.error("Phone required", "Enter the M-Pesa number that should receive the STK prompt.")
-      return
-    }
-    const amount = Number(mpesaAmount)
-    if (!mpesaAmount || Number.isNaN(amount) || amount <= 0) {
-      toast.error("Amount required", "Enter an amount in KES greater than zero.")
-      return
-    }
-
-    try {
-      setIsProcessingPayment(true)
-      const response = await fetch("/api/billing/mpesa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          phoneNumber: mpesaPhone,
-          amount,
-          description: "Membership payment",
-        }),
-      })
-
-      if (response.ok) {
-        const data = await response.json().catch(() => ({}))
-        const isStub = data.launchMode === "stub"
-        toast.success(
-          isStub ? "Payment recorded" : "Check your phone",
-          data.message ||
-            (isStub
-              ? "M-Pesa STK may still be rolling out — your request was saved."
-              : "Complete the prompt on your handset to finish.")
-        )
-        setMpesaPhone("")
-      } else {
-        const errorData = await response.json().catch(() => ({}))
-        toast.error("Payment not started", errorData.error || "Please try again.")
-      }
-    } catch (error) {
-      console.error("M-Pesa payment error:", error)
-      toast.error("Payment failed", "Network error — try again.")
-    } finally {
-      setIsProcessingPayment(false)
     }
   }
 
@@ -552,7 +484,7 @@ export default function BillingPage() {
             <div>
               <h2 className="text-base font-semibold md:text-lg">Start membership</h2>
               <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                Pay with M-Pesa to activate — separate from workspace bookings.
+                Pay with Paystack (card or M-Pesa). Separate from workspace bookings.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
@@ -571,24 +503,15 @@ export default function BillingPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="subscribe-phone">M-Pesa phone</Label>
-                <Input
-                  id="subscribe-phone"
-                  placeholder="07XX XXX XXX"
-                  value={subscribePhone}
-                  onChange={(e) => setSubscribePhone(e.target.value)}
-                />
-              </div>
             </div>
             <Button disabled={subscribeLoading} onClick={() => void handleSubscribe()}>
               {subscribeLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing…
+                  Redirecting…
                 </>
               ) : (
-                "Subscribe now"
+                "Pay with Paystack"
               )}
             </Button>
           </section>
@@ -764,8 +687,8 @@ export default function BillingPage() {
 
         <section className="space-y-3">
           <h2 className="text-sm font-semibold md:text-base">Payments</h2>
-          <div className="grid gap-3 lg:grid-cols-5 lg:gap-4">
-            <Card className="border-border lg:col-span-2">
+          <div className="grid gap-3 md:max-w-md">
+            <Card className="border-border">
               <CardHeader className="space-y-0.5 p-4 pb-2 md:p-6 md:pb-3">
                 <CardTitle className="text-sm md:text-base">Saved card</CardTitle>
               </CardHeader>
@@ -793,62 +716,6 @@ export default function BillingPage() {
                 )}
                 <Button variant="outline" size="sm" className="w-full" asChild>
                   <a href={MEMBERSHIP_EMAIL}>Update payment details</a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border lg:col-span-3">
-              <CardHeader className="space-y-0.5 p-4 pb-2 md:p-6 md:pb-3">
-                <CardTitle className="text-sm md:text-base">M-Pesa (optional)</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  STK push for amounts agreed with membership.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3 p-4 pt-0 md:p-6 md:pt-0">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="mpesa-phone" className="text-xs">
-                      Phone
-                    </Label>
-                    <Input
-                      id="mpesa-phone"
-                      placeholder="07XX XXX XXX"
-                      value={mpesaPhone}
-                      onChange={(e) => setMpesaPhone(e.target.value)}
-                      autoComplete="tel"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="mpesa-amount" className="text-xs">
-                      Amount (KES)
-                    </Label>
-                    <Input
-                      id="mpesa-amount"
-                      type="number"
-                      min="1"
-                      placeholder="25000"
-                      value={mpesaAmount}
-                      onChange={(e) => setMpesaAmount(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <Button
-                  className="w-full sm:w-auto"
-                  size="sm"
-                  onClick={handleMpesaPayment}
-                  disabled={isProcessingPayment}
-                >
-                  {isProcessingPayment ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing…
-                    </>
-                  ) : (
-                    <>
-                      <Phone className="mr-2 h-4 w-4" />
-                      Request STK push
-                    </>
-                  )}
                 </Button>
               </CardContent>
             </Card>

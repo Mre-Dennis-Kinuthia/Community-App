@@ -11,7 +11,7 @@ export async function OPTIONS(request: NextRequest) {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
@@ -25,7 +25,7 @@ export async function GET(
     })
 
     if (!link) {
-      return NextResponse.json({ error: "Payment link not found" }, { status: 404, headers: corsHeaders })
+      return NextResponse.json({ error: "Payment link not found" }, { status: 404, headers: corsHeaders(request) })
     }
 
     if (link.status === "pending" && link.expiresAt < new Date()) {
@@ -44,19 +44,17 @@ export async function GET(
         sessionEmail: session?.user?.email ?? null,
         sessionUserId: session?.user?.id ?? null,
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders(request) }
     )
   } catch (error) {
     console.error("[MEMBERSHIP PAY] GET error:", error)
-    return NextResponse.json({ error: "Failed to load payment link" }, { status: 500, headers: corsHeaders })
+    return NextResponse.json({ error: "Failed to load payment link" }, { status: 500, headers: corsHeaders(request) })
   }
 }
 
 const payBodySchema = z.object({
   email: z.string().email().optional(),
   name: z.string().max(200).optional(),
-  phoneNumber: z.string().min(9).max(20),
-  confirmOffline: z.boolean().optional(),
 })
 
 export async function POST(
@@ -65,7 +63,7 @@ export async function POST(
 ) {
   try {
     const { token } = await params
-    const body = payBodySchema.parse(await request.json())
+    const body = payBodySchema.parse(await request.json().catch(() => ({})))
     const session = await auth()
 
     const link = await prisma.membershipPaymentLink.findUnique({
@@ -74,7 +72,7 @@ export async function POST(
     })
 
     if (!link) {
-      return NextResponse.json({ error: "Payment link not found" }, { status: 404, headers: corsHeaders })
+      return NextResponse.json({ error: "Payment link not found" }, { status: 404, headers: corsHeaders(request) })
     }
 
     const recipientEmail = link.recipientEmail.toLowerCase().trim()
@@ -89,18 +87,18 @@ export async function POST(
           {
             error: `Sign in as ${link.recipientEmail} or use the email this link was sent to.`,
           },
-          { status: 403, headers: corsHeaders }
+          { status: 403, headers: corsHeaders(request) }
         )
       }
     } else {
       if (!body.email) {
-        return NextResponse.json({ error: "Email is required" }, { status: 400, headers: corsHeaders })
+        return NextResponse.json({ error: "Email is required" }, { status: 400, headers: corsHeaders(request) })
       }
       payerEmail = body.email.toLowerCase().trim()
       if (payerEmail !== recipientEmail) {
         return NextResponse.json(
           { error: `Use the email address this link was sent to (${link.recipientEmail}).` },
-          { status: 400, headers: corsHeaders }
+          { status: 400, headers: corsHeaders(request) }
         )
       }
       payerName = body.name?.trim() || payerName
@@ -114,11 +112,12 @@ export async function POST(
 
     const checkout = await initiateMembershipPayment(prisma, {
       userId,
+      email: payerEmail,
       plan: link.plan,
       amount: link.amount,
       currency: link.currency,
-      phoneNumber: body.phoneNumber,
       membershipPaymentLinkId: link.id,
+      successPath: `/pay/${token}?paid=1`,
     })
 
     return NextResponse.json(
@@ -126,22 +125,21 @@ export async function POST(
         message: checkout.message,
         pending: checkout.pending,
         paymentId: checkout.paymentId,
-        subscription: checkout.subscription
-          ? {
-              id: checkout.subscription.id,
-              status: checkout.subscription.status,
-              currentPeriodEnd: checkout.subscription.currentPeriodEnd.toISOString(),
-              plan: { name: checkout.plan?.name ?? link.plan.name },
-            }
-          : undefined,
+        authorizationUrl: checkout.authorizationUrl,
         loginUrl: `/login?email=${encodeURIComponent(payerEmail)}&redirect=/billing`,
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders(request) }
     )
   } catch (error: unknown) {
     console.error("[MEMBERSHIP PAY] POST error:", error)
     const message = error instanceof Error ? error.message : "Payment failed"
-    const status = message.includes("not found") ? 404 : message.includes("expired") || message.includes("used") ? 400 : 500
-    return NextResponse.json({ error: message }, { status, headers: corsHeaders })
+    const status = message.includes("not configured")
+      ? 503
+      : message.includes("not found")
+        ? 404
+        : message.includes("expired") || message.includes("used")
+          ? 400
+          : 500
+    return NextResponse.json({ error: message }, { status, headers: corsHeaders(request) })
   }
 }

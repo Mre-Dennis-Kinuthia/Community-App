@@ -1,5 +1,5 @@
 import { AAC_IMAGES } from "@/lib/aac-program"
-import { LANDING_IMAGES } from "@/lib/landing-assets"
+import { HUB_IMAGES } from "@/lib/landing-assets"
 
 export type LandingProgramStatus = "active" | "upcoming" | "ongoing" | "completed"
 
@@ -42,7 +42,7 @@ export const LANDING_PROGRAMS: LandingProgram[] = [
     slug: "aac",
     name: "Advancing Agricultural Circularity (AAC)",
     shortName: "AAC",
-    tagline: "Closing the loop, together — shifting Kenya's agri-food system toward circular, regenerative models.",
+    tagline: "Closing the loop together: shifting Kenya's agri-food system toward circular, regenerative models.",
     description:
       "A multi-stakeholder programme convened by Impact Hub Nairobi with the DOEN Foundation. Year One established a 38-member Working Group, trained 150 farmers across three Kiambu sub-counties, and tested consumer demand through market activation at the HereAfrica festival.",
     status: "active",
@@ -55,8 +55,8 @@ export const LANDING_PROGRAMS: LandingProgram[] = [
     detailHref: "/programs/aac",
     highlights: [
       "38-member Working Group · 75 organisations mapped across the ecosystem",
-      "Pilot A — Live-in Lab and extension pathway reaching 150 farmers in Kiambu",
-      "Pilot B — consumer activation and trust-building at HereAfrica festival",
+      "Pilot A: Live-in Lab and extension pathway reaching 150 farmers in Kiambu",
+      "Pilot B: consumer activation and trust-building at HereAfrica festival",
       "99.3% farmer training attendance · 91.0% with specific action plans",
     ],
     cta: {
@@ -76,7 +76,7 @@ export const LANDING_PROGRAMS: LandingProgram[] = [
     statusLabel: "Applications open",
     themes: ["Climate", "AgTech", "Energy"],
     duration: "12 weeks",
-    image: LANDING_IMAGES.pillars.innovation,
+    image: AAC_IMAGES.fieldTraining,
     accent: "#41bed0",
     featured: true,
     highlights: [
@@ -96,11 +96,11 @@ export const LANDING_PROGRAMS: LandingProgram[] = [
     name: "Star Connect Thematic Acceleration",
     tagline: "Dedicated venture support for founders ready to scale with structured acceleration tracks.",
     description:
-      "Star Connect members access thematic acceleration programmes spanning agriculture, circularity, climate, e-mobility, digitization, and gender equity. Each track combines diagnostics, coaching, market access, and connections to grants and investors — aligned to where your venture is today.",
+      "Star Connect members access thematic acceleration programmes spanning agriculture, circularity, climate, e-mobility, digitization, and gender equity. Each track combines diagnostics, coaching, market access, and connections to grants and investors, matched to where your venture is today.",
     status: "ongoing",
     statusLabel: "Member programme",
     themes: ["Acceleration", "Mentorship", "Funding"],
-    image: LANDING_IMAGES.pillars.partnerships,
+    image: HUB_IMAGES.exteriorPath,
     accent: "#822929",
     featured: false,
     highlights: [
@@ -120,11 +120,11 @@ export const LANDING_PROGRAMS: LandingProgram[] = [
     name: "Ecosystem Workshops & Forums",
     tagline: "Interactive sessions that connect innovators, partners, and policymakers around shared challenges.",
     description:
-      "From AAC working group convenings to pitch training, impact-themed forums, and partner-led clinics — our workshops create the spaces where collaboration turns into action. Many sessions are open to the public; members receive priority access and deeper follow-up.",
+      "From AAC working group convenings to pitch training, impact-themed forums, and partner-led clinics, our workshops are where collaboration turns into action. Many sessions are open to the public; members get priority access and deeper follow-up.",
     status: "ongoing",
     statusLabel: "Recurring",
     themes: ["Events", "Partnerships", "Learning"],
-    image: LANDING_IMAGES.pillars.coworking,
+    image: HUB_IMAGES.privateOfficeWindow,
     accent: "#f78a3c",
     featured: false,
     highlights: [

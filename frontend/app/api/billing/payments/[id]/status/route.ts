@@ -6,7 +6,7 @@ export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
 }
 
-/** GET /api/billing/payments/[id]/status — poll M-Pesa checkout completion */
+/** GET /api/billing/payments/[id]/status — poll checkout completion */
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

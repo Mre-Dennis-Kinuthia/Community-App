@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,6 +26,7 @@ type PayLink = {
 
 export default function MembershipPayPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const token = params.token as string
   const { data: session, status: sessionStatus } = useSession()
 
@@ -34,12 +35,15 @@ export default function MembershipPayPage() {
   const [link, setLink] = useState<PayLink | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
-  const [pendingMpesa, setPendingMpesa] = useState(false)
-  const [pendingPaymentId, setPendingPaymentId] = useState<string | null>(null)
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
+
+  useEffect(() => {
+    if (searchParams.get("paid") === "1" || searchParams.get("payment") === "success") {
+      setDone(true)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     async function load() {
@@ -51,6 +55,7 @@ export default function MembershipPayPage() {
         setEmail(data.link.recipientEmail)
         if (data.sessionEmail) setEmail(data.sessionEmail)
         if (data.link.recipientName) setName(data.link.recipientName)
+        if (data.link.status === "paid") setDone(true)
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not load payment link")
       } finally {
@@ -60,50 +65,8 @@ export default function MembershipPayPage() {
     if (token) load()
   }, [token])
 
-  useEffect(() => {
-    if (!pendingMpesa || !pendingPaymentId) return
-
-    let cancelled = false
-    const poll = async () => {
-      try {
-        const res = await fetch(`/api/billing/payments/${pendingPaymentId}/status`)
-        const data = await res.json()
-        if (cancelled) return
-        if (data.completed) {
-          setPendingMpesa(false)
-          setDone(true)
-          toast.success("Membership activated")
-        } else if (data.failed) {
-          setPendingMpesa(false)
-          toast.error("M-Pesa payment was not completed")
-        }
-      } catch {
-        /* retry */
-      }
-    }
-
-    const interval = setInterval(() => void poll(), 3000)
-    void poll()
-    const timeout = setTimeout(() => {
-      if (!cancelled) {
-        setPendingMpesa(false)
-        toast.error("Payment timed out. If you approved on your phone, refresh or contact support.")
-      }
-    }, 120000)
-
-    return () => {
-      cancelled = true
-      clearInterval(interval)
-      clearTimeout(timeout)
-    }
-  }, [pendingMpesa, pendingPaymentId])
-
   const handlePay = async () => {
     if (!link || link.status !== "pending") return
-    if (!phone.trim()) {
-      toast.error("Enter your M-Pesa phone number")
-      return
-    }
     if (!session?.user && !email.trim()) {
       toast.error("Enter your email address")
       return
@@ -117,16 +80,13 @@ export default function MembershipPayPage() {
         body: JSON.stringify({
           email: session?.user ? undefined : email.trim(),
           name: name.trim() || undefined,
-          phoneNumber: phone.trim(),
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Payment failed")
 
-      if (data.pending && data.paymentId) {
-        setPendingPaymentId(data.paymentId)
-        setPendingMpesa(true)
-        toast.success(data.message || "Check your phone to approve M-Pesa")
+      if (data.authorizationUrl) {
+        window.location.href = data.authorizationUrl
         return
       }
 
@@ -162,16 +122,6 @@ export default function MembershipPayPage() {
               <Button asChild variant="outline">
                 <Link href="/">Back to home</Link>
               </Button>
-            </CardContent>
-          </Card>
-        ) : pendingMpesa ? (
-          <Card className="auth-page-card border-[#edeff2] bg-white shadow-sm">
-            <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-[#812926]" />
-              <h1 className="text-xl font-semibold">Waiting for M-Pesa</h1>
-              <p className="text-sm text-muted-foreground">
-                Approve the payment on your phone. This page will update automatically when payment is confirmed.
-              </p>
             </CardContent>
           </Card>
         ) : done ? (
@@ -246,21 +196,15 @@ export default function MembershipPayPage() {
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="pay-phone">M-Pesa phone number</Label>
-                    <Input
-                      id="pay-phone"
-                      placeholder="07XX XXX XXX"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    You&apos;ll complete payment on Paystack (card or M-Pesa).
+                  </p>
 
                   <Button className="w-full bg-[#812926] hover:bg-[#6b2120]" disabled={paying} onClick={() => void handlePay()}>
                     {paying ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing…
+                        Redirecting…
                       </>
                     ) : (
                       `Pay ${link.currency} ${link.amount.toLocaleString()}`

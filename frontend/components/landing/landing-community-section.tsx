@@ -100,7 +100,7 @@ export function LandingCommunitySection() {
         <SectionHeader
           label="Our community"
           title="Where impact makers connect"
-          description="Founders, partners, investors, and creatives — building together in Nairobi and plugged into a global network of 300k+ impact makers."
+          description="Founders, partners, investors, and creatives building together in Nairobi, plugged into a global network of 300k+ impact makers."
           className="mb-10 md:mb-12"
         />
 
@@ -219,7 +219,7 @@ export function LandingCommunitySection() {
 
         <div className="mx-auto flex max-w-xl flex-col items-center gap-3 text-center">
           <p className="text-sm text-[#1c395c]/80">
-            Join mixers, programs, and workspace sessions — then stay connected on the platform.
+            Come to mixers, programs, and workspace sessions, then stay connected on the platform.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Link href="/register">

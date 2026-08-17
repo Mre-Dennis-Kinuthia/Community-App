@@ -332,6 +332,8 @@ model EventRegistration {
   paymentStatus String   @default("not_required") // not_required, pending, paid
   createdAt     DateTime @default(now())
 
+  payment Payment?
+
   @@map("event_registrations")
 }
 
@@ -544,7 +546,7 @@ model WorkspaceBooking {
   
   // Status
   status        String   @default("pending") // pending, confirmed, cancelled, completed
-  paymentStatus String   @default("pending") // pending, paid, refunded
+  paymentStatus String   @default("pending") // pending, paid, refunded, not_required
   
   // Additional info
   notes         String?  @db.Text
@@ -553,6 +555,8 @@ model WorkspaceBooking {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   cancelledAt   DateTime?
+
+  payment Payment?
 
   @@map("workspace_bookings")
   @@index([userId])
@@ -1037,11 +1041,15 @@ model Payment {
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscriptionId  String?
   subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  bookingId       String?   @unique
+  booking         WorkspaceBooking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  eventRegistrationId String? @unique @map("event_registration_id")
+  eventRegistration   EventRegistration? @relation(fields: [eventRegistrationId], references: [id], onDelete: SetNull)
   amount          Decimal   @db.Decimal(12, 2)
   currency        String    @default("KES")
-  method          String    // mpesa, card, bank_transfer
+  method          String    // paystack (legacy: mpesa, card, bank_transfer)
   status          String    // pending, completed, failed, refunded
-  transactionId   String?
+  transactionId   String?   // Paystack reference
   metadata        Json?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -1053,6 +1061,7 @@ model Payment {
   @@index([userId])
   @@index([subscriptionId])
   @@index([status])
+  @@index([transactionId])
 }
 
 model PaymentMethod {

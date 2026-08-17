@@ -75,7 +75,7 @@ export function EventRegistrationDialog({
             <DialogDescription>
               {isPaid && priceLabel && (
                 <span className="block font-medium text-foreground mt-1">
-                  Ticket: {priceLabel} — pay at venue (online payment coming soon)
+                  Ticket: {priceLabel}. You&apos;ll pay securely with Paystack after registering.
                 </span>
               )}
               {isWaitlist

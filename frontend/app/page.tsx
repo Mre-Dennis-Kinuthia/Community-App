@@ -54,28 +54,28 @@ const PILLARS = [
   {
     title: "Support for Socially-Driven Ventures and Innovations",
     description:
-      "From idea-stage incubators and accelerators to tailored consulting — programs, events, and workshops that help entrepreneurs scale, operate efficiently, and accelerate social impact.",
+      "Incubators, accelerators, consulting, and workshops for founders who want to grow their ventures and deepen their social impact.",
     image: LANDING_IMAGES.pillars.programs,
     accent: "#7ebb55",
   },
   {
     title: "Flexible, Inspiring Work Environment",
     description:
-      "Beautiful indoor and outdoor workspaces with coffee bars, meeting rooms, and wellness zones — from day passes to company-level plans.",
+      "Indoor and outdoor workspaces with coffee bars, meeting rooms, and wellness zones. Day passes through to company plans.",
     image: LANDING_IMAGES.pillars.coworking,
     accent: "#f78a3c",
   },
   {
     title: "Driving Sustainable & Inclusive Innovation",
     description:
-      "Inclusive and sustainable innovation at scale — supporting ventures in climate, circularity, agri-tech, gender equity, digital inclusion, and e-mobility.",
+      "We back ventures in climate, circularity, agri-tech, gender equity, digital inclusion, and e-mobility.",
     image: LANDING_IMAGES.pillars.innovation,
     accent: "#41bed0",
   },
   {
     title: "Partnerships & Ecosystem Integration",
     description:
-      "Strategic collaborations with corporations, foundations, and policymakers — plus action research and ecosystem mapping to shape local innovation.",
+      "We work with corporations, foundations, and policymakers, and use action research and ecosystem mapping to strengthen local innovation.",
     image: LANDING_IMAGES.pillars.partnerships,
     accent: "#ffd546",
   },
@@ -86,7 +86,7 @@ const MEMBERSHIP_TIERS = [
     name: "Community",
     price: "Free",
     period: "",
-    description: "Start here. No cost, no barrier — join Nairobi's most active impact community.",
+    description: "Start here at no cost. Join Nairobi's most active impact community.",
     features: [
       "Invitations to member-only events",
       "Access to co-working spaces",
@@ -104,9 +104,9 @@ const MEMBERSHIP_TIERS = [
     name: "Star Connect",
     price: "KES 15,000",
     period: "/ month",
-    description: "For early and growth-stage founders ready to scale with dedicated support.",
+    description: "For early and growth-stage founders who want dedicated support to grow.",
     features: [
-      "Global Passport — 117 hubs across 68 countries",
+      "Global Passport: 117 hubs across 68 countries",
       "Dedicated business development services",
       "Thematic acceleration programs",
       "Grants & funding opportunities",
@@ -122,7 +122,7 @@ const MEMBERSHIP_TIERS = [
     name: "Organisational",
     price: "Custom",
     period: "",
-    description: "For institutions seeking a strategic ecosystem partner to co-create impact.",
+    description: "For institutions that want a long-term partner to shape programs and engagement together.",
     features: [
       "Fully bespoke engagement & co-design",
       "Program & event co-creation",
@@ -142,37 +142,37 @@ const FAQS = [
   {
     question: "Who can join Impact Hub Nairobi?",
     answer:
-      "Anyone passionate about creating positive change — entrepreneurs, creatives, investors, policy shapers, and professionals. Our community is open to all who share the belief that business can serve people and the planet.",
+      "Entrepreneurs, creatives, investors, policy shapers, and professionals who want to create positive change. If you believe business can serve people and the planet, you're welcome here.",
   },
   {
     question: "What makes Impact Hub different from other co-working spaces?",
     answer:
-      "We're much more than a workspace. We're an ecosystem — combining programs, mentorship, investment linkages, a global network of 100+ hubs, and a curated community of impact-driven innovators. Everything is designed to help ventures scale sustainably.",
+      "We're more than desks and wifi. You get programs, mentorship, links to investment, a global network of 100+ hubs, and a community of people building for impact. The goal is to help ventures grow in a way that lasts.",
   },
   {
     question: "How do programs and acceleration work?",
     answer:
-      "Our programs run across six thematic areas — agriculture, circularity, climate, e-mobility, digitization, and gender equity. Each program provides structured training, 1-on-1 coaching, market access, and connections to funding opportunities.",
+      "Our programs cover six areas: agriculture, circularity, climate, e-mobility, digitization, and gender equity. You get structured training, 1-on-1 coaching, market access, and introductions to funding.",
   },
   {
     question: "Can I attend events without a paid membership?",
     answer:
-      "Yes! Community members (free tier) get access to many of our events including office hours, mixers, and select workshops. Paid members receive priority access, exclusive masterclasses, and deeper engagement opportunities.",
+      "Yes. Free Community members can join many events, including office hours, mixers, and select workshops. Paid members get priority access, exclusive masterclasses, and closer follow-up.",
   },
   {
     question: "How do I book workspace?",
     answer:
-      "Once you're a member, you can book workspace through our platform. Select your preferred space and time, confirm your booking, and you'll receive everything you need to show up and get to work.",
+      "Once you're a member, book through the platform. Pick your space and time, confirm, and you'll get what you need to show up and work.",
   },
   {
     question: "What does the Star Connect membership include?",
     answer:
-      "Star Connect gives you a full 360° business diagnostic, dedicated business development support, access to global Impact Hub spaces via the Passport program, thematic acceleration tracks, and direct connections to grants and investors.",
+      "A full business diagnostic, dedicated business development support, access to Impact Hub spaces worldwide via the Passport program, thematic acceleration tracks, and introductions to grants and investors.",
   },
   {
     question: "How can my organization partner with Impact Hub Nairobi?",
     answer:
-      "Choose Organisational membership and complete the 3-step partnership inquiry — institution profile, engagement design, and contact details. Create your platform account with the same email and our partnerships team will follow up to co-design programs and bespoke engagement.",
+      "Choose Organisational membership and complete the 3-step partnership inquiry (institution profile, engagement design, and contact details). Create your platform account with the same email, and our partnerships team will follow up to shape programs and engagement together.",
   },
 ]
 
@@ -401,9 +401,9 @@ export default function HomePage() {
               For Impact Startups &amp; Innovators
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-[#1c395c]/80 md:text-base">
-              Your member platform for programs, workspace, events, and community — a vibrant
-              local-to-global impact network grounded in inclusive, scalable innovation that aligns
-              business growth with meaningful social and environmental impact.
+              Programs, workspace, events, and community in one place. Built in Nairobi, connected
+              to a global network of people growing businesses that also serve people and the
+              planet.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href="/register">
@@ -464,12 +464,12 @@ export default function HomePage() {
       <section className="landing-mission-strip" aria-label="Global network mission">
         <div className="container px-4">
           <p className="mx-auto max-w-3xl text-center text-sm leading-relaxed text-[#1c395c] md:text-base">
-            Access a global network accelerating{" "}
+            Part of a global network focused on{" "}
             <span className="font-semibold text-[#812926]">
-              inclusive and sustainable innovation at scale
+              inclusive and sustainable innovation
             </span>
-            . This platform extends the Impact Hub Nairobi experience — programs, co-working,
-            partnerships, and community in one place.
+            . This platform brings Impact Hub Nairobi together: programs, co-working, partnerships,
+            and community.
           </p>
         </div>
       </section>
@@ -499,8 +499,8 @@ export default function HomePage() {
       <section id="services" className="landing-section container px-4">
         <SectionHeader
           label="What we offer"
-          title="Inclusive and sustainable innovation — at scale"
-          description="Programs, inspiring workspaces, thematic venture support, and ecosystem partnerships — the same pillars that define Impact Hub Nairobi, now accessible through your member platform."
+          title="What Impact Hub Nairobi is built around"
+          description="Programs, workspaces, venture support, and partnerships. The same pillars as Impact Hub Nairobi, now on your member platform."
           className="mb-14 md:mb-16"
         />
         <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-2">
@@ -509,7 +509,7 @@ export default function HomePage() {
           ))}
         </div>
         <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-[#1c395c]/75">
-          Explore programs, book workspace, and connect with the community on the platform — or visit{" "}
+          Explore programs, book workspace, and meet the community here, or visit{" "}
           <a
             href="https://nairobi.impacthub.net/"
             target="_blank"
@@ -535,7 +535,7 @@ export default function HomePage() {
           <SectionHeader
             label="Membership"
             title="Become a member"
-            description="From free community access to dedicated venture support and institutional partnerships — start on the platform, grow with Impact Hub Nairobi."
+            description="Start with free community access, grow into dedicated venture support, or partner with us as an organisation. Begin on the platform and grow with Impact Hub Nairobi."
             className="mb-14 md:mb-16"
           />
           <div className="mx-auto grid max-w-5xl gap-3 md:grid-cols-3">
@@ -610,7 +610,7 @@ export default function HomePage() {
         <SectionHeader
           label="Our ecosystem"
           title="Strategic partners"
-          description="Collaborating across sectors to strengthen entrepreneurial communities for impact at scale."
+          description="We work across sectors to strengthen entrepreneurial communities in Nairobi and beyond."
           className="mb-10 md:mb-12"
         />
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -622,7 +622,7 @@ export default function HomePage() {
         <SectionHeader
           label="Implementation partnerships"
           title="Building impact together"
-          description="Programs, business development, mentorship, legal support, monitoring & evaluation, and ecosystem collaboration across Nairobi's impact community."
+          description="Programs, business development, mentorship, legal support, monitoring and evaluation, and day-to-day collaboration across Nairobi's impact community."
           className="mb-10 mt-16 md:mb-12 md:mt-20"
         />
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -646,7 +646,7 @@ export default function HomePage() {
           <SectionHeader
             label="FAQ"
             title="Frequently asked questions"
-            description="Guidance on joining, membership, programs, and using the platform."
+            description="Answers about joining, membership, programs, and using the platform."
             className="mb-12 md:mb-14"
           />
           <div className="landing-panel mx-auto max-w-3xl overflow-hidden">
@@ -707,7 +707,7 @@ export default function HomePage() {
         <div className="container space-y-6 px-4 text-center">
           <SectionHeader
             title="Ready to join the community?"
-            description="Inclusive and sustainable innovation at scale — starting in Nairobi, connected to a global network of impact makers."
+            description="Start in Nairobi. Stay connected to a global network of people building for impact."
           />
           <p className="text-xs text-[#1c395c]/70">
             Part of the global Impact Hub network · 117 hubs · 68 countries · 5 continents
@@ -749,9 +749,8 @@ export default function HomePage() {
             <div className="space-y-4">
               <Logo />
               <p className="text-sm leading-relaxed text-[#1c395c]/80">
-                Inclusive and sustainable innovation at scale. Kenya&apos;s leading ecosystem for
-                impact-driven innovators — where ventures grow, communities thrive, and solutions
-                shape global change.
+                Kenya&apos;s home for people building businesses that matter. Ventures grow here,
+                communities connect here, and ideas travel through a global Impact Hub network.
               </p>
               <div className="flex gap-3">
                 <a

@@ -203,6 +203,13 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data.error || "Failed to register")
       setRegDialogOpen(false)
+
+      if (data.authorizationUrl) {
+        toast.success(data.message || "Redirecting to Paystack…")
+        window.location.href = data.authorizationUrl as string
+        return
+      }
+
       const refresh = await fetch(`/api/events/${event.id}`)
       if (refresh.ok) {
         const refreshed = await refresh.json()

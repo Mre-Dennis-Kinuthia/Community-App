@@ -350,6 +350,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const requiresPayment = priced.totalPrice > 0
+    const bookingStatus = requiresPayment ? "pending" : "confirmed"
+    const paymentStatus = requiresPayment ? "pending" : "paid"
+
     // Create booking
     console.log("[BOOKING API] Creating booking...")
     const booking = await prisma.workspaceBooking.create({
@@ -370,8 +374,8 @@ export async function POST(request: NextRequest) {
         notes: validatedData.notes,
         workspaceId: validatedData.workspaceId,
         spaceAssetId: validatedData.spaceAssetId ?? null,
-        status: "confirmed", // Auto-confirm for now
-        paymentStatus: "pending", // Payment integration can be added later
+        status: bookingStatus,
+        paymentStatus,
       },
       include: {
         user: {
@@ -407,8 +411,11 @@ export async function POST(request: NextRequest) {
       date: booking.date,
       totalPrice: booking.totalPrice,
       membershipDiscount: booking.membershipDiscount,
+      status: booking.status,
+      paymentStatus: booking.paymentStatus,
     })
 
+    if (booking.status === "confirmed") {
     // Create notification for the user
     const formattedDate = new Date(booking.date).toLocaleDateString("en-US", {
       weekday: "long",
@@ -492,6 +499,7 @@ export async function POST(request: NextRequest) {
     } else {
       console.warn("[BOOKING API] No member email — confirmation not sent:", booking.id)
     }
+    }
 
     const isMeetingRoomBooking = booking.resourceType === "meeting-room"
     const responseCalendarInput = {
@@ -504,19 +512,22 @@ export async function POST(request: NextRequest) {
       addOnsPrice: booking.addOnsPrice,
       pastriesPax: validatedData.pastriesPax,
     }
-    const responseCalendarInvite = isMeetingRoomBooking
+    const responseCalendarInvite = isMeetingRoomBooking && booking.status === "confirmed"
       ? buildBookingCalendarInvite(responseCalendarInput, {
           attendeeEmail: booking.user?.email,
           attendeeName: booking.user?.name,
         })
       : null
-    const responseCalendarLinks = isMeetingRoomBooking
+    const responseCalendarLinks = isMeetingRoomBooking && booking.status === "confirmed"
       ? getBookingCalendarLinks(responseCalendarInput)
       : null
 
     return NextResponse.json(
       {
-        message: "Booking confirmed successfully",
+        message:
+          booking.status === "confirmed"
+            ? "Booking confirmed successfully"
+            : "Booking created — complete payment to confirm",
         booking: {
           id: booking.id,
           resourceType: booking.resourceType,
@@ -526,6 +537,7 @@ export async function POST(request: NextRequest) {
           duration: booking.duration,
           totalPrice: booking.totalPrice,
           status: booking.status,
+          paymentStatus: booking.paymentStatus,
           createdAt: booking.createdAt,
           addOns: booking.addOns,
           addOnsPrice: booking.addOnsPrice,
