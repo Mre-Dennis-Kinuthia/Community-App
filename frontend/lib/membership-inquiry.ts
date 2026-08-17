@@ -96,6 +96,36 @@ export const STAR_CONNECT_DISCOVERY_CALL_URL =
   "https://calendar.app.google/9ZM6DNGjKgkTC88D7"
 export const STAR_CONNECT_RESPONSE_SLA = "within 2 hours"
 
+export type StarConnectFeature = {
+  label: string
+  /** Platform path or /news/{slug|id} article on Impact Hub Nairobi */
+  href: string
+}
+
+export const STAR_CONNECT_FEATURES: StarConnectFeature[] = [
+  { label: "3 days per week co-working space", href: "/booking" },
+  { label: "Exclusive events", href: "/events/public" },
+  {
+    label: "Global Passport: 117 hubs across 68 countries",
+    href: "/membership/star-connect",
+  },
+  {
+    label: "Dedicated business development services",
+    href: "/programs",
+  },
+  { label: "Thematic acceleration programs", href: "/programs" },
+  { label: "Grants & funding opportunities", href: "/resources?tab=programs" },
+  {
+    label: "Strategic partnerships & growth advisory",
+    href: "/membership/organisational",
+  },
+]
+
+export const STAR_CONNECT_FEATURE_LABELS = STAR_CONNECT_FEATURES.map((f) => f.label)
+
+export const STAR_CONNECT_FAQ_ANSWER =
+  "Three days per week of co-working space at Impact Hub Nairobi, exclusive member events, dedicated business development support, access to Impact Hub spaces worldwide via the Passport program, thematic acceleration tracks, and introductions to grants and investors."
+
 export const VENTURE_STAGES = [
   "Idea / pre-launch",
   "Early stage (0–2 years)",

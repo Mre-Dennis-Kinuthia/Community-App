@@ -14,6 +14,7 @@
     "db:apply-stored-images": "tsx scripts/apply-stored-images-table.ts",
     "db:apply-user-last-active-at": "tsx scripts/apply-user-last-active-at.ts",
     "db:apply-membership-links": "tsx scripts/apply-membership-payment-links-table.ts",
+    "db:apply-paystack-payments": "tsx scripts/apply-paystack-payment-columns.ts",
     "db:apply-community-opportunities": "tsx scripts/apply-community-opportunities-table.ts",
     "db:apply-event-luma-fields": "tsx scripts/apply-event-luma-fields.ts",
     "db:apply-space-inventory": "tsx scripts/apply-space-inventory.ts",

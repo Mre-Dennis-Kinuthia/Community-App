@@ -28,13 +28,45 @@ export function getLandingFooterPlatformLinks(): LandingFooterLink[] {
   return links
 }
 
-/** Landing header anchor links */
-export const LANDING_HEADER_LINKS = [
+export type LandingNavItem = {
+  href: string
+  label: string
+  external?: boolean
+}
+
+export type LandingNavGroup = {
+  label: string
+  items: LandingNavItem[]
+}
+
+/** Landing header anchor links (flat — used for mobile menu and SEO) */
+export const LANDING_HEADER_LINKS: LandingNavItem[] = [
   { href: "#services", label: "What we offer" },
   { href: "/programs", label: "Programs" },
   { href: "#events", label: "Events" },
   { href: "#community", label: "Community" },
-  { href: "#membership", label: "Become a member" },
+  { href: "#membership", label: "Membership" },
   { href: "#faq", label: "FAQ" },
   { href: "https://nairobi.impacthub.net/", label: "About IHN", external: true },
-] as const
+]
+
+/** Grouped desktop nav — same destinations, fewer top-level items */
+export const LANDING_HEADER_GROUPS: LandingNavGroup[] = [
+  {
+    label: "Explore",
+    items: [
+      { href: "#services", label: "What we offer" },
+      { href: "/programs", label: "Programs" },
+      { href: "#events", label: "Events" },
+      { href: "#community", label: "Community" },
+    ],
+  },
+  {
+    label: "About",
+    items: [
+      { href: "#membership", label: "Membership" },
+      { href: "#faq", label: "FAQ" },
+      { href: "https://nairobi.impacthub.net/", label: "About IHN", external: true },
+    ],
+  },
+]

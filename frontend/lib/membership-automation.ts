@@ -14,6 +14,8 @@ import { notifyMembershipActivated } from "@/lib/membership-notifications"
 import { startPaystackCheckout } from "@/lib/paystack-checkout"
 import { isEmailConfigured } from "@/lib/email/send"
 
+import { STAR_CONNECT_FEATURE_LABELS } from "@/lib/membership-inquiry"
+
 const DEFAULT_PLANS = [
   {
     name: "Star Connect",
@@ -21,12 +23,7 @@ const DEFAULT_PLANS = [
       "For early and growth-stage founders ready to scale with dedicated support.",
     price: 15000,
     interval: "monthly",
-    features: [
-      "Global Passport: 117 hubs across 68 countries",
-      "Business development services",
-      "Thematic acceleration programs",
-      "Grants & funding opportunities",
-    ],
+    features: [...STAR_CONNECT_FEATURE_LABELS],
   },
   {
     name: "Flex Membership",

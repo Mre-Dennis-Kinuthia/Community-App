@@ -24,7 +24,8 @@ function tierBenefitsHtml(tier: MembershipTier): string {
     const hrs = formatAllowanceHours(MEETING_ROOM_ALLOWANCE_MINUTES.star_connect)
     return emailHighlightBox(`
       <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.6;">
-        <li>Workspace access is included — hot desk booking is not required.</li>
+        <li>3 days per week co-working space at Impact Hub Nairobi.</li>
+        <li>Exclusive member events.</li>
         <li>${escapeHtml(hrs)} of meeting room time included each month at no extra charge.</li>
       </ul>
     `)

@@ -5,11 +5,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getImageDisplayUrl } from "@/lib/stored-image"
 import { cn } from "@/lib/utils"
 import {
   COMMUNITY_MOMENTS,
   COMMUNITY_VOICES,
+  HERO_AVATAR_COLORS,
+  HERO_AVATAR_INITIALS,
   MEMBER_ARCHETYPES,
   type LandingCommunityPreview,
 } from "@/lib/landing-community"
@@ -33,44 +34,6 @@ function SectionHeader({
         <p className="section-lead mx-auto mt-4 max-w-2xl text-pretty">{description}</p>
       ) : null}
     </div>
-  )
-}
-
-function MemberAvatar({
-  name,
-  image,
-  className,
-}: {
-  name: string
-  image?: string | null
-  className?: string
-}) {
-  const src = getImageDisplayUrl(image || undefined)
-  const initial = name.trim().charAt(0).toUpperCase() || "?"
-
-  if (src) {
-    return (
-      <Image
-        src={src}
-        alt=""
-        width={40}
-        height={40}
-        unoptimized
-        className={cn("rounded-full border-2 border-white object-cover", className)}
-      />
-    )
-  }
-
-  return (
-    <span
-      className={cn(
-        "flex items-center justify-center rounded-full border-2 border-white bg-[#1c395c] text-xs font-semibold text-white",
-        className
-      )}
-      aria-hidden
-    >
-      {initial}
-    </span>
   )
 }
 
@@ -107,15 +70,16 @@ export function LandingCommunitySection() {
         {showLiveStats ? (
           <div className="landing-community-pulse mx-auto mb-12 max-w-4xl">
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              {preview?.featuredMembers.length ? (
+              {memberCount > 0 ? (
                 <div className="flex -space-x-2" aria-hidden>
-                  {preview.featuredMembers.slice(0, 5).map((member) => (
-                    <MemberAvatar
-                      key={member.name}
-                      name={member.name}
-                      image={member.image}
-                      className="h-10 w-10"
-                    />
+                  {HERO_AVATAR_INITIALS.map((initial, index) => (
+                    <span
+                      key={initial}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white shadow-sm"
+                      style={{ backgroundColor: HERO_AVATAR_COLORS[index] }}
+                    >
+                      {initial}
+                    </span>
                   ))}
                 </div>
               ) : null}
@@ -135,29 +99,6 @@ export function LandingCommunitySection() {
                 ) : null}
               </p>
             </div>
-          </div>
-        ) : null}
-
-        {preview?.featuredMembers.length ? (
-          <div className="mx-auto mb-14 grid max-w-5xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {preview.featuredMembers.map((member) => (
-              <article key={member.name} className="landing-community-member-card">
-                <div className="flex items-center gap-3">
-                  <MemberAvatar name={member.name} image={member.image} className="h-11 w-11" />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#0a1f38]">{member.name}</p>
-                    <p className="truncate text-xs text-[#1c395c]/70">
-                      {member.role || member.industry || "Impact Hub member"}
-                    </p>
-                  </div>
-                </div>
-                {member.organization || member.industry ? (
-                  <p className="mt-3 text-xs leading-relaxed text-[#1c395c]/65">
-                    {[member.organization, member.industry].filter(Boolean).join(" · ")}
-                  </p>
-                ) : null}
-              </article>
-            ))}
           </div>
         ) : null}
 

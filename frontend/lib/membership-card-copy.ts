@@ -32,7 +32,8 @@ function starConnectBenefits(membership?: MembershipBenefits | null): string[] {
     ? formatAllowanceHours(membership.meetingRoom.remainingMinutes)
     : allowance
   return [
-    "Workspace access is included — hot desk booking is not required",
+    "3 days per week co-working space at Impact Hub Nairobi",
+    "Exclusive member events",
     `${allowance} of meeting room time included each month`,
     `Meeting rooms remaining this month: ${remaining}`,
   ]

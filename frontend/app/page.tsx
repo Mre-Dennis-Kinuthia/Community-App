@@ -18,12 +18,9 @@ import {
   Shield,
   Award,
   Globe,
-  Menu,
-  X,
   Mail,
   Phone,
 } from "lucide-react"
-import { Logo } from "@/components/logo"
 import { LandingPartnerLogo } from "@/components/landing-partner-logo"
 import { LANDING_IMPLEMENTATION_PARTNERS, LANDING_STRATEGIC_PARTNERS } from "@/lib/landing-partners"
 import { cn } from "@/lib/utils"
@@ -33,15 +30,16 @@ import { LandingCommunitySection } from "@/components/landing/landing-community-
 import { LandingEventsSection } from "@/components/landing/landing-events-section"
 import { LandingImpactStories } from "@/components/landing/landing-impact-stories"
 import { LandingProgramsSection } from "@/components/landing/landing-programs-section"
-import { getLandingFooterPlatformLinks, LANDING_HEADER_LINKS } from "@/lib/public-nav-links"
+import { LandingHeader } from "@/components/landing/landing-header"
+import { getLandingFooterPlatformLinks } from "@/lib/public-nav-links"
 import { HUB_PUBLIC_EMAIL, HUB_PUBLIC_PHONE, HUB_PUBLIC_PHONE_HREF } from "@/lib/hub-contact"
 import {
   ORGANISATIONAL_MEMBERSHIP_PATH,
   ORGANISATIONAL_RESPONSE_SLA,
   STAR_CONNECT_RESPONSE_SLA,
+  STAR_CONNECT_FEATURES,
+  STAR_CONNECT_FAQ_ANSWER,
 } from "@/lib/membership-inquiry"
-
-const NAV_LINKS = LANDING_HEADER_LINKS
 
 const IMPACT_STATS = [
   { label: "Impact Hubs", value: "117" },
@@ -105,13 +103,7 @@ const MEMBERSHIP_TIERS = [
     price: "KES 15,000",
     period: "/ month",
     description: "For early and growth-stage founders who want dedicated support to grow.",
-    features: [
-      "Global Passport: 117 hubs across 68 countries",
-      "Dedicated business development services",
-      "Thematic acceleration programs",
-      "Grants & funding opportunities",
-      "Strategic partnerships & growth advisory",
-    ],
+    features: [...STAR_CONNECT_FEATURES],
     cta: "Apply for membership",
     helper: `2-step application · we respond ${STAR_CONNECT_RESPONSE_SLA}`,
     href: "/membership/star-connect",
@@ -166,8 +158,7 @@ const FAQS = [
   },
   {
     question: "What does the Star Connect membership include?",
-    answer:
-      "A full business diagnostic, dedicated business development support, access to Impact Hub spaces worldwide via the Passport program, thematic acceleration tracks, and introductions to grants and investors.",
+    answer: STAR_CONNECT_FAQ_ANSWER,
   },
   {
     question: "How can my organization partner with Impact Hub Nairobi?",
@@ -267,32 +258,8 @@ function SectionHeader({
   )
 }
 
-interface NavLinkProps {
-  href: string
-  label: string
-  external?: boolean
-  className: string
-  onClick?: () => void
-}
-
-function NavLink({ href, label, external, className, onClick }: NavLinkProps) {
-  if (external) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className} onClick={onClick}>
-        {label}
-      </a>
-    )
-  }
-  return (
-    <a href={href} className={className} onClick={onClick}>
-      {label}
-    </a>
-  )
-}
-
 export default function HomePage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null)
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [newsletterEmail, setNewsletterEmail] = useState("")
   const [newsletterLoading, setNewsletterLoading] = useState(false)
 
@@ -326,68 +293,7 @@ export default function HomePage() {
 
   return (
     <div className="landing-page flex min-h-screen flex-col bg-[#faf9f6]">
-      <header className="landing-header sticky top-0 z-50 overflow-x-hidden">
-        <div className="container flex h-14 min-w-0 items-center justify-between gap-4 px-4 md:px-6">
-          <Logo href="/" variant="landing" />
-
-          <nav className="hidden items-center gap-6 md:flex" aria-label="Primary">
-            {NAV_LINKS.map((link) => (
-              <NavLink
-                key={link.href}
-                {...link}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              />
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Link href="/login" className="hidden sm:block">
-              <Button variant="ghost" size="sm">
-                Sign in
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button size="sm">Become a member</Button>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              onClick={() => setMobileNavOpen(!mobileNavOpen)}
-              aria-expanded={mobileNavOpen}
-              aria-controls="landing-mobile-nav"
-              aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
-            >
-              {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </div>
-        </div>
-
-        {mobileNavOpen ? (
-          <div id="landing-mobile-nav" className="border-t border-border bg-background md:hidden">
-            <nav className="container flex flex-col px-4 py-3" aria-label="Mobile">
-              {NAV_LINKS.map((link) => (
-                <NavLink
-                  key={link.href}
-                  {...link}
-                  className="rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
-                  onClick={() => setMobileNavOpen(false)}
-                />
-              ))}
-              <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
-                <Link href="/login" onClick={() => setMobileNavOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start">
-                    Sign in
-                  </Button>
-                </Link>
-                <Link href="/register" onClick={() => setMobileNavOpen(false)}>
-                  <Button className="w-full">Become a member</Button>
-                </Link>
-              </div>
-            </nav>
-          </div>
-        ) : null}
-      </header>
+      <LandingHeader />
 
       <main>
       <section className="hero-wash border-b border-[#edeff2]" aria-labelledby="hero-heading">
@@ -568,15 +474,28 @@ export default function HomePage() {
                 </div>
                 <div className="flex flex-1 flex-col gap-5 px-5 py-6">
                   <ul className="space-y-2.5 text-sm leading-relaxed">
-                    {tier.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2">
-                        <CheckCircle2
-                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                          aria-hidden
-                        />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
+                    {tier.features.map((feature) => {
+                      const label = typeof feature === "string" ? feature : feature.label
+                      const href = typeof feature === "string" ? null : feature.href
+                      return (
+                        <li key={label} className="flex items-start gap-2">
+                          <CheckCircle2
+                            className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                            aria-hidden
+                          />
+                          {href ? (
+                            <Link
+                              href={href}
+                              className="text-foreground underline-offset-2 hover:text-primary hover:underline"
+                            >
+                              {label}
+                            </Link>
+                          ) : (
+                            <span>{label}</span>
+                          )}
+                        </li>
+                      )
+                    })}
                   </ul>
                   <div className="mt-auto space-y-2">
                     <p className="text-center text-xs leading-relaxed text-muted-foreground">
