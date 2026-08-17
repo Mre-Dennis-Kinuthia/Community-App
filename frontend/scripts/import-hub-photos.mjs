@@ -13,17 +13,17 @@ const assetsDir =
   "/home/nansi/.cursor/projects/home-nansi-Work/assets"
 
 const SRC = {
-  ihn5: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_5-64c97b5e-f710-420e-b30d-ad4f47f3a033.png",
-  ihn6: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_6-b3351eb0-2cf3-412e-bc0a-07b931b8606f.png",
+  ihn5: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_5-9f2c82cd-36ea-4019-9a34-cb9a8e0fdcb9.png",
+  ihn6: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_6-543243fb-bacb-4b25-b90f-42b3a837f131.png",
   ihn7: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_7-c3496635-dcc6-412b-82e0-44a3f947694b.png",
   ihn8: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_8-5f64ab1c-4629-4c1d-be9b-c97f4c740208.png",
   ihn9: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_9-82965dae-1900-4ac1-b5f2-06d9c76deae5.png",
   ihn10: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_10-6079d73c-752d-4175-9cec-c8a4d4b245af.png",
   ihn11: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_11-b07570e8-d9e2-4e8a-948a-06ad47132068.png",
   ihn12: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_12-1cde4d41-0271-4d54-b143-ddb3bbbed0f5.png",
-  ihn13: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_13-ad49a1c9-d4db-4333-a368-1baa13423776.png",
+  ihn13: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_13-1636e8bf-ee52-41d8-8003-aa0808c64a02.png",
   room1: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_1-c44d0218-1ddc-4a40-b486-70dfed64eb0e.png",
-  room2: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_2-d32d7a70-aa00-42c1-8bc7-d54bed7b2b89.png",
+  room2: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_2-e8bd8efd-530b-47d9-a9b6-fadb18c93f9c.png",
   room3: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_3-b12c232d-0e2a-420d-a1d3-a4eae4f3043d.png",
   room4: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_4-eb93342e-8ee5-477d-a887-7f1ac6635515.png",
 }
@@ -59,6 +59,14 @@ const HUB = {
   "private-office-lamps.jpg": { key: "ihn12", width: 1400 },
   "private-office-window.jpg": { key: "ihn10", width: 1400 },
   "desk-detail.jpg": { key: "ihn13", width: 1400 },
+}
+
+/** Gallery shown on the member booking flow (public/hub/booking/). */
+const BOOKING = {
+  "exterior.jpg": { key: "ihn6", width: 1600 },
+  "private-office.jpg": { key: "ihn5", width: 1400 },
+  "focus-desk.jpg": { key: "ihn13", width: 1400 },
+  "coworking.jpg": { key: "room2", width: 1400 },
 }
 
 async function writeJpeg(srcPath, destPath, width) {
@@ -101,6 +109,15 @@ async function main() {
     console.log("hub/", filename)
   }
 
+  const bookingDir = path.join(hubDir, "booking")
+  await mkdir(bookingDir, { recursive: true })
+  for (const [filename, { key, width }] of Object.entries(BOOKING)) {
+    const src = path.join(assetsDir, SRC[key])
+    const dest = path.join(bookingDir, filename)
+    await writeJpeg(src, dest, width)
+    console.log("hub/booking/", filename)
+  }
+
   const adminHub = path.join(
     frontendRoot,
     "..",
@@ -112,6 +129,11 @@ async function main() {
   await mkdir(adminHub, { recursive: true })
   for (const filename of Object.keys(HUB)) {
     await copyFile(path.join(hubDir, filename), path.join(adminHub, filename))
+  }
+  const adminBookingHub = path.join(adminHub, "booking")
+  await mkdir(adminBookingHub, { recursive: true })
+  for (const filename of Object.keys(BOOKING)) {
+    await copyFile(path.join(bookingDir, filename), path.join(adminBookingHub, filename))
   }
   console.log("Copied hub photos to Community-app-admin/public/hub/")
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
-import { getImageDisplayUrl } from "@/lib/stored-image"
+import { BOOKING_SPACE_COVER } from "@/lib/booking-space-images"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -13,7 +13,6 @@ export async function OPTIONS(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const origin = new URL(request.url).origin
     const rows = await prisma.workspace.findMany({
       where: { isActive: true, deletedAt: null },
       orderBy: [{ name: "asc" }],
@@ -24,7 +23,6 @@ export async function GET(request: NextRequest) {
         location: true,
         startingPrice: true,
         currency: true,
-        images: true,
         valueProposition: true,
       },
     })
@@ -37,9 +35,7 @@ export async function GET(request: NextRequest) {
       startingPrice: w.startingPrice ?? 0,
       currency: w.currency,
       valueProposition: w.valueProposition ?? "",
-      coverImage: w.images?.[0]
-        ? getImageDisplayUrl(w.images[0], { baseUrl: origin })
-        : undefined,
+      coverImage: BOOKING_SPACE_COVER,
     }))
 
     return NextResponse.json({ workspaces }, { headers: corsHeaders })

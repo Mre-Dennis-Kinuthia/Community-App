@@ -11,7 +11,11 @@ import {
 import { buildMembershipSummary } from "@/lib/membership-profile"
 import { applyMembershipBookingBenefits } from "@/lib/membership-booking-benefits"
 import { canBookHotDesk, resolveAllowanceState, startOfAllowanceMonth } from "@/lib/membership-tier"
-import { hasAssetBookingConflict } from "@/lib/space/availability"
+import {
+  calculateBookingEndTime,
+  checkBookingSlotAvailable,
+  normalizeBookingStartTime,
+} from "@/lib/booking-slot"
 import {
   buildBookingCalendarInvite,
   getBookingCalendarLinks,
@@ -62,33 +66,6 @@ async function resolveUserIdFromSession(session: Awaited<ReturnType<typeof auth>
   })
 
   return upserted.id
-}
-
-// Calculate end time based on start time and duration
-function calculateEndTime(
-  startTime: string,
-  duration: string,
-  resourceType?: string,
-  meetingRoomHours?: number
-): string {
-  const [hours, minutes] = startTime.split(":").map(Number)
-  let hoursToAdd = 1 // default hourly
-
-  if (duration === "monthly") {
-    return "17:00"
-  }
-  if (resourceType === "meeting-room" && typeof meetingRoomHours === "number" && meetingRoomHours >= 1) {
-    hoursToAdd = meetingRoomHours
-  } else if (duration === "half-day") {
-    hoursToAdd = 4
-  } else if (duration === "full-day") {
-    hoursToAdd = 8
-  }
-
-  const endHours = hours + hoursToAdd
-  const cappedEnd = Math.min(endHours, 17) // Cap at 5 PM for workspace hours
-  const finalHours = cappedEnd >= 24 ? cappedEnd - 24 : cappedEnd
-  return `${finalHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
 }
 
 export async function POST(request: NextRequest) {
@@ -193,36 +170,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate and set startTime
-    // For full-day hot desk bookings, frontend should send "09:00", but we validate it
-    let startTime = validatedData.startTime
-    
-    // Ensure startTime is set correctly based on duration and resource type
-    if (validatedData.resourceType === "private-office" && validatedData.duration === "monthly") {
-      startTime = "09:00"
-    } else if (validatedData.resourceType === "hot-desk") {
-      if (validatedData.duration === "full-day") {
-        startTime = "09:00"
-      } else if (validatedData.duration === "half-day") {
-        // Half day should be 9 AM (morning) or 1 PM (afternoon)
-        if (startTime !== "09:00" && startTime !== "13:00") {
-          return NextResponse.json(
-            { error: "Half-day bookings must start at 9:00 AM (morning) or 1:00 PM (afternoon)" },
-            { status: 400 }
-          )
-        }
-      }
+    const normalizedStart = normalizeBookingStartTime(
+      validatedData.resourceType,
+      validatedData.duration,
+      validatedData.startTime
+    )
+    if ("error" in normalizedStart) {
+      return NextResponse.json({ error: normalizedStart.error }, { status: 400 })
     }
-    
-    // Validate startTime is provided
-    if (!startTime) {
-      return NextResponse.json(
-        { error: "Start time is required" },
-        { status: 400 }
-      )
-    }
-    
-    const endTime = calculateEndTime(
+
+    const startTime = normalizedStart.startTime
+    const endTime = calculateBookingEndTime(
       startTime,
       validatedData.duration,
       validatedData.resourceType,
@@ -236,118 +194,20 @@ export async function POST(request: NextRequest) {
       resourceType: validatedData.resourceType,
     })
 
-    // Check for conflicting bookings
-    // For meeting rooms and private offices: only one booking per time slot
-    // For hot desks: multiple bookings allowed, but we still check for user's own conflicts
     const bookingDate = new Date(validatedData.date)
-    const startOfDay = new Date(bookingDate)
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(bookingDate)
-    endOfDay.setHours(23, 59, 59, 999)
-
-    // For meeting rooms and private offices: check for any conflicting booking
-    // For hot desks: only check for the same user's conflicting bookings (they can't double-book themselves)
-    const conflictWhere: any = {
+    const slotAvailability = await checkBookingSlotAvailable(prisma, {
+      userId,
       resourceType: validatedData.resourceType,
-      date: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
-      status: {
-        not: "cancelled",
-      },
-    }
-
-    // For hot desks, only check user's own bookings to prevent self-conflicts
-    // For meeting rooms/private offices, check all bookings (only one can book at a time)
-    if (validatedData.resourceType === "hot-desk") {
-      conflictWhere.userId = userId
-    }
-
-    // Check for overlapping bookings
-    // Two bookings overlap if:
-    // 1. New start is between existing start and end, OR
-    // 2. New end is between existing start and end, OR
-    // 3. New booking completely contains existing booking
-    const conflictingBooking = await prisma.workspaceBooking.findFirst({
-      where: {
-        ...conflictWhere,
-        OR: [
-          {
-            // New booking starts within existing booking's time range
-            AND: [
-              { startTime: { lte: startTime } },
-              { endTime: { gt: startTime } },
-            ],
-          },
-          {
-            // New booking ends within existing booking's time range
-            AND: [
-              { startTime: { lt: endTime } },
-              { endTime: { gte: endTime } },
-            ],
-          },
-          {
-            // New booking completely contains existing booking
-            AND: [
-              { startTime: { gte: startTime } },
-              { endTime: { lte: endTime } },
-            ],
-          },
-          {
-            // New booking is completely contained by existing booking
-            AND: [
-              { startTime: { lte: startTime } },
-              { endTime: { gte: endTime } },
-            ],
-          },
-        ],
-      },
+      date: bookingDate,
+      startTime,
+      duration: validatedData.duration,
+      meetingRoomHours: validatedData.meetingRoomHours,
+      workspaceId: validatedData.workspaceId,
+      spaceAssetId: validatedData.spaceAssetId,
     })
 
-    if (conflictingBooking) {
-      console.log("[BOOKING API] Conflicting booking found:", conflictingBooking.id)
-      const errorMessage = validatedData.resourceType === "hot-desk"
-        ? "You already have a booking for this time slot."
-        : "This time slot is already booked. Please select a different time."
-      
-      return NextResponse.json(
-        {
-          error: errorMessage,
-          conflictingBooking: {
-            id: conflictingBooking.id,
-            startTime: conflictingBooking.startTime,
-            endTime: conflictingBooking.endTime,
-            duration: conflictingBooking.duration,
-          },
-        },
-        { status: 409 }
-      )
-    }
-
-    if (validatedData.spaceAssetId) {
-      const asset = await prisma.spaceAsset.findUnique({
-        where: { id: validatedData.spaceAssetId },
-      })
-      if (!asset || !asset.isBookable || asset.status === "maintenance") {
-        return NextResponse.json(
-          { error: "Selected space is not available for booking." },
-          { status: 400 }
-        )
-      }
-      const assetConflict = await hasAssetBookingConflict(prisma, {
-        spaceAssetId: validatedData.spaceAssetId,
-        dateStart: startOfDay,
-        dateEnd: endOfDay,
-        startTime,
-        endTime,
-      })
-      if (assetConflict) {
-        return NextResponse.json(
-          { error: "This space is already booked for the selected time." },
-          { status: 409 }
-        )
-      }
+    if (!slotAvailability.available) {
+      return NextResponse.json({ error: slotAvailability.reason }, { status: 409 })
     }
 
     const requiresPayment = priced.totalPrice > 0

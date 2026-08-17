@@ -10,8 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/lib/toast"
-import { Loader2, ArrowLeft, Calendar, Clock, Building2 } from "lucide-react"
+import { Loader2, ArrowLeft, Calendar, Clock, Building2, CheckCircle2, XCircle } from "lucide-react"
 import { format } from "date-fns"
+import { verifyBookingSlotAvailable } from "@/lib/booking-verify-client"
 
 const PENDING_BOOKING_KEY = "pendingWorkspaceBooking"
 
@@ -58,11 +59,15 @@ function getDurationLabel(duration: string, meetingRoomHours?: number) {
   }
 }
 
+type AvailabilityStatus = "checking" | "available" | "unavailable"
+
 export default function BookingPaymentPage() {
   const router = useRouter()
   const [pending, setPending] = useState<PendingBookingPayload | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [availabilityStatus, setAvailabilityStatus] = useState<AvailabilityStatus>("checking")
+  const [availabilityReason, setAvailabilityReason] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -85,8 +90,50 @@ export default function BookingPaymentPage() {
     }
   }, [router])
 
+  const runAvailabilityCheck = async (payload: PendingBookingPayload) => {
+    setAvailabilityStatus("checking")
+    setAvailabilityReason(null)
+
+    const result = await verifyBookingSlotAvailable({
+      resourceType: payload.resourceType,
+      date: payload.date,
+      startTime: payload.startTime,
+      duration: payload.duration,
+      workspaceId: payload.workspaceId,
+      ...(payload.spaceAssetId && { spaceAssetId: payload.spaceAssetId }),
+      ...(payload.meetingRoomHours && { meetingRoomHours: payload.meetingRoomHours }),
+    })
+
+    if (result.available) {
+      setAvailabilityStatus("available")
+      return { available: true as const }
+    }
+
+    const reason = result.reason || "This time slot is no longer available."
+    setAvailabilityStatus("unavailable")
+    setAvailabilityReason(reason)
+    return { available: false as const, reason }
+  }
+
+  useEffect(() => {
+    if (!pending) return
+    void runAvailabilityCheck(pending)
+  }, [pending])
+
+  const ensureAvailability = async () => {
+    if (!pending) {
+      return { available: false as const, reason: "Missing booking details" }
+    }
+    return runAvailabilityCheck(pending)
+  }
+
   const createBooking = async () => {
     if (!pending) throw new Error("Missing booking details")
+
+    const check = await ensureAvailability()
+    if (!check.available) {
+      throw new Error(check.reason)
+    }
 
     const bookingRes = await fetch("/api/bookings", {
       method: "POST",
@@ -167,7 +214,8 @@ export default function BookingPaymentPage() {
   }
 
   const bookingDate = pending ? new Date(pending.date) : null
-  const busy = isProcessing || isRedirecting
+  const busy = isProcessing || isRedirecting || availabilityStatus === "checking"
+  const canCheckout = availabilityStatus === "available" && !busy
   const isFree = (pending?.totalPrice ?? 0) <= 0
 
   return (
@@ -238,12 +286,48 @@ export default function BookingPaymentPage() {
 
             <Card>
               <CardHeader className="pb-3">
+                <CardTitle className="text-base">Availability</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {availabilityStatus === "checking" && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Confirming your slot is still available…
+                  </div>
+                )}
+                {availabilityStatus === "available" && (
+                  <div className="flex items-center gap-2 text-sm text-primary">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    Slot confirmed. You can proceed to payment.
+                  </div>
+                )}
+                {availabilityStatus === "unavailable" && (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 text-sm text-destructive">
+                      <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{availabilityReason || "This time slot is no longer available."}</span>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href="/booking">Choose another time</Link>
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-base">Payment</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {isFree ? (
                   <>
-                    <Button className="w-full" size="lg" onClick={() => void handleConfirmFree()} disabled={busy}>
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      onClick={() => void handleConfirmFree()}
+                      disabled={!canCheckout}
+                    >
                       {busy ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -253,11 +337,20 @@ export default function BookingPaymentPage() {
                         "Confirm booking"
                       )}
                     </Button>
-                    <p className="text-center text-xs text-muted-foreground">No payment required.</p>
+                    <p className="text-center text-xs text-muted-foreground">
+                      {availabilityStatus === "available"
+                        ? "No payment required."
+                        : "Availability must be confirmed before booking."}
+                    </p>
                   </>
                 ) : (
                   <>
-                    <Button className="w-full" size="lg" onClick={() => void handlePayWithPaystack()} disabled={busy}>
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      onClick={() => void handlePayWithPaystack()}
+                      disabled={!canCheckout}
+                    >
                       {busy ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -268,7 +361,9 @@ export default function BookingPaymentPage() {
                       )}
                     </Button>
                     <p className="text-center text-xs text-muted-foreground">
-                      Card or M-Pesa via Paystack. Your booking is confirmed after payment.
+                      {availabilityStatus === "available"
+                        ? "Card or M-Pesa via Paystack. Your booking is confirmed after payment."
+                        : "Availability must be confirmed before payment."}
                     </p>
                   </>
                 )}
@@ -295,7 +390,7 @@ export default function BookingPaymentPage() {
               size="lg"
               className="h-11 min-w-[7.5rem]"
               onClick={() => void (isFree ? handleConfirmFree() : handlePayWithPaystack())}
-              disabled={busy}
+              disabled={!canCheckout}
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : isFree ? "Confirm" : "Pay"}
             </Button>

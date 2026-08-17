@@ -27,6 +27,7 @@ import { StickyBookingSummary } from "@/components/booking/sticky-booking-summar
 import { WorkspacePicker } from "@/components/booking/workspace-picker"
 import { AssetSelector } from "@/components/booking/asset-selector"
 import { getCheckoutGuideHint, isBookableForCheckout } from "@/lib/checkout-guide-hint"
+import { BOOKING_SPACE_IMAGES } from "@/lib/booking-space-images"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import { useMembershipBenefits } from "@/lib/hooks/use-membership"
 import {
@@ -40,7 +41,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { verifyBookingSlotAvailable } from "@/lib/booking-verify-client"
 
 function BookingPageContent() {
   const router = useRouter()
@@ -117,6 +118,7 @@ function BookingPageContent() {
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [pastriesPax, setPastriesPax] = useState(1)
   const [selectedSpaceAssetId, setSelectedSpaceAssetId] = useState<string | null>(null)
+  const [isVerifyingAvailability, setIsVerifyingAvailability] = useState(false)
 
   const { pricing } = usePricing(
     workspaceId,
@@ -269,7 +271,7 @@ function BookingPageContent() {
     return selectedTime || null
   }, [selectedResource, selectedDuration, selectedHalfDay, selectedTime])
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!workspace?.id) {
       toast.error("Workspace unavailable", "Please refresh and try again.")
       return
@@ -330,12 +332,32 @@ function BookingPageContent() {
       payload.spaceAssetId = selectedSpaceAssetId
     }
 
+    setIsVerifyingAvailability(true)
     try {
+      const verification = await verifyBookingSlotAvailable({
+        resourceType: selectedResource,
+        date: payload.date as string,
+        startTime,
+        duration: payload.duration as string,
+        workspaceId: workspace.id,
+        ...(selectedSpaceAssetId && { spaceAssetId: selectedSpaceAssetId }),
+        ...(selectedResource === "meeting-room" && {
+          meetingRoomHours: selectedMeetingRoomHours,
+        }),
+      })
+
+      if (!verification.available) {
+        toast.error("Slot unavailable", verification.reason || "Please choose another time.")
+        return
+      }
+
       sessionStorage.setItem("pendingWorkspaceBooking", JSON.stringify(payload))
       window.location.href = "/booking/payment"
     } catch (e) {
-      console.error("[BOOKING PAGE] Failed to save pending booking:", e)
+      console.error("[BOOKING PAGE] Failed to verify availability:", e)
       toast.error("Something went wrong", "Please try again.")
+    } finally {
+      setIsVerifyingAvailability(false)
     }
   }
 
@@ -451,7 +473,7 @@ function BookingPageContent() {
             )}
             <div className="space-y-4">
               <ImageGallery
-                images={workspace.images}
+                images={[...BOOKING_SPACE_IMAGES]}
                 spaceName={workspace.name}
                 compact
                 className="w-full"
@@ -715,14 +737,23 @@ function BookingPageContent() {
                     <Button
                       size="lg"
                       className="w-full"
-                      disabled={!isValidBooking}
-                      onClick={handleConfirmBooking}
+                      disabled={!isValidBooking || isVerifyingAvailability}
+                      onClick={() => void handleConfirmBooking()}
                     >
-                      {isValidBooking
-                        ? totalPrice === 0
-                          ? "Confirm free booking"
-                          : "Continue to checkout"
-                        : "Complete booking first"}
+                      {isVerifyingAvailability ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Checking availability…
+                        </>
+                      ) : isValidBooking ? (
+                        totalPrice === 0 ? (
+                          "Confirm free booking"
+                        ) : (
+                          "Continue to checkout"
+                        )
+                      ) : (
+                        "Complete booking first"
+                      )}
                     </Button>
                   </div>
                 </aside>
@@ -735,9 +766,9 @@ function BookingPageContent() {
                 aria-label="Checkout guide"
               >
                 <CheckoutGuideStrip
-                  ready={isValidBooking}
+                  ready={isValidBooking && !isVerifyingAvailability}
                   hint={checkoutGuideHint}
-                  onCheckout={handleConfirmBooking}
+                  onCheckout={() => void handleConfirmBooking()}
                 />
               </section>
             )}
@@ -754,11 +785,11 @@ function BookingPageContent() {
                   membershipDiscount,
                   currency: safePricing.currency,
                 }}
-                onConfirm={handleConfirmBooking}
-                isBooking={false}
-                isValid={isValidBooking}
+                onConfirm={() => void handleConfirmBooking()}
+                isBooking={isVerifyingAvailability}
+                isValid={isValidBooking && !isVerifyingAvailability}
                 showGuide={showCheckoutGuide}
-                guideReady={isValidBooking}
+                guideReady={isValidBooking && !isVerifyingAvailability}
                 guideHint={checkoutGuideHint}
               />
             )}
