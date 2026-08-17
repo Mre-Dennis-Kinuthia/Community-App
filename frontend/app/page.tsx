@@ -21,6 +21,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react"
+import { Logo } from "@/components/logo"
 import { LandingPartnerLogo } from "@/components/landing-partner-logo"
 import { LANDING_IMPLEMENTATION_PARTNERS, LANDING_STRATEGIC_PARTNERS } from "@/lib/landing-partners"
 import { cn } from "@/lib/utils"
