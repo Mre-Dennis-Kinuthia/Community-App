@@ -12,6 +12,12 @@ const DARK_LOGOS = new Set(AAC_PARTNERS.filter((p) => p.onDark).map((p) => p.log
 
 function MemberCard({ member, compact = false }: { member: AacWorkingGroupMember; compact?: boolean }) {
   const darkLogo = member.logo ? DARK_LOGOS.has(member.logo) : false
+  const initials = member.name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
 
   return (
     <article
@@ -21,7 +27,18 @@ function MemberCard({ member, compact = false }: { member: AacWorkingGroupMember
       )}
     >
       <div className="flex items-start gap-3">
-        {member.logo ? (
+        {member.photo ? (
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-[#edeff2] bg-[#faf9f6]">
+            <Image
+              src={member.photo}
+              alt={member.name}
+              fill
+              sizes="56px"
+              unoptimized
+              className="object-cover"
+            />
+          </div>
+        ) : member.logo ? (
           <div
             className={cn(
               "flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-md border",
@@ -42,12 +59,7 @@ function MemberCard({ member, compact = false }: { member: AacWorkingGroupMember
             aria-hidden
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[#812926]/10 text-sm font-semibold text-[#812926]"
           >
-            {member.name
-              .split(" ")
-              .filter(Boolean)
-              .slice(0, 2)
-              .map((part) => part[0])
-              .join("")}
+            {initials}
           </div>
         )}
         <div className="min-w-0">

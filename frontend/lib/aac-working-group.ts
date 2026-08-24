@@ -6,6 +6,8 @@ export type AacWorkingGroupMember = {
   organization: string
   cohort: AacWorkingGroupCohort
   bio?: string
+  /** Portrait extracted from the Working Group PDF, when available */
+  photo?: string
   /** Matched AAC partner logo, when the organisation already appears in the partners grid */
   logo?: string
   /** Reserved for organisation profile pages */
@@ -18,42 +20,49 @@ export const AAC_WORKING_GROUP: AacWorkingGroupMember[] = [
     role: "Partnerships Lead",
     organization: "Impact Hub Nairobi",
     cohort: "secretariat",
+    photo: "/programs/aac/working-group/zena-ali.jpg",
   },
   {
     name: "Keni Kariuki",
     role: "Co-Founder, Programs and Operations",
     organization: "Impact Hub Nairobi",
     cohort: "secretariat",
+    photo: "/programs/aac/working-group/keni-kariuki.jpg",
   },
   {
     name: "Joy Njeri",
     role: "Program Officer",
     organization: "Impact Hub Nairobi",
     cohort: "secretariat",
+    photo: "/programs/aac/working-group/joy-njeri.jpg",
   },
   {
     name: "Beatrice Njiiri",
     role: "Junior Research & Programs Officer",
     organization: "Impact Hub Nairobi",
     cohort: "secretariat",
+    photo: "/programs/aac/working-group/beatrice-njiiri.jpg",
   },
   {
     name: "Dennis Ndungu",
     role: "Community & Events Lead",
     organization: "Impact Hub Nairobi",
     cohort: "secretariat",
+    photo: "/programs/aac/working-group/dennis-ndungu.jpg",
   },
   {
     name: "Jackline Kamathi",
     role: "Senior Program Officer",
     organization: "Impact Hub Nairobi",
     cohort: "secretariat",
+    photo: "/programs/aac/working-group/jackline-kamathi.jpg",
   },
   {
     name: "Irene Ghadi",
     role: "Associate Program Officer",
     organization: "Impact Hub Nairobi",
     cohort: "secretariat",
+    photo: "/programs/aac/working-group/irene-ghadi.jpg",
   },
   {
     name: "Bruce Hiller",
@@ -317,6 +326,7 @@ export const AAC_WORKING_GROUP: AacWorkingGroupMember[] = [
     role: "Network Executive",
     organization: "Small Foundation",
     cohort: "observers",
+    photo: "/programs/aac/working-group/esther-mwikali.jpg",
     bio: "Grows and supports networks across Africa with a focus on systems change. Previously invested in early-stage companies at Renew Capital and led JICA's NINJA innovation programme at Growth Africa.",
   },
   {
@@ -324,6 +334,7 @@ export const AAC_WORKING_GROUP: AacWorkingGroupMember[] = [
     role: "Head of Strategic Country Program Delivery",
     organization: "Mastercard Foundation",
     cohort: "observers",
+    photo: "/programs/aac/working-group/antony-wahome.jpg",
     bio: "Market-systems, digital-economy, and MEL practitioner with over 14 years designing, implementing, and evaluating programmes with governments, development partners, and corporate foundations across sub-Saharan Africa.",
   },
   {
@@ -331,6 +342,7 @@ export const AAC_WORKING_GROUP: AacWorkingGroupMember[] = [
     role: "Head of Corporate Affairs",
     organization: "Independent Consultant",
     cohort: "observers",
+    photo: "/programs/aac/working-group/khatuchi-khasandi.jpg",
     bio: "Consults with the Lemelson Foundation and leads the Kenya Innovation Ecosystem Funders Forum. Previously directed invention-education partnerships at Rice360 and led ANDE's East Africa chapter.",
   },
   {
@@ -338,6 +350,7 @@ export const AAC_WORKING_GROUP: AacWorkingGroupMember[] = [
     role: "Program Officer",
     organization: "Segal Family Foundation",
     cohort: "observers",
+    photo: "/programs/aac/working-group/wangari-ngunjiri.jpg",
     bio: "Leads grantmaking and community-building for Kenya and Uganda partners. Holds a master's in Development Studies from Nelson Mandela University, with research rooted in feminist economic theory.",
   },
 ]
