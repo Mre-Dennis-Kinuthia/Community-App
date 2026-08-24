@@ -227,7 +227,112 @@ export const AAC_STORY_ANGLES = [
   "AAC at the HereAfrica festival",
 ] as const
 
-export const AAC_PARTNERS = ["DOEN Foundation", "Impact Hub Nairobi"] as const
+export type AacPartner = {
+  name: string
+  logo: string
+  href?: string
+  /** Logo artwork is designed for a dark background */
+  onDark?: boolean
+}
+
+export const AAC_PARTNERS: AacPartner[] = [
+  {
+    name: "Digital Green",
+    logo: "/programs/aac/partners/digital-green.png",
+    href: "https://www.digitalgreen.org",
+  },
+  {
+    name: "Chemichemi Organics",
+    logo: "/programs/aac/partners/chemi-chemi-organic.png",
+  },
+  {
+    name: "Dimitri Food",
+    logo: "/programs/aac/partners/dimitri-food.png",
+  },
+  {
+    name: "AgriFlex",
+    logo: "/programs/aac/partners/agriflex.png",
+  },
+  {
+    name: "NutriMzuri",
+    logo: "/programs/aac/partners/nutrimzuri.png",
+    onDark: true,
+  },
+  {
+    name: "GGGI",
+    logo: "/programs/aac/partners/gggi.png",
+    href: "https://gggi.org",
+    onDark: true,
+  },
+  {
+    name: "Forest Foods",
+    logo: "/programs/aac/partners/forest-foods.png",
+    onDark: true,
+  },
+  {
+    name: "SYSTEMIQ",
+    logo: "/programs/aac/partners/systemiq.png",
+    href: "https://www.systemiq.earth",
+  },
+  {
+    name: "Green Intelligence",
+    logo: "/programs/aac/partners/green-intelligence.png",
+    onDark: true,
+  },
+  {
+    name: "ICRW",
+    logo: "/programs/aac/partners/icrw.png",
+    href: "https://www.icrw.org",
+  },
+  {
+    name: "griincom",
+    logo: "/programs/aac/partners/griincom.png",
+  },
+  {
+    name: "JBQ Africa",
+    logo: "/programs/aac/partners/jbq-africa.png",
+  },
+  {
+    name: "Kenya Climate Innovation Center",
+    logo: "/programs/aac/partners/kcic.png",
+    href: "https://www.kenyacic.org",
+    onDark: true,
+  },
+  {
+    name: "Inspire Nature Consulting Africa",
+    logo: "/programs/aac/partners/inspire-nature.png",
+    onDark: true,
+  },
+  {
+    name: "Kuza",
+    logo: "/programs/aac/partners/kuza.png",
+    href: "https://www.kuza.one",
+  },
+  {
+    name: "Sylvia's Basket",
+    logo: "/programs/aac/partners/sylvias-basket.png",
+    onDark: true,
+  },
+  {
+    name: "Vi Agroforestry",
+    logo: "/programs/aac/partners/vi-agroforestry.png",
+    href: "https://viagroforestry.org",
+  },
+  {
+    name: "R&S Farms",
+    logo: "/programs/aac/partners/rs-farms.png",
+  },
+  {
+    name: "IBMA Kenya",
+    logo: "/programs/aac/partners/ibma-kenya.png",
+    onDark: true,
+  },
+  {
+    name: "IFJAD",
+    logo: "/programs/aac/partners/ifjad.png",
+    onDark: true,
+  },
+]
 
 export const AAC_CONTACT_EMAIL = "ihn.programs@impacthub.net"
 
@@ -243,6 +348,8 @@ export const AAC_SECTIONS = [
   { id: "journey", label: "Journey" },
   { id: "stories", label: "Stories" },
   { id: "videos", label: "Videos" },
+  { id: "working-group", label: "Working Group" },
+  { id: "partners", label: "Partners" },
 ] as const
 
 export const AAC_STORY_ARC = [

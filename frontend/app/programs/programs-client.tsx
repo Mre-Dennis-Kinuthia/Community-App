@@ -17,6 +17,7 @@ import {
   getLandingProgramBySlug,
   type LandingProgram,
 } from "@/lib/landing-programs"
+import { AAC_PARTNERS } from "@/lib/aac-program"
 import { cn } from "@/lib/utils"
 
 function statusTone(status: LandingProgram["status"]) {
@@ -216,6 +217,58 @@ export default function ProgramsPageClient() {
                 </span>
               </div>
             </Link>
+
+            <div className="mt-8 rounded-lg border border-[#edeff2] bg-white p-5 md:p-6">
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#812926]">
+                    AAC Partners
+                  </p>
+                  <h3 className="mt-1 text-base font-semibold text-[#0a1f38]">
+                    Ecosystem partners of Year One
+                  </h3>
+                </div>
+                <Link
+                  href="/programs/aac#partners"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-[#812926] hover:underline"
+                >
+                  View on AAC page
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </Link>
+              </div>
+              <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+                {AAC_PARTNERS.map((partner) => (
+                  <li key={partner.name}>
+                    <div
+                      className={cn(
+                        "flex h-20 items-center justify-center rounded-md border px-2",
+                        partner.onDark
+                          ? "border-[#0a1f38] bg-[#0a1f38]"
+                          : "border-[#edeff2] bg-[#faf9f6]"
+                      )}
+                    >
+                      <Image
+                        src={partner.logo}
+                        alt={partner.name}
+                        width={120}
+                        height={40}
+                        unoptimized
+                        className="max-h-12 w-auto max-w-full object-contain"
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-center text-sm text-[#1c395c]/75">
+                Meet the people behind the programme —{" "}
+                <Link
+                  href="/programs/aac#working-group"
+                  className="font-medium text-[#812926] hover:underline"
+                >
+                  AAC Working Group
+                </Link>
+              </p>
+            </div>
           </section>
         ) : null}
 

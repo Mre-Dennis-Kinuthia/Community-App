@@ -20,6 +20,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AacGallery } from "@/components/programs/aac-gallery"
+import { AacPartners } from "@/components/programs/aac-partners"
+import { AacWorkingGroup } from "@/components/programs/aac-working-group"
 import { MarketingPublicLayout } from "@/components/marketing/marketing-public-layout"
 import {
   AAC_BASELINE_CHALLENGES,
@@ -29,6 +31,7 @@ import {
   AAC_IMAGES,
   AAC_IMPACT_PATHWAY,
   AAC_KEY_CHANGES,
+  AAC_PARTNERS,
   AAC_PILOTS,
   AAC_PRACTICE_ADOPTION,
   AAC_REPORTING_PERIOD,
@@ -674,6 +677,37 @@ export default function AacProgramClient() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Working Group */}
+        <section
+          id="working-group"
+          className="scroll-mt-28 border-b border-[#edeff2] bg-[#faf9f6] py-12 md:py-16"
+        >
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <SectionHeading
+              label="The people"
+              title="AAC Working Group"
+              description="A multi-stakeholder group of practitioners, enterprises, researchers, county extension, and ecosystem partners — convened by Impact Hub Nairobi — who diagnosed the system, co-designed two pilots, and are shaping Year Two."
+            />
+            <div className="mt-10">
+              <AacWorkingGroup />
+            </div>
+          </div>
+        </section>
+
+        {/* Partners */}
+        <section id="partners" className="scroll-mt-28 border-b border-[#edeff2] bg-white py-12 md:py-16">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <SectionHeading
+              label="AAC Partners"
+              title="The ecosystem behind Year One"
+              description="Agribusinesses, research institutions, and ecosystem enablers who convened, co-designed, and delivered AAC alongside Impact Hub Nairobi."
+            />
+            <div className="mt-10">
+              <AacPartners partners={AAC_PARTNERS} />
             </div>
           </div>
         </section>
