@@ -10,6 +10,7 @@ import {
   BookOpen,
   CheckCircle2,
   ChevronRight,
+  FileDown,
   Leaf,
   Mail,
   MapPin,
@@ -27,12 +28,17 @@ import {
   AAC_BASELINE_CHALLENGES,
   AAC_CONTACT_EMAIL,
   AAC_ENDLINE_STATS,
+  AAC_FARMER_GUIDE,
   AAC_HERO_STATS,
   AAC_IMAGES,
   AAC_IMPACT_PATHWAY,
   AAC_KEY_CHANGES,
   AAC_PARTNERS,
+  AAC_PILOT_A_CURRICULUM,
   AAC_PILOTS,
+  AAC_LIVING_LAB_PHOTOS,
+  AAC_FOREST_FOOD_PHOTOS,
+  AAC_HERE_EVENT_PHOTOS,
   AAC_PRACTICE_ADOPTION,
   AAC_REPORTING_PERIOD,
   AAC_SECTIONS,
@@ -299,7 +305,7 @@ export default function AacProgramClient() {
             <SectionHeading
               label="Year One at a glance"
               title="Farmer training outcomes"
-              description="144 endline records from Kiambu County — high participation, strong learning, and widespread intention to apply."
+              description="150 farmers trained across Kikuyu, Kabete and Limuru. The figures below are from 144 endline survey records — high participation, strong learning, and widespread intention to apply."
             />
 
             <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -404,7 +410,7 @@ export default function AacProgramClient() {
             <SectionHeading
               label="Two proof-of-concept pilots"
               title="Pilot A & Pilot B"
-              description="Capacity building through the extension system — connected to consumer demand testing through market activation."
+              description="Capacity building through the extension system for 150 farmers — connected to consumer demand testing through market activation."
             />
 
             <div className="mt-8 flex gap-2">
@@ -425,25 +431,54 @@ export default function AacProgramClient() {
               ))}
             </div>
 
-            <article className="mt-6 overflow-hidden rounded-lg border border-[#edeff2] bg-white shadow-sm lg:grid lg:grid-cols-2">
-              <div className="relative min-h-[16rem] lg:min-h-[22rem]">
-                <Image
-                  key={pilot.image}
-                  src={pilot.image}
-                  alt=""
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover"
-                  unoptimized
-                />
-                <span className="absolute left-4 top-4 rounded-full bg-[#812926] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-                  {pilot.name}
-                </span>
+            <article className="mt-6 overflow-hidden rounded-lg border border-[#edeff2] bg-white shadow-sm">
+              <div className="lg:grid lg:grid-cols-2">
+                <div className="relative min-h-[16rem] lg:min-h-[22rem]">
+                  <Image
+                    key={pilot.image}
+                    src={pilot.image}
+                    alt={
+                      pilot.id === "pilot-a"
+                        ? "Live-in Lab participants at Sylvia's Basket Farm with the AAC banner"
+                        : "Consumer activation at the HereAfrica Food and Drink Festival"
+                    }
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                    unoptimized
+                  />
+                  <span className="absolute left-4 top-4 rounded-full bg-[#812926] px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                    {pilot.name}
+                  </span>
+                </div>
+                <div className="flex flex-col justify-center p-6 md:p-8 lg:p-10">
+                  <h3 className="text-xl font-semibold text-[#0a1f38] md:text-2xl">{pilot.title}</h3>
+                  <p className="mt-4 text-sm leading-relaxed text-[#1c395c]/80">{pilot.description}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-[#1c395c]/80">{pilot.overview}</p>
+                  <dl className="mt-6 grid gap-3 sm:grid-cols-2">
+                    {pilot.facts.map((fact) => (
+                      <div key={fact.label} className="rounded-md border border-[#edeff2] bg-[#faf9f6] px-3 py-2.5">
+                        <dt className="text-[10px] font-semibold uppercase tracking-wide text-[#812926]">
+                          {fact.label}
+                        </dt>
+                        <dd className="mt-0.5 text-sm font-medium text-[#0a1f38]">{fact.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
               </div>
-              <div className="flex flex-col justify-center p-6 md:p-8 lg:p-10">
-                <h3 className="text-xl font-semibold text-[#0a1f38] md:text-2xl">{pilot.title}</h3>
-                <p className="mt-4 text-sm leading-relaxed text-[#1c395c]/80">{pilot.description}</p>
-                <ul className="mt-6 space-y-3">
+
+              <div className="border-t border-[#edeff2] p-6 md:p-8 lg:p-10">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-[#812926]">How it worked</h4>
+                <ul className="mt-4 grid gap-3 md:grid-cols-2">
+                  {pilot.howItWorked.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-sm text-[#1c395c]/85">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#7ebb55]" aria-hidden />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <ul className="mt-6 space-y-3 border-t border-[#edeff2] pt-6">
                   {pilot.highlights.map((item) => (
                     <li key={item} className="flex items-start gap-2.5 text-sm text-[#1c395c]/85">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#7ebb55]" aria-hidden />
@@ -451,6 +486,108 @@ export default function AacProgramClient() {
                     </li>
                   ))}
                 </ul>
+
+                {pilot.id === "pilot-a" ? (
+                  <div className="mt-8 border-t border-[#edeff2] pt-8">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#812926]">
+                      From the Live-in Lab
+                    </p>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#1c395c]/80">
+                      Training and co-creation at Sylvia&apos;s Basket / Kilimo Endelevu Farm in Ndeiya
+                      — workshops, the regenerative curriculum, and the seed bank that keeps farm
+                      loops in motion.
+                    </p>
+                    <div className="mt-5">
+                      <AacGallery photos={AAC_LIVING_LAB_PHOTOS} compact />
+                    </div>
+                  </div>
+                ) : null}
+
+                {pilot.id === "pilot-a" ? (
+                  <div className="mt-8 border-t border-[#edeff2] pt-8">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#812926]">
+                      Closing the Loop at Forest Food
+                    </p>
+                    <h4 className="mt-2 text-lg font-semibold text-[#0a1f38]">
+                      Farm Showcase · 4 July 2026
+                    </h4>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#1c395c]/80">
+                      A field day at Forest Foods — mulching, plant health, and planting together —
+                      so extension officers, partners and visitors could see regenerative practice on
+                      a working farm.
+                    </p>
+                    <div className="mt-5">
+                      <AacGallery photos={AAC_FOREST_FOOD_PHOTOS} compact />
+                    </div>
+                  </div>
+                ) : null}
+
+                {pilot.id === "pilot-b" ? (
+                  <div className="mt-8 border-t border-[#edeff2] pt-8">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#812926]">
+                      HereAfrica Food &amp; Drink Festival
+                    </p>
+                    <h4 className="mt-2 text-lg font-semibold text-[#0a1f38]">
+                      Discovery Booth · Nairobi, 13 June 2026
+                    </h4>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#1c395c]/80">
+                      Shared marketing and trust-building with Forest Foods, Kaijuju and Sylvia&apos;s
+                      Basket — six discovery booths, regenerative produce, and conversations that
+                      turned attention into follow-up interest.
+                    </p>
+                    <div className="mt-5">
+                      <AacGallery photos={AAC_HERE_EVENT_PHOTOS} compact />
+                    </div>
+                  </div>
+                ) : null}
+
+                {pilot.id === "pilot-a" ? (
+                  <div className="mt-8 border-t border-[#edeff2] pt-8">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="max-w-2xl">
+                        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#812926]">
+                          <BookOpen className="h-3.5 w-3.5" aria-hidden />
+                          Pilot A curriculum
+                        </p>
+                        <h4 className="mt-2 text-lg font-semibold text-[#0a1f38]">{AAC_FARMER_GUIDE.title}</h4>
+                        <p className="mt-2 text-sm leading-relaxed text-[#1c395c]/80">
+                          {AAC_FARMER_GUIDE.subtitle}
+                        </p>
+                      </div>
+                      <a
+                        href={AAC_FARMER_GUIDE.href}
+                        download
+                        className="inline-flex items-center gap-2 rounded-full border border-[#812926]/20 bg-[#812926]/5 px-4 py-2 text-sm font-medium text-[#812926] transition-colors hover:bg-[#812926]/10"
+                      >
+                        <FileDown className="h-4 w-4" aria-hidden />
+                        Download the farmer guide (PDF)
+                      </a>
+                    </div>
+                    <ol className="mt-6 grid gap-4 md:grid-cols-2">
+                      {AAC_PILOT_A_CURRICULUM.map((module) => (
+                        <li
+                          key={module.chapter}
+                          className="rounded-lg border border-[#edeff2] bg-[#faf9f6] p-4"
+                        >
+                          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#812926]">
+                            Chapter {module.chapter}
+                          </p>
+                          <h5 className="mt-1 text-sm font-semibold text-[#0a1f38]">{module.title}</h5>
+                          <p className="mt-2 text-xs leading-relaxed text-[#1c395c]/80">{module.summary}</p>
+                          {"items" in module && module.items ? (
+                            <ul className="mt-3 space-y-1.5">
+                              {module.items.map((item) => (
+                                <li key={item} className="text-xs leading-snug text-[#1c395c]/80">
+                                  · {item}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null}
               </div>
             </article>
           </div>
@@ -462,7 +599,7 @@ export default function AacProgramClient() {
             <SectionHeading
               label="Evidence from the field"
               title="What farmers learned — and plan to apply"
-              description="Strong understanding in production topics; market access and post-harvest remain areas for Year Two follow-up."
+              description="Results from the 150-farmer Pilot A cohort in Kiambu. Understanding was strongest on production topics; market access and post-harvest remain areas for Year Two. Baseline challenges use 145 survey records."
             />
 
             <div className="mt-10 grid gap-8 lg:grid-cols-2">

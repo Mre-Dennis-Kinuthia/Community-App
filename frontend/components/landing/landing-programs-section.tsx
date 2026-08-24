@@ -49,7 +49,7 @@ export function LandingProgramsSection() {
         <SectionHeader
           label="Programs & initiatives"
           title="Building ventures and ecosystems that last"
-          description="AAC trains farmers across Kiambu. Climate accelerators and member programmes sit alongside it. Here's a look at what's running now."
+          description="AAC trained 150 farmers across Kiambu. Climate accelerators and member programmes sit alongside it. Here's a look at what's running now."
           className="mb-10 md:mb-12"
         />
 

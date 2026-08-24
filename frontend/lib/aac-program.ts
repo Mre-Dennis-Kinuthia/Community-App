@@ -1,14 +1,36 @@
 export const AAC_IMAGES = {
-  hero: "/programs/aac/discovery-booth.png",
-  discoveryBooth: "/programs/aac/discovery-booth.png",
-  marketEvent: "/programs/aac/market-event.png",
+  hero: "/programs/aac/here-event/discovery-booth.jpg",
+  discoveryBooth: "/programs/aac/here-event/discovery-booth.jpg",
+  marketEvent: "/programs/aac/here-event/evening-tent.jpg",
   greenhouseGroup: "/programs/aac/greenhouse-group.png",
   greenhouseInterior: "/programs/aac/greenhouse-interior.png",
   fieldTraining: "/programs/aac/field-training.png",
   agroforestryLesson: "/programs/aac/agroforestry-lesson.png",
   plantingDemo: "/programs/aac/planting-demo.png",
   communityTraining: "/programs/aac/community-training.png",
+  livingLabGroup: "/programs/aac/living-lab/group.jpg",
+  livingLabCurriculum: "/programs/aac/living-lab/curriculum.jpg",
+  livingLabWorkshop: "/programs/aac/living-lab/workshop.jpg",
+  livingLabCircle: "/programs/aac/living-lab/circle.jpg",
+  livingLabSeedBank: "/programs/aac/living-lab/seed-bank.jpg",
+  livingLabSeedJars: "/programs/aac/living-lab/seed-jars.jpg",
+  forestFoodMulch: "/programs/aac/forest-food/mulch-demo.jpg",
+  forestFoodLeaf: "/programs/aac/forest-food/leaf-lesson.jpg",
+  forestFoodPlanting: "/programs/aac/forest-food/planting-demo.jpg",
+  forestFoodTogether: "/programs/aac/forest-food/planting-together.jpg",
+  forestFoodConversation: "/programs/aac/forest-food/field-conversation.jpg",
+  hereEventGroup: "/programs/aac/here-event/team-group.jpg",
+  hereEventBooth: "/programs/aac/here-event/discovery-booth.jpg",
+  hereEventBanners: "/programs/aac/here-event/banners.jpg",
+  hereEventProduce: "/programs/aac/here-event/produce-box.jpg",
+  hereEventEvening: "/programs/aac/here-event/evening-tent.jpg",
 } as const
+
+export type AacPhoto = {
+  src: string
+  alt: string
+  caption: string
+}
 
 export const AAC_VIDEOS = [
   {
@@ -112,7 +134,62 @@ export const AAC_TIMELINE = [
   {
     date: "Jun–Jul 2026",
     stage: "Implementation & evidence",
-    detail: "Farmer training and consumer activation generated the first outcome datasets.",
+    detail:
+      "150 farmers trained across Kikuyu, Kabete and Limuru; consumer activation generated the first outcome datasets.",
+  },
+] as const
+
+export const AAC_FARMER_GUIDE = {
+  href: "/programs/aac/farmer-guide.pdf",
+  title: "A Simple Farmer's Guide — Understanding Regenerative and Circular Farming",
+  subtitle:
+    "Based on the AAC Pilot A training curriculum at Sylvia's Basket Farm, Ndeiya, Kiambu. Written for farmers and walked through by extension officers.",
+} as const
+
+export const AAC_PILOT_A_CURRICULUM = [
+  {
+    chapter: "1",
+    title: "What is regenerative and circular farming?",
+    summary:
+      "Circular farming brings waste, cost and risk back into use on the farm. Regenerative farming leaves land healthier each year. Together they mean less waste, a stronger farm, more income, and more nutritious food.",
+  },
+  {
+    chapter: "2",
+    title: "Five principles",
+    summary: "A practical spine for the field — not a rigid package.",
+    items: [
+      "Disturb the soil as little as possible",
+      "Keep the soil covered",
+      "Keep living roots in the soil",
+      "Grow many kinds of plants",
+      "Bring animals back onto the land",
+    ],
+  },
+  {
+    chapter: "3",
+    title: "Soil as the foundation",
+    summary:
+      "Soil is alive. Farmers learn four field questions — can water get in, can air get in, can roots grow deep, and are living things present — and the practice of feeding the soil, not just the plant.",
+  },
+  {
+    chapter: "4",
+    title: "Farm loops",
+    summary: "What already exists on the farm can cycle back into production.",
+    items: [
+      "Nutrient loop — manure and compost",
+      "Water loop — hold moisture, cut waste",
+      "Seed loop — save from the healthiest plants",
+      "Biodiversity and pest loop — mix crops, observe before spraying",
+      "Livestock loop — housing, feed, and safe manure handling",
+      "Energy and biomass loop — mulch and compost, not burning",
+      "Home-made inputs — compost teas and sprays as a complement, not a substitute",
+    ],
+  },
+  {
+    chapter: "5",
+    title: "Why this matters — and first steps",
+    summary:
+      "Lower input costs, less water work, less risk, stronger land over time, safer food, and trust with buyers. Farmers do not need to change everything at once: start with soil, one compost heap, cover bare ground, save seed, and fix one water loss.",
   },
 ] as const
 
@@ -122,28 +199,56 @@ export const AAC_PILOTS = [
     name: "Pilot A",
     title: "Building Capacity Through the Extension System",
     description:
-      "A farm-based Live-in Lab at Sylvia's Basket / Kilimo Endelevu Farm in Ndeiya, Kiambu County. Five extension workers from Limuru, Kabete and Kikuyu participated, supported by the Kiambu Director of Agriculture. Knowledge then travelled into farmer training across three sub-counties.",
+      "Pilot A tested whether practical, farm-based learning — delivered through Kenya's existing public extension system — could build farmer capacity in regenerative and circular agriculture at pace. The training cohort was 150 farmers in Kiambu County.",
+    overview:
+      "The Live-in Lab sat at Sylvia's Basket / Kilimo Endelevu Farm in Ndeiya. Five extension workers from Limuru, Kabete and Kikuyu took part, with support from the Kiambu County Director of Agriculture. Officers then carried a shared curriculum into farmer training across those three sub-counties. Baseline and endline surveys captured learning among 145 and 144 records respectively; 99.3% of surveyed farmers attended all or part of the training.",
+    facts: [
+      { label: "Farmers trained", value: "150" },
+      { label: "Sub-counties", value: "Kikuyu, Kabete, Limuru" },
+      { label: "Extension officers", value: "5, plus County Director of Agriculture" },
+      { label: "Host farm", value: "Sylvia's Basket / Kilimo Endelevu, Ndeiya" },
+    ],
+    howItWorked: [
+      "Extension officers first learned on a working circular farm, not only in a classroom.",
+      "Delivery ran through the county extension pathway so knowledge could travel after the pilot.",
+      "150 farmers were trained on the same regenerative and circular curriculum.",
+      "Learning was measured with baseline and endline surveys, including planned farm changes.",
+    ],
     highlights: [
-      "145 farmer baseline records · 144 endline records",
+      "150 farmers trained · 145 baseline records · 144 endline records",
       "Average understanding score: 3.32 / 4 (83.1%)",
       "Average confidence score: 3.54 / 5 (70.8%)",
       "Top planned practices: mulching (88.9%), composting (84.7%), farm-waste reuse (81.2%)",
     ],
-    image: AAC_IMAGES.greenhouseGroup,
+    image: AAC_IMAGES.livingLabGroup,
   },
   {
     id: "pilot-b",
     name: "Pilot B",
     title: "Testing Consumer Demand, Trust & Market Access",
     description:
-      "A hybrid consumer activation combining shared marketing and trust-building. Producers including Forest Foods, Kaijuju and Sylvia's Basket connected with consumers at the HereAfrica Food and Drink Festival — with six discovery booths and 600+ attendees.",
+      "Pilot B asked a market question: will consumers recognise, trust and pay for regenerative and circular products when producers appear together — with a shared story — rather than as isolated brands?",
+    overview:
+      "The test was a hybrid consumer activation at the HereAfrica Food and Drink Festival: shared marketing, trust-building and face-to-face conversation. Forest Foods, Kaijuju and Sylvia's Basket joined six discovery booths in front of 600+ attendees. A short consumer survey (n=21) captured willingness to pay, follow-up interest and purchase motivations. The sample is small, so the results are directional evidence for Year Two, not a full market study.",
+    facts: [
+      { label: "Event", value: "HereAfrica Food & Drink Festival" },
+      { label: "Discovery booths", value: "6" },
+      { label: "Attendees", value: "600+" },
+      { label: "Producers", value: "Forest Foods, Kaijuju, Sylvia's Basket" },
+    ],
+    howItWorked: [
+      "Producers showed up as a collective regenerative presence, not competing one-off stalls.",
+      "Discovery booths let visitors taste, ask how food is grown, and meet the people behind it.",
+      "Conversation focused on health, taste, freshness and credible claims — the trust gap the Working Group had named.",
+      "Interest in follow-up (events, markets, farm visits) was captured to test whether attention could become a relationship.",
+    ],
     highlights: [
       "95.2% willing or maybe willing to pay slightly more (n=21)",
       "61.9% requested follow-up after the expo",
       "100% interested in future engagement (events, markets, farm visits)",
       "Health, taste and freshness were the strongest purchase motivations",
     ],
-    image: AAC_IMAGES.marketEvent,
+    image: AAC_IMAGES.hereEventBooth,
   },
 ] as const
 
@@ -157,8 +262,8 @@ export const AAC_KEY_CHANGES = [
   {
     title: "County extension pathway to farmer learning",
     detail:
-      "Pilot A combined county-linked extension participation with practical learning and an onward farmer-training cohort across Kikuyu, Kabete and Limuru.",
-    evidence: "145 baseline and 144 endline farmer records · 99.3% attendance",
+      "Pilot A combined county-linked extension participation with practical learning and an onward cohort of 150 farmers across Kikuyu, Kabete and Limuru.",
+    evidence: "150 farmers trained · 145 baseline and 144 endline records · 99.3% attendance",
   },
   {
     title: "From general interest to explicit application plans",
@@ -174,26 +279,108 @@ export const AAC_KEY_CHANGES = [
   },
 ] as const
 
-export const AAC_STORY_GALLERY = [
+export const AAC_LIVING_LAB_PHOTOS: AacPhoto[] = [
   {
-    src: AAC_IMAGES.discoveryBooth,
-    alt: "AAC Discovery Booth at HereAfrica festival, Nairobi",
-    caption: "Discovery Booth — connecting producers and consumers at HereAfrica, June 2026",
+    src: AAC_IMAGES.livingLabGroup,
+    alt: "Participants of the AAC Live-in Lab posing with the Advancing Agricultural Circularity banner",
+    caption: "Live-in Lab cohort at Sylvia's Basket / Kilimo Endelevu Farm, Ndeiya",
   },
+  {
+    src: AAC_IMAGES.livingLabCurriculum,
+    alt: "Facilitator presenting the five principles of regenerative agriculture on a flipchart",
+    caption: "Curriculum in the tent — regenerative principles and a closed farming loop",
+  },
+  {
+    src: AAC_IMAGES.livingLabWorkshop,
+    alt: "Four participants writing Advancing Agricultural Circularity notes during a workshop",
+    caption: "Co-creating ideas at the Live-in Lab — nothing goes to waste",
+  },
+  {
+    src: AAC_IMAGES.livingLabCircle,
+    alt: "Farmers seated in a circle outdoors during an AAC living-lab discussion",
+    caption: "Peer learning in the field — farmers working through the curriculum together",
+  },
+  {
+    src: AAC_IMAGES.livingLabSeedBank,
+    alt: "Three women standing in front of the seed bank building at the living lab",
+    caption: "The seed bank at the Live-in Lab — saving diversity for the next season",
+  },
+  {
+    src: AAC_IMAGES.livingLabSeedJars,
+    alt: "Glass jars of saved seeds on a wooden shelf with a sign about planting hope for the future",
+    caption: "Community seed store — every saved seed plants hope for the future",
+  },
+]
+
+export const AAC_FOREST_FOOD_PHOTOS: AacPhoto[] = [
+  {
+    src: AAC_IMAGES.forestFoodMulch,
+    alt: "Facilitator explaining mulched raised beds to a group at Forest Foods",
+    caption: "Closing the Loop at Forest Food — mulching and closing nutrient loops, 4 July 2026",
+  },
+  {
+    src: AAC_IMAGES.forestFoodLeaf,
+    alt: "Farm host holding up a green leaf while visitors take notes in the field",
+    caption: "Farm Showcase — reading plant health in the field at Forest Foods",
+  },
+  {
+    src: AAC_IMAGES.forestFoodPlanting,
+    alt: "Participants planting a sapling together during the Forest Foods farm showcase",
+    caption: "Hands-on planting — learning by doing along the farm rows",
+  },
+  {
+    src: AAC_IMAGES.forestFoodTogether,
+    alt: "Two people packing soil around a newly planted sapling at Forest Foods",
+    caption: "Planting together — regenerative practice shared between partners and visitors",
+  },
+  {
+    src: AAC_IMAGES.forestFoodConversation,
+    alt: "Visitor kneeling beside a sapling while talking with others in the field",
+    caption: "Field conversation — questions, soil and young trees at the Farm Showcase",
+  },
+]
+
+export const AAC_HERE_EVENT_PHOTOS: AacPhoto[] = [
+  {
+    src: AAC_IMAGES.hereEventBooth,
+    alt: "AAC Discovery Booth at HereAfrica with partner produce and banners",
+    caption: "Discovery Booth — HereAfrica Food & Drink Festival, Nairobi, 13 June 2026",
+  },
+  {
+    src: AAC_IMAGES.hereEventGroup,
+    alt: "AAC team and partners posing in front of the Discovery Booth tents",
+    caption: "Closing the loop, together — the AAC presence at HereAfrica",
+  },
+  {
+    src: AAC_IMAGES.hereEventBanners,
+    alt: "Participant standing between AAC banners reading Food has a story",
+    caption: "Good food has a story — AAC storytelling at the festival",
+  },
+  {
+    src: AAC_IMAGES.hereEventProduce,
+    alt: "Open Forest Foods box filled with fresh regenerative produce on the grass",
+    caption: "Forest Foods produce at the booth — regenerative harvest meeting consumers",
+  },
+  {
+    src: AAC_IMAGES.hereEventEvening,
+    alt: "Evening gathering under a lit marquee tent with communal tables at HereAfrica",
+    caption: "Festival atmosphere — shared tables, stalls and regenerative food stories",
+  },
+]
+
+export const AAC_STORY_GALLERY: AacPhoto[] = [
+  ...AAC_LIVING_LAB_PHOTOS,
+  ...AAC_FOREST_FOOD_PHOTOS,
+  ...AAC_HERE_EVENT_PHOTOS,
   {
     src: AAC_IMAGES.fieldTraining,
     alt: "Field training session on regenerative agriculture",
     caption: "Learning by seeing — practical field training with extension officers and farmers",
   },
   {
-    src: AAC_IMAGES.agroforestryLesson,
-    alt: "Syntropic agroforestry lesson at Forest Foods",
-    caption: "Syntropic agroforestry at Forest Foods — theory translated into practice",
-  },
-  {
     src: AAC_IMAGES.greenhouseInterior,
     alt: "Circular farming systems inside a greenhouse",
-    caption: "Live-in Lab — circular systems including aquaculture ponds and integrated crops",
+    caption: "Circular systems — aquaculture ponds and integrated crops",
   },
   {
     src: AAC_IMAGES.plantingDemo,
@@ -210,12 +397,7 @@ export const AAC_STORY_GALLERY = [
     alt: "Extension officers and farmers at a greenhouse",
     caption: "From the living lab to farmers' fields — knowledge that travels",
   },
-  {
-    src: AAC_IMAGES.marketEvent,
-    alt: "Consumer engagement at AAC market event",
-    caption: "Market activation — regenerative products meeting consumers face to face",
-  },
-] as const
+]
 
 export const AAC_STORY_ANGLES = [
   "From the living lab to farmers' fields",
@@ -358,7 +540,7 @@ export const AAC_STORY_ARC = [
     title: "Live-in Lab",
     description:
       "Extension officers encounter practical, farm-tested regenerative methods at Sylvia's Basket Farm — then carry that knowledge into communities.",
-    image: AAC_IMAGES.agroforestryLesson,
+    image: AAC_IMAGES.livingLabCurriculum,
     accent: "#7ebb55",
   },
   {
@@ -366,7 +548,7 @@ export const AAC_STORY_ARC = [
     title: "Farmer training",
     description:
       "150 farmers across Kikuyu, Kabete and Limuru adapt regenerative practices — mulching, composting, farm-waste reuse and more.",
-    image: AAC_IMAGES.fieldTraining,
+    image: AAC_IMAGES.livingLabCircle,
     accent: "#41bed0",
   },
   {
@@ -374,7 +556,7 @@ export const AAC_STORY_ARC = [
     title: "Ecosystem exchange",
     description:
       "Working Group members, producers and partners compare evidence, build confidence and co-design the next phase together.",
-    image: AAC_IMAGES.communityTraining,
+    image: AAC_IMAGES.forestFoodMulch,
     accent: "#822929",
   },
   {
@@ -382,7 +564,7 @@ export const AAC_STORY_ARC = [
     title: "Market activation",
     description:
       "Regenerative products meet consumers at HereAfrica — testing trust, traceability and demand in a collective, consumer-facing environment.",
-    image: AAC_IMAGES.discoveryBooth,
+    image: AAC_IMAGES.hereEventBooth,
     accent: "#ffd546",
   },
 ] as const

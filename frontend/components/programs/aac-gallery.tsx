@@ -8,15 +8,14 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog"
-import type { AAC_STORY_GALLERY } from "@/lib/aac-program"
-
-type GalleryPhoto = (typeof AAC_STORY_GALLERY)[number]
+import type { AacPhoto } from "@/lib/aac-program"
 
 interface AacGalleryProps {
-  photos: readonly GalleryPhoto[]
+  photos: readonly AacPhoto[]
+  compact?: boolean
 }
 
-export function AacGallery({ photos }: AacGalleryProps) {
+export function AacGallery({ photos, compact = false }: AacGalleryProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   const close = useCallback(() => setActiveIndex(null), [])
@@ -48,7 +47,13 @@ export function AacGallery({ photos }: AacGalleryProps) {
           onClick={() => setActiveIndex(0)}
           className="group relative overflow-hidden rounded-lg border border-[#edeff2] bg-white lg:col-span-7 lg:row-span-2"
         >
-          <div className="relative aspect-[16/10] lg:aspect-auto lg:min-h-[28rem]">
+          <div
+            className={
+              compact
+                ? "relative aspect-[16/10]"
+                : "relative aspect-[16/10] lg:aspect-auto lg:min-h-[28rem]"
+            }
+          >
             <Image
               src={featured.src}
               alt={featured.alt}
