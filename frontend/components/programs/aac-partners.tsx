@@ -1,18 +1,10 @@
 import Image from "next/image"
 import Link from "next/link"
 import type { AacPartner } from "@/lib/aac-program"
-import { cn } from "@/lib/utils"
 
 function PartnerTile({ partner }: { partner: AacPartner }) {
   const tile = (
-    <div
-      className={cn(
-        "flex h-full flex-col items-center justify-center gap-2 rounded-lg border px-3 py-4 shadow-sm transition-all",
-        partner.onDark
-          ? "border-[#0a1f38] bg-[#0a1f38] hover:border-[#7ebb55]/40"
-          : "border-[#edeff2] bg-white hover:border-[#812926]/20 hover:shadow-md"
-      )}
-    >
+    <div className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-[#edeff2] bg-white px-3 py-4 shadow-sm transition-all hover:border-[#812926]/20 hover:shadow-md">
       <div className="relative flex h-14 w-full items-center justify-center">
         <Image
           src={partner.logo}
@@ -23,12 +15,7 @@ function PartnerTile({ partner }: { partner: AacPartner }) {
           className="max-h-14 w-auto max-w-full object-contain"
         />
       </div>
-      <span
-        className={cn(
-          "line-clamp-2 text-center text-[10px] font-medium leading-snug",
-          partner.onDark ? "text-white/70" : "text-[#1c395c]/70"
-        )}
-      >
+      <span className="line-clamp-2 text-center text-[10px] font-medium leading-snug text-[#1c395c]/70">
         {partner.name}
       </span>
     </div>

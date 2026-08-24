@@ -239,14 +239,7 @@ export default function ProgramsPageClient() {
               <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
                 {AAC_PARTNERS.map((partner) => (
                   <li key={partner.name}>
-                    <div
-                      className={cn(
-                        "flex h-20 items-center justify-center rounded-md border px-2",
-                        partner.onDark
-                          ? "border-[#0a1f38] bg-[#0a1f38]"
-                          : "border-[#edeff2] bg-[#faf9f6]"
-                      )}
-                    >
+                    <div className="flex h-20 items-center justify-center rounded-md border border-[#edeff2] bg-white px-2">
                       <Image
                         src={partner.logo}
                         alt={partner.name}
