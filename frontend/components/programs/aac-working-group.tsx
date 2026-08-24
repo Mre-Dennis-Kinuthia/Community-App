@@ -22,7 +22,7 @@ function MemberCard({ member, compact = false }: { member: AacWorkingGroupMember
   return (
     <article
       className={cn(
-        "flex h-full flex-col rounded-lg border border-[#edeff2] bg-white p-4 shadow-sm",
+        "flex flex-col rounded-lg border border-[#edeff2] bg-white p-4 shadow-sm",
         compact && "p-3"
       )}
     >
@@ -100,12 +100,7 @@ function CohortBlock({
       {description ? (
         <p className="mt-1 max-w-2xl text-xs leading-relaxed text-[#1c395c]/70 md:text-sm">{description}</p>
       ) : null}
-      <ul
-        className={cn(
-          "mt-5 grid gap-3",
-          compact ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-        )}
-      >
+      <ul className="mt-5 grid grid-cols-1 items-start gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {members.map((member) => (
           <li key={`${member.cohort}-${member.name}`}>
             <MemberCard member={member} compact={compact} />
