@@ -58,11 +58,18 @@ export const AAC_WORKING_GROUP: AacWorkingGroupMember[] = [
     photo: "/programs/aac/working-group/jackline-kamathi.jpg",
   },
   {
-    name: "Irene Ghadi",
-    role: "Associate Program Officer",
+    name: "Hildah Akwona",
+    role: "Ecosystem Project Office",
     organization: "Impact Hub Nairobi",
     cohort: "secretariat",
-    photo: "/programs/aac/working-group/irene-ghadi.jpg",
+    photo: "/programs/aac/working-group/hildah-akwona.jpg",
+  },
+  {
+    name: "Phanice Kadzo",
+    role: "Program Management Associate",
+    organization: "Impact Hub Nairobi",
+    cohort: "secretariat",
+    photo: "/programs/aac/working-group/phanice-kadzo.jpg",
   },
   {
     name: "Bruce Hiller",
