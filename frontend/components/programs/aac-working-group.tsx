@@ -35,7 +35,7 @@ function MemberCard({ member, compact = false }: { member: AacWorkingGroupMember
               fill
               sizes="56px"
               unoptimized
-              className="object-cover"
+              className="object-cover grayscale"
             />
           </div>
         ) : member.logo ? (
