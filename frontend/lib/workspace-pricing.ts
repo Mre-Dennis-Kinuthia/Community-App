@@ -20,47 +20,76 @@ export function formatKes(amount: number): string {
   return `KES ${amount.toLocaleString("en-KE")}`
 }
 
-export type WorkspacePricingGroup = "flex" | "membership" | "dedicated"
+/** Platform membership the workspace category sits under. */
+export type MembershipPricingId = "community" | "star_connect" | "organisational"
 
 export type WorkspacePricingCategory = {
   id: string
-  group: WorkspacePricingGroup
+  membershipId: MembershipPricingId
   name: string
+  shortName: string
+  /** Coworking days included or how access is counted */
+  coworkingDays: string
+  priceAmount: number
+  priceFrom?: boolean
+  pricePeriod: string
   priceLabel: string
   validity?: string
   bestFor: string
   includes: string[]
-  href?: string
+  href: string
+  cta: string
   note?: string
 }
 
-export const WORKSPACE_PRICING_GROUPS: {
-  id: WorkspacePricingGroup
-  label: string
-  description: string
-}[] = [
+export type MembershipPricingTier = {
+  id: MembershipPricingId
+  name: string
+  defaultCategoryId: string
+  intro: string
+  helper: string
+  popular: boolean
+}
+
+export const MEMBERSHIP_PRICING_TIERS: MembershipPricingTier[] = [
   {
-    id: "flex",
-    label: "Flexible coworking",
-    description: "Pay for the days you need — weekday access 8:00 a.m. to 6:00 p.m.",
+    id: "community",
+    name: "Connect",
+    defaultCategoryId: "day-pass",
+    intro:
+      "Free platform membership. Pick a workspace category to see the day rate, pack size and coworking days.",
+    helper: "Register on the platform · no membership fee",
+    popular: false,
   },
   {
-    id: "membership",
-    label: "Monthly memberships",
-    description: "These map to Star Connect and Organisation / Company on the platform.",
+    id: "star_connect",
+    name: "Star Connect",
+    defaultCategoryId: "community-monthly",
+    intro:
+      "Individual membership. Switch category to compare Community Monthly with a dedicated desk.",
+    helper: "2-step application · we typically respond within 2 hours",
+    popular: true,
   },
   {
-    id: "dedicated",
-    label: "Dedicated & on-demand",
-    description: "A permanent desk, a private room, or a professional address.",
+    id: "organisational",
+    name: "Organisation / Company",
+    defaultCategoryId: "team-community",
+    intro:
+      "Team and institutional options. Choose a category to see per-person rates, private rooms or a virtual office.",
+    helper: `Minimum ${TEAM_COMMUNITY_MIN_SEATS} people for Team Community · partnership inquiry for custom scope`,
+    popular: false,
   },
 ]
 
 export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
   {
     id: "day-pass",
-    group: "flex",
+    membershipId: "community",
     name: "Day Pass",
+    shortName: "Day Pass",
+    coworkingDays: "1 coworking day",
+    priceAmount: DAY_PASS_PRICE,
+    pricePeriod: "per day + VAT",
     priceLabel: `${formatKes(DAY_PASS_PRICE)} per day + VAT`,
     bestFor: "Occasional users who need a professional workspace for one day.",
     includes: [
@@ -72,13 +101,18 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
       "Access to member-rate room bookings",
     ],
     href: "/booking",
+    cta: "Book a Day Pass",
   },
   {
     id: "five-day-pack",
-    group: "flex",
+    membershipId: "community",
     name: "Five-Day Pack",
+    shortName: "Five-Day Pack",
+    coworkingDays: "5 coworking days",
+    priceAmount: FIVE_DAY_PACK_PRICE,
+    pricePeriod: "per pack + VAT",
     priceLabel: `${formatKes(FIVE_DAY_PACK_PRICE)} + VAT`,
-    validity: "Five coworking days, valid for 30 days",
+    validity: "Valid for 30 days",
     bestFor: "Hybrid professionals who need a reliable workspace approximately once a week.",
     includes: [
       "Five flexible coworking days",
@@ -89,13 +123,18 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
       "Access to member-rate room bookings",
     ],
     href: "/booking",
+    cta: "Book a Five-Day Pack",
   },
   {
     id: "ten-day-pack",
-    group: "flex",
+    membershipId: "community",
     name: "Ten-Day Flex Pack",
+    shortName: "Ten-Day Pack",
+    coworkingDays: "10 coworking days",
+    priceAmount: TEN_DAY_PACK_PRICE,
+    pricePeriod: "per pack + VAT",
     priceLabel: `${formatKes(TEN_DAY_PACK_PRICE)} + VAT`,
-    validity: "Ten coworking days, valid for 30 days",
+    validity: "Valid for 30 days",
     bestFor: "Regular hybrid workers, consultants and professionals undertaking project sprints.",
     includes: [
       "Ten flexible coworking days",
@@ -106,11 +145,34 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
       "Access to member-rate room bookings",
     ],
     href: "/booking",
+    cta: "Book a Ten-Day Pack",
+  },
+  {
+    id: "office-for-a-day",
+    membershipId: "community",
+    name: "Office for a Day",
+    shortName: "Office for a Day",
+    coworkingDays: "1 private-office day",
+    priceAmount: OFFICE_FOR_A_DAY_PRICE,
+    pricePeriod: "per day + VAT",
+    priceLabel: `${formatKes(OFFICE_FOR_A_DAY_PRICE)} per day + VAT`,
+    bestFor: "Individuals or small teams that need a private office temporarily.",
+    includes: [
+      "A private furnished room",
+      "Weekday access from 8:00 a.m. to 6:00 p.m.",
+      `Additional team member: ${formatKes(OFFICE_FOR_A_DAY_EXTRA_PERSON_PRICE)} per person + VAT, subject to the room’s capacity`,
+    ],
+    href: "/booking",
+    cta: "Book an office for a day",
   },
   {
     id: "community-monthly",
-    group: "membership",
+    membershipId: "star_connect",
     name: "Community Monthly — Individual",
+    shortName: "Community Monthly",
+    coworkingDays: "3 days per week",
+    priceAmount: COMMUNITY_MONTHLY_PRICE,
+    pricePeriod: "per person / month + VAT",
     priceLabel: `${formatKes(COMMUNITY_MONTHLY_PRICE)} per person per month + VAT`,
     bestFor:
       "Individual founders, professionals, creatives, researchers and consultants who need regular workspace and community access.",
@@ -124,12 +186,38 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
       "Eligibility for mail and package handling",
     ],
     href: "/membership/star-connect",
+    cta: "Apply for Star Connect",
     note: "This is the Star Connect membership on the platform.",
   },
   {
+    id: "dedicated-desk",
+    membershipId: "star_connect",
+    name: "Dedicated Desk — Resident",
+    shortName: "Dedicated Desk",
+    coworkingDays: "Permanent dedicated desk",
+    priceAmount: DEDICATED_DESK_PRICE,
+    pricePeriod: "per person / month + VAT",
+    priceLabel: `${formatKes(DEDICATED_DESK_PRICE)} per person per month + VAT`,
+    bestFor: "Members who want a permanent, personalised workstation.",
+    includes: [
+      "A dedicated furnished desk",
+      "Personal storage",
+      "Extended access, subject to security protocols",
+      "Four complimentary meeting-room hours",
+      "Mail handling",
+      "Full community membership benefits",
+    ],
+    href: "/membership/star-connect",
+    cta: "Enquire about a dedicated desk",
+  },
+  {
     id: "team-community",
-    group: "membership",
+    membershipId: "organisational",
     name: "Team Community",
+    shortName: "Team Community",
+    coworkingDays: "Flexible team coworking",
+    priceAmount: TEAM_COMMUNITY_PRICE,
+    pricePeriod: "per person / month + VAT",
     priceLabel: `${formatKes(TEAM_COMMUNITY_PRICE)} per person per month + VAT`,
     bestFor:
       "Hybrid teams, organisations and project groups that need flexible seating and shared benefits.",
@@ -144,28 +232,18 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
       "Quarterly membership review to increase or reduce seats",
     ],
     href: "/membership/organisational",
+    cta: "Start partnership inquiry",
     note: `Minimum ${TEAM_COMMUNITY_MIN_SEATS} people. This is the Organisation / Company workspace rate.`,
   },
   {
-    id: "dedicated-desk",
-    group: "dedicated",
-    name: "Dedicated Desk — Resident",
-    priceLabel: `${formatKes(DEDICATED_DESK_PRICE)} per person per month + VAT`,
-    bestFor: "Members who want a permanent, personalised workstation.",
-    includes: [
-      "A dedicated furnished desk",
-      "Personal storage",
-      "Extended access, subject to security protocols",
-      "Four complimentary meeting-room hours",
-      "Mail handling",
-      "Full community membership benefits",
-    ],
-    href: "/membership/star-connect",
-  },
-  {
     id: "private-team-room",
-    group: "dedicated",
+    membershipId: "organisational",
     name: "Private Team Room — Small-Team",
+    shortName: "Private Team Room",
+    coworkingDays: "Private lockable room",
+    priceAmount: PRIVATE_TEAM_ROOM_FROM_PRICE,
+    priceFrom: true,
+    pricePeriod: "per month + VAT",
     priceLabel: `From ${formatKes(PRIVATE_TEAM_ROOM_FROM_PRICE)} per month + VAT`,
     bestFor: "Small teams that require privacy, a permanent base and a lockable workspace.",
     includes: [
@@ -177,25 +255,17 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
       "Access to communal spaces",
     ],
     href: "/membership/organisational",
+    cta: "Enquire about a private room",
     note: "Final price depends on the room’s capacity and configuration.",
   },
   {
-    id: "office-for-a-day",
-    group: "dedicated",
-    name: "Office for a Day",
-    priceLabel: `${formatKes(OFFICE_FOR_A_DAY_PRICE)} per day + VAT`,
-    bestFor: "Individuals or small teams that need a private office temporarily.",
-    includes: [
-      "A private furnished room",
-      "Weekday access from 8:00 a.m. to 6:00 p.m.",
-      `Additional team member: ${formatKes(OFFICE_FOR_A_DAY_EXTRA_PERSON_PRICE)} per person + VAT, subject to the room’s capacity`,
-    ],
-    href: "/booking",
-  },
-  {
     id: "virtual-office",
-    group: "dedicated",
+    membershipId: "organisational",
     name: "Virtual Office Address",
+    shortName: "Virtual Office",
+    coworkingDays: "No dedicated coworking days",
+    priceAmount: VIRTUAL_OFFICE_PRICE,
+    pricePeriod: "per year + VAT",
     priceLabel: `${formatKes(VIRTUAL_OFFICE_PRICE)} per year + VAT`,
     bestFor:
       "Entrepreneurs, consultants and organisations that need a professional business presence without a permanent physical workspace.",
@@ -207,9 +277,27 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
       "Community directory presence, subject to profile approval",
     ],
     href: "/membership/organisational",
+    cta: "Enquire about a virtual office",
     note: "Optional extras include printing, registered-office support where legally suitable, event production, advisory and partner introductions.",
   },
 ]
+
+export function categoriesForMembership(
+  membershipId: MembershipPricingId
+): WorkspacePricingCategory[] {
+  return WORKSPACE_PRICING_CATEGORIES.filter((c) => c.membershipId === membershipId)
+}
+
+export function workspaceCategoryById(
+  id: string
+): WorkspacePricingCategory | undefined {
+  return WORKSPACE_PRICING_CATEGORIES.find((c) => c.id === id)
+}
+
+export function formatWorkspacePrice(category: WorkspacePricingCategory): string {
+  const amount = formatKes(category.priceAmount)
+  return category.priceFrom ? `From ${amount}` : amount
+}
 
 export const GENERAL_MEMBER_BENEFITS = [
   "High-speed internet",

@@ -34,15 +34,8 @@ import { LandingProgramsSection } from "@/components/landing/landing-programs-se
 import { LandingHeader } from "@/components/landing/landing-header"
 import { getLandingFooterPlatformLinks } from "@/lib/public-nav-links"
 import { HUB_PUBLIC_EMAIL, HUB_PUBLIC_PHONE, HUB_PUBLIC_PHONE_HREF } from "@/lib/hub-contact"
-import { LandingPricingSection } from "@/components/landing/landing-pricing-section"
-import {
-  ORGANISATIONAL_MEMBERSHIP_PATH,
-  ORGANISATIONAL_RESPONSE_SLA,
-  STAR_CONNECT_RESPONSE_SLA,
-  STAR_CONNECT_FEATURES,
-  STAR_CONNECT_FAQ_ANSWER,
-} from "@/lib/membership-inquiry"
-import { VAT_DISCLAIMER, formatKes, TEAM_COMMUNITY_PRICE, TEAM_COMMUNITY_MIN_SEATS } from "@/lib/workspace-pricing"
+import { MembershipPricingCards } from "@/components/landing/membership-pricing-cards"
+import { STAR_CONNECT_FAQ_ANSWER } from "@/lib/membership-inquiry"
 
 const IMPACT_STATS = [
   { label: "Impact Hubs", value: "117" },
@@ -79,57 +72,6 @@ const PILLARS = [
       "We work with corporations, foundations, and policymakers, and use action research and ecosystem mapping to strengthen local innovation.",
     image: LANDING_IMAGES.pillars.partnerships,
     accent: "#ffd546",
-  },
-] as const
-
-const MEMBERSHIP_TIERS = [
-  {
-    name: "Connect",
-    price: "Free",
-    period: "",
-    description: "Start here at no cost. Join Nairobi’s impact community on the platform.",
-    features: [
-      "Community app, member directory and newsletter",
-      "Invitations to events, office hours and mixers",
-      "Day Passes and flex packs at published workspace rates",
-      "Access to member-rate room bookings",
-    ],
-    cta: "Create free account",
-    helper: "Register on the platform · no payment required",
-    href: "/register",
-    external: false,
-    popular: false,
-  },
-  {
-    name: "Star Connect",
-    price: "KES 15,000",
-    period: "/ month + VAT",
-    description:
-      "Community Monthly individual membership for founders and professionals who need regular workspace and community access.",
-    features: [...STAR_CONNECT_FEATURES],
-    cta: "Apply for membership",
-    helper: `2-step application · we respond ${STAR_CONNECT_RESPONSE_SLA}`,
-    href: "/membership/star-connect",
-    external: false,
-    popular: true,
-  },
-  {
-    name: "Organisation / Company",
-    price: `From ${formatKes(TEAM_COMMUNITY_PRICE)}`,
-    period: "/ person / month + VAT",
-    description: `Team Community workspace from ${TEAM_COMMUNITY_MIN_SEATS} people, plus custom partnership for institutions.`,
-    features: [
-      "All Community Monthly workspace benefits",
-      `Preferential rate · minimum ${TEAM_COMMUNITY_MIN_SEATS} people`,
-      "Pooled meeting-room hours (two hours per team member)",
-      "Single team onboarding and named organisational contact",
-      "Custom programmes, private rooms and partnership design",
-    ],
-    cta: "Start partnership inquiry",
-    helper: `3-step inquiry · we respond ${ORGANISATIONAL_RESPONSE_SLA}`,
-    href: ORGANISATIONAL_MEMBERSHIP_PATH,
-    external: false,
-    popular: false,
   },
 ] as const
 
@@ -444,98 +386,17 @@ export default function HomePage() {
           <SectionHeader
             label="Membership"
             title="Become a member"
-            description="Start with free Connect access, grow into Star Connect, or partner as Organisation / Company. Workspace day rates and packs are listed separately."
+            description="Three memberships: Connect, Star Connect and Organisation / Company. Pick a workspace category in each card to see price, coworking days and what’s included."
             className="mb-14 md:mb-16"
           />
-          <div className="mx-auto grid max-w-5xl gap-3 md:grid-cols-3">
-            {MEMBERSHIP_TIERS.map((tier) => (
-              <article
-                key={tier.name}
-                className={cn(
-                  "landing-panel flex flex-col",
-                  tier.popular && "border-primary/30"
-                )}
-              >
-                <div className="border-b border-border px-5 py-6 text-center">
-                  {tier.popular ? (
-                    <p className="section-label mb-3 text-primary">Recommended</p>
-                  ) : null}
-                  <h3 className={cn("text-sm font-semibold text-foreground", !tier.popular && "mt-6")}>
-                    {tier.name}
-                  </h3>
-                  <div className="mt-3 flex items-baseline justify-center gap-1">
-                    <span className="text-2xl font-semibold tracking-tight tabular-nums">
-                      {tier.price}
-                    </span>
-                    {tier.period ? (
-                      <span className="text-xs text-muted-foreground">{tier.period}</span>
-                    ) : null}
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {tier.description}
-                  </p>
-                </div>
-                <div className="flex flex-1 flex-col gap-5 px-5 py-6">
-                  <ul className="space-y-2.5 text-sm leading-relaxed">
-                    {tier.features.map((feature) => {
-                      const label = typeof feature === "string" ? feature : feature.label
-                      const href = typeof feature === "string" ? null : feature.href
-                      return (
-                        <li key={label} className="flex items-start gap-2">
-                          <CheckCircle2
-                            className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
-                            aria-hidden
-                          />
-                          {href ? (
-                            <Link
-                              href={href}
-                              className="text-foreground underline-offset-2 hover:text-primary hover:underline"
-                            >
-                              {label}
-                            </Link>
-                          ) : (
-                            <span>{label}</span>
-                          )}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                  <div className="mt-auto space-y-2">
-                    <p className="text-center text-xs leading-relaxed text-muted-foreground">
-                      {tier.helper}
-                    </p>
-                    {tier.external ? (
-                      <a href={tier.href} className="block">
-                        <Button className="w-full" variant={tier.popular ? "default" : "outline"}>
-                          {tier.cta}
-                        </Button>
-                      </a>
-                    ) : (
-                      <Link href={tier.href} className="block">
-                        <Button className="w-full" variant={tier.popular ? "default" : "outline"}>
-                          {tier.cta}
-                          {tier.popular ? (
-                            <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                          ) : null}
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-          <p className="mx-auto mt-8 max-w-3xl text-center text-xs leading-relaxed text-muted-foreground">
-            {VAT_DISCLAIMER} Paid workspace rates are listed under{" "}
+          <MembershipPricingCards />
+          <p className="mx-auto mt-4 max-w-3xl text-center text-xs leading-relaxed text-muted-foreground">
             <Link href="/pricing" className="font-medium text-foreground underline-offset-2 hover:underline">
-              workspace pricing
+              Full category details
             </Link>
-            .
           </p>
         </div>
       </section>
-
-      <LandingPricingSection />
 
       <section className="landing-section container px-4">
         <SectionHeader
