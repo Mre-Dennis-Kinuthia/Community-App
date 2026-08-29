@@ -10,6 +10,7 @@ export const STORED_IMAGE_CATEGORIES = [
   "project_cover",
   "partner_logo",
   "opportunity_cover",
+  "workspace_gallery",
   "general",
 ] as const
 
@@ -29,6 +30,7 @@ const MAX_BYTES: Record<StoredImageCategory, number> = {
   project_cover: 10 * 1024 * 1024,
   partner_logo: 5 * 1024 * 1024,
   opportunity_cover: 10 * 1024 * 1024,
+  workspace_gallery: 10 * 1024 * 1024,
   general: 10 * 1024 * 1024,
 }
 
@@ -39,6 +41,7 @@ const ADMIN_CATEGORIES: StoredImageCategory[] = [
   "project_cover",
   "partner_logo",
   "opportunity_cover",
+  "workspace_gallery",
   "general",
 ]
 

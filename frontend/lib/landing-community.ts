@@ -36,7 +36,7 @@ export const MEMBER_ARCHETYPES = [
 export const COMMUNITY_MOMENTS = [
   {
     image: HUB_IMAGES.privateOffice,
-    caption: "Private offices & focus rooms",
+    caption: "Focus rooms & private desks",
   },
   {
     image: HUB_IMAGES.coworkingPlants,
@@ -44,11 +44,11 @@ export const COMMUNITY_MOMENTS = [
   },
   {
     image: HUB_IMAGES.privateOfficeLamps,
-    caption: "Branded community workspace",
+    caption: "Reception & meeting rooms",
   },
   {
     image: HUB_IMAGES.exteriorDayAlt,
-    caption: "Impact Hub Nairobi",
+    caption: "Gardens & outdoor gathering",
   },
 ] as const
 

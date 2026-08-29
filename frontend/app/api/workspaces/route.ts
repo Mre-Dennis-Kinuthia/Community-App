@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
-import { BOOKING_SPACE_COVER } from "@/lib/booking-space-images"
+import { getImageDisplayUrl } from "@/lib/stored-image"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -13,6 +13,7 @@ export async function OPTIONS(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    const origin = new URL(request.url).origin
     const rows = await prisma.workspace.findMany({
       where: { isActive: true, deletedAt: null },
       orderBy: [{ name: "asc" }],
@@ -24,19 +25,25 @@ export async function GET(request: NextRequest) {
         startingPrice: true,
         currency: true,
         valueProposition: true,
+        images: true,
       },
     })
 
-    const workspaces = rows.map((w) => ({
-      id: w.id,
-      name: w.name,
-      slug: w.slug,
-      location: w.location ?? "",
-      startingPrice: w.startingPrice ?? 0,
-      currency: w.currency,
-      valueProposition: w.valueProposition ?? "",
-      coverImage: BOOKING_SPACE_COVER,
-    }))
+    const workspaces = rows.map((w) => {
+      const coverRef = w.images?.[0]
+      return {
+        id: w.id,
+        name: w.name,
+        slug: w.slug,
+        location: w.location ?? "",
+        startingPrice: w.startingPrice ?? 0,
+        currency: w.currency,
+        valueProposition: w.valueProposition ?? "",
+        coverImage: coverRef
+          ? (getImageDisplayUrl(coverRef, { baseUrl: origin }) ?? coverRef)
+          : undefined,
+      }
+    })
 
     return NextResponse.json({ workspaces }, { headers: corsHeaders })
   } catch (error: unknown) {

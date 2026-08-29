@@ -13,7 +13,8 @@ export const LANDING_IMAGES = {
 /**
  * Hub interior/exterior photos for landing sections.
  * Avoid pairing with LANDING_IMAGES that share the same source
- * (hero≈exterior-day, coworking≈coworking-shared, auth≈coworking-branded).
+ * (hero≈exterior-day, auth≈coworking-branded, coworking≈coworking-shared,
+ *  innovation≈exterior-dusk-alt, partnerships≈private-office-alt).
  */
 export const HUB_IMAGES = {
   exteriorDayAlt: "/hub/exterior-day-alt.jpg",

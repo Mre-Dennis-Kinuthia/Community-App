@@ -1,72 +1,80 @@
 /**
  * Imports Impact Hub Nairobi space photos into public/landing and public/hub.
  * Run: node scripts/import-hub-photos.mjs
+ *
+ * Workspace/booking gallery (public/hub/booking/) is left unchanged on purpose.
  */
-import { mkdir, copyFile, writeFile } from "node:fs/promises"
+import { mkdir, copyFile } from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import sharp from "sharp"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const frontendRoot = path.join(__dirname, "..")
-const assetsDir =
-  "/home/nansi/.cursor/projects/home-nansi-Work/assets"
+const assetsDir = "/home/nansi/.cursor/projects/home-nansi-Work/assets"
 
 const SRC = {
-  ihn5: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_5-9f2c82cd-36ea-4019-9a34-cb9a8e0fdcb9.png",
-  ihn6: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_6-543243fb-bacb-4b25-b90f-42b3a837f131.png",
-  ihn7: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_7-c3496635-dcc6-412b-82e0-44a3f947694b.png",
-  ihn8: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_8-5f64ab1c-4629-4c1d-be9b-c97f4c740208.png",
-  ihn9: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_9-82965dae-1900-4ac1-b5f2-06d9c76deae5.png",
-  ihn10: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_10-6079d73c-752d-4175-9cec-c8a4d4b245af.png",
-  ihn11: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_11-b07570e8-d9e2-4e8a-948a-06ad47132068.png",
-  ihn12: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_12-1cde4d41-0271-4d54-b143-ddb3bbbed0f5.png",
-  ihn13: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IHN_13-1636e8bf-ee52-41d8-8003-aa0808c64a02.png",
-  room1: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_1-c44d0218-1ddc-4a40-b486-70dfed64eb0e.png",
-  room2: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_2-e8bd8efd-530b-47d9-a9b6-fadb18c93f9c.png",
-  room3: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_3-b12c232d-0e2a-420d-a1d3-a4eae4f3043d.png",
-  room4: "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Room_4-eb93342e-8ee5-477d-a887-7f1ac6635515.png",
+  gardenLawn:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260821-WA0013-d9f23f9e-4c16-43c0-8baf-402e8247df3a.jpg",
+  soloDesk:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260820-WA0077-31f6443e-6713-4f56-8da4-f1e2e2c9f9b2.jpg",
+  receptionBranded:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260821-WA0016-40b3f77f-a5f2-4f90-a630-90de04737a9f.jpg",
+  communityTable:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_Space_1-fc0d78fd-5789-40e0-9cb4-ed956dd706c1.jpg",
+  gardenPatio:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260821-WA0014-940e6d29-3fab-403f-b625-9a2572babef0.jpg",
+  coworkingL:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260820-WA0055-c8e644f3-fdb7-4db9-87b2-3ae571940185.jpg",
+  outdoorBar:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260821-WA0017-68c4dfb0-db19-487b-a9d6-f881ad133eaf.jpg",
+  coworkingWindow:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260820-WA0086-4d793699-2bd5-4c1e-8833-04c1570022d6.jpg",
+  receptionGlass:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260820-WA0092-95a7c17c-91ba-490d-9725-a7395c3b79cc.jpg",
+  receptionGlassAlt:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260820-WA0089-fb1aaa7c-cda8-4b07-8735-9a44bd227bc1.jpg",
+  exteriorBuilding:
+    "c__Users_HomePC_AppData_Roaming_Cursor_User_workspaceStorage_2a19be2fbd444bced0afbecccf4f1fcf_images_IMG-20260820-WA0097-f90633cb-e2dc-4b7c-88fb-4ff873ff463f.jpg",
 }
 
+/**
+ * Landing page + auth + OG.
+ * Each slot uses a distinct source so the homepage does not repeat photos.
+ */
 const LANDING = {
-  "hero.jpg": { key: "ihn7", width: 1920 },
-  "auth-panel.jpg": { key: "room1", width: 1400 },
-  // Keep original IHN marketing art for most pillars; only coworking uses hub space photos.
-  "pillar-coworking.jpg": { key: "room2", width: 1200 },
+  "hero.jpg": { key: "exteriorBuilding", width: 1920 },
+  "auth-panel.jpg": { key: "receptionBranded", width: 1400 },
+  "pillar-programs.jpg": { key: "communityTable", width: 1200 },
+  "pillar-coworking.jpg": { key: "coworkingL", width: 1200 },
+  "pillar-innovation.jpg": { key: "outdoorBar", width: 1200 },
+  "pillar-partnerships.jpg": { key: "receptionGlass", width: 1200 },
 }
 
-/** Original nairobi.impacthub.net marketing images for non-coworking pillars. */
-const LANDING_REMOTE = {
-  "pillar-programs.jpg":
-    "https://nairobi.impacthub.net/wp-content/uploads/2025/07/IHN-support-1024x683.jpg",
-  "pillar-innovation.jpg":
-    "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Global-gathering-group-photo-1024x683.jpg",
-  "pillar-partnerships.jpg":
-    "https://nairobi.impacthub.net/wp-content/uploads/2025/07/Partnership-1024x683.jpg",
-}
-
+/**
+ * Shared hub library. Filenames are stable so existing references keep working.
+ * Avoid pairing HUB_IMAGES used on the landing page with LANDING sources:
+ *   hero ≈ exterior-day
+ *   auth ≈ coworking-branded
+ *   pillar-programs ≈ communityTable (landing only)
+ *   pillar-coworking ≈ coworking-shared
+ *   pillar-innovation ≈ exterior-dusk-alt
+ *   pillar-partnerships ≈ private-office-alt
+ */
 const HUB = {
-  "exterior-day.jpg": { key: "ihn7", width: 1600 },
-  "exterior-day-alt.jpg": { key: "ihn9", width: 1600 },
-  "exterior-dusk.jpg": { key: "room4", width: 1600 },
-  "exterior-dusk-alt.jpg": { key: "ihn8", width: 1600 },
-  "exterior-path.jpg": { key: "ihn6", width: 1600 },
-  "coworking-branded.jpg": { key: "room1", width: 1400 },
-  "coworking-shared.jpg": { key: "room2", width: 1400 },
-  "coworking-plants.jpg": { key: "room3", width: 1400 },
-  "private-office.jpg": { key: "ihn11", width: 1400 },
-  "private-office-alt.jpg": { key: "ihn5", width: 1400 },
-  "private-office-lamps.jpg": { key: "ihn12", width: 1400 },
-  "private-office-window.jpg": { key: "ihn10", width: 1400 },
-  "desk-detail.jpg": { key: "ihn13", width: 1400 },
-}
-
-/** Gallery shown on the member booking flow (public/hub/booking/). */
-const BOOKING = {
-  "exterior.jpg": { key: "ihn6", width: 1600 },
-  "private-office.jpg": { key: "ihn5", width: 1400 },
-  "focus-desk.jpg": { key: "ihn13", width: 1400 },
-  "coworking.jpg": { key: "room2", width: 1400 },
+  "exterior-day.jpg": { key: "exteriorBuilding", width: 1600 },
+  "exterior-day-alt.jpg": { key: "gardenLawn", width: 1600 },
+  "exterior-dusk.jpg": { key: "gardenPatio", width: 1600 },
+  "exterior-dusk-alt.jpg": { key: "outdoorBar", width: 1600 },
+  "exterior-path.jpg": { key: "gardenPatio", width: 1600 },
+  "coworking-branded.jpg": { key: "receptionBranded", width: 1400 },
+  "coworking-shared.jpg": { key: "coworkingL", width: 1400 },
+  "coworking-plants.jpg": { key: "coworkingWindow", width: 1400 },
+  "private-office.jpg": { key: "soloDesk", width: 1400 },
+  "private-office-alt.jpg": { key: "receptionGlass", width: 1400 },
+  "private-office-lamps.jpg": { key: "receptionGlassAlt", width: 1400 },
+  "private-office-window.jpg": { key: "receptionGlassAlt", width: 1400 },
+  "desk-detail.jpg": { key: "soloDesk", width: 1400 },
 }
 
 async function writeJpeg(srcPath, destPath, width) {
@@ -75,12 +83,6 @@ async function writeJpeg(srcPath, destPath, width) {
     .resize(width, null, { withoutEnlargement: true })
     .jpeg({ quality: 84, mozjpeg: true })
     .toFile(destPath)
-}
-
-async function fetchBuffer(url) {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`)
-  return Buffer.from(await res.arrayBuffer())
 }
 
 async function main() {
@@ -96,12 +98,6 @@ async function main() {
     console.log("landing/", filename)
   }
 
-  for (const [filename, url] of Object.entries(LANDING_REMOTE)) {
-    const buf = await fetchBuffer(url)
-    await writeFile(path.join(landingDir, filename), buf)
-    console.log("landing/", filename, "(original)")
-  }
-
   for (const [filename, { key, width }] of Object.entries(HUB)) {
     const src = path.join(assetsDir, SRC[key])
     const dest = path.join(hubDir, filename)
@@ -109,14 +105,7 @@ async function main() {
     console.log("hub/", filename)
   }
 
-  const bookingDir = path.join(hubDir, "booking")
-  await mkdir(bookingDir, { recursive: true })
-  for (const [filename, { key, width }] of Object.entries(BOOKING)) {
-    const src = path.join(assetsDir, SRC[key])
-    const dest = path.join(bookingDir, filename)
-    await writeJpeg(src, dest, width)
-    console.log("hub/booking/", filename)
-  }
+  console.log("Skipped hub/booking/ (workspace gallery left unchanged)")
 
   const adminHub = path.join(
     frontendRoot,
@@ -130,12 +119,7 @@ async function main() {
   for (const filename of Object.keys(HUB)) {
     await copyFile(path.join(hubDir, filename), path.join(adminHub, filename))
   }
-  const adminBookingHub = path.join(adminHub, "booking")
-  await mkdir(adminBookingHub, { recursive: true })
-  for (const filename of Object.keys(BOOKING)) {
-    await copyFile(path.join(bookingDir, filename), path.join(adminBookingHub, filename))
-  }
-  console.log("Copied hub photos to Community-app-admin/public/hub/")
+  console.log("Copied hub photos to Community-app-admin/public/hub/ (booking skipped)")
 }
 
 main().catch((err) => {

@@ -120,7 +120,7 @@ export default function DashboardDeliveriesPage() {
 
       <PillTabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "active" | "history")}
+        onChange={(v) => setActiveTab(v as "active" | "history")}
         items={[
           { value: "active", label: `Active (${active.length})` },
           { value: "history", label: `History (${history.length})` },

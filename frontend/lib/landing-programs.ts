@@ -100,7 +100,7 @@ export const LANDING_PROGRAMS: LandingProgram[] = [
     status: "ongoing",
     statusLabel: "Member programme",
     themes: ["Acceleration", "Mentorship", "Funding"],
-    image: HUB_IMAGES.exteriorPath,
+    image: HUB_IMAGES.exteriorDusk,
     accent: "#822929",
     featured: false,
     highlights: [

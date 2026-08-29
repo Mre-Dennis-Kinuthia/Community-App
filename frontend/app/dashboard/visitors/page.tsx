@@ -292,7 +292,7 @@ export default function DashboardVisitorsPage() {
 
       <PillTabs
         value={activeTab}
-        onValueChange={(v) => setActiveTab(v as "upcoming" | "past")}
+        onChange={(v) => setActiveTab(v as "upcoming" | "past")}
         items={[
           { value: "upcoming", label: `Upcoming (${upcoming.length})` },
           { value: "past", label: `Past (${past.length})` },

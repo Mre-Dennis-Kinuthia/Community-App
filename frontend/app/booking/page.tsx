@@ -27,7 +27,6 @@ import { StickyBookingSummary } from "@/components/booking/sticky-booking-summar
 import { WorkspacePicker } from "@/components/booking/workspace-picker"
 import { AssetSelector } from "@/components/booking/asset-selector"
 import { getCheckoutGuideHint, isBookableForCheckout } from "@/lib/checkout-guide-hint"
-import { BOOKING_SPACE_IMAGES } from "@/lib/booking-space-images"
 import { isFeatureEnabled } from "@/lib/feature-flags"
 import { useMembershipBenefits } from "@/lib/hooks/use-membership"
 import {
@@ -474,7 +473,7 @@ function BookingPageContent() {
             )}
             <div className="space-y-4">
               <ImageGallery
-                images={[...BOOKING_SPACE_IMAGES]}
+                images={workspace.images}
                 spaceName={workspace.name}
                 compact
                 className="w-full"
