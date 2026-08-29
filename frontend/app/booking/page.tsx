@@ -39,6 +39,7 @@ import {
   meetingRoomDurationForPackage,
   meetingRoomPackageById,
   quoteMeetingRoomPackage,
+  storedMeetingRoomRates,
 } from "@/lib/workspace-pricing"
 import { MembershipTierBadge } from "@/components/membership-tier-badge"
 import { useWorkspaces } from "@/lib/hooks/use-workspaces"
@@ -76,6 +77,10 @@ function BookingPageContent() {
   }
 
   const workspaceId = workspace?.id
+  const meetingRates = useMemo(
+    () => storedMeetingRoomRates(workspace?.pricing),
+    [workspace?.pricing]
+  )
   const { membership } = useMembershipBenefits()
   const hiddenResourceTypes: ResourceType[] =
     membership && !membership.canBookHotDesk ? ["hot-desk"] : []
@@ -176,7 +181,8 @@ function BookingPageContent() {
         meetingQuote = quoteMeetingRoomPackage(
           selectedMeetingRoomCapacity,
           selectedMeetingRoomHours,
-          conferencePax
+          conferencePax,
+          meetingRates
         )
         basePrice = meetingQuote.basePrice
       }
@@ -239,6 +245,7 @@ function BookingPageContent() {
     pastriesPax,
     conferencePax,
     membership,
+    meetingRates,
   ])
 
   const totalPrice = bookingPricing.totalPrice
@@ -318,7 +325,8 @@ function BookingPageContent() {
         ? quoteMeetingRoomPackage(
             selectedMeetingRoomCapacity,
             selectedMeetingRoomHours,
-            conferencePax
+            conferencePax,
+            meetingRates
           ).basePrice
         : (safePricing.options.find((opt) => opt.type === selectedDuration)?.price ?? 0)
     const meetingRoomAddOns =
@@ -338,7 +346,8 @@ function BookingPageContent() {
         ? quoteMeetingRoomPackage(
             selectedMeetingRoomCapacity,
             selectedMeetingRoomHours,
-            conferencePax
+            conferencePax,
+            meetingRates
           )
         : null
 
@@ -601,6 +610,7 @@ function BookingPageContent() {
                           selectedHours={selectedMeetingRoomHours}
                           conferencePax={conferencePax}
                           currency={workspace?.currency || "KES"}
+                          rateOverrides={meetingRates}
                           onCapacitySelect={(c) => {
                             setSelectedMeetingRoomCapacity(c)
                             const pkg = meetingRoomPackageById(c)
@@ -712,7 +722,8 @@ function BookingPageContent() {
                                 ? quoteMeetingRoomPackage(
                                     selectedMeetingRoomCapacity,
                                     selectedMeetingRoomHours,
-                                    conferencePax
+                                    conferencePax,
+                                    meetingRates
                                   ).hours
                                 : undefined
                             }
@@ -778,7 +789,8 @@ function BookingPageContent() {
                           ? quoteMeetingRoomPackage(
                               selectedMeetingRoomCapacity,
                               selectedMeetingRoomHours,
-                              conferencePax
+                              conferencePax,
+                              meetingRates
                             ).hours
                           : selectedMeetingRoomHours
                       }
@@ -787,7 +799,8 @@ function BookingPageContent() {
                           ? quoteMeetingRoomPackage(
                               selectedMeetingRoomCapacity,
                               selectedMeetingRoomHours,
-                              conferencePax
+                              conferencePax,
+                              meetingRates
                             ).basePrice
                           : undefined
                       }

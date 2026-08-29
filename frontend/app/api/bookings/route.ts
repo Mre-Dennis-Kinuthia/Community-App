@@ -17,6 +17,7 @@ import {
   meetingRoomDurationForPackage,
   meetingRoomPackageById,
   quoteMeetingRoomPackage,
+  storedMeetingRoomRates,
 } from "@/lib/workspace-pricing"
 
 const bookingSchema = z.object({
@@ -139,6 +140,15 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
+      const workspaceRow = await prisma.workspace.findFirst({
+        where: {
+          OR: [
+            { id: validatedData.workspaceId },
+            { slug: validatedData.workspaceId },
+          ],
+        },
+        select: { pricing: true },
+      })
       const pax = validatedData.conferencePax ?? pkg.minPax ?? CONFERENCE_MIN_PAX
       if (pkg.billing === "per_person" && pax < (pkg.minPax ?? CONFERENCE_MIN_PAX)) {
         return NextResponse.json(
@@ -149,7 +159,8 @@ export async function POST(request: NextRequest) {
       const quote = quoteMeetingRoomPackage(
         pkg.id,
         validatedData.meetingRoomHours ?? pkg.defaultHours,
-        pax
+        pax,
+        storedMeetingRoomRates(workspaceRow?.pricing)
       )
       quotedBasePrice = quote.basePrice
       validatedData.basePrice = quote.basePrice

@@ -1,5 +1,10 @@
 import useSWR from "swr"
-import { DAY_PASS_PRICE, MEETING_ROOM_HOURLY_PRICE } from "@/lib/workspace-pricing"
+import {
+  DAY_PASS_PRICE,
+  MEETING_ROOM_HOURLY_PRICE,
+  PASTRIES_PRICE_PER_PAX,
+  formatKes,
+} from "@/lib/workspace-pricing"
 
 export interface PricingOption {
   type: "hourly" | "half-day" | "full-day" | "weekly" | "monthly"
@@ -53,8 +58,8 @@ const DEFAULT_ADD_ONS: AddOn[] = [
     id: "pastries",
     name: "Pastries",
     description:
-      "KES 400 per person (PAX). Tell us how many people to cater for; you can request a customized menu when you confirm payment or in your booking notes.",
-    price: 400,
+      `${formatKes(PASTRIES_PRICE_PER_PAX)} per person (PAX). Tell us how many people to cater for; you can request a customized menu when you confirm payment or in your booking notes.`,
+    price: PASTRIES_PRICE_PER_PAX,
     icon: "pastries",
     pricingModel: "per_pax",
   },

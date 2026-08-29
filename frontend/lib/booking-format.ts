@@ -1,7 +1,7 @@
 const RESOURCE_LABELS: Record<string, string> = {
-  "hot-desk": "Hot desk",
+  "hot-desk": "Day Pass",
   "meeting-room": "Meeting room",
-  "private-office": "Private office",
+  "private-office": "Office for a Day",
   "event-space": "Event space",
 }
 

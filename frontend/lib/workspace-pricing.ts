@@ -1,4 +1,6 @@
-/** Published Impact Hub Nairobi workspace prices. Amounts exclude 16% VAT. */
+/** Published Impact Hub Nairobi workspace prices. Amounts exclude 16% VAT.
+ * Keep in sync with Community-app-admin/lib/workspace-pricing.ts
+ */
 
 export const VAT_RATE = 0.16
 export const VAT_DISCLAIMER =
@@ -15,6 +17,7 @@ export const PRIVATE_TEAM_ROOM_FROM_PRICE = 60000
 export const OFFICE_FOR_A_DAY_PRICE = 3000
 export const OFFICE_FOR_A_DAY_EXTRA_PERSON_PRICE = 2250
 export const VIRTUAL_OFFICE_PRICE = 24000
+export const PASTRIES_PRICE_PER_PAX = 400
 
 export function formatKes(amount: number): string {
   return `KES ${amount.toLocaleString("en-KE")}`
@@ -449,24 +452,49 @@ export function meetingRoomPackageById(
   return MEETING_ROOM_PACKAGES.find((pkg) => pkg.id === id)
 }
 
+export function storedMeetingRoomRates(
+  pricing: unknown
+): Partial<Record<MeetingRoomPackageId, number>> {
+  if (!pricing || typeof pricing !== "object") return {}
+  const room = (pricing as Record<string, unknown>)["meeting-room"]
+  if (!room || typeof room !== "object") return {}
+  const rates: Partial<Record<MeetingRoomPackageId, number>> = {}
+  for (const pkg of MEETING_ROOM_PACKAGES) {
+    const value = (room as Record<string, unknown>)[pkg.id]
+    if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+      rates[pkg.id] = value
+    }
+  }
+  return rates
+}
+
+export function packageUnitPrice(
+  id: MeetingRoomPackageId,
+  rateOverrides?: Partial<Record<MeetingRoomPackageId, number>>
+): number {
+  return rateOverrides?.[id] ?? meetingRoomPackageById(id)?.price ?? 0
+}
+
 export function quoteMeetingRoomPackage(
   id: MeetingRoomPackageId,
   hours: number,
-  pax: number
+  pax: number,
+  rateOverrides?: Partial<Record<MeetingRoomPackageId, number>>
 ): { hours: number; basePrice: number } {
   const pkg = meetingRoomPackageById(id)
   if (!pkg) return { hours: 1, basePrice: 0 }
+  const unitPrice = packageUnitPrice(id, rateOverrides)
   const resolvedHours = pkg.billing === "hourly"
     ? Math.min(8, Math.max(1, Math.round(hours)))
     : pkg.defaultHours
   if (pkg.billing === "hourly") {
-    return { hours: resolvedHours, basePrice: pkg.price * resolvedHours }
+    return { hours: resolvedHours, basePrice: unitPrice * resolvedHours }
   }
   if (pkg.billing === "per_person") {
     const headcount = Math.max(pkg.minPax ?? CONFERENCE_MIN_PAX, Math.round(pax))
-    return { hours: resolvedHours, basePrice: pkg.price * headcount }
+    return { hours: resolvedHours, basePrice: unitPrice * headcount }
   }
-  return { hours: resolvedHours, basePrice: pkg.price }
+  return { hours: resolvedHours, basePrice: unitPrice }
 }
 
 export function meetingRoomDurationForPackage(

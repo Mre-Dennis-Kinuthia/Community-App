@@ -1,3 +1,5 @@
+import { PASTRIES_PRICE_PER_PAX } from "@/lib/workspace-pricing"
+
 export interface BookingAddOnCatalogItem {
   id: string
   name: string
@@ -25,7 +27,7 @@ export const BOOKING_ADD_ON_CATALOG: BookingAddOnCatalogItem[] = [
   {
     id: "pastries",
     name: "Pastries",
-    price: 400,
+    price: PASTRIES_PRICE_PER_PAX,
     pricingModel: "per_pax",
   },
 ]
