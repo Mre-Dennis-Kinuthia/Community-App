@@ -20,7 +20,7 @@ export function getCheckoutGuideHint(params: {
   }
 
   if (resource === "meeting-room") {
-    if (!meetingRoomCapacity) return "Choose a room size first, then you'll pick a date and time."
+    if (!meetingRoomCapacity) return "Choose a room package first, then you'll pick a date and time."
     if (!selectedDate) return "Select a date — checkout is at the bottom once time is set."
     if (!selectedTime) return "Pick a start time — checkout will appear below when everything is set."
     return "Finish your selections, then checkout below."

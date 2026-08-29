@@ -362,6 +362,121 @@ export function workspaceOptionLabel(category: WorkspacePricingCategory): string
   return `${category.shortName} · ${formatWorkspacePrice(category)}`
 }
 
+export const MEETING_ROOM_HOURLY_PRICE = 1500
+export const HALF_DAY_ROOM_PRICE = 5000
+export const FULL_DAY_ROOM_PRICE = 9000
+export const HALF_DAY_CONFERENCE_PRICE = 3000
+export const FULL_DAY_CONFERENCE_PRICE = 3250
+export const CONFERENCE_MIN_PAX = 6
+
+export const MEETING_ROOM_PACKAGE_IDS = [
+  "hourly",
+  "half-day-room",
+  "full-day-room",
+  "half-day-conference",
+  "full-day-conference",
+] as const
+
+export type MeetingRoomPackageId = (typeof MEETING_ROOM_PACKAGE_IDS)[number]
+
+export type MeetingRoomBilling = "hourly" | "fixed" | "per_person"
+
+export type MeetingRoomPackage = {
+  id: MeetingRoomPackageId
+  name: string
+  price: number
+  pricePeriod: string
+  billing: MeetingRoomBilling
+  defaultHours: number
+  minPax?: number
+  description: string
+}
+
+export const MEETING_ROOM_PACKAGES: MeetingRoomPackage[] = [
+  {
+    id: "hourly",
+    name: "Meeting Room",
+    price: MEETING_ROOM_HOURLY_PRICE,
+    pricePeriod: "/ hour + VAT",
+    billing: "hourly",
+    defaultHours: 1,
+    description: "4–6 people • screen/HDMI • member rates available",
+  },
+  {
+    id: "half-day-room",
+    name: "Half-Day Room",
+    price: HALF_DAY_ROOM_PRICE,
+    pricePeriod: "room only + VAT",
+    billing: "fixed",
+    defaultHours: 4,
+    description: "Up to four hours • room only • refreshments available up to 30 pax",
+  },
+  {
+    id: "full-day-room",
+    name: "Full-Day Room",
+    price: FULL_DAY_ROOM_PRICE,
+    pricePeriod: "room only + VAT",
+    billing: "fixed",
+    defaultHours: 8,
+    description: "Up to eight hours • room only • refreshments available up to 30 pax",
+  },
+  {
+    id: "half-day-conference",
+    name: "Half-Day Conference",
+    price: HALF_DAY_CONFERENCE_PRICE,
+    pricePeriod: "/ person + VAT",
+    billing: "per_person",
+    defaultHours: 4,
+    minPax: CONFERENCE_MIN_PAX,
+    description: "Minimum 6 • breakfast or snack + lunch",
+  },
+  {
+    id: "full-day-conference",
+    name: "Full-Day Conference",
+    price: FULL_DAY_CONFERENCE_PRICE,
+    pricePeriod: "/ person + VAT",
+    billing: "per_person",
+    defaultHours: 8,
+    minPax: CONFERENCE_MIN_PAX,
+    description: "Minimum 6 • breakfast or snack + lunch",
+  },
+]
+
+export function meetingRoomPackageById(
+  id: string | null | undefined
+): MeetingRoomPackage | undefined {
+  if (!id) return undefined
+  return MEETING_ROOM_PACKAGES.find((pkg) => pkg.id === id)
+}
+
+export function quoteMeetingRoomPackage(
+  id: MeetingRoomPackageId,
+  hours: number,
+  pax: number
+): { hours: number; basePrice: number } {
+  const pkg = meetingRoomPackageById(id)
+  if (!pkg) return { hours: 1, basePrice: 0 }
+  const resolvedHours = pkg.billing === "hourly"
+    ? Math.min(8, Math.max(1, Math.round(hours)))
+    : pkg.defaultHours
+  if (pkg.billing === "hourly") {
+    return { hours: resolvedHours, basePrice: pkg.price * resolvedHours }
+  }
+  if (pkg.billing === "per_person") {
+    const headcount = Math.max(pkg.minPax ?? CONFERENCE_MIN_PAX, Math.round(pax))
+    return { hours: resolvedHours, basePrice: pkg.price * headcount }
+  }
+  return { hours: resolvedHours, basePrice: pkg.price }
+}
+
+export function meetingRoomDurationForPackage(
+  id: MeetingRoomPackageId
+): "hourly" | "half-day" | "full-day" {
+  if (id === "hourly") return "hourly"
+  if (id === "half-day-room" || id === "half-day-conference") return "half-day"
+  return "full-day"
+}
+
 export const GENERAL_MEMBER_BENEFITS = [
   "High-speed internet",
   "Secure access",

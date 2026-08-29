@@ -29,7 +29,6 @@ import { LANDING_IMAGES } from "@/lib/landing-assets"
 import { HERO_AVATAR_COLORS, HERO_AVATAR_INITIALS } from "@/lib/landing-community"
 import { LandingCommunitySection } from "@/components/landing/landing-community-section"
 import { LandingEventsSection } from "@/components/landing/landing-events-section"
-import { LandingImpactStories } from "@/components/landing/landing-impact-stories"
 import { LandingProgramsSection } from "@/components/landing/landing-programs-section"
 import { LandingHeader } from "@/components/landing/landing-header"
 import { getLandingFooterPlatformLinks } from "@/lib/public-nav-links"
@@ -378,8 +377,6 @@ export default function HomePage() {
       <LandingEventsSection />
 
       <LandingCommunitySection />
-
-      <LandingImpactStories />
 
       <section id="membership" className="landing-section-alt landing-section">
         <div className="container px-4">

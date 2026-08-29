@@ -355,9 +355,9 @@ html.pwa-standalone body {
     background-image:
       linear-gradient(
         to bottom,
-        rgb(243 245 248 / 0.72) 0%,
-        rgb(243 245 248 / 0.88) 45%,
-        rgb(250 249 246 / 0.96) 100%
+        rgb(243 245 248 / 0.62) 0%,
+        rgb(243 245 248 / 0.78) 45%,
+        rgb(250 249 246 / 0.88) 100%
       ),
       url("/landing/hero.jpg");
     background-position: top center;

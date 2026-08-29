@@ -1,5 +1,5 @@
 import useSWR from "swr"
-import { DAY_PASS_PRICE } from "@/lib/workspace-pricing"
+import { DAY_PASS_PRICE, MEETING_ROOM_HOURLY_PRICE } from "@/lib/workspace-pricing"
 
 export interface PricingOption {
   type: "hourly" | "half-day" | "full-day" | "weekly" | "monthly"
@@ -210,12 +210,11 @@ export function usePricing(
         price: DAY_PASS_PRICE,
       })
     } else if (resourceType === "meeting-room") {
-      // Meeting room uses capacity tiers - fallback options for PricingBreakdown estimate
-      options.push(
-        { type: "hourly", label: "1-4 pax", price: 5000 },
-        { type: "half-day", label: "1-10 pax", price: 8000 },
-        { type: "full-day", label: "1-35 pax", price: 12000 }
-      )
+      options.push({
+        type: "hourly",
+        label: "Meeting Room from",
+        price: MEETING_ROOM_HOURLY_PRICE,
+      })
     }
     pricing = {
       basePrice: 0,

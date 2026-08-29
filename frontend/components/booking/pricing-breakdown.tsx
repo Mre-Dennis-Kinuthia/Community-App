@@ -1,19 +1,19 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { TrendingDown, Info } from "lucide-react"
 import type { PricingData } from "@/lib/hooks/use-pricing"
 import { useMemo } from "react"
+import { meetingRoomPackageById, type MeetingRoomPackageId } from "@/lib/workspace-pricing"
 
 interface PricingBreakdownProps {
   pricing: PricingData
   selectedDuration: "hourly" | "half-day" | "full-day" | "monthly"
   selectedAddOns: string[]
   resourceType: string
-  meetingRoomCapacity?: "1-4" | "1-10" | "1-35"
+  meetingRoomCapacity?: MeetingRoomPackageId | null
   meetingRoomHours?: number
-  meetingRoomHourlyPrice?: number
+  meetingRoomBasePrice?: number
   currency?: string
   /** Headcount for per-PAX add-ons (e.g. pastries). */
   pastriesPax?: number
@@ -29,7 +29,7 @@ export function PricingBreakdown({
   resourceType,
   meetingRoomCapacity,
   meetingRoomHours = 1,
-  meetingRoomHourlyPrice,
+  meetingRoomBasePrice,
   currency: propCurrency,
   pastriesPax = 1,
   compact = false,
@@ -40,9 +40,10 @@ export function PricingBreakdown({
 
   const selectedOption = !isMeetingRoom ? pricing.options.find(opt => opt.type === selectedDuration) : null
   const selectedAddOnItems = pricing.addOns.filter(addOn => selectedAddOns.includes(addOn.id))
+  const meetingPkg = meetingRoomCapacity ? meetingRoomPackageById(meetingRoomCapacity) : undefined
 
-  const subtotal = isMeetingRoom && meetingRoomCapacity && meetingRoomHourlyPrice
-    ? meetingRoomHourlyPrice * meetingRoomHours
+  const subtotal = isMeetingRoom && meetingRoomCapacity && meetingRoomBasePrice
+    ? meetingRoomBasePrice
     : (selectedOption?.price || 0)
   const addOnsTotal = selectedAddOnItems.reduce((sum, addOn) => {
     if (addOn.id === "pastries" && addOn.price > 0) {
@@ -54,7 +55,7 @@ export function PricingBreakdown({
   const listTotal = subtotal + addOnsTotal
   const total = Math.max(0, listTotal - membershipDiscount)
 
-  const showMeetingRoomBreakdown = isMeetingRoom && meetingRoomCapacity && meetingRoomHourlyPrice && meetingRoomHours > 0
+  const showMeetingRoomBreakdown = isMeetingRoom && !!meetingPkg && !!meetingRoomBasePrice && meetingRoomHours > 0
   const showEstimate = !showMeetingRoomBreakdown && !selectedOption && pricing.options.length > 0
   const estimateOption = showEstimate ? pricing.options[0] : null
 
@@ -83,9 +84,13 @@ export function PricingBreakdown({
           <div className="flex flex-col gap-2 py-2 border-b border-border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Meeting Room ({meetingRoomCapacity} pax)</p>
+                <p className="text-sm font-medium">{meetingPkg?.name ?? "Meeting room"}</p>
                 <p className="text-xs text-muted-foreground">
-                  {currency} {meetingRoomHourlyPrice.toLocaleString()}/hr × {meetingRoomHours} {meetingRoomHours === 1 ? "hr" : "hrs"}
+                  {meetingPkg?.billing === "hourly"
+                    ? `${currency} ${meetingPkg.price.toLocaleString()}/hr × ${meetingRoomHours} ${meetingRoomHours === 1 ? "hr" : "hrs"}`
+                    : meetingPkg?.billing === "per_person"
+                      ? `${currency} ${meetingPkg.price.toLocaleString()}/person · ${meetingRoomHours} ${meetingRoomHours === 1 ? "hr" : "hrs"}`
+                      : `${meetingRoomHours} ${meetingRoomHours === 1 ? "hr" : "hrs"} · room only`}
                 </p>
               </div>
               <p className="text-sm font-semibold">

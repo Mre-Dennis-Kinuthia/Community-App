@@ -1,10 +1,19 @@
 "use client"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { Users, Building2, Monitor, CheckCircle2 } from "lucide-react"
+import { Users, Building2, Monitor, CheckCircle2, Sparkles } from "lucide-react"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { cn } from "@/lib/utils"
-import { DAY_PASS_PRICE, OFFICE_FOR_A_DAY_PRICE } from "@/lib/workspace-pricing"
+import {
+  COMMUNITY_MONTHLY_PRICE,
+  DAY_PASS_PRICE,
+  FIVE_DAY_PACK_PRICE,
+  MEETING_ROOM_HOURLY_PRICE,
+  OFFICE_FOR_A_DAY_PRICE,
+  TEN_DAY_PACK_PRICE,
+  formatKes,
+} from "@/lib/workspace-pricing"
+import Link from "next/link"
 
 export type ResourceType = "hot-desk" | "meeting-room" | "private-office" | "event-space"
 
@@ -23,6 +32,7 @@ interface ResourceSelectorProps {
   pricing?: any // Pricing data from workspace
   currency?: string
   hiddenResourceTypes?: ResourceType[]
+  showStarConnectUpgrade?: boolean
 }
 
 export function ResourceSelector({
@@ -31,16 +41,14 @@ export function ResourceSelector({
   pricing,
   currency = "KES",
   hiddenResourceTypes = [],
+  showStarConnectUpgrade = false,
 }: ResourceSelectorProps) {
   const hidden = new Set(hiddenResourceTypes)
   const getStartingPrice = (type: ResourceType): number => {
     if (type === "event-space") return 0
+    if (type === "meeting-room") return MEETING_ROOM_HOURLY_PRICE
     if (!pricing || !pricing[type]) {
-      return type === "hot-desk"
-        ? DAY_PASS_PRICE
-        : type === "meeting-room"
-          ? 1500
-          : OFFICE_FOR_A_DAY_PRICE
+      return type === "hot-desk" ? DAY_PASS_PRICE : OFFICE_FOR_A_DAY_PRICE
     }
     const resourcePricing = pricing[type]
     let prices: (number | undefined)[] = []
@@ -49,7 +57,7 @@ export function ResourceSelector({
     } else if (type === "private-office") {
       return OFFICE_FOR_A_DAY_PRICE
     } else {
-      prices = [resourcePricing["1-4"], resourcePricing["1-10"], resourcePricing["1-35"]]
+      prices = [resourcePricing["hourly"], resourcePricing["full-day"]]
     }
     const validPrices = prices.filter((p) => typeof p === "number" && p > 0)
     return validPrices.length > 0 ? Math.min(...validPrices) : DAY_PASS_PRICE
@@ -66,8 +74,8 @@ export function ResourceSelector({
     }
     if (resource.type === "meeting-room") {
       return resource.startingPrice > 0
-        ? `From ${resource.startingPrice.toLocaleString()} ${currency}/hr`
-        : "Capacity-based pricing"
+        ? `From ${resource.startingPrice.toLocaleString()} ${currency}/hour + VAT`
+        : "Hourly and day rates"
     }
     return `From ${resource.startingPrice.toLocaleString()} ${currency} + VAT`
   }
@@ -84,9 +92,9 @@ export function ResourceSelector({
     {
       type: "meeting-room",
       label: "Meeting Room",
-      description: "Capacity-based hourly rates",
+      description: "Hourly, half-day, full-day and conference packages",
       icon: <Building2 className="h-5 w-5" />,
-      capacity: "1–4, 1–10, 1–35 pax",
+      capacity: "4–6 people · up to 30 pax for rooms",
       startingPrice: getStartingPrice("meeting-room"),
     },
     {
@@ -122,6 +130,14 @@ export function ResourceSelector({
             onClick={() => onResourceSelect(resource.type)}
           />
         ))}
+        {showStarConnectUpgrade ? (
+          <Link
+            href="/membership/star-connect"
+            className="inline-flex min-h-[36px] shrink-0 items-center rounded-full bg-muted/50 px-3.5 py-2 text-sm font-medium text-foreground/80 hover:bg-muted"
+          >
+            Star Connect
+          </Link>
+        ) : null}
       </div>
 
       {selected && (
@@ -177,7 +193,39 @@ export function ResourceSelector({
             </Card>
           )
         })}
+        {showStarConnectUpgrade ? (
+          <Link href="/membership/star-connect" className="block">
+            <Card className="h-full border-2 border-dashed border-[#812926]/30 transition-colors hover:border-[#812926]/60 hover:bg-[#812926]/5">
+              <CardContent className="p-4">
+                <div className="mb-3 rounded-lg bg-[#812926]/10 p-2 text-[#812926] w-fit">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <h3 className="mb-1 font-semibold">Upgrade to Star Connect</h3>
+                <p className="mb-2 text-xs text-muted-foreground">
+                  3 days per week coworking, two complimentary meeting-room hours, and member rates.
+                </p>
+                <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
+                  <span className="text-xs text-muted-foreground">Community Monthly</span>
+                  <span className="text-sm font-semibold text-primary">
+                    From {formatKes(COMMUNITY_MONTHLY_PRICE)} / month + VAT
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ) : null}
       </div>
+
+      {showStarConnectUpgrade ? (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Also available: Five-Day Pack {formatKes(FIVE_DAY_PACK_PRICE)} · Ten-Day Pack{" "}
+          {formatKes(TEN_DAY_PACK_PRICE)} · ask the hub team or{" "}
+          <Link href="/membership/star-connect" className="font-medium text-foreground underline-offset-2 hover:underline">
+            apply for Star Connect
+          </Link>
+          .
+        </p>
+      ) : null}
     </div>
   )
 }

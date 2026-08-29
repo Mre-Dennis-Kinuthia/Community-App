@@ -12,14 +12,32 @@ import {
   checkBookingSlotAvailable,
   normalizeBookingStartTime,
 } from "@/lib/booking-slot"
+import {
+  CONFERENCE_MIN_PAX,
+  meetingRoomDurationForPackage,
+  meetingRoomPackageById,
+  quoteMeetingRoomPackage,
+} from "@/lib/workspace-pricing"
 
 const bookingSchema = z.object({
   resourceType: z.enum(["hot-desk", "meeting-room", "private-office", "event-space"]),
   date: z.string().transform((str) => new Date(str)),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/), // HH:MM format
   duration: z.enum(["hourly", "half-day", "full-day", "monthly"]),
-  meetingRoomHours: z.number().min(1).max(8).optional(), // For meeting room capacity-based booking
-  meetingRoomCapacity: z.enum(["1-4", "1-10", "1-35"]).optional(),
+  meetingRoomHours: z.number().min(1).max(8).optional(),
+  meetingRoomCapacity: z
+    .enum([
+      "hourly",
+      "half-day-room",
+      "full-day-room",
+      "half-day-conference",
+      "full-day-conference",
+      "1-4",
+      "1-10",
+      "1-35",
+    ])
+    .optional(),
+  conferencePax: z.number().int().min(6).max(200).optional(),
   pastriesPax: z.number().int().min(1).max(200).optional(),
   basePrice: z.number().min(0),
   addOnsPrice: z.number().min(0).default(0),
@@ -95,9 +113,9 @@ export async function POST(request: NextRequest) {
     })
 
     const parsed = bookingSchema.parse(body)
-    const validatedData =
+    let validatedData =
       parsed.resourceType === "meeting-room"
-        ? parsed
+        ? { ...parsed }
         : { ...parsed, addOns: [] as string[], addOnsPrice: 0, pastriesPax: undefined }
 
     const memberProfile = await prisma.memberProfile.findUnique({
@@ -111,6 +129,33 @@ export async function POST(request: NextRequest) {
 
     const membership = buildMembershipSummary(memberProfile)
     const tier = membership.tier
+
+    let quotedBasePrice = validatedData.basePrice
+    if (validatedData.resourceType === "meeting-room") {
+      const pkg = meetingRoomPackageById(validatedData.meetingRoomCapacity)
+      if (!pkg) {
+        return NextResponse.json(
+          { error: "Choose a meeting room package." },
+          { status: 400 }
+        )
+      }
+      const pax = validatedData.conferencePax ?? pkg.minPax ?? CONFERENCE_MIN_PAX
+      if (pkg.billing === "per_person" && pax < (pkg.minPax ?? CONFERENCE_MIN_PAX)) {
+        return NextResponse.json(
+          { error: `Conference packages require at least ${pkg.minPax ?? CONFERENCE_MIN_PAX} people.` },
+          { status: 400 }
+        )
+      }
+      const quote = quoteMeetingRoomPackage(
+        pkg.id,
+        validatedData.meetingRoomHours ?? pkg.defaultHours,
+        pax
+      )
+      quotedBasePrice = quote.basePrice
+      validatedData.basePrice = quote.basePrice
+      validatedData.meetingRoomHours = quote.hours
+      validatedData.duration = meetingRoomDurationForPackage(pkg.id)
+    }
 
     if (
       validatedData.resourceType === "hot-desk" &&
@@ -137,7 +182,8 @@ export async function POST(request: NextRequest) {
       allowance,
       resourceType: validatedData.resourceType,
       meetingRoomHours: validatedData.meetingRoomHours,
-      basePrice: validatedData.basePrice,
+      meetingRoomPackageId: validatedData.meetingRoomCapacity,
+      basePrice: quotedBasePrice,
       addOnsPrice: validatedData.addOnsPrice,
     })
 
@@ -223,7 +269,24 @@ export async function POST(request: NextRequest) {
         freeMeetingRoomMinutesApplied: priced.freeMeetingRoomMinutesApplied,
         totalPrice: priced.totalPrice,
         addOns: validatedData.addOns,
-        notes: validatedData.notes,
+        notes: [
+          validatedData.resourceType === "meeting-room" && validatedData.meetingRoomCapacity
+            ? [
+                meetingRoomPackageById(validatedData.meetingRoomCapacity)?.name,
+                validatedData.meetingRoomHours
+                  ? `${validatedData.meetingRoomHours} hrs`
+                  : null,
+                validatedData.conferencePax
+                  ? `${validatedData.conferencePax} people`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")
+            : null,
+          validatedData.notes,
+        ]
+          .filter(Boolean)
+          .join("\n") || undefined,
         workspaceId: validatedData.workspaceId,
         spaceAssetId: validatedData.spaceAssetId ?? null,
         status: bookingStatus,

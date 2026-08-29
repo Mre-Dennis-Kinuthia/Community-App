@@ -34,6 +34,12 @@ import {
   describeMeetingRoomBenefit,
 } from "@/lib/membership-booking-benefits"
 import { resolveAllowanceState, parseMembershipTier } from "@/lib/membership-tier"
+import {
+  CONFERENCE_MIN_PAX,
+  meetingRoomDurationForPackage,
+  meetingRoomPackageById,
+  quoteMeetingRoomPackage,
+} from "@/lib/workspace-pricing"
 import { MembershipTierBadge } from "@/components/membership-tier-badge"
 import { useWorkspaces } from "@/lib/hooks/use-workspaces"
 import { Button } from "@/components/ui/button"
@@ -73,6 +79,7 @@ function BookingPageContent() {
   const { membership } = useMembershipBenefits()
   const hiddenResourceTypes: ResourceType[] =
     membership && !membership.canBookHotDesk ? ["hot-desk"] : []
+  const showStarConnectUpgrade = !membership || membership.canBookHotDesk
 
   const [selectedResource, setSelectedResource] = useState<ResourceType | null>("hot-desk")
 
@@ -89,12 +96,6 @@ function BookingPageContent() {
   const getDefaultDuration = (resource: ResourceType | null): BookingDuration => {
     if (resource === "hot-desk") return "full-day"
     return "hourly"
-  }
-
-  const getMeetingRoomHourlyPrice = (capacity: MeetingRoomCapacity): number => {
-    const mr = workspace?.pricing?.["meeting-room"] as Record<string, number> | undefined
-    const price = mr?.[capacity]
-    return typeof price === "number" && price > 0 ? price : { "1-4": 5000, "1-10": 8000, "1-35": 12000 }[capacity]
   }
 
   const availabilityResourceType =
@@ -115,6 +116,7 @@ function BookingPageContent() {
   const [selectedHalfDay, setSelectedHalfDay] = useState<"morning" | "afternoon" | undefined>(undefined)
   const [selectedMeetingRoomCapacity, setSelectedMeetingRoomCapacity] = useState<MeetingRoomCapacity | null>(null)
   const [selectedMeetingRoomHours, setSelectedMeetingRoomHours] = useState(1)
+  const [conferencePax, setConferencePax] = useState(CONFERENCE_MIN_PAX)
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>([])
   const [pastriesPax, setPastriesPax] = useState(1)
   const [selectedSpaceAssetId, setSelectedSpaceAssetId] = useState<string | null>(null)
@@ -150,6 +152,7 @@ function BookingPageContent() {
 
     let hasRequiredSelections = false
     let basePrice = 0
+    let meetingQuote: { hours: number; basePrice: number } | null = null
 
     if (selectedResource === "hot-desk") {
       if (selectedDuration === "full-day") {
@@ -163,10 +166,19 @@ function BookingPageContent() {
         basePrice = safePricing.options.find((opt) => opt.type === "hourly")?.price || 0
       }
     } else if (selectedResource === "meeting-room") {
+      const pkg = meetingRoomPackageById(selectedMeetingRoomCapacity)
       hasRequiredSelections =
-        !!selectedMeetingRoomCapacity && selectedMeetingRoomHours > 0 && !!selectedTime
-      if (selectedMeetingRoomCapacity) {
-        basePrice = getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity) * selectedMeetingRoomHours
+        !!pkg &&
+        selectedMeetingRoomHours > 0 &&
+        !!selectedTime &&
+        (pkg.billing !== "per_person" || conferencePax >= (pkg.minPax ?? CONFERENCE_MIN_PAX))
+      if (pkg && selectedMeetingRoomCapacity) {
+        meetingQuote = quoteMeetingRoomPackage(
+          selectedMeetingRoomCapacity,
+          selectedMeetingRoomHours,
+          conferencePax
+        )
+        basePrice = meetingQuote.basePrice
       }
     }
 
@@ -201,7 +213,8 @@ function BookingPageContent() {
       tier,
       allowance,
       resourceType: selectedResource,
-      meetingRoomHours: selectedMeetingRoomHours,
+      meetingRoomHours: meetingQuote?.hours ?? selectedMeetingRoomHours,
+      meetingRoomPackageId: selectedMeetingRoomCapacity,
       basePrice,
       addOnsPrice,
     })
@@ -224,6 +237,7 @@ function BookingPageContent() {
     safePricing,
     workspace?.pricing,
     pastriesPax,
+    conferencePax,
     membership,
   ])
 
@@ -248,7 +262,13 @@ function BookingPageContent() {
     if (totalPrice === 0 && membershipDiscount <= 0) return false
     if (selectedResource === "hot-desk") return selectedDuration === "full-day"
     if (selectedResource === "meeting-room") {
-      return !!selectedMeetingRoomCapacity && selectedMeetingRoomHours > 0 && !!selectedTime
+      const pkg = meetingRoomPackageById(selectedMeetingRoomCapacity)
+      return (
+        !!pkg &&
+        selectedMeetingRoomHours > 0 &&
+        !!selectedTime &&
+        (pkg.billing !== "per_person" || conferencePax >= (pkg.minPax ?? CONFERENCE_MIN_PAX))
+      )
     }
     return false
   }, [
@@ -258,6 +278,7 @@ function BookingPageContent() {
     selectedDuration,
     selectedMeetingRoomCapacity,
     selectedMeetingRoomHours,
+    conferencePax,
     totalPrice,
     membershipDiscount,
     bookingPricing.ready,
@@ -294,7 +315,11 @@ function BookingPageContent() {
 
     const basePrice =
       selectedResource === "meeting-room" && selectedMeetingRoomCapacity
-        ? getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity) * selectedMeetingRoomHours
+        ? quoteMeetingRoomPackage(
+            selectedMeetingRoomCapacity,
+            selectedMeetingRoomHours,
+            conferencePax
+          ).basePrice
         : (safePricing.options.find((opt) => opt.type === selectedDuration)?.price ?? 0)
     const meetingRoomAddOns =
       selectedResource === "meeting-room" ? selectedAddOns : []
@@ -308,11 +333,23 @@ function BookingPageContent() {
           }, 0)
         : 0
 
+    const meetingQuote =
+      selectedResource === "meeting-room" && selectedMeetingRoomCapacity
+        ? quoteMeetingRoomPackage(
+            selectedMeetingRoomCapacity,
+            selectedMeetingRoomHours,
+            conferencePax
+          )
+        : null
+
     const payload: Record<string, unknown> = {
       resourceType: selectedResource,
       date: localCalendarDayToISO(selectedDate),
       startTime,
-      duration: selectedResource === "meeting-room" ? "hourly" : selectedDuration,
+      duration:
+        selectedResource === "meeting-room" && selectedMeetingRoomCapacity
+          ? meetingRoomDurationForPackage(selectedMeetingRoomCapacity)
+          : selectedDuration,
       basePrice,
       addOnsPrice,
       totalPrice,
@@ -324,9 +361,13 @@ function BookingPageContent() {
     if (meetingRoomAddOns.includes("pastries")) {
       payload.pastriesPax = Math.max(1, pastriesPax)
     }
-    if (selectedResource === "meeting-room" && selectedMeetingRoomCapacity) {
-      payload.meetingRoomHours = selectedMeetingRoomHours
+    if (selectedResource === "meeting-room" && selectedMeetingRoomCapacity && meetingQuote) {
+      payload.meetingRoomHours = meetingQuote.hours
       payload.meetingRoomCapacity = selectedMeetingRoomCapacity
+      const pkg = meetingRoomPackageById(selectedMeetingRoomCapacity)
+      if (pkg?.billing === "per_person") {
+        payload.conferencePax = Math.max(pkg.minPax ?? CONFERENCE_MIN_PAX, conferencePax)
+      }
     }
     if (selectedSpaceAssetId) {
       payload.spaceAssetId = selectedSpaceAssetId
@@ -341,8 +382,8 @@ function BookingPageContent() {
         duration: payload.duration as string,
         workspaceId: workspace.id,
         ...(selectedSpaceAssetId && { spaceAssetId: selectedSpaceAssetId }),
-        ...(selectedResource === "meeting-room" && {
-          meetingRoomHours: selectedMeetingRoomHours,
+        ...(selectedResource === "meeting-room" && meetingQuote && {
+          meetingRoomHours: meetingQuote.hours,
         }),
       })
 
@@ -492,7 +533,7 @@ function BookingPageContent() {
                   id="availability-section"
                   step={1}
                   title="Choose your space"
-                  description="Pick a Day Pass, meeting room or office. Calendar availability still needs the hub team to confirm. Prices exclude 16% VAT."
+                  description="Pick a Day Pass, meeting room, office or event space. Connect members can also upgrade to Star Connect. Prices exclude 16% VAT."
                 >
                   {membership?.label ? (
                     <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -512,6 +553,7 @@ function BookingPageContent() {
                   <ResourceSelector
                     selectedResource={selectedResource}
                     hiddenResourceTypes={hiddenResourceTypes}
+                    showStarConnectUpgrade={showStarConnectUpgrade}
                     onResourceSelect={(resource) => {
                       setSelectedResource(resource)
                       setSelectedDate(null)
@@ -551,20 +593,21 @@ function BookingPageContent() {
                     {selectedResource === "meeting-room" && (
                       <BookingStep
                         step={2}
-                        title="Room size & duration"
-                        description="Capacity and hours for your meeting."
+                        title="Choose a room package"
+                        description="Hourly meeting room, half-day or full-day rooms, and conference packages."
                       >
                         <MeetingRoomSelector
                           selectedCapacity={selectedMeetingRoomCapacity}
                           selectedHours={selectedMeetingRoomHours}
-                          pricing={
-                            workspace?.pricing?.["meeting-room"] as
-                              | Record<string, number>
-                              | undefined
-                          }
+                          conferencePax={conferencePax}
                           currency={workspace?.currency || "KES"}
                           onCapacitySelect={(c) => {
                             setSelectedMeetingRoomCapacity(c)
+                            const pkg = meetingRoomPackageById(c)
+                            if (pkg) {
+                              setSelectedMeetingRoomHours(pkg.defaultHours)
+                              setSelectedDuration(meetingRoomDurationForPackage(c))
+                            }
                             setSelectedDate(null)
                             setSelectedTime(null)
                           }}
@@ -572,6 +615,7 @@ function BookingPageContent() {
                             setSelectedMeetingRoomHours(h)
                             setSelectedTime(null)
                           }}
+                          onConferencePaxChange={setConferencePax}
                         />
                       </BookingStep>
                     )}
@@ -587,7 +631,7 @@ function BookingPageContent() {
                       >
                         {!canPickDate ? (
                           <p className="mb-3 text-sm text-muted-foreground">
-                            Select a room size first.
+                            Select a room package first.
                           </p>
                         ) : null}
                         <AvailabilityCalendar
@@ -659,11 +703,17 @@ function BookingPageContent() {
                             date={localCalendarDayToISO(selectedDate)}
                             startTime={calculateStartTime}
                             duration={
-                              selectedResource === "meeting-room" ? "hourly" : selectedDuration
+                              selectedResource === "meeting-room" && selectedMeetingRoomCapacity
+                                ? meetingRoomDurationForPackage(selectedMeetingRoomCapacity)
+                                : selectedDuration
                             }
                             meetingRoomHours={
-                              selectedResource === "meeting-room"
-                                ? selectedMeetingRoomHours
+                              selectedResource === "meeting-room" && selectedMeetingRoomCapacity
+                                ? quoteMeetingRoomPackage(
+                                    selectedMeetingRoomCapacity,
+                                    selectedMeetingRoomHours,
+                                    conferencePax
+                                  ).hours
                                 : undefined
                             }
                             selectedAssetId={selectedSpaceAssetId}
@@ -723,10 +773,22 @@ function BookingPageContent() {
                       }
                       resourceType={selectedResource}
                       meetingRoomCapacity={selectedMeetingRoomCapacity}
-                      meetingRoomHours={selectedMeetingRoomHours}
-                      meetingRoomHourlyPrice={
+                      meetingRoomHours={
                         selectedMeetingRoomCapacity
-                          ? getMeetingRoomHourlyPrice(selectedMeetingRoomCapacity)
+                          ? quoteMeetingRoomPackage(
+                              selectedMeetingRoomCapacity,
+                              selectedMeetingRoomHours,
+                              conferencePax
+                            ).hours
+                          : selectedMeetingRoomHours
+                      }
+                      meetingRoomBasePrice={
+                        selectedMeetingRoomCapacity
+                          ? quoteMeetingRoomPackage(
+                              selectedMeetingRoomCapacity,
+                              selectedMeetingRoomHours,
+                              conferencePax
+                            ).basePrice
                           : undefined
                       }
                       currency={safePricing.currency}
@@ -777,7 +839,10 @@ function BookingPageContent() {
                 summary={{
                   date: selectedDate,
                   time: selectedTime,
-                  duration: selectedResource === "meeting-room" ? "hourly" : selectedDuration,
+                  duration:
+                    selectedResource === "meeting-room" && selectedMeetingRoomCapacity
+                      ? meetingRoomDurationForPackage(selectedMeetingRoomCapacity)
+                      : selectedDuration,
                   resourceType: selectedResource,
                   totalPrice,
                   listPrice: bookingPricing.grossTotal,

@@ -13,6 +13,7 @@ import { toast } from "@/lib/toast"
 import { Loader2, ArrowLeft, Calendar, Clock, Building2, CheckCircle2, XCircle } from "lucide-react"
 import { format } from "date-fns"
 import { verifyBookingSlotAvailable } from "@/lib/booking-verify-client"
+import { meetingRoomPackageById, type MeetingRoomPackageId } from "@/lib/workspace-pricing"
 
 const PENDING_BOOKING_KEY = "pendingWorkspaceBooking"
 
@@ -31,15 +32,16 @@ export interface PendingBookingPayload {
   spaceAssetId?: string
   pastriesPax?: number
   meetingRoomHours?: number
-  meetingRoomCapacity?: "1-4" | "1-10" | "1-35"
+  meetingRoomCapacity?: MeetingRoomPackageId | "1-4" | "1-10" | "1-35"
+  conferencePax?: number
 }
 
-function getResourceName(type: string) {
+function getResourceName(type: string, meetingRoomCapacity?: string) {
   switch (type) {
     case "hot-desk":
       return "Day Pass"
     case "meeting-room":
-      return "Meeting Room"
+      return meetingRoomPackageById(meetingRoomCapacity)?.name ?? "Meeting Room"
     default:
       return type
   }
@@ -152,6 +154,7 @@ export default function BookingPaymentPage() {
         ...(pending.pastriesPax && { pastriesPax: pending.pastriesPax }),
         ...(pending.meetingRoomHours && { meetingRoomHours: pending.meetingRoomHours }),
         ...(pending.meetingRoomCapacity && { meetingRoomCapacity: pending.meetingRoomCapacity }),
+        ...(pending.conferencePax && { conferencePax: pending.conferencePax }),
       }),
     })
 
@@ -224,7 +227,7 @@ export default function BookingPaymentPage() {
               <CardContent className="space-y-3 text-sm">
                 <div className="flex gap-3">
                   <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span>{getResourceName(pending.resourceType)}</span>
+                  <span>{getResourceName(pending.resourceType, pending.meetingRoomCapacity)}</span>
                 </div>
                 {bookingDate && (
                   <div className="flex gap-3">

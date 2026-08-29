@@ -3,12 +3,14 @@ import {
   type AllowanceState,
   type MembershipTier,
 } from "@/lib/membership-tier"
+import { meetingRoomPackageById } from "@/lib/workspace-pricing"
 
 export type MeetingRoomBenefitInput = {
   tier: MembershipTier | null | undefined
   allowance: AllowanceState
   resourceType: string
   meetingRoomHours?: number
+  meetingRoomPackageId?: string | null
   basePrice: number
   addOnsPrice: number
 }
@@ -26,6 +28,16 @@ export function applyMembershipBookingBenefits(
   const listPrice = input.basePrice + input.addOnsPrice
 
   if (input.resourceType !== "meeting-room") {
+    return {
+      listPrice,
+      membershipDiscount: 0,
+      freeMeetingRoomMinutesApplied: 0,
+      totalPrice: listPrice,
+    }
+  }
+
+  const pkg = meetingRoomPackageById(input.meetingRoomPackageId)
+  if (!pkg || pkg.billing !== "hourly") {
     return {
       listPrice,
       membershipDiscount: 0,
