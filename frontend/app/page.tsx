@@ -99,7 +99,7 @@ const FAQS = [
   {
     question: "How do I book workspace?",
     answer:
-      "Once you're a member, book through the platform. Day Passes are KES 1,500 per day plus VAT. The hub team confirms availability, then you’ll complete payment if a fee is due.",
+      "Once you're a member, book through the platform. Connect is free. All workspace rates — Day Passes, packs, desks and rooms — are listed under Star Connect. The hub team confirms availability, then you’ll complete payment if a fee is due.",
   },
   {
     question: "What does the Star Connect membership include?",
@@ -108,7 +108,7 @@ const FAQS = [
   {
     question: "How can my organization partner with Impact Hub Nairobi?",
     answer:
-      "Choose Organisation / Company and complete the 3-step inquiry. Team Community workspace starts at KES 11,500 per person per month plus VAT (minimum four people). Larger partnerships, dedicated desks and private rooms are scoped with the team.",
+      "Choose Organisation / Company and complete the 3-step partnership inquiry. This track is for institutional programmes and ecosystem work — not workspace rates. Workspace prices are listed under Star Connect.",
   },
 ]
 
@@ -386,15 +386,10 @@ export default function HomePage() {
           <SectionHeader
             label="Membership"
             title="Become a member"
-            description="Three memberships: Connect, Star Connect and Organisation / Company. Pick a workspace category in each card to see price, coworking days and what’s included."
+            description="Free community access, published workspace rates, or a partnership."
             className="mb-14 md:mb-16"
           />
           <MembershipPricingCards />
-          <p className="mx-auto mt-4 max-w-3xl text-center text-xs leading-relaxed text-muted-foreground">
-            <Link href="/pricing" className="font-medium text-foreground underline-offset-2 hover:underline">
-              Full category details
-            </Link>
-          </p>
         </div>
       </section>
 

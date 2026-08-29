@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { ArrowRight, CalendarDays, CheckCircle2 } from "lucide-react"
+import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
   MEMBERSHIP_PRICING_TIERS,
   VAT_DISCLAIMER,
+  WORKSPACE_OPTION_GROUPS,
   categoriesForMembership,
   formatWorkspacePrice,
   workspaceCategoryById,
@@ -16,17 +17,23 @@ import {
   type WorkspacePricingCategory,
 } from "@/lib/workspace-pricing"
 
-function defaultSelection(): Record<MembershipPricingId, string> {
+const LANDING_INCLUDE_COUNT = 3
+
+function defaultSelection(): Partial<Record<MembershipPricingId, string>> {
   return Object.fromEntries(
-    MEMBERSHIP_PRICING_TIERS.map((tier) => [tier.id, tier.defaultCategoryId])
-  ) as Record<MembershipPricingId, string>
+    MEMBERSHIP_PRICING_TIERS.filter((tier) => tier.defaultCategoryId).map((tier) => [
+      tier.id,
+      tier.defaultCategoryId as string,
+    ])
+  )
 }
 
 function categoryForTier(
   tier: MembershipPricingTier,
-  selectedId: string
-): WorkspacePricingCategory {
+  selectedId: string | undefined
+): WorkspacePricingCategory | null {
   const categories = categoriesForMembership(tier.id)
+  if (categories.length === 0) return null
   return (
     categories.find((c) => c.id === selectedId) ??
     categories.find((c) => c.id === tier.defaultCategoryId) ??
@@ -44,32 +51,34 @@ function MembershipCategoryPicker({
   onSelect: (categoryId: string) => void
 }) {
   const options = categoriesForMembership(tier.id)
+  const selectId = `${tier.id}-workspace-option`
 
   return (
-    <fieldset>
-      <legend className="text-xs font-medium text-muted-foreground">Workspace category</legend>
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        {options.map((option) => {
-          const active = option.id === category.id
+    <div className="space-y-2">
+      <label htmlFor={selectId} className="sr-only">
+        Workspace option
+      </label>
+      <select
+        id={selectId}
+        value={category.id}
+        onChange={(e) => onSelect(e.target.value)}
+        className="h-11 w-full rounded-md border border-[#edeff2] bg-[#faf9f6] px-3 text-sm text-foreground outline-none transition-colors focus-visible:border-[#812926]/40 focus-visible:ring-2 focus-visible:ring-[#812926]/15"
+      >
+        {WORKSPACE_OPTION_GROUPS.map((group) => {
+          const grouped = options.filter((option) => option.optionGroup === group.id)
+          if (grouped.length === 0) return null
           return (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => onSelect(option.id)}
-              aria-pressed={active}
-              className={cn(
-                "rounded-md border px-2.5 py-1.5 text-left text-xs font-medium transition-colors",
-                active
-                  ? "border-[#812926] bg-[#812926] text-white"
-                  : "border-[#edeff2] bg-white text-foreground hover:bg-[#f3f5f8]"
-              )}
-            >
-              {option.shortName}
-            </button>
+            <optgroup key={group.id} label={group.label}>
+              {grouped.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.shortName}
+                </option>
+              ))}
+            </optgroup>
           )
         })}
-      </div>
-    </fieldset>
+      </select>
+    </div>
   )
 }
 
@@ -80,98 +89,105 @@ function MembershipPricingCard({
   detail,
 }: {
   tier: MembershipPricingTier
-  category: WorkspacePricingCategory
+  category: WorkspacePricingCategory | null
   onSelect: (categoryId: string) => void
   detail: boolean
 }) {
-  const includes = detail ? category.includes : category.includes.slice(0, 4)
-  const price = formatWorkspacePrice(category)
+  const includes = category
+    ? detail
+      ? category.includes
+      : category.includes.slice(0, LANDING_INCLUDE_COUNT)
+    : (tier.includes ?? []).slice(0, LANDING_INCLUDE_COUNT)
+  const price = category
+    ? formatWorkspacePrice(category)
+    : (tier.staticPrice ?? "Free")
+  const period = category?.pricePeriod ?? ""
+  const coworkingLine = category
+    ? [category.coworkingDays, category.validity].filter(Boolean).join(" · ")
+    : ""
+  const href = category?.href ?? tier.href
+  const cta = category?.cta ?? tier.cta
 
   return (
     <article
       id={tier.id}
       className={cn(
-        "landing-panel flex flex-col",
-        tier.popular && "border-primary/30"
+        "landing-panel flex h-full flex-col px-6 py-8 md:px-7 md:py-9",
+        tier.popular && "border-[#812926]/25 shadow-sm"
       )}
     >
-      <div className="border-b border-border px-5 py-6 text-center">
-        {tier.popular ? (
-          <p className="section-label mb-3 text-primary">Recommended</p>
-        ) : null}
-        <h3 className={cn("text-sm font-semibold text-foreground", !tier.popular && "mt-6")}>
-          {tier.name}
-        </h3>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{tier.intro}</p>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-5 px-5 py-6">
-        <MembershipCategoryPicker
-          tier={tier}
-          category={category}
-          onSelect={onSelect}
-        />
-
-        <div className="text-center">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {category.name}
-          </p>
-          <div className="mt-2 flex items-baseline justify-center gap-1">
-            <span className="text-2xl font-semibold tracking-tight tabular-nums">
-              {price}
+      <header className="text-center">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#812926]/80">
+          {tier.audience}
+        </p>
+        <div className="mt-3 flex items-center justify-center gap-2">
+          <h3 className="text-lg font-semibold tracking-tight text-foreground">{tier.name}</h3>
+          {tier.popular ? (
+            <span className="rounded-full bg-[#812926]/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#812926]">
+              Popular
             </span>
-            <span className="text-xs text-muted-foreground">{category.pricePeriod}</span>
-          </div>
-          <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
-            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-            {category.coworkingDays}
+          ) : null}
+        </div>
+      </header>
+
+      <div className="mt-8 flex flex-1 flex-col">
+        {category ? (
+          <MembershipCategoryPicker
+            tier={tier}
+            category={category}
+            onSelect={onSelect}
+          />
+        ) : (
+          <p className="flex min-h-11 items-center justify-center text-center text-sm leading-relaxed text-muted-foreground">
+            {tier.intro}
           </p>
-          {category.validity ? (
-            <p className="mt-1 text-xs text-muted-foreground">{category.validity}</p>
+        )}
+
+        <div className="mt-8 text-center">
+          <p className="text-3xl font-semibold tracking-tight tabular-nums text-foreground">
+            {price}
+          </p>
+          {period ? (
+            <p className="mt-1.5 text-sm text-muted-foreground">{period}</p>
+          ) : null}
+          {coworkingLine ? (
+            <p className="mt-2 text-sm text-muted-foreground">{coworkingLine}</p>
           ) : null}
         </div>
 
-        {detail ? (
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">Best for: </span>
+        {detail && category ? (
+          <p className="mt-6 text-center text-sm leading-relaxed text-muted-foreground">
             {category.bestFor}
           </p>
         ) : null}
 
-        <ul className="space-y-2.5 text-sm leading-relaxed">
+        <ul className="mt-8 space-y-3 text-sm leading-relaxed text-muted-foreground">
           {includes.map((feature) => (
-            <li key={feature} className="flex items-start gap-2">
+            <li key={feature} className="flex items-start gap-2.5">
               <CheckCircle2
-                className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                className="mt-0.5 h-4 w-4 shrink-0 text-[#812926]/70"
                 aria-hidden
               />
-              <span>{feature}</span>
+              <span className="text-foreground/80">{feature}</span>
             </li>
           ))}
         </ul>
 
-        {category.note ? (
-          <p className="text-xs leading-relaxed text-muted-foreground">{category.note}</p>
+        {detail && category?.note ? (
+          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">{category.note}</p>
         ) : null}
 
-        <div className="mt-auto space-y-2">
-          <p className="text-center text-xs leading-relaxed text-muted-foreground">
-            {tier.helper}
-          </p>
-          <Link href={category.href} className="block">
-            <Button className="w-full" variant={tier.popular ? "default" : "outline"}>
-              {category.cta}
+        <div className="mt-auto pt-8">
+          <Link href={href} className="block">
+            <Button
+              className="h-11 w-full"
+              variant={tier.popular ? "default" : "outline"}
+            >
+              {cta}
               {tier.popular ? <ArrowRight className="ml-2 h-4 w-4" aria-hidden /> : null}
             </Button>
           </Link>
-          {tier.id === "community" ? (
-            <p className="text-center text-xs text-muted-foreground">
-              Platform membership is free.{" "}
-              <Link href="/register" className="font-medium text-foreground underline-offset-2 hover:underline">
-                Create an account
-              </Link>
-            </p>
-          ) : null}
+          <p className="mt-3 text-center text-xs text-muted-foreground">{tier.helper}</p>
         </div>
       </div>
     </article>
@@ -214,7 +230,7 @@ export function MembershipPricingCards({
 
   return (
     <div>
-      <div className="mx-auto grid max-w-5xl gap-3 md:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl items-stretch gap-6 lg:grid-cols-3 lg:gap-8">
         {cards.map(({ tier, category }) => (
           <MembershipPricingCard
             key={tier.id}
@@ -231,8 +247,11 @@ export function MembershipPricingCards({
         ))}
       </div>
       {showVatNote ? (
-        <p className="mx-auto mt-8 max-w-3xl text-center text-xs leading-relaxed text-muted-foreground">
-          {VAT_DISCLAIMER}
+        <p className="mx-auto mt-10 max-w-xl text-center text-xs leading-relaxed text-muted-foreground">
+          {VAT_DISCLAIMER}{" "}
+          <Link href="/pricing" className="text-foreground underline-offset-2 hover:underline">
+            Full details
+          </Link>
         </p>
       ) : null}
     </div>

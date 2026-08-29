@@ -11,7 +11,7 @@ import { HUB_PUBLIC_EMAIL, HUB_PUBLIC_PHONE, HUB_PUBLIC_PHONE_HREF } from "@/lib
 export const metadata = {
   title: "Membership pricing | Impact Hub Nairobi",
   description:
-    "Connect, Star Connect and Organisation / Company memberships with workspace categories, coworking days and prices. Prices exclude 16% VAT.",
+    "Connect is free. Star Connect lists all workspace rates. Organisation / Company is for partnerships. Prices exclude 16% VAT.",
 }
 
 export default function PricingPage() {
@@ -27,12 +27,11 @@ export default function PricingPage() {
             <h1 className="section-title text-balance">
               Membership and workspace pricing
             </h1>
-            <p className="section-lead mt-4 max-w-3xl text-pretty">
-              Three memberships: <strong>Connect</strong>, <strong>Star Connect</strong>, and{" "}
-              <strong>Organisation / Company</strong>. Choose a workspace category in each card to
-              update the price, coworking days and what is included.
+            <p className="section-lead mt-4 max-w-2xl text-pretty">
+              Connect is free. Star Connect has every workspace rate. Organisation / Company is for
+              partnerships.
             </p>
-            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-3 max-w-2xl text-xs leading-relaxed text-muted-foreground">
               {VAT_DISCLAIMER}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
