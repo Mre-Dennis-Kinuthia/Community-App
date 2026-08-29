@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { format } from "date-fns"
-import { cn } from "@/lib/utils"
 import { MobilePageHeader } from "@/components/mobile/mobile-page-shell"
+import { toast } from "@/lib/toast"
+import { bookingNeedsPayment, startBookingPaystack } from "@/lib/booking-pay-client"
 
 interface Booking {
   id: string
@@ -33,6 +34,7 @@ export default function DashboardBookingDetailPage() {
   const [booking, setBooking] = useState<Booking | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [paying, setPaying] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -141,7 +143,11 @@ export default function DashboardBookingDetailPage() {
           <h2 className="font-semibold">Booking details</h2>
           <div className="flex items-center gap-2">
             <Badge variant={statusVariant(booking.status)} className="text-[10px]">
-              {booking.status}
+              {bookingNeedsPayment(booking)
+                ? "Payment due"
+                : booking.status === "pending"
+                  ? "Awaiting confirmation"
+                  : booking.status}
             </Badge>
             {booking.paymentStatus && (
               <Badge variant="outline" className="text-[10px]">
@@ -150,6 +156,19 @@ export default function DashboardBookingDetailPage() {
             )}
           </div>
         </div>
+        {booking.status === "pending" && (
+          <p className="mb-4 text-sm text-muted-foreground">
+            The hub team will confirm availability shortly
+            {Number(booking.totalPrice) > 0
+              ? ". You’ll be asked to pay after they confirm."
+              : "."}
+          </p>
+        )}
+        {bookingNeedsPayment(booking) && (
+          <p className="mb-4 text-sm text-muted-foreground">
+            This slot is available. Complete payment to finalize your booking.
+          </p>
+        )}
         <p className="mb-4 text-xs text-muted-foreground">Reference: {booking.id}</p>
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-4 rounded-lg bg-muted/30 px-3 py-2.5">
@@ -189,6 +208,34 @@ export default function DashboardBookingDetailPage() {
         <Button asChild variant="outline" size="sm">
           <Link href="/dashboard/bookings">Back to bookings</Link>
         </Button>
+        {bookingNeedsPayment(booking) && (
+          <Button
+            size="sm"
+            disabled={paying}
+            onClick={async () => {
+              setPaying(true)
+              try {
+                const url = await startBookingPaystack(booking.id)
+                window.location.href = url
+              } catch (err) {
+                toast.error(
+                  "Payment failed",
+                  err instanceof Error ? err.message : "Please try again."
+                )
+                setPaying(false)
+              }
+            }}
+          >
+            {paying ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Redirecting…
+              </>
+            ) : (
+              "Pay with Paystack"
+            )}
+          </Button>
+        )}
         {booking.status !== "cancelled" && new Date(booking.date) >= new Date() && (
           <Button asChild size="sm">
             <Link href="/booking">Book again</Link>

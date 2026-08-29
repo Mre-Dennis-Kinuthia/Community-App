@@ -166,9 +166,9 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
   {
     key: "booking_confirmation",
     name: "Booking confirmation",
-    description: "Sent when a member confirms a workspace booking.",
+    description: "Sent when an admin confirms a workspace booking is available.",
     category: "bookings",
-    sentFrom: "member",
+    sentFrom: "both",
     variables: [
       NAME,
       { key: "resource", label: "Space type", sample: "Meeting room" },
@@ -190,6 +190,30 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
     ctaLabel: "View booking",
     textBody:
       "Booking confirmed\n{{resource}}\n{{date}}\n{{time}}\nTotal: {{total}}\n{{bookingUrl}}",
+  },
+  {
+    key: "booking_payment_due",
+    name: "Booking payment due",
+    description: "Sent when an admin confirms availability and the member still needs to pay.",
+    category: "bookings",
+    sentFrom: "admin",
+    variables: [
+      NAME,
+      { key: "resource", label: "Space type", sample: "Meeting room" },
+      { key: "date", label: "Date", sample: "Monday, 14 July 2026" },
+      { key: "time", label: "Time", sample: "09:00 – 11:00" },
+      { key: "total", label: "Amount due", sample: "KES 5,000" },
+      { key: "bookingUrl", label: "Booking URL", sample: "https://example.com/bookings/1" },
+    ],
+    subject: "Complete payment — {{resource}} is available",
+    preheader: "Your slot is confirmed — please pay to finalize",
+    title: "Please complete payment",
+    eyebrow: "Workspace",
+    bodyHtml: `<p>Good news — the hub team confirmed that <strong>{{resource}}</strong> is available on {{date}}.</p>
+<p>Complete payment now to finalize your booking.</p>`,
+    ctaLabel: "Pay now",
+    textBody:
+      "Your booking is available. Please complete payment.\n{{resource}}\n{{date}}\n{{time}}\nAmount due: {{total}}\n{{bookingUrl}}",
   },
   {
     key: "booking_cancelled",

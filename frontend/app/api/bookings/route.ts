@@ -3,11 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
-import {
-  sendBookingConfirmationEmail,
-  sendNewBookingStaffEmail,
-  sendEmailInBackground,
-} from "@/lib/email"
+import { sendNewBookingStaffEmail, sendEmailInBackground } from "@/lib/email"
 import { buildMembershipSummary } from "@/lib/membership-profile"
 import { applyMembershipBookingBenefits } from "@/lib/membership-booking-benefits"
 import { canBookHotDesk, resolveAllowanceState, startOfAllowanceMonth } from "@/lib/membership-tier"
@@ -16,10 +12,6 @@ import {
   checkBookingSlotAvailable,
   normalizeBookingStartTime,
 } from "@/lib/booking-slot"
-import {
-  buildBookingCalendarInvite,
-  getBookingCalendarLinks,
-} from "@/lib/booking-calendar"
 
 const bookingSchema = z.object({
   resourceType: z.enum(["hot-desk", "meeting-room", "private-office", "event-space"]),
@@ -211,8 +203,8 @@ export async function POST(request: NextRequest) {
     }
 
     const requiresPayment = priced.totalPrice > 0
-    const bookingStatus = requiresPayment ? "pending" : "confirmed"
-    const paymentStatus = requiresPayment ? "pending" : "paid"
+    const bookingStatus = "pending"
+    const paymentStatus = requiresPayment ? "pending" : "not_required"
 
     // Create booking
     console.log("[BOOKING API] Creating booking...")
@@ -275,119 +267,50 @@ export async function POST(request: NextRequest) {
       paymentStatus: booking.paymentStatus,
     })
 
-    if (booking.status === "confirmed") {
-    // Create notification for the user
     const formattedDate = new Date(booking.date).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
     })
-    
-    const notificationParams = NotificationTemplates.bookingConfirmed(
-      booking.id,
-      booking.resourceType.replace("-", " "),
-      formattedDate
-    )
-    
+
     await createNotification({
-      userId: userId,
-      ...notificationParams,
+      userId,
+      ...NotificationTemplates.bookingReceived(
+        booking.id,
+        booking.resourceType.replace("-", " "),
+        formattedDate
+      ),
       skipEmail: true,
     })
 
-    const { syncAccessForBooking } = await import("@/lib/integrations/access-control")
-    await syncAccessForBooking(booking).catch((err) => console.error("[ACCESS BOOKING]", err))
-
     if (booking.user?.email) {
-      const memberEmail = booking.user.email
-      const memberName = booking.user.name
-      const isMeetingRoom = booking.resourceType === "meeting-room"
-      const calendarInput = {
-        id: booking.id,
-        resourceType: booking.resourceType,
-        date: booking.date,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        addOns: booking.addOns,
-        addOnsPrice: booking.addOnsPrice,
-        pastriesPax: validatedData.pastriesPax,
-      }
-      const calendarInvite = isMeetingRoom
-        ? buildBookingCalendarInvite(calendarInput, {
-            attendeeEmail: memberEmail,
-            attendeeName: memberName,
-          })
-        : null
-      const calendarLinks = isMeetingRoom ? getBookingCalendarLinks(calendarInput) : null
-
-      const bookingEmailParams = {
-        bookingId: booking.id,
-        resourceType: booking.resourceType,
-        date: booking.date,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        totalPrice: Number(booking.totalPrice),
-        listPrice: booking.listPrice != null ? Number(booking.listPrice) : null,
-        membershipDiscount: Number(booking.membershipDiscount ?? 0),
-        addOns: booking.addOns,
-        addOnsPrice: booking.addOnsPrice,
-        pastriesPax: validatedData.pastriesPax,
-        calendarInvite: calendarInvite ?? undefined,
-      }
-
-      sendEmailInBackground(
-        () =>
-          sendBookingConfirmationEmail({
-            to: memberEmail,
-            name: memberName,
-            ...bookingEmailParams,
-          }),
-        "booking-confirmation"
-      )
-
       sendEmailInBackground(
         () =>
           sendNewBookingStaffEmail({
-            memberEmail,
-            memberName,
+            memberEmail: booking.user!.email!,
+            memberName: booking.user!.name,
             notes: booking.notes,
-            ...bookingEmailParams,
+            bookingId: booking.id,
+            resourceType: booking.resourceType,
+            date: booking.date,
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            totalPrice: Number(booking.totalPrice),
+            addOns: booking.addOns,
+            addOnsPrice: booking.addOnsPrice,
+            pastriesPax: validatedData.pastriesPax,
           }),
         "booking-staff"
       )
     } else {
-      console.warn("[BOOKING API] No member email — confirmation not sent:", booking.id)
+      console.warn("[BOOKING API] No member email — staff alert not sent:", booking.id)
     }
-    }
-
-    const isMeetingRoomBooking = booking.resourceType === "meeting-room"
-    const responseCalendarInput = {
-      id: booking.id,
-      resourceType: booking.resourceType,
-      date: booking.date,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      addOns: booking.addOns,
-      addOnsPrice: booking.addOnsPrice,
-      pastriesPax: validatedData.pastriesPax,
-    }
-    const responseCalendarInvite = isMeetingRoomBooking && booking.status === "confirmed"
-      ? buildBookingCalendarInvite(responseCalendarInput, {
-          attendeeEmail: booking.user?.email,
-          attendeeName: booking.user?.name,
-        })
-      : null
-    const responseCalendarLinks = isMeetingRoomBooking && booking.status === "confirmed"
-      ? getBookingCalendarLinks(responseCalendarInput)
-      : null
 
     return NextResponse.json(
       {
         message:
-          booking.status === "confirmed"
-            ? "Booking confirmed successfully"
-            : "Booking created — complete payment to confirm",
+          "Booking submitted. The hub team will confirm availability shortly.",
         booking: {
           id: booking.id,
           resourceType: booking.resourceType,
@@ -402,8 +325,6 @@ export async function POST(request: NextRequest) {
           addOns: booking.addOns,
           addOnsPrice: booking.addOnsPrice,
         },
-        calendarInvite: responseCalendarInvite ?? undefined,
-        calendarLinks: responseCalendarLinks ?? undefined,
       },
       { status: 201 }
     )

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, Suspense } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +12,8 @@ import { format } from "date-fns"
 import Link from "next/link"
 import { autoImportEventToCalendar } from "@/lib/event-calendar-client"
 import { resolveBookingAddOns } from "@/lib/booking-add-ons"
+import { bookingNeedsPayment, startBookingPaystack } from "@/lib/booking-pay-client"
+import { toast } from "@/lib/toast"
 
 interface BookingDetails {
   id: string
@@ -30,13 +32,13 @@ interface BookingDetails {
 
 function SuccessContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const bookingId = searchParams.get("id")
   const [booking, setBooking] = useState<BookingDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const [calendarImported, setCalendarImported] = useState(false)
+  const [paying, setPaying] = useState(false)
 
   useEffect(() => {
     if (!bookingId) {
@@ -67,6 +69,8 @@ function SuccessContent() {
 
   useEffect(() => {
     if (!booking || booking.resourceType !== "meeting-room" || calendarImported) return
+    if (booking.status !== "confirmed") return
+    if (bookingNeedsPayment(booking)) return
 
     let cancelled = false
     ;(async () => {
@@ -143,11 +147,35 @@ function SuccessContent() {
   }
 
   const bookingDate = new Date(booking.date)
-  const isPaymentPending = !!booking.paymentStatus && booking.paymentStatus.toLowerCase() !== "paid"
+  const isConfirmed = booking.status === "confirmed"
+  const needsPayment = bookingNeedsPayment(booking)
+  const isFullyConfirmed = isConfirmed && !needsPayment
   const resolvedAddOns = resolveBookingAddOns({
     addOnIds: booking.addOns ?? [],
     addOnsPrice: booking.addOnsPrice,
   })
+
+  const headline = needsPayment
+    ? "Complete payment"
+    : isFullyConfirmed
+      ? "Booking confirmed"
+      : "Request received"
+  const subhead = needsPayment
+    ? "Your slot is available. Pay now to finalize this booking."
+    : isFullyConfirmed
+      ? "Your workspace booking is confirmed."
+      : "The calendar showed this slot as free. The hub team will confirm availability shortly."
+
+  const handlePay = async () => {
+    setPaying(true)
+    try {
+      const url = await startBookingPaystack(booking.id)
+      window.location.href = url
+    } catch (err) {
+      toast.error("Payment failed", err instanceof Error ? err.message : "Please try again.")
+      setPaying(false)
+    }
+  }
 
   return (
     <DashboardLayout>
@@ -155,30 +183,44 @@ function SuccessContent() {
         <Breadcrumbs items={[{ label: "Booking", href: "/booking" }, { label: "Success" }]} />
 
         <div className="max-w-2xl mx-auto space-y-6">
-          {/* Success Header */}
-          <Card className="border-green-500/20 bg-green-500/5">
+          <Card
+            className={
+              isFullyConfirmed
+                ? "border-green-500/20 bg-green-500/5"
+                : "border-amber-500/20 bg-amber-500/5"
+            }
+          >
             <CardContent className="pt-6">
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-shrink-0">
-                  <div className="h-16 w-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <CheckCircle2 className="h-8 w-8 text-green-500" />
+                  <div
+                    className={`h-16 w-16 rounded-full flex items-center justify-center ${
+                      isFullyConfirmed ? "bg-green-500/20" : "bg-amber-500/20"
+                    }`}
+                  >
+                    {isFullyConfirmed ? (
+                      <CheckCircle2 className="h-8 w-8 text-green-500" />
+                    ) : (
+                      <Clock className="h-8 w-8 text-amber-600" />
+                    )}
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold mb-1">
-                    {isPaymentPending ? "Booking Confirmed! (Payment Pending)" : "Booking Confirmed!"}
-                  </h1>
-                  <p className="text-muted-foreground">
-                    {isPaymentPending
-                      ? "Your workspace booking has been created. Payment status is pending."
-                      : "Your workspace booking has been successfully created."}
-                  </p>
+                  <h1 className="text-2xl font-bold mb-1">{headline}</h1>
+                  <p className="text-muted-foreground">{subhead}</p>
                 </div>
               </div>
-              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/20">
+              <Badge
+                variant="outline"
+                className={
+                  isFullyConfirmed
+                    ? "bg-green-500/10 text-green-700 border-green-500/20"
+                    : "bg-amber-500/10 text-amber-800 border-amber-500/20"
+                }
+              >
                 Booking ID: {booking.id.substring(0, 8).toUpperCase()}
               </Badge>
-              {isPaymentPending && booking.paymentStatus && (
+              {booking.paymentStatus && (
                 <Badge variant="outline" className="ml-3">
                   Payment: {booking.paymentStatus}
                 </Badge>
@@ -265,22 +307,54 @@ function SuccessContent() {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                You'll receive a confirmation email with all the details of your booking
-                {booking.resourceType === "meeting-room"
-                  ? ", including a calendar invite you can add to your calendar."
-                  : "."}
+                {needsPayment
+                  ? "The hub team confirmed this slot. Complete payment to finalize your booking."
+                  : isFullyConfirmed
+                    ? `You'll receive a confirmation email with all the details of your booking${
+                        booking.resourceType === "meeting-room"
+                          ? ", including a calendar invite you can add to your calendar."
+                          : "."
+                      }`
+                    : "You'll get a confirmation email once the hub team confirms availability. If payment is due, you’ll be asked to pay then."}
               </p>
-              {booking.resourceType === "meeting-room" && (
+              {isFullyConfirmed && booking.resourceType === "meeting-room" && (
                 <p className="text-sm text-muted-foreground">
                   {calendarImported
                     ? "A calendar file was saved to your device — open it to add this meeting to your calendar."
                     : "If your browser did not prompt you, use the calendar file attached to your confirmation email."}
                 </p>
               )}
+              {needsPayment ? (
+                <Button className="w-full sm:w-auto" onClick={() => void handlePay()} disabled={paying}>
+                  {paying ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Redirecting…
+                    </>
+                  ) : (
+                    "Pay with Paystack"
+                  )}
+                </Button>
+              ) : null}
               <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
-                <li>Arrive at Impact Hub Nairobi on your booked date and time</li>
-                <li>Check in at the reception desk</li>
-                <li>Enjoy your workspace!</li>
+                {isFullyConfirmed ? (
+                  <>
+                    <li>Arrive at Impact Hub Nairobi on your booked date and time</li>
+                    <li>Check in at the reception desk</li>
+                    <li>Enjoy your workspace!</li>
+                  </>
+                ) : needsPayment ? (
+                  <>
+                    <li>Pay now with card or M-Pesa via Paystack</li>
+                    <li>Your booking is not finalized until payment completes</li>
+                  </>
+                ) : (
+                  <>
+                    <li>The calendar check only means the slot was free when you booked</li>
+                    <li>Wait for the hub team to confirm availability before you arrive</li>
+                    <li>You can follow the request from My bookings</li>
+                  </>
+                )}
               </ul>
             </CardContent>
           </Card>

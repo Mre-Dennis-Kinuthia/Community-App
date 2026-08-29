@@ -15,6 +15,7 @@ import {
 } from "@/components/design/data-list"
 import { StatusDot } from "@/components/design/status-dot"
 import { EmptyState } from "@/components/design/empty-state"
+import { bookingNeedsPayment } from "@/lib/booking-pay-client"
 
 interface Booking {
   id: string
@@ -24,21 +25,43 @@ interface Booking {
   endTime: string | null
   duration: string
   status: string
+  paymentStatus?: string
   totalPrice: number
   createdAt?: string
   spaceAsset?: { id: string; name: string; type: string } | null
 }
 
-function statusVariant(status: string): "success" | "warning" | "error" | "neutral" {
-  switch (status?.toLowerCase()) {
+function statusVariant(booking: {
+  status: string
+  paymentStatus?: string
+  totalPrice: number
+}): "success" | "warning" | "error" | "neutral" {
+  if (bookingNeedsPayment(booking)) return "warning"
+  switch (booking.status?.toLowerCase()) {
     case "confirmed":
       return "success"
     case "pending":
       return "warning"
     case "cancelled":
+    case "canceled":
       return "error"
     default:
       return "neutral"
+  }
+}
+
+function statusLabel(booking: { status: string; paymentStatus?: string; totalPrice: number }) {
+  if (bookingNeedsPayment(booking)) return "Payment due"
+  switch (booking.status?.toLowerCase()) {
+    case "pending":
+      return "Awaiting confirmation"
+    case "confirmed":
+      return "Confirmed"
+    case "cancelled":
+    case "canceled":
+      return "Cancelled"
+    default:
+      return booking.status
   }
 }
 
@@ -159,7 +182,7 @@ export default function DashboardBookingsPage() {
                 subtitle={`${booking.startTime}${booking.endTime ? ` – ${booking.endTime}` : ""}`}
               />
               <div className="hidden items-center gap-3 sm:flex">
-                <StatusDot label={booking.status} variant={statusVariant(booking.status)} />
+                <StatusDot label={statusLabel(booking)} variant={statusVariant(booking)} />
                 <DataListMeta mono>
                   KES {Number(booking.totalPrice).toLocaleString()}
                 </DataListMeta>

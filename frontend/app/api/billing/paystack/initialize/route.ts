@@ -23,7 +23,7 @@ const bodySchema = z.discriminatedUnion("type", [
 
 /**
  * POST /api/billing/paystack/initialize
- * Start Paystack checkout for an existing pending booking or event registration.
+ * Start Paystack checkout for an existing confirmed booking or event registration.
  * Membership uses /api/billing/subscribe or /api/membership/pay/[token] instead.
  */
 export async function POST(request: NextRequest) {
@@ -52,6 +52,15 @@ export async function POST(request: NextRequest) {
       if (booking.paymentStatus === "paid") {
         return NextResponse.json(
           { error: "Booking is already paid", bookingId: booking.id },
+          { status: 400, headers: corsHeaders(request) }
+        )
+      }
+      if (booking.status !== "confirmed") {
+        return NextResponse.json(
+          {
+            error: "The hub team must confirm availability before you can pay.",
+            bookingId: booking.id,
+          },
           { status: 400, headers: corsHeaders(request) }
         )
       }

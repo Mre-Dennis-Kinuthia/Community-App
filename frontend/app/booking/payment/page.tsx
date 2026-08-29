@@ -165,40 +165,17 @@ export default function BookingPaymentPage() {
     return bookingData.booking as { id: string; totalPrice: number; paymentStatus: string }
   }
 
-  const handleConfirmFree = async () => {
+  const handleSubmitRequest = async () => {
     if (!pending) return
     setIsProcessing(true)
     try {
       const booking = await createBooking()
       sessionStorage.removeItem(PENDING_BOOKING_KEY)
       setIsRedirecting(true)
-      toast.success("Booking confirmed", "Your reservation is confirmed.")
+      toast.success("Request submitted", "The hub team will confirm availability shortly.")
       router.replace(`/booking/success?id=${booking.id}`)
     } catch (err) {
       toast.error("Booking failed", err instanceof Error ? err.message : "Please try again.")
-      setIsProcessing(false)
-    }
-  }
-
-  const handlePayWithPaystack = async () => {
-    if (!pending) return
-    setIsProcessing(true)
-    try {
-      const booking = await createBooking()
-      const payRes = await fetch("/api/billing/paystack/initialize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "booking", bookingId: booking.id }),
-      })
-      const payData = await payRes.json()
-      if (!payRes.ok) throw new Error(payData.error || "Could not start payment")
-      if (!payData.authorizationUrl) throw new Error("Missing Paystack checkout URL")
-
-      sessionStorage.removeItem(PENDING_BOOKING_KEY)
-      setIsRedirecting(true)
-      window.location.href = payData.authorizationUrl as string
-    } catch (err) {
-      toast.error("Payment failed", err instanceof Error ? err.message : "Please try again.")
       setIsProcessing(false)
     }
   }
@@ -232,7 +209,10 @@ export default function BookingPaymentPage() {
 
         <div>
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Checkout</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Review and confirm your booking.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Review your details. The calendar check shows the slot is free; the hub team still confirms availability
+            {isFree ? "." : ". You’ll be asked to pay after they confirm."}
+          </p>
         </div>
 
         {pending && (
@@ -298,7 +278,7 @@ export default function BookingPaymentPage() {
                 {availabilityStatus === "available" && (
                   <div className="flex items-center gap-2 text-sm text-primary">
                     <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    Slot confirmed. You can proceed to payment.
+                    This slot is free on the calendar. The hub team will still confirm availability.
                   </div>
                 )}
                 {availabilityStatus === "unavailable" && (
@@ -317,56 +297,31 @@ export default function BookingPaymentPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Payment</CardTitle>
+                <CardTitle className="text-base">Request</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isFree ? (
-                  <>
-                    <Button
-                      className="w-full"
-                      size="lg"
-                      onClick={() => void handleConfirmFree()}
-                      disabled={!canCheckout}
-                    >
-                      {busy ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Confirming…
-                        </>
-                      ) : (
-                        "Confirm booking"
-                      )}
-                    </Button>
-                    <p className="text-center text-xs text-muted-foreground">
-                      {availabilityStatus === "available"
-                        ? "No payment required."
-                        : "Availability must be confirmed before booking."}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      className="w-full"
-                      size="lg"
-                      onClick={() => void handlePayWithPaystack()}
-                      disabled={!canCheckout}
-                    >
-                      {busy ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Redirecting…
-                        </>
-                      ) : (
-                        "Pay with Paystack"
-                      )}
-                    </Button>
-                    <p className="text-center text-xs text-muted-foreground">
-                      {availabilityStatus === "available"
-                        ? "Card or M-Pesa via Paystack. Your booking is confirmed after payment."
-                        : "Availability must be confirmed before payment."}
-                    </p>
-                  </>
-                )}
+                <Button
+                  className="w-full"
+                  size="lg"
+                  onClick={() => void handleSubmitRequest()}
+                  disabled={!canCheckout}
+                >
+                  {busy ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting…
+                    </>
+                  ) : (
+                    "Submit request"
+                  )}
+                </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  {availabilityStatus === "available"
+                    ? isFree
+                      ? "No payment required. The hub team will confirm availability."
+                      : "You’ll pay after the hub team confirms this slot is available."
+                    : "Availability must be checked on the calendar before you can submit."}
+                </p>
               </CardContent>
             </Card>
 
@@ -389,10 +344,10 @@ export default function BookingPaymentPage() {
             <Button
               size="lg"
               className="h-11 min-w-[7.5rem]"
-              onClick={() => void (isFree ? handleConfirmFree() : handlePayWithPaystack())}
+              onClick={() => void handleSubmitRequest()}
               disabled={!canCheckout}
             >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : isFree ? "Confirm" : "Pay"}
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit"}
             </Button>
           </div>
         </div>

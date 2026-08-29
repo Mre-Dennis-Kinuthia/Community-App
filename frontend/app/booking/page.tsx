@@ -475,7 +475,6 @@ function BookingPageContent() {
               <ImageGallery
                 images={workspace.images}
                 spaceName={workspace.name}
-                compact
                 className="w-full"
               />
               <BookingHeader workspace={workspace} />
@@ -493,7 +492,7 @@ function BookingPageContent() {
                   id="availability-section"
                   step={1}
                   title="Choose your space"
-                  description="Pick a resource to see availability and pricing."
+                  description="Pick a resource to see calendar availability and pricing. A free slot still needs the hub team to confirm."
                 >
                   {membership?.label ? (
                     <div className="mb-3 flex flex-wrap items-center gap-2">

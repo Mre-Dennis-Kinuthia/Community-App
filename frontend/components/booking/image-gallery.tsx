@@ -9,12 +9,10 @@ import { cn } from "@/lib/utils"
 interface ImageGalleryProps {
   images: string[]
   spaceName: string
-  /** Smaller gallery for booking flow (less vertical space). */
-  compact?: boolean
   className?: string
 }
 
-export function ImageGallery({ images, spaceName, compact = false, className }: ImageGalleryProps) {
+export function ImageGallery({ images, spaceName, className }: ImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -26,16 +24,13 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
     setSelectedIndex((prev) => (prev - 1 + images.length) % images.length)
   }
 
-  const frameClass = compact
-    ? "aspect-[16/9] max-h-[220px] w-full sm:max-h-[260px] lg:max-h-[300px]"
-    : "aspect-video w-full"
+  const current = images[selectedIndex]
 
   if (images.length === 0) {
     return (
       <div
         className={cn(
-          "flex w-full items-center justify-center overflow-hidden rounded-xl border border-border/80 bg-muted",
-          frameClass,
+          "flex min-h-[240px] w-full items-center justify-center overflow-hidden rounded-2xl border border-border/80 bg-muted sm:min-h-[320px]",
           className
         )}
       >
@@ -49,20 +44,37 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
       <div className={cn("w-full min-w-0", className)}>
         <div
           className={cn(
-            "group relative w-full overflow-hidden rounded-xl border border-border/80 bg-muted",
-            frameClass
+            "group relative flex w-full items-center justify-center overflow-hidden rounded-2xl border border-border/70",
+            "h-[min(58vw,280px)] min-h-[240px]",
+            "sm:h-[min(48vw,380px)] sm:min-h-[300px]",
+            "lg:h-[min(42vw,440px)]"
           )}
         >
-          {images[selectedIndex] ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={images[selectedIndex]}
-              alt={`${spaceName} — photo ${selectedIndex + 1} of ${images.length}`}
-              className="h-full w-full object-cover object-center"
-              loading="lazy"
-            />
+          {current ? (
+            <>
+              {/* Soft fill so letterboxing looks intentional instead of cropping the photo */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={current}
+                alt=""
+                aria-hidden
+                className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl"
+              />
+              <div
+                className="absolute inset-0 bg-[#0a1f38]/25"
+                aria-hidden
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={current}
+                src={current}
+                alt={`${spaceName} — photo ${selectedIndex + 1} of ${images.length}`}
+                className="relative z-10 max-h-full max-w-full object-contain object-center drop-shadow-sm"
+                loading="eager"
+              />
+            </>
           ) : (
-            <div className="flex h-full w-full items-center justify-center">
+            <div className="flex h-full w-full items-center justify-center bg-muted">
               <ImageIcon className="h-12 w-12 text-muted-foreground" />
             </div>
           )}
@@ -73,7 +85,7 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
                 type="button"
                 variant="secondary"
                 size="icon"
-                className="absolute left-2 top-1/2 h-9 w-9 -translate-y-1/2 bg-background/90 shadow-sm sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity"
+                className="absolute left-2 top-1/2 z-20 h-9 w-9 -translate-y-1/2 bg-background/90 shadow-sm sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100"
                 onClick={prevImage}
                 aria-label="Previous photo"
               >
@@ -83,13 +95,13 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
                 type="button"
                 variant="secondary"
                 size="icon"
-                className="absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2 bg-background/90 shadow-sm sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity"
+                className="absolute right-2 top-1/2 z-20 h-9 w-9 -translate-y-1/2 bg-background/90 shadow-sm sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100"
                 onClick={nextImage}
                 aria-label="Next photo"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              <span className="absolute left-2 top-2 rounded-md bg-background/85 px-2 py-0.5 text-xs font-medium tabular-nums shadow-sm">
+              <span className="absolute left-3 top-3 z-20 rounded-md bg-background/90 px-2 py-0.5 text-xs font-medium tabular-nums shadow-sm">
                 {selectedIndex + 1} / {images.length}
               </span>
             </>
@@ -99,7 +111,7 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
             type="button"
             variant="secondary"
             size="icon"
-            className="absolute bottom-2 right-2 h-9 w-9 bg-background/90 shadow-sm sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity"
+            className="absolute bottom-3 right-3 z-20 h-9 w-9 bg-background/90 shadow-sm sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100"
             onClick={() => setIsFullscreen(true)}
             aria-label="View fullscreen"
           >
@@ -108,7 +120,7 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
         </div>
 
         {images.length > 1 && (
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {images.map((image, index) => (
               <button
                 key={index}
@@ -117,10 +129,10 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
                 aria-label={`Show photo ${index + 1}`}
                 aria-current={selectedIndex === index}
                 className={cn(
-                  "h-14 w-20 shrink-0 overflow-hidden rounded-lg border-2 transition-colors sm:h-16 sm:w-24",
+                  "relative h-[4.25rem] w-[6.5rem] shrink-0 overflow-hidden rounded-lg border-2 bg-muted sm:h-[4.75rem] sm:w-[7.25rem]",
                   selectedIndex === index
                     ? "border-primary ring-1 ring-primary/20"
-                    : "border-border opacity-80 hover:opacity-100"
+                    : "border-transparent opacity-80 hover:opacity-100"
                 )}
               >
                 {image ? (
@@ -143,8 +155,8 @@ export function ImageGallery({ images, spaceName, compact = false, className }: 
       </div>
 
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent className="max-h-[90vh] max-w-[min(100vw-2rem,56rem)] gap-0 overflow-hidden p-0">
-          <div className="relative flex min-h-[200px] max-h-[85vh] w-full items-center justify-center bg-black/95">
+        <DialogContent className="max-h-[90vh] max-w-[min(100vw-2rem,64rem)] gap-0 overflow-hidden p-0">
+          <div className="relative flex min-h-[240px] max-h-[85vh] w-full items-center justify-center bg-[#0a1f38]">
             {images[selectedIndex] && (
               // eslint-disable-next-line @next/next/no-img-element
               <img

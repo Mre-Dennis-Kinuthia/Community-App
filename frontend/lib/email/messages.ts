@@ -4,7 +4,13 @@ import {
   formatResourceType,
 } from "@/lib/booking-format"
 import { formatBookingAddOnsHtml, formatBookingAddOnsPlainText } from "@/lib/booking-add-ons"
-import { getAppBaseUrl, getDashboardBookingUrl, getNewsArticleUrl, getNewsletterUnsubscribeUrl } from "@/lib/app-url"
+import {
+  getAdminAppBaseUrl,
+  getAppBaseUrl,
+  getDashboardBookingUrl,
+  getNewsArticleUrl,
+  getNewsletterUnsubscribeUrl,
+} from "@/lib/app-url"
 import { formatHubDateTime } from "@/lib/space/hub-timezone"
 import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph, emailDetailCard, emailMutedNote, emailHighlightBox, emailUnsubscribeFooter, EMAIL_BRAND } from "./templates"
 import { getEmailStaffTo } from "./config"
@@ -571,6 +577,8 @@ async function sendStaffAlertEmail(params: {
   text: string
   replyTo?: string
   eyebrow?: string
+  ctaLabel?: string
+  ctaUrl?: string
   emailCategory?: string
 }): Promise<SendEmailResult> {
   return sendEmail({
@@ -580,6 +588,8 @@ async function sendStaffAlertEmail(params: {
       title: params.title,
       eyebrow: params.eyebrow ?? "Staff alert",
       bodyHtml: params.bodyHtml,
+      ctaLabel: params.ctaLabel,
+      ctaUrl: params.ctaUrl,
     }),
     text: params.text,
     replyTo: params.replyTo,
@@ -618,8 +628,9 @@ export async function sendNewBookingStaffEmail(params: {
     pastriesPax: params.pastriesPax,
   })
 
+  const reviewUrl = `${getAdminAppBaseUrl()}/dashboard/bookings/${params.bookingId}`
   const bodyHtml = `
-    ${emailParagraph("A new workspace booking was created.")}
+    ${emailParagraph("A member requested a workspace booking. Confirm availability in admin even if the calendar shows the slot as free.")}
     ${emailDetailCard(
       [
         { label: "Member", value: memberLabel },
@@ -636,12 +647,14 @@ export async function sendNewBookingStaffEmail(params: {
   `
 
   return sendStaffAlertEmail({
-    subject: `[Booking] New ${resource} — ${params.memberEmail}`,
-    title: "New booking",
+    subject: `[Booking] Confirm availability — ${resource} — ${params.memberEmail}`,
+    title: "Booking needs confirmation",
     eyebrow: "Workspace",
     bodyHtml,
-    text: `New booking\nMember: ${params.memberName ?? params.memberEmail}\n${resource}\n${when}\n${time}\nAdd-ons:\n${addOnsText}\nKES ${params.totalPrice}`,
+    text: `Booking needs confirmation\nMember: ${params.memberName ?? params.memberEmail}\n${resource}\n${when}\n${time}\nAdd-ons:\n${addOnsText}\nKES ${params.totalPrice}\n${reviewUrl}`,
     replyTo: params.memberEmail,
+    ctaLabel: "Review booking",
+    ctaUrl: reviewUrl,
     emailCategory: "bookings",
   })
 }

@@ -94,6 +94,36 @@ export async function createBroadcastNotification(
  * Notification templates for common events
  */
 export const NotificationTemplates = {
+  bookingReceived: (bookingId: string, resourceType: string, date: string) => ({
+    title: "Booking request received",
+    message: `Your ${resourceType} request for ${date} is with the hub team. They’ll confirm availability shortly.`,
+    type: "info" as const,
+    category: "booking",
+    actionUrl: `/dashboard/bookings/${bookingId}`,
+    relatedId: bookingId,
+    relatedType: "booking",
+  }),
+
+  bookingPaymentReceived: (bookingId: string, resourceType: string, date: string) => ({
+    title: "Payment received",
+    message: `Payment for your ${resourceType} booking on ${date} went through. You’re all set.`,
+    type: "success" as const,
+    category: "booking",
+    actionUrl: `/dashboard/bookings/${bookingId}`,
+    relatedId: bookingId,
+    relatedType: "booking",
+  }),
+
+  bookingPaymentDue: (bookingId: string, resourceType: string, date: string) => ({
+    title: "Please complete payment",
+    message: `Your ${resourceType} booking for ${date} is available. Complete payment to finalize it.`,
+    type: "warning" as const,
+    category: "booking",
+    actionUrl: `/dashboard/bookings/${bookingId}`,
+    relatedId: bookingId,
+    relatedType: "booking",
+  }),
+
   bookingConfirmed: (bookingId: string, resourceType: string, date: string) => ({
     title: "Booking Confirmed",
     message: `Your ${resourceType} booking for ${date} has been confirmed.`,

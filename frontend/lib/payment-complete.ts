@@ -21,7 +21,6 @@ async function completeBookingPayment(prisma: PrismaClient, paymentId: string, b
       where: { id: bookingId },
       data: {
         paymentStatus: "paid",
-        status: "confirmed",
       },
     })
   })
@@ -32,17 +31,18 @@ async function completeBookingPayment(prisma: PrismaClient, paymentId: string, b
   })
   if (!booking) return
 
+  const formattedDate = new Date(booking.date).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
+
   try {
     const { createNotification, NotificationTemplates } = await import("@/lib/notifications")
-    const formattedDate = new Date(booking.date).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    })
     await createNotification({
       userId: booking.userId,
-      ...NotificationTemplates.bookingConfirmed(
+      ...NotificationTemplates.bookingPaymentReceived(
         booking.id,
         booking.resourceType.replace("-", " "),
         formattedDate
@@ -53,71 +53,12 @@ async function completeBookingPayment(prisma: PrismaClient, paymentId: string, b
     console.error("[PAYMENT] Booking notification failed:", err)
   }
 
-  try {
-    const { syncAccessForBooking } = await import("@/lib/integrations/access-control")
-    await syncAccessForBooking(booking)
-  } catch (err) {
-    console.error("[PAYMENT] Access sync failed:", err)
-  }
-
-  if (booking.user?.email) {
+  if (booking.status === "confirmed") {
     try {
-      const { sendEmailInBackground, sendBookingConfirmationEmail, sendNewBookingStaffEmail } =
-        await import("@/lib/email")
-      const { buildBookingCalendarInvite } = await import("@/lib/booking-calendar")
-
-      const isMeetingRoom = booking.resourceType === "meeting-room"
-      const calendarInput = {
-        id: booking.id,
-        resourceType: booking.resourceType,
-        date: booking.date,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        addOns: booking.addOns,
-        addOnsPrice: booking.addOnsPrice,
-      }
-      const calendarInvite = isMeetingRoom
-        ? buildBookingCalendarInvite(calendarInput, {
-            attendeeEmail: booking.user.email,
-            attendeeName: booking.user.name,
-          })
-        : null
-
-      const bookingEmailParams = {
-        bookingId: booking.id,
-        resourceType: booking.resourceType,
-        date: booking.date,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        totalPrice: Number(booking.totalPrice),
-        listPrice: booking.listPrice != null ? Number(booking.listPrice) : null,
-        membershipDiscount: Number(booking.membershipDiscount ?? 0),
-        addOns: booking.addOns,
-        addOnsPrice: booking.addOnsPrice,
-        calendarInvite: calendarInvite ?? undefined,
-      }
-
-      sendEmailInBackground(
-        () =>
-          sendBookingConfirmationEmail({
-            to: booking.user!.email!,
-            name: booking.user!.name,
-            ...bookingEmailParams,
-          }),
-        "booking-confirmation"
-      )
-      sendEmailInBackground(
-        () =>
-          sendNewBookingStaffEmail({
-            memberEmail: booking.user!.email!,
-            memberName: booking.user!.name,
-            notes: booking.notes,
-            ...bookingEmailParams,
-          }),
-        "booking-staff"
-      )
+      const { syncAccessForBooking } = await import("@/lib/integrations/access-control")
+      await syncAccessForBooking(booking)
     } catch (err) {
-      console.error("[PAYMENT] Booking emails failed:", err)
+      console.error("[PAYMENT] Access sync failed:", err)
     }
   }
 }

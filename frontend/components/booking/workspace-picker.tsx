@@ -42,13 +42,15 @@ export function WorkspacePicker({ workspaces, selectedSlug, onSelect, className 
               )}
             >
               {w.coverImage ? (
-                <img
-                  src={w.coverImage}
-                  alt=""
-                  className="h-24 w-full rounded-md object-cover"
-                />
+                <div className="aspect-[3/2] w-full overflow-hidden rounded-md bg-muted">
+                  <img
+                    src={w.coverImage}
+                    alt=""
+                    className="h-full w-full object-cover object-center"
+                  />
+                </div>
               ) : (
-                <div className="flex h-24 w-full items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
+                <div className="flex aspect-[3/2] w-full items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
                   No photo
                 </div>
               )}

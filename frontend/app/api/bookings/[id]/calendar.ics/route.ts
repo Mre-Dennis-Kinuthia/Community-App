@@ -53,6 +53,22 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
+    if (booking.status !== "confirmed") {
+      return NextResponse.json(
+        { error: "Calendar invites are available after the hub team confirms availability" },
+        { status: 409 }
+      )
+    }
+
+    const unpaid =
+      booking.paymentStatus === "pending" && Number(booking.totalPrice) > 0
+    if (unpaid) {
+      return NextResponse.json(
+        { error: "Calendar invites are available after payment is complete" },
+        { status: 409 }
+      )
+    }
+
     if (booking.resourceType !== "meeting-room") {
       return NextResponse.json(
         { error: "Calendar invites are only available for meeting room bookings" },
