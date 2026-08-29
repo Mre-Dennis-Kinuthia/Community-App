@@ -386,7 +386,7 @@ export default function HomePage() {
           <SectionHeader
             label="Membership"
             title="Become a member"
-            description="Free community access, published workspace rates, or a partnership."
+            description="Connect is free. Star Connect holds the workspace rates — toggle a category to see price and coworking days. Organisation / Company is for partnerships."
             className="mb-14 md:mb-16"
           />
           <MembershipPricingCards />

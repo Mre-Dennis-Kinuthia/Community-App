@@ -29,6 +29,7 @@ export type WorkspacePricingCategory = {
   optionGroup: "flex" | "individual" | "team"
   name: string
   shortName: string
+  chipLabel: string
   /** Coworking days included or how access is counted */
   coworkingDays: string
   priceAmount: number
@@ -66,25 +67,26 @@ export const MEMBERSHIP_PRICING_TIERS: MembershipPricingTier[] = [
     id: "community",
     name: "Connect",
     audience: "Community access",
-    intro: "Free community access. No workspace fee.",
-    helper: "No payment required",
+    intro: "Join the community on the platform at no cost.",
+    helper: "Register · no membership fee",
     popular: false,
     defaultCategoryId: null,
     href: "/register",
     cta: "Create free account",
     staticPrice: "Free",
     includes: [
-      "Community app, directory and newsletter",
-      "Events, office hours and mixers",
+      "Community app, member directory and newsletter",
+      "Invitations to events, office hours and mixers",
       "Member-rate room bookings",
+      "Workspace available at Star Connect rates",
     ],
   },
   {
     id: "star_connect",
     name: "Star Connect",
     audience: "Workspace",
-    intro: "All published workspace rates. Choose an option to see the price, coworking days and what’s included.",
-    helper: "Apply in two steps",
+    intro: "Choose a workspace option to see price, coworking days and what’s included.",
+    helper: "2-step application · we typically respond within 2 hours",
     popular: true,
     defaultCategoryId: "community-monthly",
     href: "/membership/star-connect",
@@ -94,17 +96,18 @@ export const MEMBERSHIP_PRICING_TIERS: MembershipPricingTier[] = [
     id: "organisational",
     name: "Organisation / Company",
     audience: "Partnerships",
-    intro: "Institutional programmes and ecosystem partnerships.",
-    helper: "We typically reply within 2 business days",
+    intro: "Co-design programmes, events and ecosystem work with Impact Hub Nairobi.",
+    helper: "3-step inquiry · we typically respond within 2 business days",
     popular: false,
     defaultCategoryId: null,
     href: "/membership/organisational",
     cta: "Start partnership inquiry",
     staticPrice: "Custom",
     includes: [
-      "Co-designed programmes and ecosystem partnerships",
+      "Co-designed programmes, events and ecosystem partnerships",
       "Named organisational contact",
-      "Scope and pricing agreed with the team",
+      "Scope and pricing agreed with the partnerships team",
+      "Access to Nairobi’s impact community and the global Impact Hub network",
     ],
   },
 ]
@@ -116,6 +119,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "flex",
     name: "Day Pass",
     shortName: "Day Pass",
+    chipLabel: "Day Pass",
     coworkingDays: "1 coworking day",
     priceAmount: DAY_PASS_PRICE,
     pricePeriod: "per day + VAT",
@@ -138,6 +142,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "flex",
     name: "Five-Day Pack",
     shortName: "Five-Day Pack",
+    chipLabel: "5-Day",
     coworkingDays: "5 coworking days",
     priceAmount: FIVE_DAY_PACK_PRICE,
     pricePeriod: "per pack + VAT",
@@ -161,6 +166,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "flex",
     name: "Ten-Day Flex Pack",
     shortName: "Ten-Day Pack",
+    chipLabel: "10-Day",
     coworkingDays: "10 coworking days",
     priceAmount: TEN_DAY_PACK_PRICE,
     pricePeriod: "per pack + VAT",
@@ -184,6 +190,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "individual",
     name: "Community Monthly — Individual",
     shortName: "Community Monthly",
+    chipLabel: "Monthly",
     coworkingDays: "3 days per week",
     priceAmount: COMMUNITY_MONTHLY_PRICE,
     pricePeriod: "per person / month + VAT",
@@ -209,6 +216,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "individual",
     name: "Dedicated Desk — Resident",
     shortName: "Dedicated Desk",
+    chipLabel: "Dedicated",
     coworkingDays: "Permanent dedicated desk",
     priceAmount: DEDICATED_DESK_PRICE,
     pricePeriod: "per person / month + VAT",
@@ -231,6 +239,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "team",
     name: "Team Community",
     shortName: "Team Community",
+    chipLabel: "Team",
     coworkingDays: "Flexible team coworking",
     priceAmount: TEAM_COMMUNITY_PRICE,
     pricePeriod: "per person / month + VAT",
@@ -257,6 +266,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "team",
     name: "Office for a Day",
     shortName: "Office for a Day",
+    chipLabel: "Office day",
     coworkingDays: "1 private-office day",
     priceAmount: OFFICE_FOR_A_DAY_PRICE,
     pricePeriod: "per day + VAT",
@@ -276,6 +286,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "team",
     name: "Private Team Room — Small-Team",
     shortName: "Private Team Room",
+    chipLabel: "Private room",
     coworkingDays: "Private lockable room",
     priceAmount: PRIVATE_TEAM_ROOM_FROM_PRICE,
     priceFrom: true,
@@ -300,6 +311,7 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
     optionGroup: "team",
     name: "Virtual Office Address",
     shortName: "Virtual Office",
+    chipLabel: "Virtual",
     coworkingDays: "No dedicated coworking days",
     priceAmount: VIRTUAL_OFFICE_PRICE,
     pricePeriod: "per year + VAT",
@@ -322,10 +334,11 @@ export const WORKSPACE_PRICING_CATEGORIES: WorkspacePricingCategory[] = [
 export const WORKSPACE_OPTION_GROUPS: {
   id: WorkspacePricingCategory["optionGroup"]
   label: string
+  toggleLabel: string
 }[] = [
-  { id: "flex", label: "Flexible coworking" },
-  { id: "individual", label: "Individual membership" },
-  { id: "team", label: "Team workspace" },
+  { id: "flex", label: "Flexible coworking", toggleLabel: "Flex" },
+  { id: "individual", label: "Individual membership", toggleLabel: "Member" },
+  { id: "team", label: "Team workspace", toggleLabel: "Team" },
 ]
 
 export function categoriesForMembership(

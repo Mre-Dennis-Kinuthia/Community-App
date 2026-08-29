@@ -17,7 +17,7 @@ import {
   type WorkspacePricingCategory,
 } from "@/lib/workspace-pricing"
 
-const LANDING_INCLUDE_COUNT = 3
+const LANDING_INCLUDE_COUNT = 5
 
 function defaultSelection(): Partial<Record<MembershipPricingId, string>> {
   return Object.fromEntries(
@@ -41,7 +41,7 @@ function categoryForTier(
   )
 }
 
-function MembershipCategoryPicker({
+function MembershipCategoryToggle({
   tier,
   category,
   onSelect,
@@ -51,33 +51,61 @@ function MembershipCategoryPicker({
   onSelect: (categoryId: string) => void
 }) {
   const options = categoriesForMembership(tier.id)
-  const selectId = `${tier.id}-workspace-option`
+  const groupOptions = options.filter((option) => option.optionGroup === category.optionGroup)
 
   return (
-    <div className="space-y-2">
-      <label htmlFor={selectId} className="sr-only">
-        Workspace option
-      </label>
-      <select
-        id={selectId}
-        value={category.id}
-        onChange={(e) => onSelect(e.target.value)}
-        className="h-11 w-full rounded-md border border-[#edeff2] bg-[#faf9f6] px-3 text-sm text-foreground outline-none transition-colors focus-visible:border-[#812926]/40 focus-visible:ring-2 focus-visible:ring-[#812926]/15"
+    <div className="space-y-3">
+      <div
+        className="grid grid-cols-3 rounded-md border border-[#edeff2] bg-[#f3f5f8] p-1"
+        role="tablist"
+        aria-label="Workspace type"
       >
         {WORKSPACE_OPTION_GROUPS.map((group) => {
-          const grouped = options.filter((option) => option.optionGroup === group.id)
-          if (grouped.length === 0) return null
+          const active = category.optionGroup === group.id
+          const firstInGroup = options.find((option) => option.optionGroup === group.id)
           return (
-            <optgroup key={group.id} label={group.label}>
-              {grouped.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.shortName}
-                </option>
-              ))}
-            </optgroup>
+            <button
+              key={group.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => {
+                if (firstInGroup && !active) onSelect(firstInGroup.id)
+              }}
+              className={cn(
+                "rounded-sm px-2 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {group.toggleLabel}
+            </button>
           )
         })}
-      </select>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Workspace option">
+        {groupOptions.map((option) => {
+          const active = option.id === category.id
+          return (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onSelect(option.id)}
+              className={cn(
+                "rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? "border-[#812926] bg-[#812926] text-white"
+                  : "border-[#edeff2] bg-white text-foreground hover:border-[#812926]/30 hover:bg-[#faf9f6]"
+              )}
+            >
+              {option.chipLabel}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -97,14 +125,11 @@ function MembershipPricingCard({
     ? detail
       ? category.includes
       : category.includes.slice(0, LANDING_INCLUDE_COUNT)
-    : (tier.includes ?? []).slice(0, LANDING_INCLUDE_COUNT)
+    : (tier.includes ?? [])
   const price = category
     ? formatWorkspacePrice(category)
     : (tier.staticPrice ?? "Free")
   const period = category?.pricePeriod ?? ""
-  const coworkingLine = category
-    ? [category.coworkingDays, category.validity].filter(Boolean).join(" · ")
-    : ""
   const href = category?.href ?? tier.href
   const cta = category?.cta ?? tier.cta
 
@@ -112,82 +137,79 @@ function MembershipPricingCard({
     <article
       id={tier.id}
       className={cn(
-        "landing-panel flex h-full flex-col px-6 py-8 md:px-7 md:py-9",
-        tier.popular && "border-[#812926]/25 shadow-sm"
+        "landing-panel flex h-full flex-col overflow-hidden",
+        tier.popular && "border-[#812926]/30"
       )}
     >
-      <header className="text-center">
-        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#812926]/80">
+      <header className="border-b border-[#edeff2] px-5 py-5 text-center md:px-6">
+        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#812926]">
           {tier.audience}
         </p>
-        <div className="mt-3 flex items-center justify-center gap-2">
-          <h3 className="text-lg font-semibold tracking-tight text-foreground">{tier.name}</h3>
-          {tier.popular ? (
-            <span className="rounded-full bg-[#812926]/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#812926]">
-              Popular
-            </span>
-          ) : null}
-        </div>
+        <h3 className="mt-2 text-base font-semibold text-foreground">{tier.name}</h3>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{tier.intro}</p>
       </header>
 
-      <div className="mt-8 flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col px-5 py-5 md:px-6 md:py-6">
         {category ? (
-          <MembershipCategoryPicker
+          <MembershipCategoryToggle
             tier={tier}
             category={category}
             onSelect={onSelect}
           />
-        ) : (
-          <p className="flex min-h-11 items-center justify-center text-center text-sm leading-relaxed text-muted-foreground">
-            {tier.intro}
-          </p>
-        )}
+        ) : null}
 
-        <div className="mt-8 text-center">
-          <p className="text-3xl font-semibold tracking-tight tabular-nums text-foreground">
-            {price}
+        <div className="mt-5 rounded-md bg-[#f3f5f8] px-4 py-4">
+          <p className="text-xs font-medium text-muted-foreground">
+            {category?.shortName ?? "Membership"}
           </p>
-          {period ? (
-            <p className="mt-1.5 text-sm text-muted-foreground">{period}</p>
-          ) : null}
-          {coworkingLine ? (
-            <p className="mt-2 text-sm text-muted-foreground">{coworkingLine}</p>
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="text-2xl font-semibold tracking-tight tabular-nums">{price}</span>
+            {period ? (
+              <span className="text-xs text-muted-foreground">{period}</span>
+            ) : null}
+          </div>
+          {category ? (
+            <p className="mt-2 text-sm text-foreground">
+              {category.coworkingDays}
+              {category.validity ? (
+                <span className="text-muted-foreground"> · {category.validity}</span>
+              ) : null}
+            </p>
           ) : null}
         </div>
 
-        {detail && category ? (
-          <p className="mt-6 text-center text-sm leading-relaxed text-muted-foreground">
+        {category ? (
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             {category.bestFor}
           </p>
         ) : null}
 
-        <ul className="mt-8 space-y-3 text-sm leading-relaxed text-muted-foreground">
+        <ul className="mt-4 space-y-2.5 text-sm leading-relaxed">
           {includes.map((feature) => (
-            <li key={feature} className="flex items-start gap-2.5">
+            <li key={feature} className="flex items-start gap-2">
               <CheckCircle2
-                className="mt-0.5 h-4 w-4 shrink-0 text-[#812926]/70"
+                className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#812926]"
                 aria-hidden
               />
-              <span className="text-foreground/80">{feature}</span>
+              <span>{feature}</span>
             </li>
           ))}
         </ul>
 
         {detail && category?.note ? (
-          <p className="mt-5 text-xs leading-relaxed text-muted-foreground">{category.note}</p>
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{category.note}</p>
         ) : null}
 
-        <div className="mt-auto pt-8">
+        <div className="mt-auto pt-6">
+          <p className="mb-3 text-center text-xs leading-relaxed text-muted-foreground">
+            {tier.helper}
+          </p>
           <Link href={href} className="block">
-            <Button
-              className="h-11 w-full"
-              variant={tier.popular ? "default" : "outline"}
-            >
+            <Button className="w-full" variant={tier.popular ? "default" : "outline"}>
               {cta}
               {tier.popular ? <ArrowRight className="ml-2 h-4 w-4" aria-hidden /> : null}
             </Button>
           </Link>
-          <p className="mt-3 text-center text-xs text-muted-foreground">{tier.helper}</p>
         </div>
       </div>
     </article>
@@ -230,7 +252,7 @@ export function MembershipPricingCards({
 
   return (
     <div>
-      <div className="mx-auto grid max-w-6xl items-stretch gap-6 lg:grid-cols-3 lg:gap-8">
+      <div className="mx-auto grid max-w-6xl items-stretch gap-5 lg:grid-cols-3">
         {cards.map(({ tier, category }) => (
           <MembershipPricingCard
             key={tier.id}
@@ -247,9 +269,9 @@ export function MembershipPricingCards({
         ))}
       </div>
       {showVatNote ? (
-        <p className="mx-auto mt-10 max-w-xl text-center text-xs leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-8 max-w-2xl text-center text-xs leading-relaxed text-muted-foreground">
           {VAT_DISCLAIMER}{" "}
-          <Link href="/pricing" className="text-foreground underline-offset-2 hover:underline">
+          <Link href="/pricing" className="font-medium text-foreground underline-offset-2 hover:underline">
             Full details
           </Link>
         </p>
