@@ -5,6 +5,8 @@ import {
   pickHigherTier,
 } from "@/lib/membership-tier"
 import { MEMBERSHIP_REGISTER_INTENT } from "@/lib/membership-register-intent"
+import { membershipTierFromPlan } from "@/lib/membership-tier-sync"
+import { supportTicketsMatchingEmailWhere } from "@/lib/support-ticket-email"
 
 const ORGANISATIONAL_TICKET_CATEGORIES = [
   "organisational-registration",
@@ -36,15 +38,28 @@ function ticketMatchesEmail(member: string, description: string, email: string):
   return emails.has(normalized)
 }
 
+export type DetectMembershipTierOptions = {
+  /**
+   * Only count org tickets created at or after this time (this account).
+   * Prevents a deleted member's leftover tickets from tagging a new signup.
+   */
+  notBefore?: Date
+}
+
 export async function detectMembershipTierFromEmail(
-  email: string
+  email: string,
+  options: DetectMembershipTierOptions = {}
 ): Promise<MembershipTier | null> {
   const normalized = normalizeEmail(email)
 
   const orgTickets = await prisma.supportTicket.findMany({
-    where: { category: { in: [...ORGANISATIONAL_TICKET_CATEGORIES] } },
+    where: {
+      category: { in: [...ORGANISATIONAL_TICKET_CATEGORIES] },
+      ...(options.notBefore ? { createdAt: { gte: options.notBefore } } : {}),
+      ...supportTicketsMatchingEmailWhere(normalized),
+    },
     orderBy: { createdAt: "desc" },
-    take: 40,
+    take: 20,
     select: { member: true, description: true },
   })
 
@@ -56,6 +71,21 @@ export async function detectMembershipTierFromEmail(
 
   // Star Connect tier is set when membership payment completes (see membership-tier-sync).
   return null
+}
+
+async function hasActiveOrganisationalSubscription(userId: string): Promise<boolean> {
+  const subscriptions = await prisma.subscription.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+      status: { in: ["active", "trialing"] },
+    },
+    select: { plan: { select: { name: true } } },
+  })
+
+  return subscriptions.some(
+    (sub) => membershipTierFromPlan(sub.plan) === MEMBERSHIP_TIERS.ORGANISATIONAL
+  )
 }
 
 export type AssignMembershipTierOptions = {
@@ -76,10 +106,16 @@ export async function assignMembershipTierForUser(
   email: string,
   options: AssignMembershipTierOptions = {}
 ): Promise<AssignMembershipTierResult> {
-  const profile = await prisma.memberProfile.findUnique({
-    where: { userId },
-    select: { membershipTier: true },
-  })
+  const [profile, user] = await Promise.all([
+    prisma.memberProfile.findUnique({
+      where: { userId },
+      select: { membershipTier: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { createdAt: true },
+    }),
+  ])
 
   const previousTier =
     (profile?.membershipTier as MembershipTier | null) ?? null
@@ -91,11 +127,26 @@ export async function assignMembershipTierForUser(
     detected = MEMBERSHIP_TIERS.ORGANISATIONAL
     source = "intent"
   } else {
-    detected = await detectMembershipTierFromEmail(email)
+    detected = await detectMembershipTierFromEmail(email, {
+      notBefore: user?.createdAt,
+    })
     if (detected) source = "ticket"
   }
 
   let finalTier = pickHigherTier(previousTier, detected)
+
+  // Org from a previous deleted account (or leftover tickets) must not stick
+  // on a new signup. pickHigherTier never downgrades, so drop ticket-only org
+  // when this account has no qualifying ticket and no paid org plan.
+  if (
+    options.explicitIntent !== MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL &&
+    previousTier === MEMBERSHIP_TIERS.ORGANISATIONAL &&
+    detected !== MEMBERSHIP_TIERS.ORGANISATIONAL &&
+    !(await hasActiveOrganisationalSubscription(userId))
+  ) {
+    finalTier = detected
+    source = detected ? "ticket" : "default"
+  }
 
   if (!finalTier && options.defaultCommunity) {
     finalTier = MEMBERSHIP_TIERS.COMMUNITY

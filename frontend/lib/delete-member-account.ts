@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { sendAccountDeletedEmail } from "@/lib/email/messages"
 import { parseStoredImageId } from "@/lib/stored-image"
+import { supportTicketsMatchingEmailWhere } from "@/lib/support-ticket-email"
 
 export type DeleteMemberAccountOptions = {
   /** Who initiated the deletion — affects the confirmation email copy. */
@@ -125,7 +126,7 @@ export async function deleteMemberAccount(
       }
 
       await tx.supportTicket.deleteMany({
-        where: { member: emailMatch },
+        where: supportTicketsMatchingEmailWhere(email),
       })
 
       await tx.session.deleteMany({
