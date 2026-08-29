@@ -10,8 +10,17 @@ import {
 /** Map a billing plan to a platform membership tier (when applicable). */
 export function membershipTierFromPlan(plan: Pick<Plan, "name">): MembershipTier | null {
   const name = plan.name.toLowerCase()
-  if (name.includes("star connect")) return MEMBERSHIP_TIERS.STAR_CONNECT
-  if (name.includes("organisational") || name.includes("organizational")) {
+  if (name.includes("star connect") || name.includes("community monthly")) {
+    return MEMBERSHIP_TIERS.STAR_CONNECT
+  }
+  if (
+    name.includes("organisational") ||
+    name.includes("organizational") ||
+    name.includes("organisation") ||
+    name.includes("organization") ||
+    name.includes("company") ||
+    name.includes("team community")
+  ) {
     return MEMBERSHIP_TIERS.ORGANISATIONAL
   }
   return null

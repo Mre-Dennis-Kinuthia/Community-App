@@ -34,6 +34,7 @@ import { LandingProgramsSection } from "@/components/landing/landing-programs-se
 import { LandingHeader } from "@/components/landing/landing-header"
 import { getLandingFooterPlatformLinks } from "@/lib/public-nav-links"
 import { HUB_PUBLIC_EMAIL, HUB_PUBLIC_PHONE, HUB_PUBLIC_PHONE_HREF } from "@/lib/hub-contact"
+import { LandingPricingSection } from "@/components/landing/landing-pricing-section"
 import {
   ORGANISATIONAL_MEMBERSHIP_PATH,
   ORGANISATIONAL_RESPONSE_SLA,
@@ -41,6 +42,7 @@ import {
   STAR_CONNECT_FEATURES,
   STAR_CONNECT_FAQ_ANSWER,
 } from "@/lib/membership-inquiry"
+import { VAT_DISCLAIMER, formatKes, TEAM_COMMUNITY_PRICE, TEAM_COMMUNITY_MIN_SEATS } from "@/lib/workspace-pricing"
 
 const IMPACT_STATS = [
   { label: "Impact Hubs", value: "117" },
@@ -82,16 +84,15 @@ const PILLARS = [
 
 const MEMBERSHIP_TIERS = [
   {
-    name: "Community",
+    name: "Connect",
     price: "Free",
     period: "",
-    description: "Start here at no cost. Join Nairobi's most active impact community.",
+    description: "Start here at no cost. Join Nairobi’s impact community on the platform.",
     features: [
-      "Invitations to member-only events",
-      "Access to co-working spaces",
-      "Monthly community socials",
-      "Impact newsletter & updates",
-      "Community channel access",
+      "Community app, member directory and newsletter",
+      "Invitations to events, office hours and mixers",
+      "Day Passes and flex packs at published workspace rates",
+      "Access to member-rate room bookings",
     ],
     cta: "Create free account",
     helper: "Register on the platform · no payment required",
@@ -102,8 +103,9 @@ const MEMBERSHIP_TIERS = [
   {
     name: "Star Connect",
     price: "KES 15,000",
-    period: "/ month",
-    description: "For early and growth-stage founders who want dedicated support to grow.",
+    period: "/ month + VAT",
+    description:
+      "Community Monthly individual membership for founders and professionals who need regular workspace and community access.",
     features: [...STAR_CONNECT_FEATURES],
     cta: "Apply for membership",
     helper: `2-step application · we respond ${STAR_CONNECT_RESPONSE_SLA}`,
@@ -112,16 +114,16 @@ const MEMBERSHIP_TIERS = [
     popular: true,
   },
   {
-    name: "Organisational",
-    price: "Custom",
-    period: "",
-    description: "For institutions that want a long-term partner to shape programs and engagement together.",
+    name: "Organisation / Company",
+    price: `From ${formatKes(TEAM_COMMUNITY_PRICE)}`,
+    period: "/ person / month + VAT",
+    description: `Team Community workspace from ${TEAM_COMMUNITY_MIN_SEATS} people, plus custom partnership for institutions.`,
     features: [
-      "Fully bespoke engagement & co-design",
-      "Program & event co-creation",
-      "Network access: ventures, partners, investors",
-      "Strategic visibility across platforms",
-      "Dedicated partnership manager",
+      "All Community Monthly workspace benefits",
+      `Preferential rate · minimum ${TEAM_COMMUNITY_MIN_SEATS} people`,
+      "Pooled meeting-room hours (two hours per team member)",
+      "Single team onboarding and named organisational contact",
+      "Custom programmes, private rooms and partnership design",
     ],
     cta: "Start partnership inquiry",
     helper: `3-step inquiry · we respond ${ORGANISATIONAL_RESPONSE_SLA}`,
@@ -150,12 +152,12 @@ const FAQS = [
   {
     question: "Can I attend events without a paid membership?",
     answer:
-      "Yes. Free Community members can join many events, including office hours, mixers, and select workshops. Paid members get priority access, exclusive masterclasses, and closer follow-up.",
+      "Yes. Connect members can join many events, including office hours, mixers, and select workshops. Star Connect and Organisation / Company members get priority access, exclusive sessions, and closer follow-up.",
   },
   {
     question: "How do I book workspace?",
     answer:
-      "Once you're a member, book through the platform. Pick your space and time, confirm, and you'll get what you need to show up and work.",
+      "Once you're a member, book through the platform. Day Passes are KES 1,500 per day plus VAT. The hub team confirms availability, then you’ll complete payment if a fee is due.",
   },
   {
     question: "What does the Star Connect membership include?",
@@ -164,7 +166,7 @@ const FAQS = [
   {
     question: "How can my organization partner with Impact Hub Nairobi?",
     answer:
-      "Choose Organisational membership and complete the 3-step partnership inquiry (institution profile, engagement design, and contact details). Create your platform account with the same email, and our partnerships team will follow up to shape programs and engagement together.",
+      "Choose Organisation / Company and complete the 3-step inquiry. Team Community workspace starts at KES 11,500 per person per month plus VAT (minimum four people). Larger partnerships, dedicated desks and private rooms are scoped with the team.",
   },
 ]
 
@@ -353,7 +355,7 @@ export default function HomePage() {
               {[
                 "300k+ impact makers globally",
                 "117 hubs in 68 countries",
-                "Free community membership",
+                "Free Connect membership",
               ].map((item) => (
                 <li
                   key={item}
@@ -442,7 +444,7 @@ export default function HomePage() {
           <SectionHeader
             label="Membership"
             title="Become a member"
-            description="Start with free community access, grow into dedicated venture support, or partner with us as an organisation. Begin on the platform and grow with Impact Hub Nairobi."
+            description="Start with free Connect access, grow into Star Connect, or partner as Organisation / Company. Workspace day rates and packs are listed separately."
             className="mb-14 md:mb-16"
           />
           <div className="mx-auto grid max-w-5xl gap-3 md:grid-cols-3">
@@ -523,8 +525,17 @@ export default function HomePage() {
               </article>
             ))}
           </div>
+          <p className="mx-auto mt-8 max-w-3xl text-center text-xs leading-relaxed text-muted-foreground">
+            {VAT_DISCLAIMER} Paid workspace rates are listed under{" "}
+            <Link href="/pricing" className="font-medium text-foreground underline-offset-2 hover:underline">
+              workspace pricing
+            </Link>
+            .
+          </p>
         </div>
       </section>
+
+      <LandingPricingSection />
 
       <section className="landing-section container px-4">
         <SectionHeader
@@ -652,7 +663,7 @@ export default function HomePage() {
             </li>
             <li className="flex items-center gap-2">
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Free community tier
+              Free Connect membership
             </li>
             <li className="flex items-center gap-2">
               <Award className="h-3.5 w-3.5 shrink-0" aria-hidden />

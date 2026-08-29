@@ -20,17 +20,10 @@ const DEFAULT_PLANS = [
   {
     name: "Star Connect",
     description:
-      "For early and growth-stage founders ready to scale with dedicated support.",
+      "Community Monthly individual membership: 3 days per week coworking, two meeting-room hours, and community access.",
     price: 15000,
     interval: "monthly",
     features: [...STAR_CONNECT_FEATURE_LABELS],
-  },
-  {
-    name: "Flex Membership",
-    description: "Monthly community membership with workspace access benefits.",
-    price: 8500,
-    interval: "monthly",
-    features: ["Co-working access", "Member events", "Community channels"],
   },
 ] as const
 

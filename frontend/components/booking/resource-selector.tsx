@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Users, Building2, Monitor, CheckCircle2 } from "lucide-react"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { cn } from "@/lib/utils"
+import { DAY_PASS_PRICE, OFFICE_FOR_A_DAY_PRICE } from "@/lib/workspace-pricing"
 
 export type ResourceType = "hot-desk" | "meeting-room" | "private-office" | "event-space"
 
@@ -35,38 +36,47 @@ export function ResourceSelector({
   const getStartingPrice = (type: ResourceType): number => {
     if (type === "event-space") return 0
     if (!pricing || !pricing[type]) {
-      return type === "hot-desk" ? 500 : type === "meeting-room" ? 1500 : 5000
+      return type === "hot-desk"
+        ? DAY_PASS_PRICE
+        : type === "meeting-room"
+          ? 1500
+          : OFFICE_FOR_A_DAY_PRICE
     }
     const resourcePricing = pricing[type]
     let prices: (number | undefined)[] = []
     if (type === "hot-desk") {
       prices = [resourcePricing["full-day"]]
     } else if (type === "private-office") {
-      return 0
+      return OFFICE_FOR_A_DAY_PRICE
     } else {
       prices = [resourcePricing["1-4"], resourcePricing["1-10"], resourcePricing["1-35"]]
     }
     const validPrices = prices.filter((p) => typeof p === "number" && p > 0)
-    return validPrices.length > 0 ? Math.min(...validPrices) : 500
+    return validPrices.length > 0 ? Math.min(...validPrices) : DAY_PASS_PRICE
   }
 
   const formatPrice = (resource: Resource) => {
-    if (resource.type === "private-office" || resource.type === "event-space") {
+    if (resource.type === "event-space") {
       return "Custom pricing – contact us"
+    }
+    if (resource.type === "private-office") {
+      return resource.startingPrice > 0
+        ? `From ${resource.startingPrice.toLocaleString()} ${currency}/day + VAT`
+        : "Office for a Day – inquiry"
     }
     if (resource.type === "meeting-room") {
       return resource.startingPrice > 0
         ? `From ${resource.startingPrice.toLocaleString()} ${currency}/hr`
         : "Capacity-based pricing"
     }
-    return `From ${resource.startingPrice.toLocaleString()} ${currency}`
+    return `From ${resource.startingPrice.toLocaleString()} ${currency} + VAT`
   }
 
   const resources: Resource[] = [
     {
       type: "hot-desk",
-      label: "Hot Desk",
-      description: "Flexible workspace for individuals",
+      label: "Day Pass",
+      description: "Flexible coworking for one weekday, 8:00 a.m. to 6:00 p.m.",
       icon: <Monitor className="h-5 w-5" />,
       capacity: "1 person",
       startingPrice: getStartingPrice("hot-desk"),
@@ -81,8 +91,8 @@ export function ResourceSelector({
     },
     {
       type: "private-office",
-      label: "Private Office",
-      description: "Custom pricing – inquiry",
+      label: "Office for a Day",
+      description: "Private furnished room · extra people at member rate",
       icon: <Users className="h-5 w-5" />,
       capacity: "Dedicated space",
       startingPrice: 0,

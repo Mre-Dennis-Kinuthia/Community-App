@@ -13,6 +13,7 @@ export function getLandingFooterPlatformLinks(): LandingFooterLink[] {
     { href: "/programs", label: "Programs & Initiatives" },
     { href: "/events/public", label: "Events & Programs" },
     { href: "/booking", label: "Book Workspace" },
+    { href: "/pricing", label: "Pricing" },
   ]
 
   if (isNavHrefEnabled("/opportunities")) {
@@ -46,6 +47,7 @@ export const LANDING_HEADER_LINKS: LandingNavItem[] = [
   { href: "#events", label: "Events" },
   { href: "#community", label: "Community" },
   { href: "#membership", label: "Membership" },
+  { href: "/pricing", label: "Pricing" },
   { href: "#faq", label: "FAQ" },
   { href: "https://nairobi.impacthub.net/", label: "About IHN", external: true },
 ]
@@ -65,6 +67,7 @@ export const LANDING_HEADER_GROUPS: LandingNavGroup[] = [
     label: "About",
     items: [
       { href: "#membership", label: "Membership" },
+      { href: "/pricing", label: "Pricing" },
       { href: "#faq", label: "FAQ" },
       { href: "https://nairobi.impacthub.net/", label: "About IHN", external: true },
     ],

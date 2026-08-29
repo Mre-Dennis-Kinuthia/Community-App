@@ -88,7 +88,7 @@ function SuccessContent() {
   const getResourceName = (type: string) => {
     switch (type) {
       case "hot-desk":
-        return "Hot Desk"
+        return "Day Pass"
       case "meeting-room":
         return "Meeting Room"
       case "private-office":

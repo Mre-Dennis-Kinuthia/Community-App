@@ -24,9 +24,9 @@ function tierBenefitsHtml(tier: MembershipTier): string {
     const hrs = formatAllowanceHours(MEETING_ROOM_ALLOWANCE_MINUTES.star_connect)
     return emailHighlightBox(`
       <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.6;">
-        <li>3 days per week co-working space at Impact Hub Nairobi.</li>
-        <li>Exclusive member events.</li>
-        <li>${escapeHtml(hrs)} of meeting room time included each month at no extra charge.</li>
+        <li>3 days per week coworking during member hours.</li>
+        <li>Two complimentary meeting-room hours per month (${escapeHtml(hrs)}).</li>
+        <li>Member rates on meetings, events and production bookings.</li>
       </ul>
     `)
   }
@@ -34,7 +34,7 @@ function tierBenefitsHtml(tier: MembershipTier): string {
     const hrs = formatAllowanceHours(MEETING_ROOM_ALLOWANCE_MINUTES.organisational)
     return emailHighlightBox(`
       <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.6;">
-        <li>Partnership workspace access — hot desk booking is not required.</li>
+        <li>Team Community workspace access — hot desk booking is not required.</li>
         <li>${escapeHtml(hrs)} of meeting room time included each month at no extra charge.</li>
       </ul>
     `)

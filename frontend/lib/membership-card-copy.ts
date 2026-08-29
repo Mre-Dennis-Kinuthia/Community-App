@@ -21,8 +21,9 @@ const TERMS =
 
 function communityBenefits(): string[] {
   return [
-    "Access to the Impact Hub Nairobi community and member directory",
-    "Book hot desks and paid spaces when you need to work from the Hub",
+    "Access to the Impact Hub Nairobi community, app and member directory",
+    "Day Passes and flex packs at published workspace rates",
+    "Member-rate room bookings",
   ]
 }
 
@@ -32,10 +33,10 @@ function starConnectBenefits(membership?: MembershipBenefits | null): string[] {
     ? formatAllowanceHours(membership.meetingRoom.remainingMinutes)
     : allowance
   return [
-    "3 days per week co-working space at Impact Hub Nairobi",
-    "Exclusive member events",
+    "3 days per week coworking during member hours",
     `${allowance} of meeting room time included each month`,
     `Meeting rooms remaining this month: ${remaining}`,
+    "Member rates on meetings, events and production bookings",
   ]
 }
 
@@ -45,9 +46,10 @@ function organisationalBenefits(membership?: MembershipBenefits | null): string[
     ? formatAllowanceHours(membership.meetingRoom.remainingMinutes)
     : allowance
   return [
-    "Partnership workspace access — hot desk booking is not required",
+    "Team Community workspace access — hot desk booking is not required",
     `${allowance} of meeting room time included each month`,
     `Meeting rooms remaining this month: ${remaining}`,
+    "Named organisational contact and team onboarding",
   ]
 }
 

@@ -16,7 +16,7 @@ export function getCheckoutGuideHint(params: {
     if (!selectedDate) {
       return "Pick a date on the calendar — checkout is at the bottom when you're done."
     }
-    return "Almost done — use checkout at the bottom to pay."
+    return "Almost done — use checkout at the bottom. Day Passes are KES 1,500 + VAT."
   }
 
   if (resource === "meeting-room") {

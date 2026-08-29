@@ -1,5 +1,5 @@
 /** Organisational membership — application then platform account */
-export const ORGANISATIONAL_PLAN_NAME = "Organisational"
+export const ORGANISATIONAL_PLAN_NAME = "Organisation / Company"
 export const ORGANISATIONAL_MEMBERSHIP_PATH = "/membership/organisational"
 export const ORGANISATIONAL_REGISTER_PATH = "/register?intent=organisational"
 export const ORGANISATIONAL_RESPONSE_SLA = "within 2 business days"
@@ -91,7 +91,7 @@ export const ORGANISATIONAL_PARTNERSHIP_INTERESTS = ORGANISATIONAL_ENGAGEMENT_MO
 
 /** Star Connect membership application — shared constants */
 export const STAR_CONNECT_PLAN_NAME = "Star Connect"
-export const STAR_CONNECT_PRICE_LABEL = "KES 15,000 / month"
+export const STAR_CONNECT_PRICE_LABEL = "KES 15,000 / month + VAT"
 export const STAR_CONNECT_DISCOVERY_CALL_URL =
   "https://calendar.app.google/9ZM6DNGjKgkTC88D7"
 export const STAR_CONNECT_RESPONSE_SLA = "within 2 hours"
@@ -103,28 +103,22 @@ export type StarConnectFeature = {
 }
 
 export const STAR_CONNECT_FEATURES: StarConnectFeature[] = [
-  { label: "3 days per week co-working space", href: "/booking" },
-  { label: "Exclusive events", href: "/events/public" },
+  { label: "3 days per week coworking during member hours", href: "/booking" },
+  { label: "Two complimentary meeting-room hours per month", href: "/booking" },
+  { label: "Member rates on meetings, events and production bookings", href: "/booking" },
+  { label: "Community app, directory and curated introductions", href: "/community" },
+  { label: "Selected learning sessions, office hours and networking", href: "/events/public" },
   {
     label: "Global Passport: 117 hubs across 68 countries",
     href: "/membership/star-connect",
   },
-  {
-    label: "Dedicated business development services",
-    href: "/programs",
-  },
-  { label: "Thematic acceleration programs", href: "/programs" },
-  { label: "Grants & funding opportunities", href: "/resources?tab=programs" },
-  {
-    label: "Strategic partnerships & growth advisory",
-    href: "/membership/organisational",
-  },
+  { label: "Thematic acceleration, grants and growth advisory", href: "/programs" },
 ]
 
 export const STAR_CONNECT_FEATURE_LABELS = STAR_CONNECT_FEATURES.map((f) => f.label)
 
 export const STAR_CONNECT_FAQ_ANSWER =
-  "Three days per week of co-working space at Impact Hub Nairobi, exclusive member events, dedicated business development support, access to Impact Hub spaces worldwide via the Passport program, thematic acceleration tracks, and introductions to grants and investors."
+  "Star Connect is the Community Monthly individual membership: KES 15,000 per person per month plus VAT. It includes 3 days per week of coworking during member hours, two complimentary meeting-room hours each month, member rates on rooms and events, the community app and directory, curated introductions, selected learning sessions, and eligibility for mail handling — plus Impact Hub Global Passport, thematic acceleration, and introductions to grants and partners."
 
 export const VENTURE_STAGES = [
   "Idea / pre-launch",

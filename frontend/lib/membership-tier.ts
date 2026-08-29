@@ -1,5 +1,5 @@
 /**
- * Platform membership tier (Community / Star Connect / Organisational).
+ * Platform membership tier (Connect / Star Connect / Organisation / Company).
  * Distinct from memberType (entrepreneur, partner, etc.).
  */
 
@@ -13,9 +13,9 @@ export type MembershipTier =
   (typeof MEMBERSHIP_TIERS)[keyof typeof MEMBERSHIP_TIERS]
 
 export const MEMBERSHIP_TIER_LABELS: Record<MembershipTier, string> = {
-  community: "Community member",
+  community: "Connect member",
   star_connect: "Star Connect member",
-  organisational: "Organisational member",
+  organisational: "Organisation / Company member",
 }
 
 /** Monthly included meeting-room time (minutes) */

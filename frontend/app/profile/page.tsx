@@ -213,7 +213,7 @@ export default function ProfilePage() {
   const memberSince = joinedAt ? format(new Date(joinedAt), "MMM yyyy") : null
   const membershipDisplay: MembershipBenefits = membership ?? {
     tier: "community",
-    label: "Community member",
+    label: "Connect member",
     canBookHotDesk: true,
     meetingRoom: {
       allowanceMinutes: 0,

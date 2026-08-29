@@ -1,5 +1,4 @@
-// TODO: Replace with API call to fetch pricing data
-import useSWR from "swr"
+import { DAY_PASS_PRICE } from "@/lib/workspace-pricing"
 
 export interface PricingOption {
   type: "hourly" | "half-day" | "full-day" | "weekly" | "monthly"
@@ -102,7 +101,7 @@ function ensureHotDeskFullDayOption(args: {
     price = readPositiveNumber(args.startingPrice)
   }
   if (price === undefined) {
-    price = 2500
+    price = DAY_PASS_PRICE
   }
 
   return [
@@ -207,7 +206,7 @@ export function usePricing(
       options.push({
         type: "full-day",
         label: "Full Day (8 Hours)",
-        price: 2500,
+        price: DAY_PASS_PRICE,
       })
     } else if (resourceType === "meeting-room") {
       // Meeting room uses capacity tiers - fallback options for PricingBreakdown estimate

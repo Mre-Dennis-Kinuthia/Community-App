@@ -492,7 +492,7 @@ function BookingPageContent() {
                   id="availability-section"
                   step={1}
                   title="Choose your space"
-                  description="Pick a resource to see calendar availability and pricing. A free slot still needs the hub team to confirm."
+                  description="Pick a Day Pass, meeting room or office. Calendar availability still needs the hub team to confirm. Prices exclude 16% VAT."
                 >
                   {membership?.label ? (
                     <div className="mb-3 flex flex-wrap items-center gap-2">
