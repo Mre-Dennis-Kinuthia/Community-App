@@ -18,6 +18,7 @@ import {
   validateLinkedInInput,
 } from "@/lib/member-social-links"
 import { normalizeAvailabilityList } from "@/lib/member-segmentation"
+import { normalizePhoneNumber, validatePhoneInput } from "@/lib/member-phone"
 import { ensureMemberSlug } from "@/lib/member-slug"
 
 /**
@@ -39,6 +40,7 @@ const profileSelect = {
   meetingRoomFreeMinutesUsed: true,
   meetingRoomAllowancePeriodStart: true,
   organization: true,
+  phone: true,
   experienceLevel: true,
   availability: true,
   interests: true,
@@ -94,6 +96,7 @@ const profileUpdateSchema = z.object({
   role: z.union([z.string(), z.null()]).optional(),
   memberType: z.union([z.string(), z.null()]).optional(),
   organization: z.union([z.string(), z.null()]).optional(),
+  phone: z.union([z.string(), z.null()]).optional(),
   experienceLevel: z.union([z.string(), z.null()]).optional(),
   availability: z.array(z.string()).optional(),
   interests: z.array(z.string()).optional(),
@@ -311,6 +314,19 @@ export async function PUT(request: NextRequest) {
           { status: 400, headers: corsHeaders }
         )
       }
+    }
+
+    if (profileData.phone !== undefined && profileData.phone !== null && profileData.phone.trim()) {
+      const phoneError = validatePhoneInput(profileData.phone)
+      if (phoneError) {
+        return NextResponse.json(
+          { error: phoneError },
+          { status: 400, headers: corsHeaders }
+        )
+      }
+      profileData.phone = normalizePhoneNumber(profileData.phone)
+    } else if (profileData.phone === "") {
+      profileData.phone = null
     }
 
     const socialLinksPayload =

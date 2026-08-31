@@ -150,6 +150,7 @@ model MemberProfile {
   meetingRoomFreeMinutesUsed Int @default(0)
   meetingRoomAllowancePeriodStart DateTime?
   organization String? // company, NGO, or institution name
+  phone        String? // mobile / WhatsApp for hub staff (not shown on public directory)
   experienceLevel String? // Early Career, Mid-Level, Senior, Expert
   availability String[] // Open to Collaboration, Seeking Mentorship, Offering Mentorship, etc.
   interests String[] // array of interests

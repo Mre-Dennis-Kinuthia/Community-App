@@ -1,9 +1,9 @@
 import {
   hasRequiredDirectoryBio,
   hasRequiredSegmentation,
-  memberTypeRequiresOrganization,
   type OnboardingProfileSlice,
 } from "@/lib/member-segmentation"
+import { hasRequiredPhone } from "@/lib/member-phone"
 
 export type ProfileCompletenessSlice = OnboardingProfileSlice & {
   bio?: string | null
@@ -12,6 +12,7 @@ export type ProfileCompletenessSlice = OnboardingProfileSlice & {
   availability?: string[]
   image?: string | null
   linkedin?: string | null
+  phone?: string | null
 }
 
 export type ProfileCompletenessItem = {
@@ -66,6 +67,12 @@ export function getProfileCompleteness(profile: ProfileCompletenessSlice): {
       action: "Let others know what kinds of collaboration you want.",
     },
     {
+      id: "phone",
+      label: "Mobile number",
+      complete: hasRequiredPhone(profile.phone),
+      action: "Add a mobile number so the hub team can reach you.",
+    },
+    {
       id: "linkedin",
       label: "LinkedIn",
       complete: Boolean(profile.linkedin?.trim()),
@@ -74,14 +81,12 @@ export function getProfileCompleteness(profile: ProfileCompletenessSlice): {
     },
   ]
 
-  if (profile.memberType && memberTypeRequiresOrganization(profile.memberType)) {
-    items.splice(1, 0, {
-      id: "organization",
-      label: "Organization",
-      complete: Boolean(profile.organization?.trim()),
-      action: "Enter your organization or institution.",
-    })
-  }
+  items.splice(1, 0, {
+    id: "organization",
+    label: "Organisation",
+    complete: Boolean(profile.organization?.trim()),
+    action: "Enter your organisation or venture name.",
+  })
 
   const required = items.filter((item) => !item.optional)
   const completed = required.filter((item) => item.complete).length
@@ -95,8 +100,8 @@ export function validateProfileOrganization(data: {
   memberType: string
   organization: string
 }): string | null {
-  if (memberTypeRequiresOrganization(data.memberType) && !data.organization.trim()) {
-    return "Enter your organization or institution for your selected member type."
+  if (!data.organization.trim()) {
+    return "Enter your organisation or venture name."
   }
   return null
 }

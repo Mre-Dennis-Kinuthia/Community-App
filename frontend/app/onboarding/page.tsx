@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2, ArrowRight, ArrowLeft, Building2, Target, Linkedin } from "lucide-react"
+import { Loader2, ArrowRight, ArrowLeft, Building2, Target, Linkedin, Phone } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { toast } from "@/lib/toast"
 import { resetWelcomeForNewMember } from "@/lib/getting-started"
@@ -34,12 +34,12 @@ import {
   IMPACT_SECTORS,
   MEMBER_TYPES,
   PRIMARY_ROLES,
-  memberTypeRequiresOrganization,
   validateOnboardingStep1,
   validateOnboardingStep2,
   BIO_MAX_LENGTH,
   BIO_MIN_LENGTH,
 } from "@/lib/member-segmentation"
+import { validatePhoneInput } from "@/lib/member-phone"
 import { isOrganisationalRegisterIntent } from "@/lib/membership-register-intent"
 import { ORGANISATIONAL_PLAN_NAME, ORGANISATIONAL_RESPONSE_SLA } from "@/lib/membership-inquiry"
 import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
@@ -69,6 +69,7 @@ function OnboardingContent() {
   const [bio, setBio] = useState("")
   const [profileImage, setProfileImage] = useState("")
   const [linkedinUrl, setLinkedinUrl] = useState("")
+  const [phone, setPhone] = useState("")
   const [showOnboardingNudge, setShowOnboardingNudge] = useState(false)
 
   const checkProfile = useCallback(async () => {
@@ -92,6 +93,7 @@ function OnboardingContent() {
       if (p?.availability?.length) setAvailability(p.availability)
       if (p?.user?.image) setProfileImage(p.user.image)
       if (p?.socialLinks?.linkedin) setLinkedinUrl(p.socialLinks.linkedin)
+      if (p?.phone) setPhone(p.phone)
     } catch (e) {
       console.error("Failed to fetch profile:", e)
     } finally {
@@ -151,8 +153,6 @@ function OnboardingContent() {
   const displayName = session?.user?.name || "Member"
   const avatarSrc = getImageDisplayUrl(profileImage || session?.user?.image || undefined)
   const userInitials = getInitials(displayName, session?.user?.email)
-  const showOrganization = memberTypeRequiresOrganization(memberType) || organisationalIntent
-
   const handleNext = () => {
     setStepError(null)
     if (step === 1) {
@@ -161,16 +161,21 @@ function OnboardingContent() {
         sector,
         role,
         organization,
-        requireOrganization: organisationalIntent,
+        requireOrganization: true,
       })
       if (err) {
         setStepError(err)
         return
       }
+      const phoneErr = validatePhoneInput(phone)
+      if (phoneErr) {
+        setStepError(phoneErr)
+        return
+      }
       setStep(2)
       return
     }
-    const step2Err = validateOnboardingStep2({ goals, bio })
+    const step2Err = validateOnboardingStep2({ goals, availability, bio })
     if (step2Err) {
       setStepError(step2Err)
       return
@@ -179,9 +184,15 @@ function OnboardingContent() {
   }
 
   const handleComplete = async () => {
-    const step2Err = validateOnboardingStep2({ goals, bio })
+    const step2Err = validateOnboardingStep2({ goals, availability, bio })
     if (step2Err) {
       setStepError(step2Err)
+      return
+    }
+    const phoneErr = validatePhoneInput(phone)
+    if (phoneErr) {
+      setStepError(phoneErr)
+      setStep(1)
       return
     }
     setSaving(true)
@@ -201,6 +212,7 @@ function OnboardingContent() {
           ...(profileImage.trim() ? { image: profileImage.trim() } : {}),
           memberType: memberType || undefined,
           organization: organization.trim() || undefined,
+          phone: phone.trim() || undefined,
           role: role || undefined,
           industry: sector || undefined,
           location: location.trim() || undefined,
@@ -408,24 +420,44 @@ function OnboardingContent() {
                   </div>
                 </div>
 
-                {showOrganization ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="organization">
-                      {organisationalIntent ? "Organisation / institution" : "Organization / institution"}{" "}
-                      <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="organization"
-                      placeholder={
-                        organisationalIntent
-                          ? "e.g. Acme Foundation, Ministry of X, University of Y"
-                          : "e.g. Acme Ventures, Ministry of X, University of Y"
-                      }
-                      value={organization}
-                      onChange={(e) => setOrganization(e.target.value)}
-                    />
-                  </div>
-                ) : null}
+                <div className="space-y-2">
+                  <Label htmlFor="organization">
+                    {organisationalIntent ? "Organisation / institution" : "Organisation / venture"}{" "}
+                    <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="organization"
+                    placeholder={
+                      organisationalIntent
+                        ? "e.g. Acme Foundation, Ministry of X, University of Y"
+                        : "e.g. Acme Ventures, freelance practice, or campus"
+                    }
+                    value={organization}
+                    onChange={(e) => setOrganization(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" aria-hidden />
+                    Mobile number <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="0712 345 678 or +254 712 345 678"
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value)
+                      setStepError(null)
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    For hub staff to reach you. Not shown on your public directory profile.
+                  </p>
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="role">
@@ -462,18 +494,6 @@ function OnboardingContent() {
                     </SelectContent>
                   </Select>
                 </div>
-
-                {!showOrganization ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="organization-optional">Organization (optional)</Label>
-                    <Input
-                      id="organization-optional"
-                      placeholder="Venture, employer, or affiliate org"
-                      value={organization}
-                      onChange={(e) => setOrganization(e.target.value)}
-                    />
-                  </div>
-                ) : null}
 
                 <div className="space-y-2">
                   <Label htmlFor="location">Location</Label>
@@ -512,7 +532,10 @@ function OnboardingContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Open to</Label>
+                  <Label>
+                    Open to <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Select at least one.</p>
                   <div className="flex flex-col gap-2">
                     {ENGAGEMENT_PREFERENCES.map((opt) => (
                       <label

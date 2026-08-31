@@ -3,6 +3,8 @@
  * Stored on MemberProfile: memberType, organization, industry (sector), role, interests (goals).
  */
 
+import { hasRequiredPhone } from "@/lib/member-phone"
+
 export const MEMBER_TYPES = [
   { value: "entrepreneur", label: "Entrepreneur / Founder" },
   { value: "employee", label: "Employee / Professional" },
@@ -116,10 +118,9 @@ export function availabilityOptionsForEdit(current: string[]): string[] {
   return [...options]
 }
 
-const ORG_REQUIRED_TYPES: MemberTypeValue[] = ["employee", "partner", "student"]
-
-export function memberTypeRequiresOrganization(memberType: string): boolean {
-  return ORG_REQUIRED_TYPES.includes(memberType as MemberTypeValue)
+/** Organisation is required for every Connect onboarding path. */
+export function memberTypeRequiresOrganization(_memberType?: string): boolean {
+  return true
 }
 
 export function getMemberTypeLabel(value: string | null | undefined): string | null {
@@ -134,6 +135,8 @@ export type OnboardingProfileSlice = {
   organization?: string | null
   bio?: string | null
   interests?: string[] | null
+  availability?: string[] | null
+  phone?: string | null
 }
 
 export function hasRequiredSegmentation(profile: OnboardingProfileSlice): boolean {
@@ -142,10 +145,7 @@ export function hasRequiredSegmentation(profile: OnboardingProfileSlice): boolea
   const role = profile.role?.trim()
 
   if (!sector || !memberType || !role) return false
-
-  if (memberTypeRequiresOrganization(memberType) && !profile.organization?.trim()) {
-    return false
-  }
+  if (!profile.organization?.trim()) return false
 
   return true
 }
@@ -159,6 +159,8 @@ export function isOnboardingComplete(profile: OnboardingProfileSlice): boolean {
   if (!hasRequiredSegmentation(profile)) return false
   if (!hasRequiredDirectoryBio(profile.bio)) return false
   if (!(profile.interests?.some((item) => item.trim()) ?? false)) return false
+  if (!(profile.availability?.some((item) => item.trim()) ?? false)) return false
+  if (!hasRequiredPhone(profile.phone)) return false
   return true
 }
 
@@ -172,20 +174,22 @@ export function validateOnboardingStep1(data: {
   if (!data.memberType) return "Select how you identify in the community."
   if (!data.sector) return "Select your primary sector or focus area."
   if (!data.role) return "Select your primary role."
-  const needsOrg =
-    data.requireOrganization || memberTypeRequiresOrganization(data.memberType)
-  if (needsOrg && !data.organization.trim()) {
-    return "Enter your organization or institution."
+  if (!data.organization.trim()) {
+    return "Enter your organisation or venture name."
   }
   return null
 }
 
 export function validateOnboardingStep2(data: {
   goals: string[]
+  availability: string[]
   bio: string
 }): string | null {
   if (!data.goals.some((goal) => goal.trim())) {
     return "Select at least one reason you are here."
+  }
+  if (!data.availability.some((item) => item.trim())) {
+    return "Select at least one option you are open to."
   }
   const bioLength = data.bio.trim().length
   if (bioLength < BIO_MIN_LENGTH) {

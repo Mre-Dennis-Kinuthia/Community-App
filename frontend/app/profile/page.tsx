@@ -40,11 +40,11 @@ import {
   BIO_MIN_LENGTH,
   availabilityOptionsForEdit,
   normalizeAvailabilityList,
-  memberTypeRequiresOrganization,
   isOnboardingComplete,
   validateOnboardingStep2,
 } from "@/lib/member-segmentation"
 import { getProfileCompleteness, validateProfileOrganization } from "@/lib/profile-completeness"
+import { validatePhoneInput } from "@/lib/member-phone"
 import { getCommunityMemberProfilePath } from "@/lib/member-slug"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { validateLinkedInInput } from "@/lib/member-social-links"
@@ -84,6 +84,7 @@ type ProfilePayload = {
   role: string | null
   memberType: string | null
   organization: string | null
+  phone: string | null
   experienceLevel: string | null
   availability: string[]
   interests: string[]
@@ -108,6 +109,7 @@ function emptyForm() {
     industry: "",
     memberType: "",
     organization: "",
+    phone: "",
     location: "",
     experienceLevel: "" as string,
     skills: [] as string[],
@@ -152,6 +154,7 @@ export default function ProfilePage() {
       industry: profile.industry?.trim() || "",
       memberType: profile.memberType?.trim() || "",
       organization: profile.organization?.trim() || "",
+      phone: profile.phone?.trim() || "",
       location: profile.location?.trim() || "",
       experienceLevel: profile.experienceLevel?.trim() || "",
       skills: [...(profile.skills || [])],
@@ -230,6 +233,7 @@ export default function ProfilePage() {
     role: form.role,
     industry: form.industry,
     organization: form.organization,
+    phone: form.phone,
     bio: form.bio,
     skills: form.skills,
     interests: form.interests,
@@ -270,10 +274,16 @@ export default function ProfilePage() {
     }
     const introError = validateOnboardingStep2({
       goals: form.interests,
+      availability: form.availability,
       bio: form.bio,
     })
     if (introError) {
       toast.error("Directory profile incomplete", introError)
+      return
+    }
+    const phoneError = validatePhoneInput(form.phone)
+    if (phoneError) {
+      toast.error("Mobile number required", phoneError)
       return
     }
     setSaving(true)
@@ -292,6 +302,7 @@ export default function ProfilePage() {
           industry: form.industry.trim() ? form.industry.trim() : null,
           memberType: form.memberType.trim() ? form.memberType.trim() : null,
           organization: form.organization.trim() ? form.organization.trim() : null,
+          phone: form.phone.trim() ? form.phone.trim() : null,
           role: form.role.trim() ? form.role.trim() : null,
           experienceLevel: form.experienceLevel.trim() ? form.experienceLevel.trim() : null,
           availability: normalizedAvailability,
@@ -499,7 +510,7 @@ export default function ProfilePage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {needsOnboarding
-                    ? "Add your role, sector, a short intro, and what you're here for so your directory profile isn't empty."
+                    ? "Add your organisation, mobile number, intro, why you are here, and what you are open to."
                     : `${profileCompleteness.completed} of ${profileCompleteness.total} recommended sections complete.`}
                 </p>
               </div>
@@ -693,10 +704,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="organization">
-                      Organization
-                      {isEditing && memberTypeRequiresOrganization(form.memberType) ? (
-                        <span className="text-destructive"> *</span>
-                      ) : null}
+                      Organisation <span className="text-destructive"> *</span>
                     </Label>
                     {isEditing ? (
                       <Input
@@ -708,12 +716,33 @@ export default function ProfilePage() {
                     ) : form.organization.trim() ? (
                       <p className="text-sm text-muted-foreground">{form.organization.trim()}</p>
                     ) : (
-                      emptyFieldHint(
-                        memberTypeRequiresOrganization(form.memberType)
-                          ? "Required for your member type."
-                          : "Add your company, NGO, or institution."
-                      )
+                      emptyFieldHint("Required — your company, venture, campus, or freelance practice.")
                     )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">
+                      Mobile number <span className="text-destructive"> *</span>
+                    </Label>
+                    {isEditing ? (
+                      <Input
+                        id="phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        placeholder="0712 345 678"
+                        value={form.phone}
+                        onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                      />
+                    ) : form.phone.trim() ? (
+                      <p className="text-sm text-muted-foreground">{form.phone.trim()}</p>
+                    ) : (
+                      emptyFieldHint("Required — hub staff use this to reach you. Not shown on your public card.")
+                    )}
+                    {isEditing ? (
+                      <p className="text-xs text-muted-foreground">
+                        Visible to hub staff only, not on your public directory profile.
+                      </p>
+                    ) : null}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Primary role</Label>
@@ -952,7 +981,9 @@ export default function ProfilePage() {
             <Card className="border-border">
               <CardHeader className="p-4 pb-3 md:p-6">
                 <CardTitle className="text-lg">Availability</CardTitle>
-                <CardDescription>What you are open to — shown on your member profile.</CardDescription>
+                <CardDescription>
+                  What you are open to — pick at least one. Shown on your member profile.
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                 {isEditing ? (

@@ -29,6 +29,8 @@ export async function runOnboardingReminderJobs(prisma: PrismaClient) {
           organization: true,
           bio: true,
           interests: true,
+          availability: true,
+          phone: true,
         },
       },
     },
