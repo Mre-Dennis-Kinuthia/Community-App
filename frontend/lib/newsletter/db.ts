@@ -26,6 +26,9 @@ export function coverFromSections(sections: NewsletterSection[]): string | null 
     if (s.type === "hero" && s.imageUrl) return s.imageUrl
     if (s.type === "image" && s.imageUrl) return s.imageUrl
     if (s.type === "news_card" && s.imageUrl) return s.imageUrl
+    if (s.type === "event_card" && s.imageUrl) return s.imageUrl
+    if (s.type === "columns" && s.leftImageUrl) return s.leftImageUrl
+    if (s.type === "columns" && s.rightImageUrl) return s.rightImageUrl
   }
   return null
 }

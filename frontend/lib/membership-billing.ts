@@ -2,8 +2,13 @@ import { randomBytes } from "crypto"
 import type { Plan, PrismaClient } from "@prisma/client"
 import { Prisma } from "@prisma/client"
 import { getAppBaseUrl } from "@/lib/app-url"
+import {
+  addBillingPeriodEnd,
+  isRecurringPlanInterval,
+  serializePlanCatalogFields,
+} from "@/lib/workspace-pricing"
 
-export { getAppBaseUrl }
+export { getAppBaseUrl, addBillingPeriodEnd }
 
 export function generateMembershipPayToken(): string {
   return randomBytes(24).toString("base64url")
@@ -11,16 +16,6 @@ export function generateMembershipPayToken(): string {
 
 export function buildMembershipPayUrl(token: string): string {
   return `${getAppBaseUrl()}/pay/${token}`
-}
-
-export function addBillingPeriodEnd(start: Date, interval: string): Date {
-  const end = new Date(start)
-  if (interval === "yearly" || interval === "year") {
-    end.setFullYear(end.getFullYear() + 1)
-  } else {
-    end.setMonth(end.getMonth() + 1)
-  }
-  return end
 }
 
 export function generateInvoiceNumber(): string {
@@ -76,18 +71,21 @@ export async function activateMembershipPlan(
   }
 
   return prisma.$transaction(async (tx) => {
-    await tx.subscription.updateMany({
-      where: {
-        userId: params.userId,
-        deletedAt: null,
-        status: { in: ["active", "trialing"] },
-      },
-      data: {
-        status: "cancelled",
-        cancelAtPeriodEnd: false,
-        updatedAt: now,
-      },
-    })
+    if (isRecurringPlanInterval(plan.interval)) {
+      await tx.subscription.updateMany({
+        where: {
+          userId: params.userId,
+          deletedAt: null,
+          status: { in: ["active", "trialing"] },
+          plan: { interval: { in: ["monthly", "yearly", "month", "year"] } },
+        },
+        data: {
+          status: "cancelled",
+          cancelAtPeriodEnd: false,
+          updatedAt: now,
+        },
+      })
+    }
 
     const payment = params.existingPaymentId
       ? await tx.payment.update({
@@ -219,6 +217,7 @@ export function serializePlan(plan: Plan) {
     isActive: plan.isActive,
     createdAt: plan.createdAt.toISOString(),
     updatedAt: plan.updatedAt.toISOString(),
+    ...serializePlanCatalogFields(plan.pricingCategoryId),
   }
 }
 

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
 import { sendNewBookingStaffEmail, sendEmailInBackground } from "@/lib/email"
+import { notifyStaffNewBooking } from "@/lib/staff-alerts"
 import { buildMembershipSummary } from "@/lib/membership-profile"
 import { applyMembershipBookingBenefits } from "@/lib/membership-booking-benefits"
 import { canBookHotDesk, resolveAllowanceState, startOfAllowanceMonth } from "@/lib/membership-tier"
@@ -356,6 +357,16 @@ export async function POST(request: NextRequest) {
         formattedDate
       ),
       skipEmail: true,
+    })
+
+    void notifyStaffNewBooking({
+      id: booking.id,
+      member: booking.user?.name || booking.user?.email || "Member",
+      resourceLabel:
+        (validatedData.meetingRoomCapacity &&
+          meetingRoomPackageById(validatedData.meetingRoomCapacity)?.name) ||
+        booking.resourceType.replace(/-/g, " "),
+      dateLabel: formattedDate,
     })
 
     if (booking.user?.email) {

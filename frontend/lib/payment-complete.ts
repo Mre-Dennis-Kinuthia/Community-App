@@ -49,9 +49,20 @@ async function completeBookingPayment(prisma: PrismaClient, paymentId: string, b
       ),
       skipEmail: true,
     })
-  } catch (err) {
-    console.error("[PAYMENT] Booking notification failed:", err)
-  }
+    } catch (err) {
+      console.error("[PAYMENT] Booking notification failed:", err)
+    }
+
+    try {
+      const { notifyStaffBookingPaid } = await import("@/lib/staff-alerts")
+      await notifyStaffBookingPaid({
+        id: booking.id,
+        member: booking.user?.name || booking.user?.email || "Member",
+        resourceLabel: booking.resourceType.replace(/-/g, " "),
+      })
+    } catch (err) {
+      console.error("[PAYMENT] Staff booking alert failed:", err)
+    }
 
   if (booking.status === "confirmed") {
     try {

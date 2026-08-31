@@ -11,6 +11,8 @@ import { toast } from "@/lib/toast"
 import { badgeClassForLabel, badgePrimary, badgeNeutral, badgeDestructive } from "@/lib/badge-styles"
 import { cn } from "@/lib/utils"
 import { getEventPublicUrl, getEventPublicPath, getEventShareText } from "@/lib/event-url"
+import { EventFlyer } from "@/components/events/event-flyer"
+import { opportunityCardText } from "@/lib/community-opportunity"
 
 interface EventCardProps {
   event: {
@@ -26,6 +28,7 @@ interface EventCardProps {
     status: string
     thumbnail?: string
     date: Date
+    description?: string
     capacity?: number
     registered?: number
     waitlistEnabled?: boolean
@@ -124,6 +127,8 @@ export function EventCard({
     }
   }
 
+  const excerpt = opportunityCardText(event.description, 140)
+
   const statusBadge = (
     <Badge
       variant="secondary"
@@ -142,8 +147,10 @@ export function EventCard({
         onClick && "active:bg-muted/30"
       )}
     >
-      {/* Mobile: compact row (Hub-style date column + info) */}
-      <div className="flex gap-0 md:hidden">
+      {/* Mobile: flyer + date row */}
+      <div className="md:hidden">
+        <EventFlyer src={event.thumbnail} alt="" variant="card" />
+        <div className="flex gap-0">
         <div className="flex w-[4.5rem] shrink-0 flex-col items-center justify-center border-r border-border/60 bg-muted/20 py-4">
           <span className="text-2xl font-semibold leading-none tracking-tight">{dayNum}</span>
           <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -162,6 +169,11 @@ export function EventCard({
               {event.title}
             </Link>
           </h3>
+          {excerpt ? (
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+              {excerpt}
+            </p>
+          ) : null}
           <p className="mt-1 text-xs text-muted-foreground">
             {timeString}
             {endTimeString ? ` – ${endTimeString}` : ""}
@@ -205,22 +217,12 @@ export function EventCard({
             </Button>
           </div>
         </div>
+        </div>
       </div>
 
       {/* Desktop: card layout */}
       <div className="hidden md:flex md:flex-col">
-        {event.thumbnail && (
-          <div className="w-full shrink-0 overflow-hidden bg-muted">
-            <div className="aspect-[16/9] w-full">
-              <img
-                src={event.thumbnail}
-                alt=""
-                className="h-full w-full object-contain object-center"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        )}
+        <EventFlyer src={event.thumbnail} alt="" variant="card" />
 
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
           <div className="min-w-0 flex-1 space-y-2">
@@ -245,6 +247,12 @@ export function EventCard({
                 {event.title}
               </Link>
             </h3>
+
+            {excerpt ? (
+              <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                {excerpt}
+              </p>
+            ) : null}
 
             {event.priceLabel && (
               <p className="text-xs font-medium text-foreground">{event.priceLabel}</p>

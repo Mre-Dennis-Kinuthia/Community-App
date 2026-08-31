@@ -9,6 +9,7 @@ import {
   type NewsletterBrand,
 } from "./render-email"
 import type { NewsletterSection } from "./section-schema"
+import { NEWSLETTER_SECTION_ACCENTS } from "./section-schema"
 
 function SectionShell({
   children,
@@ -152,15 +153,39 @@ function SectionView({
     case "columns":
       return (
         <SectionShell>
-          <div className="grid gap-6 md:grid-cols-2">
-            <div
-              className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: section.leftHtml }}
-            />
-            <div
-              className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: section.rightHtml }}
-            />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              {section.leftImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={section.leftImageUrl}
+                  alt={section.leftAlt || ""}
+                  className="mb-3 aspect-[4/3] w-full rounded-xl object-cover"
+                />
+              ) : null}
+              {section.leftHtml ? (
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: section.leftHtml }}
+                />
+              ) : null}
+            </div>
+            <div>
+              {section.rightImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={section.rightImageUrl}
+                  alt={section.rightAlt || ""}
+                  className="mb-3 aspect-[4/3] w-full rounded-xl object-cover"
+                />
+              ) : null}
+              {section.rightHtml ? (
+                <div
+                  className="prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: section.rightHtml }}
+                />
+              ) : null}
+            </div>
           </div>
         </SectionShell>
       )
@@ -211,6 +236,74 @@ function SectionView({
           </div>
         </SectionShell>
       )
+    case "section_heading": {
+      const accent =
+        NEWSLETTER_SECTION_ACCENTS[section.accent ?? "maroon"] ??
+        NEWSLETTER_SECTION_ACCENTS.maroon
+      return (
+        <SectionShell className="mb-5">
+          <div className="h-2 w-full rounded-full" style={{ background: accent.bar }} />
+          <p
+            className="mt-3 text-[13px] font-bold uppercase tracking-[0.16em]"
+            style={{ color: accent.label }}
+          >
+            {section.label}
+          </p>
+        </SectionShell>
+      )
+    }
+    case "event_card": {
+      const meta = [section.dateLine, section.location].filter(Boolean).join(" · ")
+      return (
+        <SectionShell>
+          <div
+            className="flex flex-col gap-4 overflow-hidden rounded-xl border sm:flex-row"
+            style={{ borderColor: brand.border, background: brand.footerBg }}
+          >
+            {section.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={section.imageUrl}
+                alt=""
+                className="h-40 w-full object-cover sm:h-auto sm:w-48"
+              />
+            ) : null}
+            <div className="min-w-0 flex-1 p-4">
+              {section.kicker ? (
+                <p
+                  className="mb-1 text-[11px] font-bold uppercase tracking-wider"
+                  style={{ color: brand.primary }}
+                >
+                  {section.kicker}
+                </p>
+              ) : null}
+              <h3 className="mb-1 text-lg font-semibold" style={{ color: brand.text }}>
+                {section.title}
+              </h3>
+              {meta ? (
+                <p className="mb-2 text-sm font-semibold" style={{ color: brand.primary }}>
+                  {meta}
+                </p>
+              ) : null}
+              {section.body ? (
+                <p className="mb-3 text-sm leading-relaxed" style={{ color: brand.textMuted }}>
+                  {section.body}
+                </p>
+              ) : null}
+              {section.cta?.label && section.cta?.url ? (
+                <a
+                  href={section.cta.url}
+                  className="inline-block rounded-lg px-4 py-2 text-xs font-bold text-white"
+                  style={{ background: brand.primary }}
+                >
+                  {section.cta.label}
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </SectionShell>
+      )
+    }
     case "footer":
       return (
         <SectionShell className="border-t pt-6 text-center" style={{ borderColor: brand.border }}>

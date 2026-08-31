@@ -970,9 +970,11 @@ model Plan {
   description String?  @db.Text
   price       Decimal  @db.Decimal(12, 2)
   currency    String   @default("KES")
-  interval    String   // monthly, yearly
+  interval    String   // monthly, yearly, day, pack
   features    Json?    // Array of feature strings
   isActive    Boolean  @default(true)
+  /// Published workspace price category (day-pass, community-monthly, …)
+  pricingCategoryId String? @unique @map("pricing_category_id")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

@@ -5,6 +5,7 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
+  ArrowLeft,
   ExternalLink,
   Globe,
   Linkedin,
@@ -17,17 +18,17 @@ import {
 import {
   eventTimezone,
   formatEventDate,
-  formatEventDateBadge,
   formatEventGmtOffset,
   formatEventTime,
 } from "@/lib/event-datetime"
 import { displayLocation, eventTypeLabel, resolveEventPlatform } from "@/lib/event-constants"
-import { EventPlatformBadge } from "@/components/platform-icon"
 import { ImpactHubMark } from "@/components/brand/impact-hub-mark"
 import { EventSharePanel } from "@/components/events/event-share-panel"
 import { EventCalendarActions } from "@/components/events/event-calendar-actions"
 import { LumaRegistration } from "@/components/events/luma-registration"
 import { EventVenueMap } from "@/components/events/event-venue-map"
+import { EventFlyer } from "@/components/events/event-flyer"
+import { EventDescription } from "@/components/events/event-description"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { HUB_PUBLIC_EMAIL } from "@/lib/hub-contact"
 import { getEventPublicPath } from "@/lib/event-url"
@@ -87,6 +88,8 @@ type EventPublicViewProps = {
   isLoggedIn: boolean
   onRegister: () => void
   onCancel: () => void
+  backHref?: string
+  backLabel?: string
 }
 
 function initials(name: string): string {
@@ -168,9 +171,10 @@ export function EventPublicView({
   isLoggedIn,
   onRegister,
   onCancel,
+  backHref,
+  backLabel = "Events",
 }: EventPublicViewProps) {
   const eventTz = eventTimezone(event.timezone)
-  const badge = formatEventDateBadge(event.startDate, eventTz)
   const gmt = formatEventGmtOffset(event.startDate, eventTz)
   const confirmedCount = event.confirmedCount ?? 0
   const isFull = event.capacity != null && confirmedCount >= event.capacity
@@ -183,7 +187,6 @@ export function EventPublicView({
   const attendees = event.attendeePreview ?? []
   const hostName = event.organizerName?.trim() || "Impact Hub Nairobi"
   const hostEmail = event.organizerEmail?.trim() || HUB_PUBLIC_EMAIL
-  const imageSrc = getImageDisplayUrl(event.imageUrl || undefined)
   const goingLabel = isPastEvent
     ? `${confirmedCount} Went`
     : confirmedCount > 0
@@ -423,203 +426,148 @@ export function EventPublicView({
   )
 
   return (
-    <>
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] lg:gap-12">
-          {/* Sidebar */}
-          <aside className="space-y-5 lg:sticky lg:top-20 lg:self-start">
-            <div className="overflow-hidden rounded-xl border border-[#edeff2] bg-white shadow-sm">
-              {imageSrc ? (
-                <div className="relative aspect-square bg-[#edeff2]">
-                  <img
-                    src={imageSrc}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="flex aspect-square items-center justify-center bg-gradient-to-br from-[#1c395c] to-[#0a1f38] p-8">
-                  <ImpactHubMark size={72} className="opacity-90" />
-                </div>
-              )}
-            </div>
-
-            <div className="hidden lg:block">{ctaBlock}</div>
-            <div className="hidden lg:block">{hostBlock}</div>
-          </aside>
-
-          {/* Main column */}
-          <div className="min-w-0 space-y-8">
-            <header className="space-y-5">
-              <div className="flex flex-wrap gap-2">
-                {event.eventType && (
-                  <span className="rounded-full border border-[#edeff2] bg-white px-3 py-1 text-xs font-medium text-[#1c395c]">
-                    {eventTypeLabel(event.eventType)}
-                  </span>
-                )}
-                {isPastEvent && (
-                  <span className="rounded-full border border-[#edeff2] bg-[#f3f5f8] px-3 py-1 text-xs font-medium text-[#1c395c]/70">
-                    Past event
-                  </span>
-                )}
-                {priceLabel && (
-                  <span className="rounded-full bg-[#812926] px-3 py-1 text-xs font-medium text-white">
-                    {priceLabel}
-                  </span>
-                )}
-              </div>
-
-              <h1 className="text-3xl font-semibold tracking-tight text-[#0a1f38] sm:text-4xl">
-                {event.title}
-              </h1>
-
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg border border-[#edeff2] bg-white shadow-sm">
-                    <span className="text-[10px] font-semibold uppercase leading-none tracking-wide text-[#812926]">
-                      {badge.month}
-                    </span>
-                    <span className="mt-0.5 text-lg font-semibold leading-none text-[#0a1f38]">
-                      {badge.day}
-                    </span>
-                  </div>
-                  <div className="min-w-0 pt-0.5">
-                    <p className="font-medium text-[#0a1f38]">
-                      {formatEventDate(event.startDate, eventTz)}
-                    </p>
-                    <p className="mt-0.5 text-sm tabular-nums text-[#1c395c]/80">
-                      {timeLine} {gmt}
-                    </p>
-                  </div>
-                </div>
-
-                {(event.location || event.onlineUrl || platformInfo) && (
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[#edeff2] bg-white shadow-sm">
-                      {platformInfo ? (
-                        <EventPlatformBadge
-                          icon={platformInfo.icon}
-                          label=""
-                          size={22}
-                          className="[&_span]:sr-only"
-                        />
-                      ) : (
-                        <MapPin className="h-5 w-5 text-[#812926]" />
-                      )}
-                    </div>
-                    <div className="min-w-0 pt-2">
-                      <p className="font-medium text-[#0a1f38]">
-                        {platformInfo?.label || displayLocation(event)}
-                      </p>
-                      {platformInfo && event.location && event.locationType !== "online" && (
-                        <p className="mt-0.5 text-sm text-[#1c395c]/80">
-                          {displayLocation(event)}
-                        </p>
-                      )}
-                      {event.onlineUrl && event.locationType !== "in-person" && (
-                        <a
-                          href={event.onlineUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 inline-flex items-center gap-1 text-sm text-[#812926] hover:underline"
-                        >
-                          Join online <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </header>
-
-            <EventVenueMap
-              location={event.location}
-              locationType={event.locationType}
-              googleMapsUrl={event.googleMapsUrl}
-            />
-
-            <div className="lg:hidden">{ctaBlock}</div>
-
-            {event.description && (
-              <section className="space-y-3">
-                <h2 className="text-lg font-semibold text-[#0a1f38]">About Event</h2>
-                <p className="whitespace-pre-line text-[15px] leading-relaxed text-[#1c395c]/85">
-                  {event.description}
-                </p>
-              </section>
-            )}
-
-            {isLumaEvent && event.lumaEventUrl && !canRegister && (
-              <section className="rounded-xl border border-[#edeff2] bg-white p-5">
-                <LumaRegistration event={event} />
-              </section>
-            )}
-
-            {isRegistered && calendarLinks && (
-              <section className="space-y-3 rounded-xl border border-[#edeff2] bg-white p-5">
-                <h2 className="font-semibold text-[#0a1f38]">On your calendar</h2>
-                <p className="text-sm text-[#1c395c]/75">
-                  A calendar invite was sent when you registered. Use these options if you need to
-                  add it again.
-                </p>
-                <EventCalendarActions links={calendarLinks} />
-              </section>
-            )}
-
-            {isRegistered && ticket && (
-              <section className="flex flex-col items-center gap-6 rounded-xl border border-[#edeff2] bg-white p-6 sm:flex-row">
-                <img
-                  src={ticket.qrDataUrl}
-                  alt="Check-in QR code"
-                  className="h-44 w-44 rounded-lg border bg-white"
-                />
-                <div className="text-center sm:text-left">
-                  <div className="mb-1 flex items-center justify-center gap-2 sm:justify-start">
-                    <Ticket className="h-5 w-5 text-[#812926]" />
-                    <h2 className="text-lg font-semibold text-[#0a1f38]">Your ticket</h2>
-                  </div>
-                  <p className="text-sm text-[#1c395c]/75">Show this QR code at check-in</p>
-                  <p className="mt-3 font-mono text-sm tracking-widest text-[#0a1f38]">
-                    {ticket.checkInCode}
-                  </p>
-                </div>
-              </section>
-            )}
-
-            <EventSharePanel
-              event={{
-                id: event.id,
-                title: event.title,
-                startDate: event.startDate,
-                slug: event.slug,
-                shortCode: event.shortCode,
-              }}
-            />
-
-            <div className="border-t border-[#edeff2] pt-8 lg:hidden">{hostBlock}</div>
-          </div>
-        </div>
-      </div>
-
-      {canRegister && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#edeff2] bg-[#faf9f6]/95 backdrop-blur pb-[env(safe-area-inset-bottom)] lg:hidden">
-          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[#0a1f38]">{event.title}</p>
-              {priceLabel && (
-                <p className="text-xs text-[#1c395c]/70">{priceLabel}</p>
-              )}
-            </div>
-            <Button
-              className="bg-[#812926] hover:bg-[#6b2120]"
-              onClick={onRegister}
-              disabled={registering}
-            >
-              {registerLabel}
-            </Button>
-          </div>
-        </div>
+    <article
+      className={cn(
+        "w-full min-w-0 max-w-full space-y-4 md:mx-auto md:max-w-3xl md:space-y-6",
+        backHref ? "" : "px-4 py-8 sm:px-6 lg:py-10"
       )}
-    </>
+    >
+      {backHref ? (
+        <Button variant="ghost" size="sm" className="-ml-2 h-9 gap-2 px-2" asChild>
+          <Link href={backHref}>
+            <ArrowLeft className="h-4 w-4 shrink-0" />
+            {backLabel}
+          </Link>
+        </Button>
+      ) : null}
+
+      <EventFlyer src={event.imageUrl} alt={`${event.title} flyer`} />
+
+      <header className="w-full min-w-0 space-y-2">
+        <div className="flex flex-wrap gap-1.5">
+          {event.eventType ? (
+            <span className="rounded-md border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
+              {eventTypeLabel(event.eventType)}
+            </span>
+          ) : null}
+          {isPastEvent ? (
+            <span className="rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+              Past event
+            </span>
+          ) : null}
+          {priceLabel ? (
+            <span className="rounded-md bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+              {priceLabel}
+            </span>
+          ) : null}
+        </div>
+
+        <h1 className="w-full min-w-0 break-words text-lg font-semibold leading-snug tracking-tight sm:text-xl">
+          {event.title}
+        </h1>
+
+        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <span className="break-words">
+            {formatEventDate(event.startDate, eventTz)}
+            {timeLine ? ` · ${timeLine} ${gmt}` : ""}
+          </span>
+          {event.location || event.onlineUrl || platformInfo ? (
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span className="break-words">
+                {platformInfo?.label || displayLocation(event)}
+                {platformInfo && event.location && event.locationType !== "online"
+                  ? ` · ${displayLocation(event)}`
+                  : ""}
+              </span>
+            </span>
+          ) : null}
+          {event.onlineUrl && event.locationType !== "in-person" ? (
+            <a
+              href={event.onlineUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              Join online <ExternalLink className="h-3 w-3" />
+            </a>
+          ) : null}
+        </div>
+
+        {event.tags && event.tags.length > 0 ? (
+          <div className="flex min-w-0 flex-wrap gap-1.5">
+            {event.tags.map((tag) => (
+              <span
+                key={tag}
+                className="max-w-full truncate rounded-md border border-border px-2 py-0.5 text-[10px] font-normal"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </header>
+
+      {event.description ? (
+        <section className="w-full min-w-0 overflow-x-clip rounded-lg border border-border bg-card px-3 py-4 sm:px-4">
+          <EventDescription html={event.description} />
+        </section>
+      ) : null}
+
+      <EventVenueMap
+        location={event.location}
+        locationType={event.locationType}
+        googleMapsUrl={event.googleMapsUrl}
+      />
+
+      {ctaBlock}
+
+      {isLumaEvent && event.lumaEventUrl && !canRegister ? (
+        <section className="rounded-lg border border-border bg-card p-4">
+          <LumaRegistration event={event} />
+        </section>
+      ) : null}
+
+      {isRegistered && calendarLinks ? (
+        <section className="space-y-3 rounded-lg border border-border bg-card p-4">
+          <h2 className="text-sm font-semibold">On your calendar</h2>
+          <p className="text-sm text-muted-foreground">
+            A calendar invite was sent when you registered. Use these options if you need to add
+            it again.
+          </p>
+          <EventCalendarActions links={calendarLinks} />
+        </section>
+      ) : null}
+
+      {isRegistered && ticket ? (
+        <section className="flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row">
+          <img
+            src={ticket.qrDataUrl}
+            alt="Check-in QR code"
+            className="h-40 w-44 rounded-lg border bg-white"
+          />
+          <div className="text-center sm:text-left">
+            <div className="mb-1 flex items-center justify-center gap-2 sm:justify-start">
+              <Ticket className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-semibold">Your ticket</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">Show this QR code at check-in</p>
+            <p className="mt-2 font-mono text-sm tracking-widest">{ticket.checkInCode}</p>
+          </div>
+        </section>
+      ) : null}
+
+      <EventSharePanel
+        event={{
+          id: event.id,
+          title: event.title,
+          startDate: event.startDate,
+          slug: event.slug,
+          shortCode: event.shortCode,
+        }}
+      />
+
+      {hostBlock}
+    </article>
   )
 }

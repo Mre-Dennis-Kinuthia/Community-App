@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { syncAccessForBooking } from "@/lib/integrations/access-control"
 import { createNotification, NotificationTemplates } from "@/lib/notifications"
 import { sendBookingCancelledEmail, sendEmailInBackground } from "@/lib/email"
+import { notifyStaffBookingCancelled } from "@/lib/staff-alerts"
 
 async function resolveUserId(session: Awaited<ReturnType<typeof auth>>) {
   if (!session?.user?.id) return null
@@ -58,6 +59,27 @@ export async function PATCH(
       ),
       skipEmail: true,
     })
+
+    const memberName = existing.user?.name || existing.user?.email || "Member"
+    void notifyStaffBookingCancelled({
+      id: booking.id,
+      member: memberName,
+      resourceLabel: booking.resourceType.replace(/-/g, " "),
+      cancelledBy: memberName,
+    })
+
+    await prisma.auditLog.create({
+      data: {
+        actor: memberName,
+        action: "booking_cancelled_by_member",
+        target: `booking:${booking.id}`,
+        severity: "warning",
+        details: JSON.stringify({
+          userId,
+          resourceType: booking.resourceType,
+        }),
+      },
+    }).catch((err) => console.error("[BOOKING PATCH] audit failed:", err))
 
     if (existing.user?.email) {
       sendEmailInBackground(

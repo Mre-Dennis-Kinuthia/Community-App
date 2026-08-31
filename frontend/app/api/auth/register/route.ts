@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth-utils"
 import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
 import { sendWelcomeEmail, sendNewAccountStaffEmail, sendEmailInBackground } from "@/lib/email"
+import { notifyStaffNewMember } from "@/lib/staff-alerts"
 import { recordOrganisationalRegistration } from "@/lib/membership-organisational-register"
 import { MEMBERSHIP_REGISTER_INTENT } from "@/lib/membership-register-intent"
 import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
@@ -90,6 +91,12 @@ export async function POST(request: NextRequest) {
       email: user.email,
       name: user.name,
       createdAt: user.createdAt,
+    })
+
+    void notifyStaffNewMember({
+      id: user.id,
+      name: user.name || user.email,
+      email: user.email,
     })
 
     const isOrganisational =

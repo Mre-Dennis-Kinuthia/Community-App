@@ -21,6 +21,7 @@ export async function createStaffAlert(params: {
     actionUrl: params.actionUrl,
     relatedId: params.relatedId,
     relatedType: params.relatedType,
+    // Dedicated staff emails are sent separately (e.g. ticket staff email + CC).
     skipEmail: true,
   })
 }
@@ -40,5 +41,86 @@ export async function notifyStaffSupportTicketCreated(ticket: {
     relatedId: ticket.id,
     relatedType: "support_ticket",
     type: "warning",
+  })
+}
+
+export async function notifyStaffNewBooking(booking: {
+  id: string
+  member: string
+  resourceLabel: string
+  dateLabel: string
+}) {
+  return createStaffAlert({
+    title: "Booking needs confirmation",
+    message: `${booking.resourceLabel} · ${booking.member} · ${booking.dateLabel}`,
+    actionUrl: `${getAdminAppBaseUrl()}/dashboard/bookings/${booking.id}`,
+    relatedId: booking.id,
+    relatedType: "booking",
+    type: "warning",
+  })
+}
+
+export async function notifyStaffBookingCancelled(booking: {
+  id: string
+  member: string
+  resourceLabel: string
+  cancelledBy: string
+}) {
+  return createStaffAlert({
+    title: "Booking cancelled",
+    message: `${booking.resourceLabel} · ${booking.member} · cancelled by ${booking.cancelledBy}`,
+    actionUrl: `${getAdminAppBaseUrl()}/dashboard/bookings/${booking.id}`,
+    relatedId: booking.id,
+    relatedType: "booking",
+    type: "warning",
+  })
+}
+
+export async function notifyStaffBookingPaid(booking: {
+  id: string
+  member: string
+  resourceLabel: string
+}) {
+  return createStaffAlert({
+    title: "Booking payment received",
+    message: `${booking.resourceLabel} · ${booking.member}`,
+    actionUrl: `${getAdminAppBaseUrl()}/dashboard/bookings/${booking.id}`,
+    relatedId: booking.id,
+    relatedType: "booking",
+    type: "success",
+  })
+}
+
+export async function notifyStaffNewMember(member: {
+  id?: string
+  name: string
+  email: string
+}) {
+  return createStaffAlert({
+    title: "New member signed up",
+    message: `${member.name} · ${member.email}`,
+    actionUrl: member.id
+      ? `${getAdminAppBaseUrl()}/dashboard/community/members/${member.id}`
+      : `${getAdminAppBaseUrl()}/dashboard/community/members`,
+    relatedId: member.id,
+    relatedType: "member",
+    type: "info",
+  })
+}
+
+export async function notifyStaffEventRegistration(event: {
+  eventId: string
+  eventTitle: string
+  member: string
+  status: string
+}) {
+  const pending = event.status === "pending" || event.status === "waitlisted"
+  return createStaffAlert({
+    title: pending ? `Event ${event.status}` : "Event registration",
+    message: `${event.eventTitle} · ${event.member}`,
+    actionUrl: `${getAdminAppBaseUrl()}/dashboard/content/events/${event.eventId}`,
+    relatedId: event.eventId,
+    relatedType: "event",
+    type: pending ? "warning" : "info",
   })
 }

@@ -2,6 +2,7 @@ import { EMAIL_BRAND, escapeHtml } from "@/lib/email/templates"
 import { getEmailBrandLogoUrl } from "@/lib/brand"
 import { HUB_CONTACT_EMAIL, HUB_MAILING_ADDRESS } from "@/lib/hub-contact"
 import type { NewsletterSection } from "./section-schema"
+import { NEWSLETTER_SECTION_ACCENTS } from "./section-schema"
 
 export type NewsletterBrand = {
   primary: string
@@ -138,14 +139,30 @@ function renderSectionHtml(
       const h = section.size === "sm" ? 12 : section.size === "lg" ? 40 : 24
       return `<div style="height:${h}px;line-height:${h}px;font-size:0;">&nbsp;</div>`
     }
-    case "columns":
+    case "columns": {
+      const leftImg = section.leftImageUrl
+        ? `<img src="${escapeHtml(absUrl(section.leftImageUrl, appBaseUrl))}" alt="${escapeHtml(section.leftAlt || "")}" width="260" style="display:block;width:100%;max-width:100%;height:auto;border:0;border-radius:10px;margin:0 0 10px;" />`
+        : ""
+      const rightImg = section.rightImageUrl
+        ? `<img src="${escapeHtml(absUrl(section.rightImageUrl, appBaseUrl))}" alt="${escapeHtml(section.rightAlt || "")}" width="260" style="display:block;width:100%;max-width:100%;height:auto;border:0;border-radius:10px;margin:0 0 10px;" />`
+        : ""
+      const leftCopy = section.leftHtml
+        ? `<div style="font-size:14px;line-height:1.6;color:${brand.text};">${section.leftHtml}</div>`
+        : ""
+      const rightCopy = section.rightHtml
+        ? `<div style="font-size:14px;line-height:1.6;color:${brand.text};">${section.rightHtml}</div>`
+        : ""
       return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:16px 0;">
         <tr>
-          <td width="48%" valign="top" style="font-size:14px;line-height:1.6;color:${brand.text};padding-right:8px;">${section.leftHtml}</td>
-          <td width="4%"></td>
-          <td width="48%" valign="top" style="font-size:14px;line-height:1.6;color:${brand.text};padding-left:8px;">${section.rightHtml}</td>
+          <td class="ih-col" width="50%" valign="top" style="width:50%;padding-right:10px;font-size:14px;line-height:1.6;color:${brand.text};">
+            ${leftImg}${leftCopy}
+          </td>
+          <td class="ih-col" width="50%" valign="top" style="width:50%;padding-left:10px;font-size:14px;line-height:1.6;color:${brand.text};">
+            ${rightImg}${rightCopy}
+          </td>
         </tr>
       </table>`
+    }
     case "news_card": {
       const title = section.title || "Community news"
       const excerpt = section.excerpt || ""
@@ -166,6 +183,53 @@ function renderSectionHtml(
                   </h3>
                   ${excerpt ? `<p style="margin:0 0 10px;font-size:14px;line-height:1.55;color:${brand.textMuted};">${escapeHtml(excerpt)}</p>` : ""}
                   <a href="${escapeHtml(url)}" style="font-size:14px;font-weight:700;color:${brand.primary};text-decoration:none;">Read more →</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>`
+    }
+    case "section_heading": {
+      const accent =
+        NEWSLETTER_SECTION_ACCENTS[section.accent ?? "maroon"] ??
+        NEWSLETTER_SECTION_ACCENTS.maroon
+      return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:28px 0 16px;">
+        <tr>
+          <td style="height:8px;background:${accent.bar};font-size:0;line-height:0;">&nbsp;</td>
+        </tr>
+        <tr>
+          <td style="padding:14px 0 2px;">
+            <p style="margin:0;font-size:13px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:${accent.label};">${escapeHtml(section.label)}</p>
+          </td>
+        </tr>
+      </table>`
+    }
+    case "event_card": {
+      const img = section.imageUrl
+        ? `<img src="${escapeHtml(absUrl(section.imageUrl, appBaseUrl))}" alt="" width="220" style="display:block;width:100%;max-width:220px;height:auto;border:0;border-radius:10px;" />`
+        : ""
+      const cta =
+        section.cta?.label && section.cta?.url
+          ? `<p style="margin:12px 0 0;"><a href="${escapeHtml(link(section.cta.url))}" style="display:inline-block;padding:10px 18px;font-size:13px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:8px;background:${brand.primary};">${escapeHtml(section.cta.label)}</a></p>`
+          : ""
+      const meta = [section.dateLine, section.location].filter(Boolean).join(" · ")
+      return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:16px 0 8px;border:1px solid ${brand.border};border-radius:12px;background:${brand.footerBg};">
+        <tr>
+          <td style="padding:16px;">
+            <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+              <tr>
+                ${img ? `<td width="236" valign="top" style="padding-right:16px;">${img}</td>` : ""}
+                <td valign="top">
+                  ${
+                    section.kicker
+                      ? `<p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${brand.primary};">${escapeHtml(section.kicker)}</p>`
+                      : ""
+                  }
+                  <h3 style="margin:0 0 8px;font-size:18px;line-height:1.3;color:${brand.text};">${escapeHtml(section.title)}</h3>
+                  ${meta ? `<p style="margin:0 0 8px;font-size:13px;font-weight:600;color:${brand.primary};">${escapeHtml(meta)}</p>` : ""}
+                  ${section.body ? `<p style="margin:0;font-size:14px;line-height:1.55;color:${brand.textMuted};">${escapeHtml(section.body)}</p>` : ""}
+                  ${cta}
                 </td>
               </tr>
             </table>
@@ -240,6 +304,19 @@ export function renderNewsletterEmailHtml(params: {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="light" />
   <title>${escapeHtml(params.subject)}</title>
+  <style>
+    @media only screen and (max-width: 620px) {
+      .ih-col {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        padding-bottom: 16px !important;
+      }
+      .ih-col img { width: 100% !important; max-width: 100% !important; height: auto !important; }
+    }
+  </style>
   ${
     params.preheader
       ? `<span style="display:none!important;visibility:hidden;opacity:0;height:0;width:0;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(params.preheader)}</span>`
@@ -281,8 +358,19 @@ export function newsletterPlainText(sections: NewsletterSection[]): string {
           return s.html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
         case "button":
           return `${s.label}: ${s.url}`
+        case "columns":
+          return [s.leftHtml, s.rightHtml]
+            .map((html) => (html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim())
+            .filter(Boolean)
+            .join("\n")
         case "news_card":
           return `${s.title || "News"}\n${s.excerpt || ""}\n${s.url || ""}`
+        case "section_heading":
+          return s.label
+        case "event_card":
+          return [s.title, s.dateLine, s.location, s.body, s.cta?.url]
+            .filter(Boolean)
+            .join("\n")
         case "footer":
           return s.note || "Impact Hub Nairobi"
         default:

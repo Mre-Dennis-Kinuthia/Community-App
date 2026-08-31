@@ -36,7 +36,9 @@ import {
   PRIMARY_ROLES,
   memberTypeRequiresOrganization,
   validateOnboardingStep1,
+  validateOnboardingStep2,
   BIO_MAX_LENGTH,
+  BIO_MIN_LENGTH,
 } from "@/lib/member-segmentation"
 import { isOrganisationalRegisterIntent } from "@/lib/membership-register-intent"
 import { ORGANISATIONAL_PLAN_NAME, ORGANISATIONAL_RESPONSE_SLA } from "@/lib/membership-inquiry"
@@ -168,10 +170,20 @@ function OnboardingContent() {
       setStep(2)
       return
     }
+    const step2Err = validateOnboardingStep2({ goals, bio })
+    if (step2Err) {
+      setStepError(step2Err)
+      return
+    }
     handleComplete()
   }
 
   const handleComplete = async () => {
+    const step2Err = validateOnboardingStep2({ goals, bio })
+    if (step2Err) {
+      setStepError(step2Err)
+      return
+    }
     setSaving(true)
     setStepError(null)
     const linkedinError = validateLinkedInInput(linkedinUrl)
@@ -333,7 +345,7 @@ function OnboardingContent() {
                   Goals & community
                 </CardTitle>
                 <CardDescription>
-                  What you want from the hub — optional details you can change anytime in Profile.
+                  Tell the community why you&apos;re here and introduce your work. You can update this anytime in Profile.
                 </CardDescription>
               </>
             )}
@@ -476,8 +488,10 @@ function OnboardingContent() {
             ) : (
               <div className="space-y-5 animate-in fade-in-0 duration-200">
                 <div className="space-y-2">
-                  <Label>What are you here for?</Label>
-                  <p className="text-xs text-muted-foreground">Select all that apply.</p>
+                  <Label>
+                    What are you here for? <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Select at least one.</p>
                   <div className="flex flex-wrap gap-2">
                     {ENGAGEMENT_GOALS.map((goal) => (
                       <button
@@ -543,14 +557,16 @@ function OnboardingContent() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="bio">Short intro (optional)</Label>
+                    <Label htmlFor="bio">
+                      Short intro <span className="text-destructive">*</span>
+                    </Label>
                     <span className="text-xs text-muted-foreground">
                       {bio.length}/{BIO_MAX_LENGTH}
                     </span>
                   </div>
                   <Textarea
                     id="bio"
-                    placeholder="One or two sentences about your work and what you're building…"
+                    placeholder={`One or two sentences about your work and what you're building (${BIO_MIN_LENGTH}+ characters)…`}
                     value={bio}
                     onChange={(e) => setBio(e.target.value.slice(0, BIO_MAX_LENGTH))}
                     rows={3}
@@ -582,17 +598,6 @@ function OnboardingContent() {
                 Back
               </Button>
               <div className="flex items-center gap-2">
-                {step === 2 ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleComplete}
-                    disabled={saving}
-                  >
-                    Skip extras
-                  </Button>
-                ) : null}
                 <Button type="button" onClick={handleNext} disabled={saving}>
                   {saving ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

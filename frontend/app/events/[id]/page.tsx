@@ -16,6 +16,7 @@ import {
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { EventPublicLayout } from "@/components/events/event-public-layout"
 import { EventPublicView } from "@/components/events/event-public-view"
+import { DashboardLayout } from "@/app/dashboard/layout"
 import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
 import { getEventCalendarLinks } from "@/lib/event-calendar"
 import { isLumaRegistration } from "@/lib/luma"
@@ -66,7 +67,7 @@ type UserRegistration = {
 export default function EventDetailPage({ params }: EventDetailPageProps) {
   const { id } = use(params)
   const router = useRouter()
-  const { user } = useSession()
+  const { user, status } = useSession()
 
   const [event, setEvent] = useState<EventData | null>(null)
   const [userRegistration, setUserRegistration] = useState<UserRegistration>(null)
@@ -283,9 +284,9 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       ? "Join waitlist"
       : "Register"
 
-  return (
-    <EventPublicLayout>
-      {loading ? (
+  const view = (
+    <>
+      {loading || status === "loading" ? (
         <div className="flex justify-center py-24">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -325,6 +326,8 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
           isLoggedIn={Boolean(user)}
           onRegister={handleRegister}
           onCancel={handleCancel}
+          backHref={user ? "/events" : undefined}
+          backLabel="Events"
         />
       )}
 
@@ -341,6 +344,12 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
           onSubmit={submitRegistration}
         />
       )}
-    </EventPublicLayout>
+    </>
   )
+
+  if (user) {
+    return <DashboardLayout>{view}</DashboardLayout>
+  }
+
+  return <EventPublicLayout>{view}</EventPublicLayout>
 }

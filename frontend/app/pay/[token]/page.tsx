@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label"
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react"
 import { Logo } from "@/components/logo"
 import { toast } from "@/lib/toast"
+import {
+  formatPlanAmountPhrase,
+} from "@/lib/workspace-pricing"
 
 type PayLink = {
   id: string
@@ -99,7 +102,9 @@ export default function MembershipPayPage() {
     }
   }
 
-  const intervalLabel = link?.plan.interval === "yearly" ? "year" : "month"
+  const amountPhrase = link
+    ? formatPlanAmountPhrase(`${link.currency} ${link.amount.toLocaleString()}`, link.plan.interval)
+    : ""
 
   return (
     <div className="min-h-[100svh] bg-[#faf9f6]">
@@ -152,7 +157,7 @@ export default function MembershipPayPage() {
               </p>
               <CardTitle className="text-[#0a1f38]">Membership payment</CardTitle>
               <CardDescription>
-                {link.plan.name} · {link.currency} {link.amount.toLocaleString()} / {intervalLabel}
+                {link.plan.name} · {amountPhrase}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

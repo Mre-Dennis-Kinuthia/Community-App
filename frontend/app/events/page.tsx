@@ -11,16 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, X, Loader2, CalendarDays } from "lucide-react"
 import { EventsHeader } from "@/components/events/events-header"
 import { EventsTimeline } from "@/components/events/events-timeline"
-import { EventDetailSheet } from "@/components/events/event-detail-sheet"
 import { FilterBar, FilterBarItem } from "@/components/design/filter-bar"
 import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
-import {
-  DataList,
-  DataListRow,
-  DataListPrimary,
-  DataListMeta,
-} from "@/components/design/data-list"
-import { StatusDot } from "@/components/design/status-dot"
 import { EmptyState } from "@/components/design/empty-state"
 import { FilterChip } from "@/components/mobile/filter-chip"
 import { FilterChipRow } from "@/components/mobile/filter-chip-row"
@@ -88,8 +80,7 @@ export default function EventsPage() {
   const [platformFilter, setPlatformFilter] = useState<string>(searchParams.get("platform") || "all")
   const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "date")
   const [dateRangeFilter, setDateRangeFilter] = useState<string>(searchParams.get("dateRange") || "all")
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [pendingRegistration, setPendingRegistration] = useState<Event | null>(null)
   const [registering, setRegistering] = useState<Record<string | number, boolean>>({})
   const [isFiltering, setIsFiltering] = useState(false)
   const [regDialogOpen, setRegDialogOpen] = useState(false)
@@ -240,8 +231,13 @@ export default function EventsPage() {
   )
 
   const handleEventClick = (event: Event) => {
-    setSelectedEvent(event)
-    setIsSheetOpen(true)
+    router.push(
+      getEventPublicPath({
+        id: String(event.id),
+        slug: event.slug,
+        shortCode: event.shortCode,
+      })
+    )
   }
 
   const submitRegistration = async (
@@ -699,61 +695,16 @@ export default function EventsPage() {
               className="transition-opacity duration-200 ease-in-out"
               style={{ opacity: isFiltering ? 0.6 : 1 }}
             >
-              <div className="md:hidden">
-                <EventsTimeline
-                  events={filteredEvents}
-                  onEventClick={handleEventClick}
-                  activeTab={activeTab}
-                  onRegister={handleRegister}
-                  registering={registering}
-                />
-              </div>
-              <div className="hidden md:block">
-                <DataList>
-                  {filteredEvents.map((event) => (
-                    <DataListRow
-                      key={event.id}
-                      onClick={() => handleEventClick(event)}
-                    >
-                      <DataListPrimary
-                        title={event.title}
-                        subtitle={event.organizer}
-                      />
-                      <DataListMeta>
-                        {event.date.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}{" "}
-                        · {event.time}
-                      </DataListMeta>
-                      <StatusDot
-                        label={event.status}
-                        variant={
-                          event.status === "Registered"
-                            ? "success"
-                            : event.status === "Open"
-                              ? "warning"
-                              : "neutral"
-                        }
-                      />
-                    </DataListRow>
-                  ))}
-                </DataList>
-              </div>
+            <EventsTimeline
+              events={filteredEvents}
+              onEventClick={handleEventClick}
+              activeTab={activeTab}
+              onRegister={handleRegister}
+              registering={registering}
+            />
             </div>
           )}
         </div>
-
-        {/* Event Detail Sheet */}
-        {selectedEvent && (
-          <EventDetailSheet
-            event={selectedEvent}
-            open={isSheetOpen}
-            onOpenChange={setIsSheetOpen}
-            onRegister={handleRegister}
-            isRegistering={registering[selectedEvent.id] || false}
-          />
-        )}
 
         {pendingRegistration && (
           <EventRegistrationDialog

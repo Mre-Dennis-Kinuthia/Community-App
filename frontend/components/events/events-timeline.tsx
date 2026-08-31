@@ -7,7 +7,7 @@ import { Calendar as CalendarIcon } from "lucide-react"
 import { format, startOfWeek, endOfWeek, isWithinInterval, isToday, isTomorrow } from "date-fns"
 
 interface Event {
-  id: number
+  id: number | string
   title: string
   type: string
   category: string
@@ -15,19 +15,27 @@ interface Event {
   endTime?: string
   organizer: string
   platform: string
+  platformIcon?: string
   status: string
   thumbnail?: string
   date: Date
+  description?: string
   capacity?: number
   registered?: number
+  waitlistEnabled?: boolean
   registrationDeadline?: Date
+  priceLabel?: string | null
+  slug?: string
+  shortCode?: string
+  registrationProvider?: string | null
+  lumaEventUrl?: string | null
 }
 
 interface EventsTimelineProps {
   events: Event[]
   onEventClick?: (event: Event) => void
-  onRegister?: (eventId: number) => void
-  registering?: Record<number, boolean>
+  onRegister?: (eventId: number | string) => void
+  registering?: Record<string | number, boolean>
   activeTab: "upcoming" | "past"
 }
 

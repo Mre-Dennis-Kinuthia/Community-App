@@ -27,6 +27,7 @@ import { MobilePageHeader, MobileBreadcrumbsHidden } from "@/components/mobile/m
 import { toast } from "@/lib/toast"
 import { badgeClassForLabel, badgeNeutral, badgePrimary } from "@/lib/badge-styles"
 import { cn } from "@/lib/utils"
+import { formatPlanIntervalShort } from "@/lib/workspace-pricing"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -315,7 +316,7 @@ export default function BillingPage() {
               value={hasPlan ? subscription!.plan.name : "None"}
               description={
                 hasPlan
-                  ? `${subscription!.plan.currency} ${subscription!.plan.price.toLocaleString()}/${subscription!.plan.interval === "yearly" ? "yr" : "mo"}`
+                  ? `${subscription!.plan.currency} ${subscription!.plan.price.toLocaleString()}/${formatPlanIntervalShort(subscription!.plan.interval)}`
                   : "No active subscription"
               }
               icon={CreditCard}
@@ -352,7 +353,7 @@ export default function BillingPage() {
                     </h2>
                     <p className="text-xs text-muted-foreground sm:text-sm">
                       {subscription!.plan.currency} {subscription!.plan.price.toLocaleString()}/
-                      {subscription!.plan.interval === "yearly" ? "yr" : "mo"}
+                      {formatPlanIntervalShort(subscription!.plan.interval)}
                       <span className="mx-1.5 text-border">·</span>
                       Renews {format(new Date(subscription!.currentPeriodEnd), "MMM d, yyyy")}
                     </p>
@@ -497,7 +498,7 @@ export default function BillingPage() {
                   <SelectContent>
                     {availablePlans.map((pl) => (
                       <SelectItem key={pl.id} value={pl.id}>
-                        {pl.name} — {pl.currency} {pl.price.toLocaleString()}/{pl.interval === "yearly" ? "yr" : "mo"}
+                        {pl.name} — {pl.currency} {pl.price.toLocaleString()}/{formatPlanIntervalShort(pl.interval)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -552,7 +553,7 @@ export default function BillingPage() {
                     <SelectContent>
                       {plans.map((pl) => (
                         <SelectItem key={pl.id} value={pl.id}>
-                          {pl.name} — {pl.currency} {pl.price.toLocaleString()} / {pl.interval}
+                          {pl.name} — {pl.currency} {pl.price.toLocaleString()} / {formatPlanIntervalShort(pl.interval)}
                         </SelectItem>
                       ))}
                     </SelectContent>

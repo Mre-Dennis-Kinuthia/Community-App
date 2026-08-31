@@ -6,6 +6,7 @@ import {
   fulfillMembershipPayment,
   generateMembershipPayToken,
 } from "@/lib/membership-billing"
+import { ensureCatalogMembershipPlans } from "@/lib/membership-catalog-plans"
 import { syncMembershipTierForPaidPlan } from "@/lib/membership-tier-sync"
 import { queueMembershipTierRecognitionEmail } from "@/lib/membership-tier-notify"
 import { sendMembershipPaymentLinkEmail } from "@/lib/email/membership-payment-link"
@@ -14,37 +15,8 @@ import { notifyMembershipActivated } from "@/lib/membership-notifications"
 import { startPaystackCheckout } from "@/lib/paystack-checkout"
 import { isEmailConfigured } from "@/lib/email/send"
 
-import { STAR_CONNECT_FEATURE_LABELS } from "@/lib/membership-inquiry"
-
-const DEFAULT_PLANS = [
-  {
-    name: "Star Connect",
-    description:
-      "Community Monthly individual membership: 3 days per week coworking, two meeting-room hours, and community access.",
-    price: 15000,
-    interval: "monthly",
-    features: [...STAR_CONNECT_FEATURE_LABELS],
-  },
-] as const
-
 export async function ensureDefaultMembershipPlans(prisma: PrismaClient) {
-  const count = await prisma.plan.count()
-  if (count > 0) return { created: 0 }
-
-  for (const p of DEFAULT_PLANS) {
-    await prisma.plan.create({
-      data: {
-        name: p.name,
-        description: p.description,
-        price: new Prisma.Decimal(p.price),
-        currency: "KES",
-        interval: p.interval,
-        features: [...p.features],
-        isActive: true,
-      },
-    })
-  }
-  return { created: DEFAULT_PLANS.length }
+  await ensureCatalogMembershipPlans(prisma)
 }
 
 export async function expireStaleMembershipLinks(prisma: PrismaClient) {

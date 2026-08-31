@@ -8,9 +8,11 @@ export {
   defaultNewsletterSections,
   slugifyNewsletterTitle,
   SECTION_TYPE_LABELS,
+  NEWSLETTER_SECTION_ACCENTS,
   type NewsletterAudience,
   type NewsletterCampaignStatus,
   type NewsletterSection,
+  type NewsletterSectionAccent,
 } from "./section-schema"
 export {
   resolveNewsletterBrand,

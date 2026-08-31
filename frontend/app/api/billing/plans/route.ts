@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { ensureCatalogMembershipPlans } from "@/lib/membership-catalog-plans"
+import { isRecurringPlanInterval } from "@/lib/workspace-pricing"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -9,7 +11,7 @@ export async function OPTIONS(request: NextRequest) {
 
 /**
  * GET /api/billing/plans
- * Active membership plans (for plan changes in self-serve billing).
+ * Active recurring membership plans (for plan changes in self-serve billing).
  */
 export async function GET(request: NextRequest) {
   try {
@@ -17,6 +19,8 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders })
     }
+
+    await ensureCatalogMembershipPlans(prisma)
 
     const plans = await prisma.plan.findMany({
       where: { isActive: true },
@@ -29,13 +33,16 @@ export async function GET(request: NextRequest) {
         currency: true,
         interval: true,
         features: true,
+        pricingCategoryId: true,
       },
     })
 
-    const formatted = plans.map((p) => ({
-      ...p,
-      price: Number(p.price),
-    }))
+    const formatted = plans
+      .filter((p) => isRecurringPlanInterval(p.interval))
+      .map((p) => ({
+        ...p,
+        price: Number(p.price),
+      }))
 
     return NextResponse.json({ plans: formatted }, { headers: corsHeaders })
   } catch (error) {

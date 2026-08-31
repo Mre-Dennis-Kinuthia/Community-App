@@ -357,6 +357,15 @@ export async function POST(
       "event-registration-staff"
     )
 
+    void import("@/lib/staff-alerts").then(({ notifyStaffEventRegistration }) =>
+      notifyStaffEventRegistration({
+        eventId,
+        eventTitle: event.title,
+        member: name || email,
+        status,
+      })
+    )
+
     if (userId) {
       const { createNotification, NotificationTemplates } = await import("@/lib/notifications")
       const template =

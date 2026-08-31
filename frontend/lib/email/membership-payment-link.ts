@@ -8,6 +8,10 @@ import {
   sendFromTemplate,
   type SendFromTemplateResult,
 } from "./resolve-template"
+import {
+  formatPlanAmountPhrase,
+  formatPlanIntervalLabel,
+} from "@/lib/workspace-pricing"
 
 function asSendResult(result: SendFromTemplateResult): SendEmailResult {
   if ("skipped" in result && result.skipped) {
@@ -28,7 +32,7 @@ export async function sendMembershipPaymentLinkEmail(params: {
   adminNote?: string | null
 }): Promise<SendEmailResult> {
   const amountLabel = `${params.currency} ${params.amount.toLocaleString()}`
-  const intervalLabel = params.interval === "yearly" ? "year" : "month"
+  const intervalLabel = formatPlanIntervalLabel(params.interval)
   const expires = params.expiresAt.toLocaleDateString("en-KE", {
     day: "numeric",
     month: "long",
@@ -58,7 +62,7 @@ export async function sendMembershipPaymentLinkEmail(params: {
           { label: "Plan", value: escapeHtml(params.planName) },
           {
             label: "Amount",
-            value: `${escapeHtml(amountLabel)} per ${escapeHtml(intervalLabel)}`,
+            value: escapeHtml(formatPlanAmountPhrase(amountLabel, params.interval)),
           },
           { label: "Expires", value: escapeHtml(expires) },
         ],

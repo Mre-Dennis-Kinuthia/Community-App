@@ -19,4 +19,4 @@ export const HUB_PUBLIC_PHONE_HREF = "tel:+254708298856"
  */
 export const HUB_MAILING_ADDRESS =
   process.env.HUB_MAILING_ADDRESS?.trim() ||
-  "Impact Hub Nairobi, Senteu Plaza, Galana Road, Kilimani, Nairobi, Kenya"
+  "Impact Hub Nairobi, Muthangari Rd, Nairobi, Kenya"

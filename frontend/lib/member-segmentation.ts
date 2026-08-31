@@ -75,6 +75,8 @@ export const AVAILABILITY_OPTIONS = [
 ] as const
 
 export const BIO_MAX_LENGTH = 280
+/** Long enough to describe work — blocks empty or one-word bios. */
+export const BIO_MIN_LENGTH = 40
 
 /** Legacy availability strings saved before options were unified. */
 const LEGACY_AVAILABILITY_ALIASES: Record<string, string> = {
@@ -130,10 +132,11 @@ export type OnboardingProfileSlice = {
   memberType?: string | null
   role?: string | null
   organization?: string | null
+  bio?: string | null
+  interests?: string[] | null
 }
 
-/** True when required segmentation fields are set (post-onboarding). */
-export function isOnboardingComplete(profile: OnboardingProfileSlice): boolean {
+export function hasRequiredSegmentation(profile: OnboardingProfileSlice): boolean {
   const sector = profile.industry?.trim()
   const memberType = profile.memberType?.trim()
   const role = profile.role?.trim()
@@ -144,6 +147,18 @@ export function isOnboardingComplete(profile: OnboardingProfileSlice): boolean {
     return false
   }
 
+  return true
+}
+
+export function hasRequiredDirectoryBio(bio: string | null | undefined): boolean {
+  return (bio?.trim().length ?? 0) >= BIO_MIN_LENGTH
+}
+
+/** True when required segmentation + directory intro fields are set. */
+export function isOnboardingComplete(profile: OnboardingProfileSlice): boolean {
+  if (!hasRequiredSegmentation(profile)) return false
+  if (!hasRequiredDirectoryBio(profile.bio)) return false
+  if (!(profile.interests?.some((item) => item.trim()) ?? false)) return false
   return true
 }
 
@@ -161,6 +176,20 @@ export function validateOnboardingStep1(data: {
     data.requireOrganization || memberTypeRequiresOrganization(data.memberType)
   if (needsOrg && !data.organization.trim()) {
     return "Enter your organization or institution."
+  }
+  return null
+}
+
+export function validateOnboardingStep2(data: {
+  goals: string[]
+  bio: string
+}): string | null {
+  if (!data.goals.some((goal) => goal.trim())) {
+    return "Select at least one reason you are here."
+  }
+  const bioLength = data.bio.trim().length
+  if (bioLength < BIO_MIN_LENGTH) {
+    return `Write a short intro (${BIO_MIN_LENGTH}+ characters) so members know how to work with you.`
   }
   return null
 }

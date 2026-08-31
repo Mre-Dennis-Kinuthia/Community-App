@@ -1,5 +1,5 @@
 import { getAppBaseUrl } from "@/lib/app-url"
-import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
+import { HUB_CONTACT_EMAIL, HUB_MAILING_ADDRESS } from "@/lib/hub-contact"
 import { eventTimezone } from "@/lib/event-datetime"
 
 /** Impact Hub Nairobi brand palette for email clients (inline styles only). */
@@ -104,6 +104,9 @@ function emailFooter(): string {
     <tr>
       <td style="padding:24px 28px;text-align:center;">
         <p style="margin:0 0 6px;font-size:14px;font-weight:700;color:${EMAIL_BRAND.primaryDark};">Impact Hub Nairobi</p>
+        <p style="margin:0 0 6px;font-size:12px;line-height:1.5;color:${EMAIL_BRAND.textMuted};">
+          ${escapeHtml(HUB_MAILING_ADDRESS)}
+        </p>
         <p style="margin:0 0 14px;font-size:12px;line-height:1.5;color:${EMAIL_BRAND.textMuted};opacity:0.75;">
           For Impact Startups &amp; Innovators<br />
           Innovation · Connection · Impact

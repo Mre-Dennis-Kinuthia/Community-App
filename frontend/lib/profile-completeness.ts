@@ -1,5 +1,6 @@
 import {
-  isOnboardingComplete,
+  hasRequiredDirectoryBio,
+  hasRequiredSegmentation,
   memberTypeRequiresOrganization,
   type OnboardingProfileSlice,
 } from "@/lib/member-segmentation"
@@ -31,13 +32,13 @@ export function getProfileCompleteness(profile: ProfileCompletenessSlice): {
     {
       id: "segmentation",
       label: "Member type, role & sector",
-      complete: isOnboardingComplete(profile),
+      complete: hasRequiredSegmentation(profile),
       action: "Add your member type, role, and sector so you appear in directory filters.",
     },
     {
       id: "bio",
       label: "Bio",
-      complete: Boolean(profile.bio?.trim()),
+      complete: hasRequiredDirectoryBio(profile.bio),
       action: "Write a short intro so members know how to collaborate with you.",
     },
     {

@@ -26,6 +26,8 @@ export function formatKes(amount: number): string {
 /** Platform membership the workspace category sits under. */
 export type MembershipPricingId = "community" | "star_connect" | "organisational"
 
+export type PlanBillingInterval = "day" | "pack" | "monthly" | "yearly"
+
 export type WorkspacePricingCategory = {
   id: string
   membershipId: MembershipPricingId
@@ -363,6 +365,122 @@ export function formatWorkspacePrice(category: WorkspacePricingCategory): string
 
 export function workspaceOptionLabel(category: WorkspacePricingCategory): string {
   return `${category.shortName} · ${formatWorkspacePrice(category)}`
+}
+
+export function planIntervalForCategory(
+  category: WorkspacePricingCategory
+): PlanBillingInterval {
+  if (category.id === "virtual-office") return "yearly"
+  if (category.id === "day-pass" || category.id === "office-for-a-day") return "day"
+  if (category.optionGroup === "flex") return "pack"
+  return "monthly"
+}
+
+export function isRecurringPlanInterval(interval: string): boolean {
+  return interval === "monthly" || interval === "month" || interval === "yearly" || interval === "year"
+}
+
+export function addBillingPeriodEnd(start: Date, interval: string): Date {
+  const end = new Date(start)
+  if (interval === "yearly" || interval === "year") {
+    end.setFullYear(end.getFullYear() + 1)
+    return end
+  }
+  if (interval === "day") {
+    end.setDate(end.getDate() + 1)
+    return end
+  }
+  if (interval === "pack") {
+    end.setDate(end.getDate() + 30)
+    return end
+  }
+  end.setMonth(end.getMonth() + 1)
+  return end
+}
+
+export function formatPlanIntervalLabel(interval: string): string {
+  if (interval === "yearly" || interval === "year") return "year"
+  if (interval === "day") return "day"
+  if (interval === "pack") return "pack"
+  return "month"
+}
+
+export function formatPlanIntervalShort(interval: string): string {
+  if (interval === "yearly" || interval === "year") return "yr"
+  if (interval === "day") return "day"
+  if (interval === "pack") return "pack"
+  return "mo"
+}
+
+export function formatPlanAmountPhrase(amountLabel: string, interval: string): string {
+  if (interval === "day") return `${amountLabel} per day`
+  if (interval === "pack") return `${amountLabel} per pack`
+  if (interval === "yearly" || interval === "year") return `${amountLabel} per year`
+  return `${amountLabel} per month`
+}
+
+export type CatalogPlanSeed = {
+  pricingCategoryId: string
+  name: string
+  description: string
+  price: number
+  interval: PlanBillingInterval
+  features: string[]
+}
+
+export function catalogPlanSeed(category: WorkspacePricingCategory): CatalogPlanSeed {
+  const description = [category.bestFor, category.note, category.validity]
+    .filter(Boolean)
+    .join(" ")
+  return {
+    pricingCategoryId: category.id,
+    name: category.name,
+    description,
+    price: category.priceAmount,
+    interval: planIntervalForCategory(category),
+    features: category.includes,
+  }
+}
+
+export function legacyPricingCategoryIdForPlanName(name: string): string | null {
+  const n = name.toLowerCase().trim()
+  if (n === "star connect" || n.includes("community monthly")) return "community-monthly"
+  for (const category of WORKSPACE_PRICING_CATEGORIES) {
+    if (n === category.name.toLowerCase() || n === category.shortName.toLowerCase()) {
+      return category.id
+    }
+  }
+  return null
+}
+
+export function membershipTierForPricingCategory(
+  pricingCategoryId: string | null | undefined
+): MembershipPricingId | null {
+  const category = pricingCategoryId ? workspaceCategoryById(pricingCategoryId) : undefined
+  if (!category) return null
+  if (!isRecurringPlanInterval(planIntervalForCategory(category))) return null
+  return category.membershipId
+}
+
+export function serializePlanCatalogFields(pricingCategoryId: string | null | undefined) {
+  const category = pricingCategoryId ? workspaceCategoryById(pricingCategoryId) : undefined
+  const membership = category
+    ? MEMBERSHIP_PRICING_TIERS.find((t) => t.id === category.membershipId)
+    : undefined
+  const group = category
+    ? WORKSPACE_OPTION_GROUPS.find((g) => g.id === category.optionGroup)
+    : undefined
+  return {
+    pricingCategoryId: pricingCategoryId ?? null,
+    membershipId: category?.membershipId ?? null,
+    membershipName: membership?.name ?? null,
+    optionGroup: category?.optionGroup ?? null,
+    optionGroupLabel: group?.label ?? null,
+    coworkingDays: category?.coworkingDays ?? null,
+    pricePeriod: category?.pricePeriod ?? null,
+    priceFrom: Boolean(category?.priceFrom),
+    shortName: category?.shortName ?? null,
+  }
 }
 
 export const MEETING_ROOM_HOURLY_PRICE = 1500

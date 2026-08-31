@@ -6,11 +6,20 @@ import {
   pickHigherTier,
   startOfAllowanceMonth,
 } from "@/lib/membership-tier"
+import { membershipTierForPricingCategory } from "@/lib/workspace-pricing"
 
 /** Map a billing plan to a platform membership tier (when applicable). */
-export function membershipTierFromPlan(plan: Pick<Plan, "name">): MembershipTier | null {
+export function membershipTierFromPlan(plan: {
+  name: string
+  pricingCategoryId?: string | null
+}): MembershipTier | null {
+  const fromCategory = membershipTierForPricingCategory(plan.pricingCategoryId)
+  if (fromCategory === "star_connect") return MEMBERSHIP_TIERS.STAR_CONNECT
+  if (fromCategory === "organisational") return MEMBERSHIP_TIERS.ORGANISATIONAL
+  if (fromCategory === "community") return MEMBERSHIP_TIERS.COMMUNITY
+
   const name = plan.name.toLowerCase()
-  if (name.includes("star connect") || name.includes("community monthly")) {
+  if (name.includes("star connect") || name.includes("community monthly") || name.includes("dedicated desk")) {
     return MEMBERSHIP_TIERS.STAR_CONNECT
   }
   if (
@@ -18,8 +27,7 @@ export function membershipTierFromPlan(plan: Pick<Plan, "name">): MembershipTier
     name.includes("organizational") ||
     name.includes("organisation") ||
     name.includes("organization") ||
-    name.includes("company") ||
-    name.includes("team community")
+    name.includes("company")
   ) {
     return MEMBERSHIP_TIERS.ORGANISATIONAL
   }

@@ -10,6 +10,8 @@ import Link from "next/link"
 import { badgeClassForLabel } from "@/lib/badge-styles"
 import { cn } from "@/lib/utils"
 import { EventSharePanel } from "@/components/events/event-share-panel"
+import { EventFlyer } from "@/components/events/event-flyer"
+import { EventDescription } from "@/components/events/event-description"
 import { getEventPublicPath } from "@/lib/event-url"
 
 interface EventDetailSheetProps {
@@ -84,18 +86,15 @@ export function EventDetailSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-        {/* Image Header */}
-        {event.thumbnail && (
-          <div className="relative -mx-6 -mt-6 h-48 overflow-hidden border-b">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+        {event.thumbnail ? (
+          <div className="-mx-6 -mt-6">
+            <EventFlyer
               src={event.thumbnail}
-              alt={event.title}
-              className="h-full w-full object-contain object-center"
-              loading="lazy"
+              alt={`${event.title} flyer`}
+              className="rounded-none border-x-0 border-t-0"
             />
           </div>
-        )}
+        ) : null}
 
         <SheetHeader className={event.thumbnail ? "pt-4" : ""}>
           <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -176,11 +175,12 @@ export function EventDetailSheet({
             )}
           </div>
 
-          {/* Description */}
-          <div>
-            <h3 className="font-semibold text-sm mb-2">About</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">{event.description}</p>
-          </div>
+          {event.description ? (
+            <div className="min-w-0 overflow-x-clip">
+              <h3 className="mb-2 text-sm font-semibold">About</h3>
+              <EventDescription html={event.description} />
+            </div>
+          ) : null}
 
           {/* Speakers & Tags Row */}
           {(event.speakers?.length > 0 || event.tags?.length > 0) && (

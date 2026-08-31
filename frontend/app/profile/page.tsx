@@ -37,10 +37,12 @@ import {
   PRIMARY_ROLES,
   ENGAGEMENT_GOALS,
   BIO_MAX_LENGTH,
+  BIO_MIN_LENGTH,
   availabilityOptionsForEdit,
   normalizeAvailabilityList,
   memberTypeRequiresOrganization,
   isOnboardingComplete,
+  validateOnboardingStep2,
 } from "@/lib/member-segmentation"
 import { getProfileCompleteness, validateProfileOrganization } from "@/lib/profile-completeness"
 import { getCommunityMemberProfilePath } from "@/lib/member-slug"
@@ -266,6 +268,14 @@ export default function ProfilePage() {
       toast.error("Bio too long", `Keep your bio under ${BIO_MAX_LENGTH} characters.`)
       return
     }
+    const introError = validateOnboardingStep2({
+      goals: form.interests,
+      bio: form.bio,
+    })
+    if (introError) {
+      toast.error("Directory profile incomplete", introError)
+      return
+    }
     setSaving(true)
     try {
       const normalizedAvailability = normalizeAvailabilityList(form.availability)
@@ -489,7 +499,7 @@ export default function ProfilePage() {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {needsOnboarding
-                    ? "Add your member type, role, and sector so you appear in community filters."
+                    ? "Add your role, sector, a short intro, and what you're here for so your directory profile isn't empty."
                     : `${profileCompleteness.completed} of ${profileCompleteness.total} recommended sections complete.`}
                 </p>
               </div>
@@ -624,7 +634,9 @@ export default function ProfilePage() {
               <CardContent className="space-y-6 p-4 pt-0 md:p-6 md:pt-0">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="bio">Bio</Label>
+                    <Label htmlFor="bio">
+                      Bio <span className="text-destructive">*</span>
+                    </Label>
                     {isEditing ? (
                       <span className="text-xs text-muted-foreground">
                         {form.bio.length}/{BIO_MAX_LENGTH}
@@ -634,7 +646,7 @@ export default function ProfilePage() {
                   {isEditing ? (
                     <Textarea
                       id="bio"
-                      placeholder="What you work on, what you are looking for, how others can help."
+                      placeholder={`What you work on, what you are looking for, how others can help (${BIO_MIN_LENGTH}+ characters).`}
                       className="min-h-[120px] resize-y"
                       value={form.bio}
                       maxLength={BIO_MAX_LENGTH}
@@ -872,7 +884,9 @@ export default function ProfilePage() {
             <Card className="border-border">
               <CardHeader className="p-4 pb-3 md:p-6">
                 <CardTitle className="text-lg">Interests</CardTitle>
-                <CardDescription>Themes and topics you care about.</CardDescription>
+                <CardDescription>
+                  Why you&apos;re in the hub — pick at least one so members can find you.
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-4 pt-0 md:p-6 md:pt-0">
                 <div className="flex flex-wrap gap-2">

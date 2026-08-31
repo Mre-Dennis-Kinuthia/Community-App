@@ -84,8 +84,12 @@ export const newsletterSectionSchema = z.discriminatedUnion("type", [
   z.object({
     id: z.string().min(1),
     type: z.literal("columns"),
-    leftHtml: z.string().min(1),
-    rightHtml: z.string().min(1),
+    leftHtml: z.string().optional().default(""),
+    rightHtml: z.string().optional().default(""),
+    leftImageUrl: z.string().max(2000).optional().nullable(),
+    rightImageUrl: z.string().max(2000).optional().nullable(),
+    leftAlt: z.string().max(200).optional().nullable(),
+    rightAlt: z.string().max(200).optional().nullable(),
   }),
   z.object({
     id: z.string().min(1),
@@ -95,6 +99,23 @@ export const newsletterSectionSchema = z.discriminatedUnion("type", [
     excerpt: z.string().optional().nullable(),
     imageUrl: z.string().optional().nullable(),
     url: z.string().optional().nullable(),
+  }),
+  z.object({
+    id: z.string().min(1),
+    type: z.literal("section_heading"),
+    label: z.string().min(1).max(80),
+    accent: z.enum(["maroon", "teal", "green", "navy"]).optional(),
+  }),
+  z.object({
+    id: z.string().min(1),
+    type: z.literal("event_card"),
+    title: z.string().min(1).max(160),
+    kicker: z.string().max(80).optional().nullable(),
+    body: z.string().max(800).optional().nullable(),
+    imageUrl: z.string().max(2000).optional().nullable(),
+    dateLine: z.string().max(120).optional().nullable(),
+    location: z.string().max(160).optional().nullable(),
+    cta: ctaSchema,
   }),
   z.object({
     id: z.string().min(1),
@@ -147,6 +168,15 @@ export function defaultNewsletterSections(): NewsletterSection[] {
   ]
 }
 
+export const NEWSLETTER_SECTION_ACCENTS = {
+  maroon: { bar: "#812926", label: "#812926" },
+  teal: { bar: "#41BED0", label: "#812926" },
+  green: { bar: "#7EBB55", label: "#812926" },
+  navy: { bar: "#0a1f38", label: "#0a1f38" },
+} as const
+
+export type NewsletterSectionAccent = keyof typeof NEWSLETTER_SECTION_ACCENTS
+
 export function slugifyNewsletterTitle(title: string): string {
   const base = title
     .toLowerCase()
@@ -168,5 +198,7 @@ export const SECTION_TYPE_LABELS: Record<NewsletterSection["type"], string> = {
   spacer: "Spacer",
   columns: "Two columns",
   news_card: "News card",
+  section_heading: "Section heading",
+  event_card: "Event card",
   footer: "Footer",
 }
