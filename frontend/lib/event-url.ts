@@ -1,6 +1,8 @@
 /**
  * Canonical public URL for an event (short share link preferred).
  */
+import { getAppBaseUrl } from "@/lib/app-url"
+
 export function getEventPublicPath(event: {
   id: string
   shortCode?: string | null
@@ -20,10 +22,7 @@ export function getEventPublicUrl(event: {
   shortCode?: string | null
   slug?: string | null
 }): string {
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000")
-  const root = base.replace(/\/$/, "")
+  const root = getAppBaseUrl()
   return `${root}${getEventPublicPath(event)}`
 }
 
