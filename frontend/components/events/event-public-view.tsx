@@ -18,6 +18,7 @@ import {
 import {
   eventTimezone,
   formatEventDate,
+  formatEventDateBadge,
   formatEventGmtOffset,
   formatEventTime,
 } from "@/lib/event-datetime"
@@ -133,7 +134,7 @@ function StatusCard({
   return (
     <div
       className={cn(
-        "rounded-xl border border-[#edeff2] bg-white p-4 shadow-sm",
+        "rounded-2xl border border-[#edeff2] bg-white p-5 shadow-sm",
         className
       )}
     >
@@ -199,9 +200,19 @@ export function EventPublicView({
   ]
     .filter(Boolean)
     .join(" – ")
+  const dateBadge = formatEventDateBadge(event.startDate, eventTz)
+  const weekdayDate = formatEventDate(event.startDate, eventTz, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: undefined,
+  })
+  const venueName = event.location?.split(",")[0]?.trim() || platformInfo?.label || "Venue"
+  const venueAddress = displayLocation(event)
 
   const ctaBlock = (
-    <StatusCard className="space-y-3">
+    <StatusCard className="space-y-4">
+      <p className="text-sm font-semibold text-[#0a1f38]">Registration</p>
       {isPastEvent ? (
         <div>
           <p className="text-base font-semibold text-[#0a1f38]">Thank you for joining</p>
@@ -247,18 +258,16 @@ export function EventPublicView({
         </div>
       ) : canRegister ? (
         <div className="space-y-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-base font-semibold text-[#0a1f38]">
-                {isFull && event.waitlistEnabled ? "Join the waitlist" : "Reserve your spot"}
-              </p>
-              {priceLabel && (
-                <p className="mt-1 text-sm font-medium text-[#812926]">{priceLabel}</p>
-              )}
-            </div>
+          <div>
+            <p className="text-base font-semibold text-[#0a1f38]">
+              {isFull && event.waitlistEnabled ? "Join the waitlist" : "Welcome! To join the event, please register below."}
+            </p>
+            {priceLabel ? (
+              <p className="mt-1 text-sm font-medium text-[#812926]">{priceLabel}</p>
+            ) : null}
           </div>
           <Button
-            className="w-full bg-[#812926] hover:bg-[#6b2120]"
+            className="h-12 w-full rounded-xl bg-[#0a1f38] text-base font-semibold text-white hover:bg-[#0a1f38]/90"
             size="lg"
             onClick={onRegister}
             disabled={registering}
@@ -331,13 +340,11 @@ export function EventPublicView({
   )
 
   const hostBlock = (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#1c395c]/55">
-          Presented by
-        </p>
+        <p className="text-xs font-medium text-[#1c395c]/55">Presented by</p>
         <div className="mt-3 flex items-center gap-3">
-          <ImpactHubMark size={40} title="Impact Hub Nairobi" />
+          <ImpactHubMark size={36} title="Impact Hub Nairobi" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-[#0a1f38]">
               Impact Hub Nairobi
@@ -367,9 +374,7 @@ export function EventPublicView({
       </div>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#1c395c]/55">
-          Hosted by
-        </p>
+        <p className="text-xs font-medium text-[#1c395c]/55">Hosted by</p>
         <div className="mt-3 flex items-center gap-3">
           <HostAvatar name={hostName} />
           <p className="text-sm font-medium text-[#0a1f38]">{hostName}</p>
@@ -409,19 +414,6 @@ export function EventPublicView({
         <Mail className="h-3.5 w-3.5" />
         Contact the host
       </a>
-
-      {event.tags && event.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 pt-1">
-          {event.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-[#edeff2] bg-[#f3f5f8] px-3 py-1 text-xs font-medium text-[#1c395c]"
-            >
-              #{tag.replace(/^#/, "")}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   )
 
@@ -432,7 +424,7 @@ export function EventPublicView({
         backHref ? "" : "px-4 py-8 sm:px-6 lg:py-10"
       )}
     >
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-8">
         {backHref ? (
           <Button variant="ghost" size="sm" className="-ml-2 h-9 gap-2 px-2" asChild>
             <Link href={backHref}>
@@ -442,102 +434,121 @@ export function EventPublicView({
           </Button>
         ) : null}
 
-        <EventFlyer
-          src={event.imageUrl}
-          alt={`${event.title} flyer`}
-          variant="detail"
-        />
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(240px,300px)_minmax(0,1fr)] lg:gap-12">
+          <aside className="space-y-6 lg:sticky lg:top-6">
+            <EventFlyer src={event.imageUrl} alt={`${event.title} flyer`} variant="detail" />
+            {hostBlock}
+          </aside>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
-          <div className="min-w-0 space-y-6">
-            <header className="w-full min-w-0 space-y-3">
+          <div className="min-w-0 space-y-8">
+            <header className="space-y-5">
               <div className="flex flex-wrap gap-1.5">
                 {event.eventType ? (
-                  <span className="rounded-md border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
+                  <span className="rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                     {eventTypeLabel(event.eventType)}
                   </span>
                 ) : null}
                 {isPastEvent ? (
-                  <span className="rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                  <span className="rounded-full bg-muted px-2.5 py-0.5 text-[11px] text-muted-foreground">
                     Past event
                   </span>
                 ) : null}
                 {priceLabel ? (
-                  <span className="rounded-md bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+                  <span className="rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-medium text-primary-foreground">
                     {priceLabel}
                   </span>
                 ) : null}
               </div>
 
-              <h1 className="w-full min-w-0 break-words text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+              <h1 className="break-words font-serif text-3xl font-medium leading-tight tracking-tight text-[#0a1f38] sm:text-4xl">
                 {event.title}
               </h1>
 
-              <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
-                <span className="break-words">
-                  {formatEventDate(event.startDate, eventTz)}
-                  {timeLine ? ` · ${timeLine} ${gmt}` : ""}
-                </span>
-                {event.location || event.onlineUrl || platformInfo ? (
-                  <span className="inline-flex min-w-0 items-center gap-1.5">
-                    <MapPin className="h-4 w-4 shrink-0" />
-                    <span className="break-words">
-                      {platformInfo?.label || displayLocation(event)}
-                      {platformInfo && event.location && event.locationType !== "online"
-                        ? ` · ${displayLocation(event)}`
-                        : ""}
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl border border-[#edeff2] bg-white text-[#0a1f38]">
+                    <span className="text-[9px] font-semibold uppercase tracking-wider text-[#812926]">
+                      {dateBadge.month}
                     </span>
-                  </span>
-                ) : null}
-                {event.onlineUrl && event.locationType !== "in-person" ? (
-                  <a
-                    href={event.onlineUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
-                  >
-                    Join online <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                    <span className="text-lg font-semibold leading-none">{dateBadge.day}</span>
+                  </div>
+                  <div className="min-w-0 pt-0.5">
+                    <p className="text-sm font-semibold text-[#0a1f38]">{weekdayDate}</p>
+                    <p className="mt-0.5 text-sm text-[#1c395c]/75">
+                      {timeLine}
+                      {gmt ? ` ${gmt}` : ""}
+                    </p>
+                  </div>
+                </div>
+
+                {event.location || event.onlineUrl || platformInfo ? (
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#edeff2] bg-white text-[#812926]">
+                      <MapPin className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 pt-0.5">
+                      <p className="text-sm font-semibold text-[#0a1f38]">{venueName}</p>
+                      {venueAddress && venueAddress !== venueName ? (
+                        <p className="mt-0.5 text-sm text-[#1c395c]/75">{venueAddress}</p>
+                      ) : null}
+                      {event.onlineUrl && event.locationType !== "in-person" ? (
+                        <a
+                          href={event.onlineUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex items-center gap-1 text-sm text-[#812926] hover:underline"
+                        >
+                          Join online <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ) : null}
+                    </div>
+                  </div>
                 ) : null}
               </div>
-
-              {event.tags && event.tags.length > 0 ? (
-                <div className="flex min-w-0 flex-wrap gap-1.5">
-                  {event.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="max-w-full truncate rounded-md border border-border px-2 py-0.5 text-[10px] font-normal"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
             </header>
 
+            {ctaBlock}
+
             {event.description ? (
-              <section className="w-full min-w-0 overflow-x-clip rounded-xl border border-border bg-card px-4 py-5 sm:px-6">
-                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  About this event
+              <section className="w-full min-w-0 space-y-4 overflow-x-clip">
+                <h2 className="border-t border-[#edeff2] pt-6 text-sm font-medium text-[#1c395c]/60">
+                  About Event
                 </h2>
                 <EventDescription html={event.description} className="text-base" />
               </section>
             ) : null}
 
-            <EventVenueMap
-              location={event.location}
-              locationType={event.locationType}
-              googleMapsUrl={event.googleMapsUrl}
-            />
+            {event.location && event.locationType !== "online" ? (
+              <section className="space-y-3">
+                <h2 className="text-sm font-medium text-[#1c395c]/60">Location</h2>
+                <div>
+                  <p className="text-base font-semibold text-[#0a1f38]">{venueName}</p>
+                  {venueAddress && venueAddress !== venueName ? (
+                    <p className="mt-0.5 text-sm text-[#1c395c]/80">{venueAddress}</p>
+                  ) : null}
+                </div>
+                <EventVenueMap
+                  location={event.location}
+                  locationType={event.locationType}
+                  googleMapsUrl={event.googleMapsUrl}
+                />
+              </section>
+            ) : (
+              <EventVenueMap
+                location={event.location}
+                locationType={event.locationType}
+                googleMapsUrl={event.googleMapsUrl}
+              />
+            )}
 
             {isLumaEvent && event.lumaEventUrl && !canRegister ? (
-              <section className="rounded-xl border border-border bg-card p-4">
+              <section className="rounded-2xl border border-border bg-card p-4">
                 <LumaRegistration event={event} />
               </section>
             ) : null}
 
             {isRegistered && calendarLinks ? (
-              <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+              <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
                 <h2 className="text-sm font-semibold">On your calendar</h2>
                 <p className="text-sm text-muted-foreground">
                   A calendar invite was sent when you registered. Use these options if you need to
@@ -548,7 +559,7 @@ export function EventPublicView({
             ) : null}
 
             {isRegistered && ticket ? (
-              <section className="flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row">
+              <section className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-4 sm:flex-row">
                 <img
                   src={ticket.qrDataUrl}
                   alt="Check-in QR code"
@@ -575,11 +586,6 @@ export function EventPublicView({
               }}
             />
           </div>
-
-          <aside className="space-y-5 lg:sticky lg:top-6">
-            {ctaBlock}
-            <StatusCard>{hostBlock}</StatusCard>
-          </aside>
         </div>
       </div>
     </article>

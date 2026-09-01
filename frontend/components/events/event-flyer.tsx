@@ -7,11 +7,11 @@ type EventFlyerProps = {
   src: string | null | undefined
   alt?: string
   className?: string
-  /** Compact listing vs full poster on the event page. */
+  /** Compact listing vs square poster on the event page. */
   variant?: "card" | "detail" | "thumb"
 }
 
-/** Event cover — full poster on detail, 16:10 crop on cards. */
+/** Event cover — square poster on detail, 16:10 crop on cards. */
 export function EventFlyer({
   src,
   alt = "",
@@ -21,6 +21,19 @@ export function EventFlyer({
   const imageSrc = getImageDisplayUrl(src || undefined)
 
   if (!imageSrc) {
+    if (variant === "detail") {
+      return (
+        <div
+          className={cn(
+            "flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl bg-[#f3f1ec]",
+            className
+          )}
+          aria-hidden
+        >
+          <Calendar className="h-12 w-12 text-[#812926]/30" />
+        </div>
+      )
+    }
     if (variant === "card" || variant === "thumb") {
       return (
         <div
@@ -56,25 +69,31 @@ export function EventFlyer({
     )
   }
 
+  if (variant === "detail") {
+    return (
+      <div
+        className={cn(
+          "aspect-square w-full overflow-hidden rounded-2xl bg-[#f3f1ec] shadow-sm",
+          className
+        )}
+      >
+        <img
+          src={imageSrc}
+          alt={alt}
+          className="h-full w-full object-cover"
+          loading="eager"
+        />
+      </div>
+    )
+  }
+
   return (
-    <div
-      className={cn(
-        "w-full min-w-0 overflow-hidden bg-muted",
-        variant === "detail"
-          ? "mx-auto flex max-w-2xl justify-center rounded-lg border border-border bg-muted/30 p-2 sm:p-3"
-          : "",
-        className
-      )}
-    >
+    <div className={cn("w-full min-w-0 overflow-hidden bg-muted", className)}>
       <img
         src={imageSrc}
         alt={alt}
-        className={
-          variant === "detail"
-            ? "block h-auto max-h-[min(22rem,42vh)] w-auto max-w-full rounded-md object-contain"
-            : "aspect-[16/10] w-full object-cover"
-        }
-        loading={variant === "card" ? "lazy" : "eager"}
+        className="aspect-[16/10] w-full object-cover"
+        loading="lazy"
       />
     </div>
   )
