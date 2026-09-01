@@ -1,5 +1,6 @@
 import {
   hasRequiredDirectoryBio,
+  hasRequiredLocation,
   hasRequiredSegmentation,
   type OnboardingProfileSlice,
 } from "@/lib/member-segmentation"
@@ -49,6 +50,12 @@ export function getProfileCompleteness(profile: ProfileCompletenessSlice): {
       action: "Add a photo or pick an avatar so people recognize you.",
     },
     {
+      id: "location",
+      label: "Location",
+      complete: hasRequiredLocation(profile.location),
+      action: "Add your city or country.",
+    },
+    {
       id: "skills",
       label: "Skills",
       complete: (profile.skills?.length ?? 0) > 0,
@@ -76,8 +83,7 @@ export function getProfileCompleteness(profile: ProfileCompletenessSlice): {
       id: "linkedin",
       label: "LinkedIn",
       complete: Boolean(profile.linkedin?.trim()),
-      optional: true,
-      action: "Optional — link your LinkedIn for credibility.",
+      action: "Link your LinkedIn so the community can find you.",
     },
   ]
 

@@ -32,13 +32,18 @@ export {
   sendNewsletterSubscribeEmail,
   sendNewsArticleEmail,
   sendNewBookingStaffEmail,
-  sendNewAccountStaffEmail,
   sendEventRegistrationStaffEmail,
   sendNewsletterSubscribeStaffEmail,
   sendWorkspaceInquiryConfirmationEmail,
   sendWorkspaceInquiryStaffEmail,
   sendSupportTicketStaffEmail,
 } from "@/lib/email/messages"
+
+export {
+  sendConnectApplicationStaffEmail,
+  buildConnectApplicationPlainText,
+  type ConnectApplicationPayload,
+} from "@/lib/email/connect-application"
 
 export {
   sendStarConnectInquiryConfirmationEmail,

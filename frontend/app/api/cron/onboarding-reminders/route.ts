@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic"
 
 /**
  * GET /api/cron/onboarding-reminders
- * Sends a single reminder to members who registered 48h ago but haven't finished onboarding.
+ * Sends scheduled reminders (days 2, 5, 10, 14) to members with incomplete onboarding.
  */
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim()

@@ -4,7 +4,13 @@ import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
 import { imageRefSchema } from "@/lib/image-url-schema"
-import { isOnboardingComplete } from "@/lib/member-segmentation"
+import { sendEmailInBackground } from "@/lib/email"
+import {
+  connectApplicationPayloadFromProfile,
+  sendConnectApplicationStaffEmail,
+} from "@/lib/email/connect-application"
+import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
+import { isOnboardingComplete, onboardingSliceFromProfile } from "@/lib/member-segmentation"
 import { shouldShowOnboardingNudge } from "@/lib/onboarding-reminders"
 import { buildMembershipSummary } from "@/lib/membership-profile"
 import { assignMembershipTierForUser } from "@/lib/membership-tier-resolve"
@@ -201,7 +207,9 @@ export async function GET(request: NextRequest) {
           where: { followingId: userId },
         }),
       ])
-      const needsOnboarding = !isOnboardingComplete(profileAfterSlug ?? newProfile)
+      const needsOnboarding = !isOnboardingComplete(
+        onboardingSliceFromProfile(profileAfterSlug ?? newProfile)
+      )
       return NextResponse.json(
         {
           profile: formatProfileResponse(profileAfterSlug ?? newProfile),
@@ -238,7 +246,7 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    const needsOnboarding = !isOnboardingComplete(profile)
+    const needsOnboarding = !isOnboardingComplete(onboardingSliceFromProfile(profile))
     const userForSlug = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, name: true },
@@ -334,6 +342,16 @@ export async function PUT(request: NextRequest) {
         ? socialLinksFromInput(socialLinksInput ?? undefined)
         : undefined
 
+    const existing = await prisma.memberProfile.findUnique({
+      where: { userId },
+      select: {
+        ...profileSelect,
+      },
+    })
+    const wasComplete = existing
+      ? isOnboardingComplete(onboardingSliceFromProfile(existing))
+      : false
+
     const userUpdates: { name?: string; image?: string | null } = {}
     if (nameUpdate !== undefined && nameUpdate.trim()) {
       userUpdates.name = nameUpdate.trim()
@@ -382,6 +400,27 @@ export async function PUT(request: NextRequest) {
       where: { userId },
       select: profileSelect,
     })
+
+    const completedProfile = profileWithSlug ?? profile
+    const profileForCompletion = {
+      ...completedProfile,
+      user:
+        imageUpdate !== undefined
+          ? { ...completedProfile.user, image: imageUpdate }
+          : completedProfile.user,
+    }
+    const nowComplete = isOnboardingComplete(
+      onboardingSliceFromProfile(profileForCompletion)
+    )
+    if (!wasComplete && nowComplete) {
+      if (completedProfile.membershipTier !== MEMBERSHIP_TIERS.ORGANISATIONAL) {
+        const payload = connectApplicationPayloadFromProfile(profileForCompletion)
+        sendEmailInBackground(
+          () => sendConnectApplicationStaffEmail(payload),
+          "connect-application-staff"
+        )
+      }
+    }
 
     return NextResponse.json(
       {

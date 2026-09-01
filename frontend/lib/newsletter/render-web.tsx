@@ -2,7 +2,6 @@
 
 import type { CSSProperties, ReactNode } from "react"
 import Link from "next/link"
-import { getBrandLogoUrl } from "@/lib/brand"
 import { HUB_CONTACT_EMAIL, HUB_MAILING_ADDRESS } from "@/lib/hub-contact"
 import {
   resolveNewsletterBrand,
@@ -43,7 +42,7 @@ function SectionView({
           {section.showLogo !== false ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={getBrandLogoUrl()}
+              src="/brand/impact-hub-nairobi-logo.png"
               alt="Impact Hub Nairobi"
               className="mb-3 h-10 w-auto"
             />
@@ -55,6 +54,14 @@ function SectionView({
             >
               {section.eyebrow}
             </p>
+          ) : null}
+          {section.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={section.imageUrl}
+              alt={section.alt || ""}
+              className="mt-3 w-full rounded-lg object-cover"
+            />
           ) : null}
         </SectionShell>
       )

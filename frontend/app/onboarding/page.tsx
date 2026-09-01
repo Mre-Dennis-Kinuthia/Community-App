@@ -34,6 +34,7 @@ import {
   IMPACT_SECTORS,
   MEMBER_TYPES,
   PRIMARY_ROLES,
+  SUGGESTED_SKILLS,
   validateOnboardingStep1,
   validateOnboardingStep2,
   BIO_MAX_LENGTH,
@@ -70,6 +71,8 @@ function OnboardingContent() {
   const [profileImage, setProfileImage] = useState("")
   const [linkedinUrl, setLinkedinUrl] = useState("")
   const [phone, setPhone] = useState("")
+  const [skills, setSkills] = useState<string[]>([])
+  const [customSkill, setCustomSkill] = useState("")
   const [showOnboardingNudge, setShowOnboardingNudge] = useState(false)
 
   const checkProfile = useCallback(async () => {
@@ -94,6 +97,7 @@ function OnboardingContent() {
       if (p?.user?.image) setProfileImage(p.user.image)
       if (p?.socialLinks?.linkedin) setLinkedinUrl(p.socialLinks.linkedin)
       if (p?.phone) setPhone(p.phone)
+      if (p?.skills?.length) setSkills(p.skills)
     } catch (e) {
       console.error("Failed to fetch profile:", e)
     } finally {
@@ -161,6 +165,8 @@ function OnboardingContent() {
         sector,
         role,
         organization,
+        location,
+        image: profileImage,
         requireOrganization: true,
       })
       if (err) {
@@ -175,7 +181,13 @@ function OnboardingContent() {
       setStep(2)
       return
     }
-    const step2Err = validateOnboardingStep2({ goals, availability, bio })
+    const step2Err = validateOnboardingStep2({
+      goals,
+      availability,
+      bio,
+      linkedin: linkedinUrl,
+      skills,
+    })
     if (step2Err) {
       setStepError(step2Err)
       return
@@ -184,7 +196,13 @@ function OnboardingContent() {
   }
 
   const handleComplete = async () => {
-    const step2Err = validateOnboardingStep2({ goals, availability, bio })
+    const step2Err = validateOnboardingStep2({
+      goals,
+      availability,
+      bio,
+      linkedin: linkedinUrl,
+      skills,
+    })
     if (step2Err) {
       setStepError(step2Err)
       return
@@ -218,10 +236,9 @@ function OnboardingContent() {
           location: location.trim() || undefined,
           interests: goals,
           availability,
+          skills,
           bio: bio.trim() || undefined,
-          socialLinks: linkedinUrl.trim()
-            ? { linkedin: linkedinUrl.trim() }
-            : null,
+          socialLinks: { linkedin: linkedinUrl.trim() },
         }),
       })
       if (!res.ok) {
@@ -381,7 +398,7 @@ function OnboardingContent() {
                     />
                     <ImageUpload
                       label="Or upload a photo"
-                      description="Optional. Shown on your community profile and in the directory."
+                      description="Required. Shown on your community profile and in the directory."
                       value={profileImage}
                       onChange={async (url) => {
                         setProfileImage(url)
@@ -496,7 +513,9 @@ function OnboardingContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">
+                    Location <span className="text-destructive">*</span>
+                  </Label>
                   <Input
                     id="location"
                     placeholder="City, country"
@@ -558,9 +577,72 @@ function OnboardingContent() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label>
+                    Skills <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Select at least one, or add your own.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {SUGGESTED_SKILLS.map((skill) => (
+                      <button
+                        key={skill}
+                        type="button"
+                        onClick={() => {
+                          setSkills((prev) =>
+                            prev.includes(skill)
+                              ? prev.filter((s) => s !== skill)
+                              : [...prev, skill]
+                          )
+                          setStepError(null)
+                        }}
+                        className={cn(
+                          "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                          skills.includes(skill)
+                            ? "border-primary bg-primary/10 font-medium text-foreground"
+                            : "border-border text-muted-foreground hover:border-foreground/20"
+                        )}
+                      >
+                        {skill}
+                      </button>
+                    ))}
+                    {skills
+                      .filter((s) => !(SUGGESTED_SKILLS as readonly string[]).includes(s))
+                      .map((skill) => (
+                        <button
+                          key={skill}
+                          type="button"
+                          onClick={() =>
+                            setSkills((prev) => prev.filter((s) => s !== skill))
+                          }
+                          className="rounded-full border border-primary bg-primary/10 px-3 py-1.5 text-sm font-medium"
+                        >
+                          {skill} ×
+                        </button>
+                      ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add another skill"
+                      value={customSkill}
+                      onChange={(e) => setCustomSkill(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter") return
+                        e.preventDefault()
+                        const value = customSkill.trim()
+                        if (!value) return
+                        setSkills((prev) =>
+                          prev.includes(value) ? prev : [...prev, value]
+                        )
+                        setCustomSkill("")
+                        setStepError(null)
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="linkedin" className="flex items-center gap-2">
                     <Linkedin className="h-4 w-4 text-[#0A66C2]" aria-hidden />
-                    LinkedIn profile
+                    LinkedIn profile <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="linkedin"
@@ -574,7 +656,7 @@ function OnboardingContent() {
                     }}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Optional. Helps members and partners find you in the community directory.
+                    Helps members and partners find you in the community directory.
                   </p>
                 </div>
 

@@ -4,6 +4,10 @@
  */
 
 import { hasRequiredPhone } from "@/lib/member-phone"
+import {
+  normalizeLinkedInUrl,
+  parseMemberSocialLinks,
+} from "@/lib/member-social-links"
 
 export const MEMBER_TYPES = [
   { value: "entrepreneur", label: "Entrepreneur / Founder" },
@@ -65,6 +69,22 @@ export const ENGAGEMENT_PREFERENCES = [
   "Open to projects",
   "Available for events",
   "Open to speaking",
+] as const
+
+/** Suggested skills shown during Connect onboarding. Members can also add their own. */
+export const SUGGESTED_SKILLS = [
+  "Product",
+  "Engineering",
+  "Design",
+  "Operations",
+  "Fundraising",
+  "Marketing",
+  "Community building",
+  "Research",
+  "Policy",
+  "Finance",
+  "Sales",
+  "Partnerships",
 ] as const
 
 /** Canonical availability values for onboarding and profile (includes legacy extras). */
@@ -137,6 +157,40 @@ export type OnboardingProfileSlice = {
   interests?: string[] | null
   availability?: string[] | null
   phone?: string | null
+  location?: string | null
+  skills?: string[] | null
+  linkedin?: string | null
+  image?: string | null
+}
+
+export function onboardingSliceFromProfile(profile: {
+  industry?: string | null
+  memberType?: string | null
+  role?: string | null
+  organization?: string | null
+  bio?: string | null
+  interests?: string[] | null
+  availability?: string[] | null
+  phone?: string | null
+  location?: string | null
+  skills?: string[] | null
+  socialLinks?: unknown
+  user?: { image?: string | null } | null
+}): OnboardingProfileSlice {
+  return {
+    industry: profile.industry,
+    memberType: profile.memberType,
+    role: profile.role,
+    organization: profile.organization,
+    bio: profile.bio,
+    interests: profile.interests,
+    availability: profile.availability,
+    phone: profile.phone,
+    location: profile.location,
+    skills: profile.skills,
+    linkedin: parseMemberSocialLinks(profile.socialLinks).linkedin,
+    image: profile.user?.image,
+  }
 }
 
 export function hasRequiredSegmentation(profile: OnboardingProfileSlice): boolean {
@@ -154,6 +208,22 @@ export function hasRequiredDirectoryBio(bio: string | null | undefined): boolean
   return (bio?.trim().length ?? 0) >= BIO_MIN_LENGTH
 }
 
+export function hasRequiredLocation(location: string | null | undefined): boolean {
+  return (location?.trim().length ?? 0) >= 2
+}
+
+export function hasRequiredLinkedIn(linkedin: string | null | undefined): boolean {
+  return Boolean(linkedin && normalizeLinkedInUrl(linkedin))
+}
+
+export function hasRequiredSkills(skills: string[] | null | undefined): boolean {
+  return skills?.some((item) => item.trim()) ?? false
+}
+
+export function hasRequiredPhoto(image: string | null | undefined): boolean {
+  return Boolean(image?.trim())
+}
+
 /** True when required segmentation + directory intro fields are set. */
 export function isOnboardingComplete(profile: OnboardingProfileSlice): boolean {
   if (!hasRequiredSegmentation(profile)) return false
@@ -161,6 +231,10 @@ export function isOnboardingComplete(profile: OnboardingProfileSlice): boolean {
   if (!(profile.interests?.some((item) => item.trim()) ?? false)) return false
   if (!(profile.availability?.some((item) => item.trim()) ?? false)) return false
   if (!hasRequiredPhone(profile.phone)) return false
+  if (!hasRequiredLocation(profile.location)) return false
+  if (!hasRequiredLinkedIn(profile.linkedin)) return false
+  if (!hasRequiredSkills(profile.skills)) return false
+  if (!hasRequiredPhoto(profile.image)) return false
   return true
 }
 
@@ -169,6 +243,8 @@ export function validateOnboardingStep1(data: {
   sector: string
   role: string
   organization: string
+  location: string
+  image?: string
   requireOrganization?: boolean
 }): string | null {
   if (!data.memberType) return "Select how you identify in the community."
@@ -177,6 +253,12 @@ export function validateOnboardingStep1(data: {
   if (!data.organization.trim()) {
     return "Enter your organisation or venture name."
   }
+  if (!hasRequiredLocation(data.location)) {
+    return "Enter your city or country."
+  }
+  if (!hasRequiredPhoto(data.image)) {
+    return "Add a photo or pick an avatar so members can recognize you."
+  }
   return null
 }
 
@@ -184,12 +266,23 @@ export function validateOnboardingStep2(data: {
   goals: string[]
   availability: string[]
   bio: string
+  linkedin: string
+  skills: string[]
 }): string | null {
   if (!data.goals.some((goal) => goal.trim())) {
     return "Select at least one reason you are here."
   }
   if (!data.availability.some((item) => item.trim())) {
     return "Select at least one option you are open to."
+  }
+  if (!hasRequiredSkills(data.skills)) {
+    return "Add at least one skill so members can find you."
+  }
+  if (!data.linkedin.trim()) {
+    return "Add your LinkedIn profile so the community can find you."
+  }
+  if (!hasRequiredLinkedIn(data.linkedin)) {
+    return "Enter a valid LinkedIn profile URL (e.g. linkedin.com/in/yourname)."
   }
   const bioLength = data.bio.trim().length
   if (bioLength < BIO_MIN_LENGTH) {

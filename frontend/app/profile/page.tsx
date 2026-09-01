@@ -41,6 +41,8 @@ import {
   availabilityOptionsForEdit,
   normalizeAvailabilityList,
   isOnboardingComplete,
+  onboardingSliceFromProfile,
+  validateOnboardingStep1,
   validateOnboardingStep2,
 } from "@/lib/member-segmentation"
 import { getProfileCompleteness, validateProfileOrganization } from "@/lib/profile-completeness"
@@ -234,6 +236,7 @@ export default function ProfilePage() {
     industry: form.industry,
     organization: form.organization,
     phone: form.phone,
+    location: form.location,
     bio: form.bio,
     skills: form.skills,
     interests: form.interests,
@@ -268,6 +271,18 @@ export default function ProfilePage() {
       toast.error("Organization required", orgError)
       return
     }
+    const step1Error = validateOnboardingStep1({
+      memberType: form.memberType,
+      sector: form.industry,
+      role: form.role,
+      organization: form.organization,
+      location: form.location,
+      image: form.image || user?.image || "",
+    })
+    if (step1Error) {
+      toast.error("Directory profile incomplete", step1Error)
+      return
+    }
     if (form.bio.trim().length > BIO_MAX_LENGTH) {
       toast.error("Bio too long", `Keep your bio under ${BIO_MAX_LENGTH} characters.`)
       return
@@ -276,6 +291,8 @@ export default function ProfilePage() {
       goals: form.interests,
       availability: form.availability,
       bio: form.bio,
+      linkedin: form.linkedin,
+      skills: form.skills,
     })
     if (introError) {
       toast.error("Directory profile incomplete", introError)
@@ -320,7 +337,7 @@ export default function ProfilePage() {
         applyProfile(data.profile)
         setMembership(data.profile.membership ?? null)
         setJoinedAt(data.profile.user?.createdAt ?? null)
-        setNeedsOnboarding(!isOnboardingComplete(data.profile))
+        setNeedsOnboarding(!isOnboardingComplete(onboardingSliceFromProfile(data.profile)))
         const savedImage = data.profile.user?.image
         if (savedImage) {
           await updateSession({ user: { image: savedImage, name: data.profile.user?.name ?? undefined } })
@@ -802,7 +819,7 @@ export default function ProfilePage() {
                     <div className="space-y-2 sm:col-span-2">
                       <Label htmlFor="linkedin" className="flex items-center gap-2">
                         <Linkedin className="h-4 w-4 text-[#0A66C2]" aria-hidden />
-                        LinkedIn
+                        LinkedIn <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="linkedin"
@@ -818,7 +835,9 @@ export default function ProfilePage() {
                     </div>
                   ) : null}
                   <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="location">
+                      Location <span className="text-destructive">*</span>
+                    </Label>
                     {isEditing ? (
                       <Input
                         id="location"

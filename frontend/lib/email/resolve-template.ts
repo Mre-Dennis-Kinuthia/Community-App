@@ -187,6 +187,80 @@ export async function ensureEmailTemplatesSeeded(): Promise<void> {
       })
     }
   }
+
+  await syncWelcomeEmailTemplateContent()
+}
+
+const LEGACY_WELCOME_BODY_HTML = `<p>Welcome to <strong>Impact Hub Nairobi</strong> — where impact startups, partners, and innovators connect, learn, and build together.</p>
+<p>Complete your profile to unlock the community directory, events, workspace booking, and programs tailored to your goals.</p>`
+
+const WELCOME_APPOINTMENT_HTML = `<p>If you'd like a walkthrough of the Hub, coworking, and how to join <strong>Star Connect</strong>, book a short appointment with our team: <a href="{{discoveryCallUrl}}">{{discoveryCallUrl}}</a></p>`
+
+const WELCOME_APPOINTMENT_TEXT =
+  "Book a call about coworking and Star Connect: {{discoveryCallUrl}}"
+
+function welcomeHasAppointment(bodyHtml: string, textBody: string): boolean {
+  const hay = `${bodyHtml}\n${textBody}`
+  return (
+    hay.includes("{{discoveryCallUrl}}") || hay.includes("calendar.app.google")
+  )
+}
+
+/** Keep the stored Welcome template in sync so admin preview and sends include the appointment link. */
+async function syncWelcomeEmailTemplateContent(): Promise<void> {
+  const def = getEmailTemplateDefinition("welcome")
+  if (!def) return
+
+  const rows = await prisma.emailTemplate.findMany({
+    where: { OR: [{ key: "welcome" }, { slot: "welcome" }] },
+  })
+
+  for (const row of rows) {
+    const data: {
+      subject?: string
+      preheader?: string | null
+      title?: string
+      eyebrow?: string | null
+      bodyHtml?: string
+      ctaLabel?: string | null
+      textBody?: string
+      description?: string | null
+    } = {}
+
+    const normalizedBody = row.bodyHtml.replace(/\s+/g, " ").trim()
+    const legacyBody = LEGACY_WELCOME_BODY_HTML.replace(/\s+/g, " ").trim()
+
+    if (normalizedBody === legacyBody) {
+      data.subject = def.subject
+      data.preheader = def.preheader
+      data.title = def.title
+      data.eyebrow = def.eyebrow
+      data.bodyHtml = def.bodyHtml
+      data.ctaLabel = def.ctaLabel
+      data.textBody = def.textBody
+      data.description = def.description
+    } else if (!welcomeHasAppointment(row.bodyHtml, row.textBody)) {
+      data.bodyHtml = `${row.bodyHtml.trim()}\n${WELCOME_APPOINTMENT_HTML}`
+      data.textBody = `${row.textBody.trim()}\n${WELCOME_APPOINTMENT_TEXT}`
+    }
+
+    if (row.subject === "Welcome to Impact Hub Nairobi — complete your profile") {
+      data.subject = def.subject
+    }
+    if (row.preheader === "For impact startups & innovators") {
+      data.preheader = def.preheader
+    }
+    if (row.eyebrow === "Become a member") {
+      data.eyebrow = def.eyebrow
+    }
+
+    if (Object.keys(data).length > 0) {
+      await prisma.emailTemplate.update({
+        where: { id: row.id },
+        data,
+      })
+    }
+  }
 }
 
 /** Activate this template for its slot; deactivate siblings. */
@@ -324,6 +398,9 @@ export async function sendFromTemplate(params: {
   replyTo?: string
 }): Promise<SendFromTemplateResult> {
   // `key` is the send slot (welcome, booking_confirmation, …)
+  if (params.key === "welcome") {
+    await ensureEmailTemplatesSeeded()
+  }
   const template = await resolveEmailTemplate(params.key)
   if (!template) {
     return { ok: true, skipped: true, reason: "missing_template" }

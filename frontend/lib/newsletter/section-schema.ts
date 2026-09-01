@@ -11,6 +11,7 @@ export const newsletterCampaignStatusSchema = z.enum([
   "draft",
   "scheduled",
   "sending",
+  "partial",
   "sent",
   "cancelled",
 ])
@@ -43,6 +44,8 @@ export const newsletterSectionSchema = z.discriminatedUnion("type", [
     type: z.literal("header"),
     eyebrow: z.string().max(80).optional().nullable(),
     showLogo: z.boolean().optional(),
+    imageUrl: z.string().max(2000).optional().nullable(),
+    alt: z.string().max(200).optional().nullable(),
   }),
   z.object({
     id: z.string().min(1),
@@ -130,9 +133,11 @@ export type NewsletterSection = z.infer<typeof newsletterSectionSchema>
 export const newsletterSectionsSchema = z.array(newsletterSectionSchema)
 
 export function parseNewsletterSections(raw: unknown): NewsletterSection[] {
-  const parsed = newsletterSectionsSchema.safeParse(raw ?? [])
-  if (!parsed.success) return []
-  return parsed.data
+  if (!Array.isArray(raw)) return []
+  return raw.flatMap((item) => {
+    const parsed = newsletterSectionSchema.safeParse(item)
+    return parsed.success ? [parsed.data] : []
+  })
 }
 
 export function newSectionId(): string {

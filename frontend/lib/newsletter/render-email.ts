@@ -85,6 +85,9 @@ function renderSectionHtml(
       const logoBlock = section.showLogo !== false
         ? `<img src="${escapeHtml(logo)}" alt="Impact Hub Nairobi" width="160" style="display:block;max-width:160px;height:auto;border:0;" />`
         : ""
+      const banner = section.imageUrl
+        ? `<img src="${escapeHtml(absUrl(section.imageUrl, appBaseUrl))}" alt="${escapeHtml(section.alt || "")}" width="536" style="display:block;width:100%;max-width:536px;height:auto;border:0;border-radius:8px;margin:12px 0 0;" />`
+        : ""
       return `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:0 0 8px;">
         <tr>
           <td style="padding:8px 0 16px;border-bottom:1px solid ${brand.border};">
@@ -94,6 +97,7 @@ function renderSectionHtml(
                 ? `<p style="margin:12px 0 0;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${brand.primary};">${escapeHtml(section.eyebrow)}</p>`
                 : ""
             }
+            ${banner}
           </td>
         </tr>
       </table>`

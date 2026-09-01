@@ -27,6 +27,18 @@ async function main() {
   `
 
   await sql`
+    ALTER TABLE "users"
+    ADD COLUMN IF NOT EXISTS "onboarding_reminder_count" INTEGER NOT NULL DEFAULT 0
+  `
+
+  await sql`
+    UPDATE "users"
+    SET "onboarding_reminder_count" = 1
+    WHERE "onboarding_reminder_sent_at" IS NOT NULL
+      AND "onboarding_reminder_count" = 0
+  `
+
+  await sql`
     ALTER TABLE "events"
     ADD COLUMN IF NOT EXISTS "featuredOnHomepage" BOOLEAN NOT NULL DEFAULT false
   `

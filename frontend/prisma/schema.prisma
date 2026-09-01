@@ -63,6 +63,7 @@ model User {
   image     String?
   lastActiveAt DateTime? @map("last_active_at")
   onboardingReminderSentAt DateTime? @map("onboarding_reminder_sent_at")
+  onboardingReminderCount  Int       @default(0) @map("onboarding_reminder_count")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1382,7 +1383,7 @@ model NewsletterCampaign {
   sections       Json     @default("[]")
   brandPrimary   String?
   brandAccent    String?
-  /// draft | scheduled | sending | sent | cancelled
+  /// draft | scheduled | sending | partial | sent | cancelled
   status         String   @default("draft")
   /// subscribers | members | both
   audience       String   @default("subscribers")

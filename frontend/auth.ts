@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword } from "@/lib/auth-utils"
-import { sendWelcomeEmail, sendNewAccountStaffEmail, sendEmailInBackground } from "@/lib/email"
+import { sendWelcomeEmail, sendEmailInBackground } from "@/lib/email"
 import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 import { touchMemberLastActiveInBackground } from "@/lib/member-activity"
@@ -133,10 +133,6 @@ const nextAuthConfig = {
         sendEmailInBackground(
           () => sendWelcomeEmail({ to: user.email!, name: user.name }),
           "welcome-oauth"
-        )
-        sendEmailInBackground(
-          () => sendNewAccountStaffEmail({ email: user.email!, name: user.name }),
-          "new-account-staff-oauth"
         )
       }
     },

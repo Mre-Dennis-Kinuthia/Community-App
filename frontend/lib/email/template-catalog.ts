@@ -54,15 +54,24 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
     description: "Sent when a new member registers or accepts an invite.",
     category: "account",
     sentFrom: "member",
-    variables: [NAME, { key: "onboardingUrl", label: "Onboarding URL", sample: "https://example.com/onboarding" }],
-    subject: "Welcome to Impact Hub Nairobi — complete your profile",
-    preheader: "For impact startups & innovators",
+    variables: [
+      NAME,
+      { key: "onboardingUrl", label: "Onboarding URL", sample: "https://example.com/onboarding" },
+      {
+        key: "discoveryCallUrl",
+        label: "Appointment / discovery call URL",
+        sample: "https://calendar.app.google/9ZM6DNGjKgkTC88D7",
+      },
+    ],
+    subject: "Welcome to Impact Hub Nairobi",
+    preheader: "Complete your profile — or book a call to learn about coworking and Star Connect",
     title: "Welcome to the community",
-    eyebrow: "Become a member",
+    eyebrow: "Connect membership",
     bodyHtml: `<p>Welcome to <strong>Impact Hub Nairobi</strong> — where impact startups, partners, and innovators connect, learn, and build together.</p>
-<p>Complete your profile to unlock the community directory, events, workspace booking, and programs tailored to your goals.</p>`,
+<p>You're a Connect member. Complete your profile to appear in the directory, register for events, and book workspace.</p>
+<p>If you'd like a walkthrough of the Hub, coworking, and how to join <strong>Star Connect</strong>, book a short appointment with our team: <a href="{{discoveryCallUrl}}">{{discoveryCallUrl}}</a></p>`,
     ctaLabel: "Complete your profile",
-    textBody: "Welcome to Impact Hub Nairobi!\nComplete your profile: {{onboardingUrl}}",
+    textBody: "Welcome to Impact Hub Nairobi!\nComplete your profile: {{onboardingUrl}}\nBook a call about coworking and Star Connect: {{discoveryCallUrl}}",
   },
   {
     key: "onboarding_reminder",
@@ -70,7 +79,11 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
     description: "Reminds members who have not finished onboarding.",
     category: "account",
     sentFrom: "member",
-    variables: [NAME, { key: "onboardingUrl", label: "Onboarding URL", sample: "https://example.com/onboarding" }],
+    variables: [
+      NAME,
+      { key: "onboardingUrl", label: "Onboarding URL", sample: "https://example.com/onboarding" },
+      { key: "reminderNumber", label: "Reminder number (1–4)", sample: "1" },
+    ],
     subject: "Finish setting up your Impact Hub Nairobi profile",
     preheader: "Complete onboarding in a few minutes",
     title: "You're almost there",

@@ -16,6 +16,7 @@ import { formatEventWhen, layoutEmail, escapeHtml, emailGreeting, emailParagraph
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type EmailAttachment, type SendEmailResult } from "./send"
 import { sendFromTemplate, type SendFromTemplateResult } from "./resolve-template"
+import { STAR_CONNECT_DISCOVERY_CALL_URL } from "@/lib/membership-inquiry"
 
 function asSendResult(result: SendFromTemplateResult): SendEmailResult {
   if ("skipped" in result && result.skipped) {
@@ -468,18 +469,22 @@ export async function sendWelcomeEmail(params: {
   name?: string | null
 }): Promise<SendEmailResult> {
   const onboardingUrl = `${getAppBaseUrl()}/onboarding`
+  const discoveryCallUrl = STAR_CONNECT_DISCOVERY_CALL_URL
 
   return asSendResult(
     await sendFromTemplate({
       key: "welcome",
       to: params.to,
       name: params.name,
-      vars: { onboardingUrl },
+      vars: {
+        onboardingUrl,
+        discoveryCallUrl,
+      },
       detailsHtml: emailDetailCard(
         [
           { label: "Programs", value: "Workshops & acceleration" },
           { label: "Workspace", value: "Flexible coworking in Nairobi" },
-          { label: "Community", value: "300k+ global Impact Hub network" },
+          { label: "Star Connect", value: "Paid membership for desks, rooms, and member rates" },
         ],
         { title: "What you can do here" }
       ),
@@ -491,15 +496,20 @@ export async function sendWelcomeEmail(params: {
 export async function sendOnboardingReminderEmail(params: {
   to: string
   name?: string | null
+  reminderNumber?: number
 }): Promise<SendEmailResult> {
   const onboardingUrl = `${getAppBaseUrl()}/onboarding`
+  const reminderNumber = Math.max(1, params.reminderNumber ?? 1)
 
   return asSendResult(
     await sendFromTemplate({
       key: "onboarding_reminder",
       to: params.to,
       name: params.name,
-      vars: { onboardingUrl },
+      vars: {
+        onboardingUrl,
+        reminderNumber: String(reminderNumber),
+      },
       ctaUrl: onboardingUrl,
     })
   )
@@ -656,30 +666,6 @@ export async function sendNewBookingStaffEmail(params: {
     ctaLabel: "Review booking",
     ctaUrl: reviewUrl,
     emailCategory: "bookings",
-  })
-}
-
-export async function sendNewAccountStaffEmail(params: {
-  name?: string | null
-  email: string
-}): Promise<SendEmailResult> {
-  const memberLabel = params.name
-    ? `${escapeHtml(params.name)} (${escapeHtml(params.email)})`
-    : escapeHtml(params.email)
-
-  const bodyHtml = `
-    ${emailParagraph("A new member account was created.")}
-    ${emailDetailCard([{ label: "Member", value: memberLabel }], { title: "New account" })}
-  `
-
-  return sendStaffAlertEmail({
-    subject: `[Account] New member — ${params.email}`,
-    title: "New account",
-    eyebrow: "Community",
-    bodyHtml,
-    text: `New account: ${params.name ?? params.email} (${params.email})`,
-    replyTo: params.email,
-    emailCategory: "requests",
   })
 }
 

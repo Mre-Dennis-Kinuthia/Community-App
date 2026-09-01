@@ -8,7 +8,7 @@ import {
   consumeMemberInviteToken,
   validateMemberInviteToken,
 } from "@/lib/member-invite"
-import { sendWelcomeEmail, sendNewAccountStaffEmail, sendEmailInBackground } from "@/lib/email"
+import { sendWelcomeEmail, sendEmailInBackground } from "@/lib/email"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 
 const acceptInviteSchema = z.object({
@@ -92,10 +92,6 @@ export async function POST(request: NextRequest) {
       sendEmailInBackground(
         () => sendWelcomeEmail({ to: user.email, name: user.name }),
         "welcome"
-      )
-      sendEmailInBackground(
-        () => sendNewAccountStaffEmail({ email: user.email, name: user.name }),
-        "new-account-staff"
       )
     }
 
