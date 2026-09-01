@@ -89,7 +89,7 @@ export function buildEventCalendarDetails(event: EventCalendarInput): {
   const eventUrl = getEventPublicUrl(event)
   const location = displayLocation(event)
   const description = [
-    event.description?.trim(),
+    richTextToPlainText(event.description) || null,
     event.onlineUrl?.trim() ? `Join online: ${event.onlineUrl.trim()}` : null,
     `Event page: ${eventUrl}`,
   ]
