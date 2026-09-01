@@ -1,9 +1,14 @@
-/** Known production origin — Paystack callbacks and emails must use this, not *.vercel.app. */
-export const PRODUCTION_APP_ORIGIN = "https://impacthubnairobi.com"
+/** Known production origin — Vercel redirects apex → www; OG crawlers need www directly. */
+export const PRODUCTION_APP_ORIGIN = "https://www.impacthubnairobi.com"
 
 function normalizePublicOrigin(value: string): string {
   const withProtocol = value.startsWith("http") ? value : `https://${value}`
-  return withProtocol.replace(/\/$/, "")
+  const normalized = withProtocol.replace(/\/$/, "")
+  // Social crawlers often fail on 307 from apex → www.
+  if (/^https:\/\/impacthubnairobi\.com$/i.test(normalized)) {
+    return PRODUCTION_APP_ORIGIN
+  }
+  return normalized
 }
 
 export function getAppBaseUrl(): string {

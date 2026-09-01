@@ -26,6 +26,14 @@ export function getEventPublicUrl(event: {
   return `${root}${getEventPublicPath(event)}`
 }
 
+export function getEventOpenGraphImageUrl(event: {
+  id: string
+  shortCode?: string | null
+  slug?: string | null
+}): string {
+  return `${getEventPublicUrl(event)}/opengraph-image`
+}
+
 export function getEventShareText(title: string, startDate?: Date | string): string {
   const datePart =
     startDate != null
