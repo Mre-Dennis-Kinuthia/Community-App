@@ -39,7 +39,7 @@ export function EventFlyer({
         <div
           className={cn(
             "flex items-center justify-center bg-[#f3f1ec]",
-            variant === "thumb" ? "h-full min-h-[5.5rem] w-full" : "aspect-[16/10] w-full",
+            variant === "thumb" ? "h-full min-h-0 w-full" : "aspect-[16/10] w-full",
             className
           )}
           aria-hidden
@@ -58,7 +58,7 @@ export function EventFlyer({
 
   if (variant === "thumb") {
     return (
-      <div className={cn("h-full min-h-[5.5rem] w-full overflow-hidden bg-muted", className)}>
+      <div className={cn("h-full min-h-0 w-full overflow-hidden bg-muted", className)}>
         <img
           src={imageSrc}
           alt={alt}

@@ -393,7 +393,7 @@ export default function DashboardPage() {
                 className={cn(dashboardFeedShell, dashboardFeedEmpty)}
               />
             ) : (
-              <div className={cn(dashboardFeedShell, "grid gap-3 sm:grid-cols-2")}>
+              <div className={cn(dashboardFeedShell, "gap-0 p-0")}>
                 {recentEvents.map((event) => {
                   const eventDate = new Date(event.startDate)
                   const formattedDate = eventDate.toLocaleDateString("en-US", {
@@ -408,19 +408,28 @@ export default function DashboardPage() {
                     <Link
                       key={event.id}
                       href={getEventPublicPath(event)}
-                      className="group flex overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-foreground/15 hover:bg-muted/20"
+                      className="group flex min-w-0 max-w-full items-stretch overflow-hidden border-b border-border last:border-b-0 transition-colors hover:bg-muted/20"
                     >
-                      <div className="w-24 shrink-0 sm:w-28">
-                        <EventFlyer src={event.imageUrl} alt="" variant="thumb" />
+                      <div className="relative min-h-20 w-20 shrink-0 overflow-hidden sm:min-h-24 sm:w-24">
+                        <EventFlyer
+                          src={event.imageUrl}
+                          alt=""
+                          variant="thumb"
+                          className="absolute inset-0 h-full min-h-0 w-full"
+                        />
                       </div>
-                      <div className="min-w-0 flex-1 p-3">
-                        <p className="line-clamp-2 text-sm font-medium leading-snug group-hover:underline">
+                      <div className="min-w-0 flex-1 overflow-hidden p-3">
+                        <p className="line-clamp-2 break-words text-sm font-medium leading-snug group-hover:underline">
                           {event.title}
                         </p>
                         {excerpt ? (
-                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{excerpt}</p>
+                          <p className="mt-1 line-clamp-2 break-words text-xs text-muted-foreground">
+                            {excerpt}
+                          </p>
                         ) : null}
-                        <p className="mt-2 text-[11px] text-muted-foreground">{formattedDate}</p>
+                        <p className="mt-2 truncate text-[11px] text-muted-foreground">
+                          {formattedDate}
+                        </p>
                       </div>
                     </Link>
                   )
