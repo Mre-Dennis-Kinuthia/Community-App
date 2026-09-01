@@ -287,7 +287,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
               ) : null}
 
               {hasAbout ? (
-                <p className="max-w-2xl text-left text-xs leading-relaxed text-muted-foreground md:text-sm md:text-center lg:text-left">
+                <p className="max-w-2xl text-left text-xs leading-relaxed text-muted-foreground line-clamp-4 md:text-sm md:text-center lg:text-left">
                   {bio}
                 </p>
               ) : (
@@ -496,7 +496,7 @@ export function MemberProfileView({ member, onRefresh }: MemberProfileViewProps)
             </Card>
           )}
 
-          {hasAbout && bio!.length > 280 ? (
+          {hasAbout && bio!.trim().length > 280 ? (
             <ProfileSection title="About">
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{bio}</p>
             </ProfileSection>

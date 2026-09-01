@@ -10,7 +10,7 @@ import {
   sendConnectApplicationStaffEmail,
 } from "@/lib/email/connect-application"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
-import { isOnboardingComplete, onboardingSliceFromProfile } from "@/lib/member-segmentation"
+import { isOnboardingComplete, onboardingSliceFromProfile, BIO_MAX_WORDS, countBioWords } from "@/lib/member-segmentation"
 import { shouldShowOnboardingNudge } from "@/lib/onboarding-reminders"
 import { buildMembershipSummary } from "@/lib/membership-profile"
 import { assignMembershipTierForUser } from "@/lib/membership-tier-resolve"
@@ -313,6 +313,13 @@ export async function PUT(request: NextRequest) {
     const validatedData = profileUpdateSchema.parse(body)
     const { name: nameUpdate, image: imageUpdate, socialLinks: socialLinksInput, ...profileData } =
       validatedData
+
+    if (typeof profileData.bio === "string" && countBioWords(profileData.bio) > BIO_MAX_WORDS) {
+      return NextResponse.json(
+        { error: `Keep your short intro to ${BIO_MAX_WORDS} words or fewer.` },
+        { status: 400, headers: corsHeaders }
+      )
+    }
 
     if (socialLinksInput?.linkedin) {
       const linkedinError = validateLinkedInInput(socialLinksInput.linkedin)

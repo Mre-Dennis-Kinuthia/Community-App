@@ -96,9 +96,37 @@ export const AVAILABILITY_OPTIONS = [
   "Looking for volunteers",
 ] as const
 
-export const BIO_MAX_LENGTH = 280
+/** Short intro word cap (onboarding + profile). */
+export const BIO_MAX_WORDS = 500
+/** Character safety net so 500 words are not cut off mid-sentence. */
+export const BIO_MAX_LENGTH = 20_000
 /** Long enough to describe work — blocks empty or one-word bios. */
 export const BIO_MIN_LENGTH = 40
+
+export function countBioWords(text: string): number {
+  const trimmed = text.trim()
+  if (!trimmed) return 0
+  return trimmed.split(/\s+/).length
+}
+
+/** Keep the first `maxWords` words; preserves spacing while typing. */
+export function clampBioToMaxWords(text: string, maxWords = BIO_MAX_WORDS): string {
+  const tokens = text.match(/(\s+|\S+)/g)
+  if (!tokens) return text
+  let words = 0
+  let out = ""
+  for (const token of tokens) {
+    if (/^\s+$/.test(token)) {
+      if (words >= maxWords) break
+      out += token
+      continue
+    }
+    if (words >= maxWords) break
+    words += 1
+    out += token
+  }
+  return out
+}
 
 /** Legacy availability strings saved before options were unified. */
 const LEGACY_AVAILABILITY_ALIASES: Record<string, string> = {
@@ -287,6 +315,9 @@ export function validateOnboardingStep2(data: {
   const bioLength = data.bio.trim().length
   if (bioLength < BIO_MIN_LENGTH) {
     return `Write a short intro (${BIO_MIN_LENGTH}+ characters) so members know how to work with you.`
+  }
+  if (countBioWords(data.bio) > BIO_MAX_WORDS) {
+    return `Keep your short intro to ${BIO_MAX_WORDS} words or fewer.`
   }
   return null
 }

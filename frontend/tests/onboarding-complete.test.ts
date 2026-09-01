@@ -3,6 +3,9 @@ import {
   isOnboardingComplete,
   validateOnboardingStep1,
   validateOnboardingStep2,
+  clampBioToMaxWords,
+  countBioWords,
+  BIO_MAX_WORDS,
 } from "@/lib/member-segmentation"
 
 const complete = {
@@ -71,5 +74,20 @@ describe("Connect onboarding completeness", () => {
         skills: [],
       })
     ).toMatch(/skill/i)
+  })
+
+  it("caps the short intro at 500 words", () => {
+    const overLimit = Array.from({ length: BIO_MAX_WORDS + 1 }, (_, i) => `word${i}`).join(" ")
+    expect(countBioWords(overLimit)).toBe(BIO_MAX_WORDS + 1)
+    expect(countBioWords(clampBioToMaxWords(overLimit))).toBe(BIO_MAX_WORDS)
+    expect(
+      validateOnboardingStep2({
+        goals: ["Find collaborators"],
+        availability: ["Open to collaboration"],
+        bio: overLimit,
+        linkedin: "linkedin.com/in/jane",
+        skills: ["Product"],
+      })
+    ).toMatch(/500 words/i)
   })
 })

@@ -37,8 +37,11 @@ import {
   SUGGESTED_SKILLS,
   validateOnboardingStep1,
   validateOnboardingStep2,
+  BIO_MAX_WORDS,
   BIO_MAX_LENGTH,
   BIO_MIN_LENGTH,
+  countBioWords,
+  clampBioToMaxWords,
 } from "@/lib/member-segmentation"
 import { validatePhoneInput } from "@/lib/member-phone"
 import { isOrganisationalRegisterIntent } from "@/lib/membership-register-intent"
@@ -666,16 +669,16 @@ function OnboardingContent() {
                       Short intro <span className="text-destructive">*</span>
                     </Label>
                     <span className="text-xs text-muted-foreground">
-                      {bio.length}/{BIO_MAX_LENGTH}
+                      {countBioWords(bio)}/{BIO_MAX_WORDS} words
                     </span>
                   </div>
                   <Textarea
                     id="bio"
-                    placeholder={`One or two sentences about your work and what you're building (${BIO_MIN_LENGTH}+ characters)…`}
+                    placeholder={`A short intro about your work and what you're building (${BIO_MIN_LENGTH}+ characters, ${BIO_MAX_WORDS} words max)…`}
                     value={bio}
-                    onChange={(e) => setBio(e.target.value.slice(0, BIO_MAX_LENGTH))}
-                    rows={3}
-                    className="resize-none"
+                    onChange={(e) => setBio(clampBioToMaxWords(e.target.value))}
+                    rows={8}
+                    className="min-h-[10rem] resize-y"
                     maxLength={BIO_MAX_LENGTH}
                   />
                 </div>

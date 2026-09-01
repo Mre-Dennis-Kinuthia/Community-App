@@ -36,8 +36,11 @@ import {
   MEMBER_TYPES,
   PRIMARY_ROLES,
   ENGAGEMENT_GOALS,
+  BIO_MAX_WORDS,
   BIO_MAX_LENGTH,
   BIO_MIN_LENGTH,
+  countBioWords,
+  clampBioToMaxWords,
   availabilityOptionsForEdit,
   normalizeAvailabilityList,
   isOnboardingComplete,
@@ -283,8 +286,8 @@ export default function ProfilePage() {
       toast.error("Directory profile incomplete", step1Error)
       return
     }
-    if (form.bio.trim().length > BIO_MAX_LENGTH) {
-      toast.error("Bio too long", `Keep your bio under ${BIO_MAX_LENGTH} characters.`)
+    if (countBioWords(form.bio) > BIO_MAX_WORDS) {
+      toast.error("Bio too long", `Keep your short intro to ${BIO_MAX_WORDS} words or fewer.`)
       return
     }
     const introError = validateOnboardingStep2({
@@ -667,19 +670,19 @@ export default function ProfilePage() {
                     </Label>
                     {isEditing ? (
                       <span className="text-xs text-muted-foreground">
-                        {form.bio.length}/{BIO_MAX_LENGTH}
+                        {countBioWords(form.bio)}/{BIO_MAX_WORDS} words
                       </span>
                     ) : null}
                   </div>
                   {isEditing ? (
                     <Textarea
                       id="bio"
-                      placeholder={`What you work on, what you are looking for, how others can help (${BIO_MIN_LENGTH}+ characters).`}
-                      className="min-h-[120px] resize-y"
+                      placeholder={`What you work on, what you are looking for, how others can help (${BIO_MIN_LENGTH}+ characters, ${BIO_MAX_WORDS} words max).`}
+                      className="min-h-[10rem] resize-y"
                       value={form.bio}
                       maxLength={BIO_MAX_LENGTH}
                       onChange={(e) =>
-                        setForm((p) => ({ ...p, bio: e.target.value.slice(0, BIO_MAX_LENGTH) }))
+                        setForm((p) => ({ ...p, bio: clampBioToMaxWords(e.target.value) }))
                       }
                     />
                   ) : (
