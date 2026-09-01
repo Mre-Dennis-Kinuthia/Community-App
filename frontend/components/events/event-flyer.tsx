@@ -60,7 +60,9 @@ export function EventFlyer({
     <div
       className={cn(
         "w-full min-w-0 overflow-hidden bg-muted",
-        variant === "detail" ? "rounded-lg border border-border" : "",
+        variant === "detail"
+          ? "mx-auto flex max-w-2xl justify-center rounded-lg border border-border bg-muted/30 p-2 sm:p-3"
+          : "",
         className
       )}
     >
@@ -69,7 +71,7 @@ export function EventFlyer({
         alt={alt}
         className={
           variant === "detail"
-            ? "block h-auto w-full max-w-full object-contain"
+            ? "block h-auto max-h-[min(22rem,42vh)] w-auto max-w-full rounded-md object-contain"
             : "aspect-[16/10] w-full object-cover"
         }
         loading={variant === "card" ? "lazy" : "eager"}

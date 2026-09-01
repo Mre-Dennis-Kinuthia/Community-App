@@ -446,7 +446,6 @@ export function EventPublicView({
           src={event.imageUrl}
           alt={`${event.title} flyer`}
           variant="detail"
-          className="overflow-hidden rounded-xl"
         />
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
