@@ -1,6 +1,7 @@
 import { eventTimezone } from "@/lib/event-datetime"
 import { getEventPublicUrl } from "@/lib/event-url"
 import { displayLocation } from "@/lib/event-constants"
+import { richTextToPlainText } from "@/lib/rich-text"
 
 export interface EventCalendarInput {
   id: string
