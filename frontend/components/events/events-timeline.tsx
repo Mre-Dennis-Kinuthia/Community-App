@@ -165,7 +165,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
             <div className="sticky top-16 z-10 mb-2 -mx-2 px-2 bg-background/95 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur-sm border-b border-border md:top-0 md:text-sm">
               {monthGroup.month}
             </div>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-3 items-stretch">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
               {monthGroup.groups.flatMap((group) =>
                 group.events.map((event) => (
                   <EventCard
@@ -188,7 +188,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
             <div className="sticky top-16 z-10 mb-2 -mx-2 px-2 bg-background/95 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur-sm border-b border-border md:top-0 md:text-sm">
               {dateGroup.label}
             </div>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-3 items-stretch">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
               {dateGroup.events.map((event) => (
                 <EventCard
                   key={event.id}
@@ -204,7 +204,7 @@ export function EventsTimeline({ events, onEventClick, onRegister, registering =
         ))
       ) : (
         // Fallback: flat grid (shouldn't normally reach here)
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 items-stretch">
           {events.map((event) => (
             <EventCard
               key={event.id}

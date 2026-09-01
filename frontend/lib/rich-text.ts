@@ -27,6 +27,19 @@ export function looksLikeHtml(value: string): boolean {
   return /<\/?[a-z][\s\S]*>/i.test(value.trim())
 }
 
+/** Unescape HTML that was stored as entities (e.g. &lt;p&gt;). */
+export function decodeStoredRichText(value: string): string {
+  const trimmed = value.trim()
+  if (!trimmed || looksLikeHtml(trimmed)) return trimmed
+  if (!/&lt;\/?[a-z]/i.test(trimmed)) return trimmed
+  return trimmed
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+}
+
 export function looksLikeMarkdown(value: string): boolean {
   const text = value.trim()
   if (!text || looksLikeHtml(text)) return false
@@ -288,7 +301,7 @@ export function isEmptyRichText(value: string | null | undefined): boolean {
 
 /** Normalize stored copy (HTML, markdown, or plain text) for safe display. */
 export function prepareRichTextContent(value: string | null | undefined): string {
-  const raw = (value ?? "").trim()
+  const raw = decodeStoredRichText(value ?? "").trim()
   if (!raw) return ""
   if (looksLikeHtml(raw)) return sanitizeRichTextHtml(raw)
   if (looksLikeMarkdown(raw)) return sanitizeRichTextHtml(markdownToHtml(raw))
@@ -296,7 +309,7 @@ export function prepareRichTextContent(value: string | null | undefined): string
 }
 
 export function richTextToPlainText(value: string | null | undefined, maxLength?: number): string {
-  const raw = (value ?? "").trim()
+  const raw = decodeStoredRichText(value ?? "").trim()
   if (!raw) return ""
   const html = looksLikeHtml(raw)
     ? raw

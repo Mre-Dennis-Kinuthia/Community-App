@@ -1,16 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { cn } from "@/lib/utils"
+import { Calendar } from "lucide-react"
 
 type EventFlyerProps = {
   src: string | null | undefined
   alt?: string
   className?: string
   /** Compact listing vs full poster on the event page. */
-  variant?: "card" | "detail"
+  variant?: "card" | "detail" | "thumb"
 }
 
-/** Full poster, never cropped — same treatment as opportunity fliers. */
+/** Event cover — full poster on detail, 16:10 crop on cards. */
 export function EventFlyer({
   src,
   alt = "",
@@ -18,15 +19,48 @@ export function EventFlyer({
   variant = "detail",
 }: EventFlyerProps) {
   const imageSrc = getImageDisplayUrl(src || undefined)
-  if (!imageSrc) return null
+
+  if (!imageSrc) {
+    if (variant === "card" || variant === "thumb") {
+      return (
+        <div
+          className={cn(
+            "flex items-center justify-center bg-[#f3f1ec]",
+            variant === "thumb" ? "h-full min-h-[5.5rem] w-full" : "aspect-[16/10] w-full",
+            className
+          )}
+          aria-hidden
+        >
+          <Calendar
+            className={cn(
+              "text-[#812926]/35",
+              variant === "thumb" ? "h-6 w-6" : "h-10 w-10"
+            )}
+          />
+        </div>
+      )
+    }
+    return null
+  }
+
+  if (variant === "thumb") {
+    return (
+      <div className={cn("h-full min-h-[5.5rem] w-full overflow-hidden bg-muted", className)}>
+        <img
+          src={imageSrc}
+          alt={alt}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      </div>
+    )
+  }
 
   return (
     <div
       className={cn(
-        "w-full min-w-0 overflow-hidden border-border bg-muted",
-        variant === "detail"
-          ? "rounded-lg border"
-          : "rounded-none border-b",
+        "w-full min-w-0 overflow-hidden bg-muted",
+        variant === "detail" ? "rounded-lg border border-border" : "",
         className
       )}
     >
@@ -36,7 +70,7 @@ export function EventFlyer({
         className={
           variant === "detail"
             ? "block h-auto w-full max-w-full object-contain"
-            : "max-h-48 w-full object-contain sm:max-h-56"
+            : "aspect-[16/10] w-full object-cover"
         }
         loading={variant === "card" ? "lazy" : "eager"}
       />

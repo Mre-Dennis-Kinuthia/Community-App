@@ -9,10 +9,11 @@ import { format, isToday, isTomorrow } from "date-fns"
 import Link from "next/link"
 import { toast } from "@/lib/toast"
 import { badgeClassForLabel, badgePrimary, badgeNeutral, badgeDestructive } from "@/lib/badge-styles"
+import { eventTypeLabel } from "@/lib/event-constants"
 import { cn } from "@/lib/utils"
 import { getEventPublicUrl, getEventPublicPath, getEventShareText } from "@/lib/event-url"
 import { EventFlyer } from "@/components/events/event-flyer"
-import { opportunityCardText } from "@/lib/community-opportunity"
+import { richTextToPlainText } from "@/lib/rich-text"
 
 interface EventCardProps {
   event: {
@@ -66,6 +67,7 @@ export function EventCard({
     slug: event.slug,
     shortCode: event.shortCode,
   })
+
   const formatClock = (hhmm: string) => {
     const [h, m] = hhmm.split(":").map(Number)
     const d = new Date()
@@ -79,10 +81,7 @@ export function EventCard({
     ? "Today"
     : isTomorrow(event.date)
       ? "Tomorrow"
-      : format(event.date, "MMM d")
-
-  const dayNum = format(event.date, "d")
-  const monthShort = format(event.date, "MMM").toUpperCase()
+      : format(event.date, "EEE, MMM d")
 
   const isFull =
     event.capacity != null && (event.registered ?? 0) >= event.capacity
@@ -127,7 +126,7 @@ export function EventCard({
     }
   }
 
-  const excerpt = opportunityCardText(event.description, 140)
+  const excerpt = richTextToPlainText(event.description, 160)
 
   const statusBadge = (
     <Badge
@@ -142,220 +141,143 @@ export function EventCard({
     <Card
       onClick={onClick}
       className={cn(
-        "cursor-pointer overflow-hidden rounded-xl border-border/80 transition-colors",
-        "hover:border-foreground/15 hover:bg-muted/20",
-        onClick && "active:bg-muted/30"
+        "flex h-full cursor-pointer flex-col overflow-hidden rounded-xl border-border/80 transition-colors",
+        "hover:border-foreground/15 hover:shadow-sm",
+        onClick && "active:bg-muted/20"
       )}
     >
-      {/* Mobile: flyer + date row */}
-      <div className="md:hidden">
-        <EventFlyer src={event.thumbnail} alt="" variant="card" />
-        <div className="flex gap-0">
-        <div className="flex w-[4.5rem] shrink-0 flex-col items-center justify-center border-r border-border/60 bg-muted/20 py-4">
-          <span className="text-2xl font-semibold leading-none tracking-tight">{dayNum}</span>
-          <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {monthShort}
-          </span>
-        </div>
-        <div className="min-w-0 flex-1 p-3.5">
-          <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+      <EventFlyer src={event.thumbnail} alt="" variant="card" />
+
+      <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge className={cn(badgeClassForLabel(event.type), "text-[10px]")}>
+              {eventTypeLabel(event.type)}
+            </Badge>
             {statusBadge}
-            {event.priceLabel && (
-              <span className="text-[10px] font-medium text-muted-foreground">{event.priceLabel}</span>
+            {isFull && event.status === "Open" && (
+              <Badge variant="destructive" className="text-[10px]">
+                Full
+              </Badge>
             )}
+            {event.priceLabel ? (
+              <span className="text-[10px] font-medium text-[#812926]">{event.priceLabel}</span>
+            ) : null}
           </div>
-          <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug">
-            <Link href={eventPageUrl} onClick={(e) => e.stopPropagation()} className="hover:underline">
+
+          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-foreground">
+            <Link
+              href={eventPageUrl}
+              onClick={(e) => e.stopPropagation()}
+              className="hover:underline underline-offset-2"
+            >
               {event.title}
             </Link>
           </h3>
+
           {excerpt ? (
-            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+            <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
               {excerpt}
             </p>
           ) : null}
-          <p className="mt-1 text-xs text-muted-foreground">
-            {timeString}
-            {endTimeString ? ` – ${endTimeString}` : ""}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {event.platformIcon ? (
-              <EventPlatformBadge icon={event.platformIcon} label={event.platform} size={14} />
-            ) : (
-              <span className="truncate">{event.platform}</span>
-            )}
-          </p>
-          <div
-            className="mt-3 flex items-center gap-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {activeTab === "upcoming" && canRegister && onRegister && (
-              <Button
-                size="sm"
-                className="h-8 rounded-lg px-3 text-xs"
-                onClick={() => onRegister(event.id)}
-                disabled={isRegistering}
-              >
-                {isRegistering ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  registerLabel
-                )}
-              </Button>
-            )}
-            <Button size="sm" variant="outline" className="h-8 rounded-lg px-3 text-xs" asChild>
-              <Link href={eventPageUrl}>View</Link>
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="ml-auto h-8 w-8 shrink-0"
-              onClick={handleShare}
-              aria-label="Share event"
-            >
-              <Share2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
-        </div>
-      </div>
 
-      {/* Desktop: card layout */}
-      <div className="hidden md:flex md:flex-col">
-        <EventFlyer src={event.thumbnail} alt="" variant="card" />
-
-        <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Badge className={cn(badgeClassForLabel(event.type), "text-xs")}>
-                {event.type}
-              </Badge>
-              {statusBadge}
-              {isFull && event.status === "Open" && (
-                <Badge variant="destructive" className="text-xs">
-                  Full
-                </Badge>
-              )}
+          <div className="space-y-1.5 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <Clock className="h-3.5 w-3.5 shrink-0" />
+              <span>{dateLabel}</span>
+              <span className="text-muted-foreground/50">·</span>
+              <span>
+                {timeString}
+                {endTimeString ? ` – ${endTimeString}` : ""}
+              </span>
             </div>
 
-            <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
-              <Link
-                href={eventPageUrl}
-                onClick={(e) => e.stopPropagation()}
-                className="hover:underline underline-offset-2"
-              >
-                {event.title}
-              </Link>
-            </h3>
-
-            {excerpt ? (
-              <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                {excerpt}
-              </p>
-            ) : null}
-
-            {event.priceLabel && (
-              <p className="text-xs font-medium text-foreground">{event.priceLabel}</p>
-            )}
-
-            <div className="space-y-1.5 text-xs text-muted-foreground">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Clock className="h-3.5 w-3.5 shrink-0" />
-                <span>{dateLabel}</span>
-                <span className="text-muted-foreground/50">·</span>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="inline-flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5 shrink-0" />
+                {event.organizer}
+              </span>
+              <span className="inline-flex min-w-0 items-center gap-1.5">
+                {event.platformIcon ? (
+                  <EventPlatformBadge icon={event.platformIcon} label={event.platform} size={14} />
+                ) : (
+                  event.platform
+                )}
+              </span>
+              {event.capacity != null && (
                 <span>
-                  {timeString}
-                  {endTimeString && ` – ${endTimeString}`}
+                  {event.registered ?? 0}/{event.capacity} spots
                 </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="inline-flex items-center gap-1.5">
-                  <Users className="h-3.5 w-3.5 shrink-0" />
-                  {event.organizer}
-                </span>
-                <span className="inline-flex items-center gap-1.5 min-w-0">
-                  {event.platformIcon ? (
-                    <EventPlatformBadge icon={event.platformIcon} label={event.platform} size={16} />
-                  ) : (
-                    event.platform
-                  )}
-                </span>
-                {event.capacity != null && (
-                  <span className="inline-flex items-center gap-1.5">
-                    {event.registered ?? 0}/{event.capacity} spots
-                  </span>
-                )}
-              </div>
+              )}
             </div>
           </div>
+        </div>
 
-          <div
-            className="mt-auto flex w-full min-w-0 flex-wrap gap-2 border-t border-border pt-3"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {activeTab === "upcoming" && canRegister && onRegister && (
-              <Button
-                size="sm"
-                className="min-w-0 flex-1 sm:flex-none"
-                onClick={() => onRegister(event.id)}
-                disabled={isRegistering}
-              >
-                {isRegistering ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isFull && event.waitlistEnabled ? "Joining..." : "Registering..."}
-                  </>
-                ) : (
-                  registerLabel
-                )}
-              </Button>
-            )}
-
-            {activeTab === "upcoming" && event.status === "Registered" && (
-              <Badge variant="secondary" className={cn(badgePrimary, "border px-3 py-1.5")}>
-                ✓ Registered
-              </Badge>
-            )}
-
-            {activeTab === "upcoming" && event.status === "Waitlisted" && (
-              <Badge variant="secondary" className="border px-3 py-1.5 bg-amber-50 text-amber-900">
-                On waitlist
-              </Badge>
-            )}
-
-            {activeTab === "upcoming" && event.status === "Pending" && (
-              <Badge variant="secondary" className="border px-3 py-1.5 bg-violet-50 text-violet-900">
-                Pending approval
-              </Badge>
-            )}
-
-            {activeTab === "upcoming" &&
-              isFull &&
-              !event.waitlistEnabled &&
-              event.status === "Full" && (
-                <Button size="sm" variant="outline" disabled className="flex-1 sm:flex-none">
-                  Event full
-                </Button>
-              )}
-
-            <Button size="sm" variant="outline" className="flex-1 sm:flex-none" asChild>
-              <Link href={eventPageUrl}>
-                <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                View
-              </Link>
-            </Button>
-
+        <div
+          className="mt-auto flex w-full min-w-0 flex-wrap gap-2 border-t border-border pt-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {activeTab === "upcoming" && canRegister && onRegister && (
             <Button
               size="sm"
-              variant="outline"
-              className="flex-1 sm:flex-none gap-1"
-              onClick={handleShare}
+              className="min-w-0 flex-1 sm:flex-none"
+              onClick={() => onRegister(event.id)}
+              disabled={isRegistering}
             >
-              <Share2 className="h-3.5 w-3.5" />
-              Share
+              {isRegistering ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isFull && event.waitlistEnabled ? "Joining…" : "Registering…"}
+                </>
+              ) : (
+                registerLabel
+              )}
             </Button>
-          </div>
+          )}
+
+          {activeTab === "upcoming" && event.status === "Registered" && (
+            <Badge variant="secondary" className={cn(badgePrimary, "border px-3 py-1.5")}>
+              ✓ Registered
+            </Badge>
+          )}
+
+          {activeTab === "upcoming" && event.status === "Waitlisted" && (
+            <Badge variant="secondary" className="border px-3 py-1.5 bg-amber-50 text-amber-900">
+              On waitlist
+            </Badge>
+          )}
+
+          {activeTab === "upcoming" && event.status === "Pending" && (
+            <Badge variant="secondary" className="border px-3 py-1.5 bg-violet-50 text-violet-900">
+              Pending approval
+            </Badge>
+          )}
+
+          {activeTab === "upcoming" &&
+            isFull &&
+            !event.waitlistEnabled &&
+            event.status === "Full" && (
+              <Button size="sm" variant="outline" disabled className="flex-1 sm:flex-none">
+                Event full
+              </Button>
+            )}
+
+          <Button size="sm" variant="outline" className="flex-1 sm:flex-none" asChild>
+            <Link href={eventPageUrl}>
+              <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+              View
+            </Link>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 gap-1 sm:flex-none"
+            onClick={handleShare}
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Share
+          </Button>
         </div>
       </div>
     </Card>

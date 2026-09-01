@@ -21,6 +21,8 @@ import { DashboardAnnouncements } from "@/components/dashboard-announcements"
 import { useSession } from "@/lib/use-session"
 import { toast } from "@/lib/toast"
 import { getEventPublicPath } from "@/lib/event-url"
+import { EventFlyer } from "@/components/events/event-flyer"
+import { richTextToPlainText } from "@/lib/rich-text"
 import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
 import {
   DataList,
@@ -67,6 +69,7 @@ interface Event {
   description: string
   startDate: string
   location: string | null
+  imageUrl?: string | null
   slug?: string | null
   shortCode?: string | null
 }
@@ -390,7 +393,7 @@ export default function DashboardPage() {
                 className={cn(dashboardFeedShell, dashboardFeedEmpty)}
               />
             ) : (
-              <DataList className={dashboardFeedShell}>
+              <div className={cn(dashboardFeedShell, "grid gap-3 sm:grid-cols-2")}>
                 {recentEvents.map((event) => {
                   const eventDate = new Date(event.startDate)
                   const formattedDate = eventDate.toLocaleDateString("en-US", {
@@ -400,26 +403,29 @@ export default function DashboardPage() {
                     hour: "numeric",
                     minute: "2-digit",
                   })
-                  const compactDate = eventDate.toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })
+                  const excerpt = richTextToPlainText(event.description, 90)
                   return (
-                    <DataListRow key={event.id} href={getEventPublicPath(event)}>
-                      <DataListPrimary
-                        title={event.title}
-                        subtitle={event.location || undefined}
-                      />
-                      <DataListMeta>
-                        <span className="sm:hidden">{compactDate}</span>
-                        <span className="hidden sm:inline">{formattedDate}</span>
-                      </DataListMeta>
-                    </DataListRow>
+                    <Link
+                      key={event.id}
+                      href={getEventPublicPath(event)}
+                      className="group flex overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-foreground/15 hover:bg-muted/20"
+                    >
+                      <div className="w-24 shrink-0 sm:w-28">
+                        <EventFlyer src={event.imageUrl} alt="" variant="thumb" />
+                      </div>
+                      <div className="min-w-0 flex-1 p-3">
+                        <p className="line-clamp-2 text-sm font-medium leading-snug group-hover:underline">
+                          {event.title}
+                        </p>
+                        {excerpt ? (
+                          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{excerpt}</p>
+                        ) : null}
+                        <p className="mt-2 text-[11px] text-muted-foreground">{formattedDate}</p>
+                      </div>
+                    </Link>
                   )
                 })}
-              </DataList>
+              </div>
             )}
           </div>
         </div>

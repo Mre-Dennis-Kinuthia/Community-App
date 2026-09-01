@@ -29,7 +29,7 @@ import {
 } from "@/lib/event-constants"
 import { formatEventPrice, isPaidEvent, parseRegistrationQuestions } from "@/lib/event-questions"
 import { eventCalendarDate, formatEventTime24 } from "@/lib/event-datetime"
-import { getEventPublicUrl } from "@/lib/event-url"
+import { getEventPublicPath, getEventPublicUrl } from "@/lib/event-url"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
 
@@ -84,7 +84,6 @@ export default function EventsPage() {
   const [registering, setRegistering] = useState<Record<string | number, boolean>>({})
   const [isFiltering, setIsFiltering] = useState(false)
   const [regDialogOpen, setRegDialogOpen] = useState(false)
-  const [pendingRegistration, setPendingRegistration] = useState<Event | null>(null)
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
   const filter = activeTab === "upcoming" ? "upcoming" : "past"
@@ -442,7 +441,7 @@ export default function EventsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-4 md:space-y-6">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-7xl">
           <div className="hidden md:block">
             <Breadcrumbs items={[{ label: "Events & Programs" }]} />
           </div>
@@ -667,7 +666,7 @@ export default function EventsPage() {
         </div>
 
         {/* Events list */}
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-7xl">
           {loading ? (
             <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -428,146 +428,161 @@ export function EventPublicView({
   return (
     <article
       className={cn(
-        "w-full min-w-0 max-w-full space-y-4 md:mx-auto md:max-w-3xl md:space-y-6",
+        "w-full min-w-0 max-w-full",
         backHref ? "" : "px-4 py-8 sm:px-6 lg:py-10"
       )}
     >
-      {backHref ? (
-        <Button variant="ghost" size="sm" className="-ml-2 h-9 gap-2 px-2" asChild>
-          <Link href={backHref}>
-            <ArrowLeft className="h-4 w-4 shrink-0" />
-            {backLabel}
-          </Link>
-        </Button>
-      ) : null}
-
-      <EventFlyer src={event.imageUrl} alt={`${event.title} flyer`} />
-
-      <header className="w-full min-w-0 space-y-2">
-        <div className="flex flex-wrap gap-1.5">
-          {event.eventType ? (
-            <span className="rounded-md border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
-              {eventTypeLabel(event.eventType)}
-            </span>
-          ) : null}
-          {isPastEvent ? (
-            <span className="rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-              Past event
-            </span>
-          ) : null}
-          {priceLabel ? (
-            <span className="rounded-md bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
-              {priceLabel}
-            </span>
-          ) : null}
-        </div>
-
-        <h1 className="w-full min-w-0 break-words text-lg font-semibold leading-snug tracking-tight sm:text-xl">
-          {event.title}
-        </h1>
-
-        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-          <span className="break-words">
-            {formatEventDate(event.startDate, eventTz)}
-            {timeLine ? ` · ${timeLine} ${gmt}` : ""}
-          </span>
-          {event.location || event.onlineUrl || platformInfo ? (
-            <span className="inline-flex min-w-0 items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
-              <span className="break-words">
-                {platformInfo?.label || displayLocation(event)}
-                {platformInfo && event.location && event.locationType !== "online"
-                  ? ` · ${displayLocation(event)}`
-                  : ""}
-              </span>
-            </span>
-          ) : null}
-          {event.onlineUrl && event.locationType !== "in-person" ? (
-            <a
-              href={event.onlineUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-primary hover:underline"
-            >
-              Join online <ExternalLink className="h-3 w-3" />
-            </a>
-          ) : null}
-        </div>
-
-        {event.tags && event.tags.length > 0 ? (
-          <div className="flex min-w-0 flex-wrap gap-1.5">
-            {event.tags.map((tag) => (
-              <span
-                key={tag}
-                className="max-w-full truncate rounded-md border border-border px-2 py-0.5 text-[10px] font-normal"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+      <div className="mx-auto max-w-6xl space-y-6">
+        {backHref ? (
+          <Button variant="ghost" size="sm" className="-ml-2 h-9 gap-2 px-2" asChild>
+            <Link href={backHref}>
+              <ArrowLeft className="h-4 w-4 shrink-0" />
+              {backLabel}
+            </Link>
+          </Button>
         ) : null}
-      </header>
 
-      {event.description ? (
-        <section className="w-full min-w-0 overflow-x-clip rounded-lg border border-border bg-card px-3 py-4 sm:px-4">
-          <EventDescription html={event.description} />
-        </section>
-      ) : null}
+        <EventFlyer
+          src={event.imageUrl}
+          alt={`${event.title} flyer`}
+          variant="detail"
+          className="overflow-hidden rounded-xl"
+        />
 
-      <EventVenueMap
-        location={event.location}
-        locationType={event.locationType}
-        googleMapsUrl={event.googleMapsUrl}
-      />
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+          <div className="min-w-0 space-y-6">
+            <header className="w-full min-w-0 space-y-3">
+              <div className="flex flex-wrap gap-1.5">
+                {event.eventType ? (
+                  <span className="rounded-md border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
+                    {eventTypeLabel(event.eventType)}
+                  </span>
+                ) : null}
+                {isPastEvent ? (
+                  <span className="rounded-md border border-border bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                    Past event
+                  </span>
+                ) : null}
+                {priceLabel ? (
+                  <span className="rounded-md bg-primary px-2 py-0.5 text-[10px] font-medium text-primary-foreground">
+                    {priceLabel}
+                  </span>
+                ) : null}
+              </div>
 
-      {ctaBlock}
+              <h1 className="w-full min-w-0 break-words text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+                {event.title}
+              </h1>
 
-      {isLumaEvent && event.lumaEventUrl && !canRegister ? (
-        <section className="rounded-lg border border-border bg-card p-4">
-          <LumaRegistration event={event} />
-        </section>
-      ) : null}
+              <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+                <span className="break-words">
+                  {formatEventDate(event.startDate, eventTz)}
+                  {timeLine ? ` · ${timeLine} ${gmt}` : ""}
+                </span>
+                {event.location || event.onlineUrl || platformInfo ? (
+                  <span className="inline-flex min-w-0 items-center gap-1.5">
+                    <MapPin className="h-4 w-4 shrink-0" />
+                    <span className="break-words">
+                      {platformInfo?.label || displayLocation(event)}
+                      {platformInfo && event.location && event.locationType !== "online"
+                        ? ` · ${displayLocation(event)}`
+                        : ""}
+                    </span>
+                  </span>
+                ) : null}
+                {event.onlineUrl && event.locationType !== "in-person" ? (
+                  <a
+                    href={event.onlineUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                  >
+                    Join online <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                ) : null}
+              </div>
 
-      {isRegistered && calendarLinks ? (
-        <section className="space-y-3 rounded-lg border border-border bg-card p-4">
-          <h2 className="text-sm font-semibold">On your calendar</h2>
-          <p className="text-sm text-muted-foreground">
-            A calendar invite was sent when you registered. Use these options if you need to add
-            it again.
-          </p>
-          <EventCalendarActions links={calendarLinks} />
-        </section>
-      ) : null}
+              {event.tags && event.tags.length > 0 ? (
+                <div className="flex min-w-0 flex-wrap gap-1.5">
+                  {event.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="max-w-full truncate rounded-md border border-border px-2 py-0.5 text-[10px] font-normal"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </header>
 
-      {isRegistered && ticket ? (
-        <section className="flex flex-col items-center gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row">
-          <img
-            src={ticket.qrDataUrl}
-            alt="Check-in QR code"
-            className="h-40 w-44 rounded-lg border bg-white"
-          />
-          <div className="text-center sm:text-left">
-            <div className="mb-1 flex items-center justify-center gap-2 sm:justify-start">
-              <Ticket className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold">Your ticket</h2>
-            </div>
-            <p className="text-sm text-muted-foreground">Show this QR code at check-in</p>
-            <p className="mt-2 font-mono text-sm tracking-widest">{ticket.checkInCode}</p>
+            {event.description ? (
+              <section className="w-full min-w-0 overflow-x-clip rounded-xl border border-border bg-card px-4 py-5 sm:px-6">
+                <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  About this event
+                </h2>
+                <EventDescription html={event.description} className="text-base" />
+              </section>
+            ) : null}
+
+            <EventVenueMap
+              location={event.location}
+              locationType={event.locationType}
+              googleMapsUrl={event.googleMapsUrl}
+            />
+
+            {isLumaEvent && event.lumaEventUrl && !canRegister ? (
+              <section className="rounded-xl border border-border bg-card p-4">
+                <LumaRegistration event={event} />
+              </section>
+            ) : null}
+
+            {isRegistered && calendarLinks ? (
+              <section className="space-y-3 rounded-xl border border-border bg-card p-4">
+                <h2 className="text-sm font-semibold">On your calendar</h2>
+                <p className="text-sm text-muted-foreground">
+                  A calendar invite was sent when you registered. Use these options if you need to
+                  add it again.
+                </p>
+                <EventCalendarActions links={calendarLinks} />
+              </section>
+            ) : null}
+
+            {isRegistered && ticket ? (
+              <section className="flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row">
+                <img
+                  src={ticket.qrDataUrl}
+                  alt="Check-in QR code"
+                  className="h-40 w-44 rounded-lg border bg-white"
+                />
+                <div className="text-center sm:text-left">
+                  <div className="mb-1 flex items-center justify-center gap-2 sm:justify-start">
+                    <Ticket className="h-4 w-4 text-primary" />
+                    <h2 className="text-sm font-semibold">Your ticket</h2>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Show this QR code at check-in</p>
+                  <p className="mt-2 font-mono text-sm tracking-widest">{ticket.checkInCode}</p>
+                </div>
+              </section>
+            ) : null}
+
+            <EventSharePanel
+              event={{
+                id: event.id,
+                title: event.title,
+                startDate: event.startDate,
+                slug: event.slug,
+                shortCode: event.shortCode,
+              }}
+            />
           </div>
-        </section>
-      ) : null}
 
-      <EventSharePanel
-        event={{
-          id: event.id,
-          title: event.title,
-          startDate: event.startDate,
-          slug: event.slug,
-          shortCode: event.shortCode,
-        }}
-      />
-
-      {hostBlock}
+          <aside className="space-y-5 lg:sticky lg:top-6">
+            {ctaBlock}
+            <StatusCard>{hostBlock}</StatusCard>
+          </aside>
+        </div>
+      </div>
     </article>
   )
 }

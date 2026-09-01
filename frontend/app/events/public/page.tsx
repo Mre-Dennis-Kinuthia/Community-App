@@ -2,34 +2,45 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Calendar, Loader2, MapPin } from "lucide-react"
+import { Calendar, Loader2, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { EventPublicLayout } from "@/components/events/event-public-layout"
+import { EventFlyer } from "@/components/events/event-flyer"
 import { eventTypeLabel } from "@/lib/event-constants"
 import { formatEventPrice } from "@/lib/event-questions"
 import { getEventPublicPath } from "@/lib/event-url"
+import { richTextToPlainText } from "@/lib/rich-text"
+import { eventCalendarDate, formatEventTime24 } from "@/lib/event-datetime"
 
 interface PublicEvent {
   id: string
   title: string
   startDate: string
+  endDate?: string | null
   location?: string | null
   eventType: string
   price?: number | null
   currency?: string | null
+  imageUrl?: string | null
+  description?: string | null
+  timezone?: string | null
   slug?: string | null
   shortCode?: string | null
 }
 
-function formatWhen(iso: string) {
-  return new Date(iso).toLocaleDateString("en-KE", {
+function formatWhen(event: PublicEvent) {
+  const tz = event.timezone || "Africa/Nairobi"
+  const date = eventCalendarDate(event.startDate, tz)
+  const time = formatEventTime24(event.startDate, tz)
+  const endTime = event.endDate ? formatEventTime24(event.endDate, tz) : null
+  const dateStr = date.toLocaleDateString("en-KE", {
     weekday: "short",
     month: "short",
     day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "Africa/Nairobi",
+    timeZone: tz,
   })
+  return endTime ? `${dateStr} · ${time} – ${endTime}` : `${dateStr} · ${time}`
 }
 
 export default function PublicEventsPage() {
@@ -49,14 +60,14 @@ export default function PublicEventsPage() {
   return (
     <EventPublicLayout>
       <div className="bg-[#faf9f6]">
-        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 md:py-14">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-14">
           <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#812926]">
             Impact Hub Nairobi
           </p>
           <h1 className="mt-2 text-2xl font-semibold text-[#0a1f38] md:text-3xl">
             Upcoming public events
           </h1>
-          <p className="mt-3 text-sm leading-relaxed text-[#1c395c]/80">
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#1c395c]/80">
             Workshops, mixers, and programs open to everyone. Sign in for member-only events, or
             register as a guest on each event page.
           </p>
@@ -77,40 +88,46 @@ export default function PublicEventsPage() {
               </Button>
             </div>
           ) : (
-            <ul className="mt-8 space-y-3">
-              {events.map((event) => (
-                <li key={event.id}>
-                  <Link
-                    href={getEventPublicPath(event)}
-                    className="block rounded-md border border-[#edeff2] bg-white p-4 transition-colors hover:border-[#812926]/30 hover:bg-white"
-                  >
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {events.map((event) => {
+                const excerpt = richTextToPlainText(event.description, 120)
+                const priceLabel =
+                  event.price != null
+                    ? formatEventPrice(event.price, event.currency ?? "KES") ?? "Free"
+                    : "Free"
+
+                return (
+                  <Link key={event.id} href={getEventPublicPath(event)} className="group block h-full">
+                    <Card className="flex h-full flex-col overflow-hidden border-[#edeff2] transition-colors hover:border-[#812926]/30 hover:shadow-sm">
+                      <EventFlyer src={event.imageUrl} alt="" variant="card" />
+                      <div className="flex flex-1 flex-col gap-2 p-4">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-[#812926]">
                           {eventTypeLabel(event.eventType)}
                         </p>
-                        <h2 className="mt-1 font-semibold text-[#0a1f38]">{event.title}</h2>
-                        <p className="mt-2 flex items-center gap-1.5 text-xs text-[#1c395c]/75">
-                          <Calendar className="h-3.5 w-3.5 shrink-0 text-[#812926]" aria-hidden />
-                          {formatWhen(event.startDate)}
-                        </p>
-                        {event.location ? (
-                          <p className="mt-1 flex items-center gap-1.5 text-xs text-[#1c395c]/70">
-                            <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                            {event.location}
+                        <h2 className="line-clamp-2 text-base font-semibold text-[#0a1f38] group-hover:underline">
+                          {event.title}
+                        </h2>
+                        {excerpt ? (
+                          <p className="line-clamp-3 text-sm leading-relaxed text-[#1c395c]/75">
+                            {excerpt}
                           </p>
                         ) : null}
+                        <div className="mt-auto space-y-1 pt-2 text-xs text-[#1c395c]/70">
+                          <p className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5 shrink-0 text-[#812926]" aria-hidden />
+                            {formatWhen(event)}
+                          </p>
+                          {event.location ? (
+                            <p className="line-clamp-1">{event.location}</p>
+                          ) : null}
+                        </div>
+                        <p className="text-sm font-medium text-[#812926]">{priceLabel}</p>
                       </div>
-                      <span className="shrink-0 text-sm font-medium text-[#812926]">
-                        {event.price != null
-                          ? formatEventPrice(event.price, event.currency ?? "KES") ?? "Free"
-                          : "Free"}
-                      </span>
-                    </div>
+                    </Card>
                   </Link>
-                </li>
-              ))}
-            </ul>
+                )
+              })}
+            </div>
           )}
 
           <p className="mt-10 text-center text-sm text-[#1c395c]/75">
