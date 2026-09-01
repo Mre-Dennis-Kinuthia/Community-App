@@ -66,7 +66,7 @@ export function storedImagePath(id: string): string {
   return `/api/images/${id}`
 }
 
-const STORED_PATH_RE = /^\/api\/images\/([a-z0-9]+)$/i
+const STORED_PATH_RE = /(?:^|\/)api\/images\/([a-z0-9]+)(?:\?|#|$)/i
 
 export function parseStoredImageId(value: string | null | undefined): string | null {
   if (!value?.trim()) return null

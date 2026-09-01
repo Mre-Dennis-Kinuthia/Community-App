@@ -1,44 +1,72 @@
 import { ImageResponse } from "next/og"
+import sharp from "sharp"
 import { prisma } from "@/lib/prisma"
+import { getAppBaseUrl } from "@/lib/app-url"
 import { findEventByPublicParam } from "@/lib/event-slug"
 import { parseStoredImageId } from "@/lib/stored-image"
 import { getStoredImageBytes } from "@/lib/stored-image-server"
 import { eventTimezone, formatEventDate, formatEventTime } from "@/lib/event-datetime"
 
-export const eventOgSize = { width: 1200, height: 630 }
-export const eventOgContentType = "image/png"
+/** Match square event flyers (Luma-style posters). */
+export const eventOgSize = { width: 1200, height: 1200 }
+export const eventOgContentType = "image/jpeg"
 export const eventOgAlt = "Impact Hub Nairobi event"
 
-function toDataUrl(bytes: Buffer | Uint8Array, mimeType: string): string {
-  const buffer = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes)
-  return `data:${mimeType};base64,${buffer.toString("base64")}`
+function toBuffer(data: Buffer | Uint8Array): Buffer {
+  return Buffer.isBuffer(data) ? data : Buffer.from(data)
 }
 
-export async function renderEventOpenGraphImage(param: string) {
-  const event = await findEventByPublicParam(prisma, param)
-  const title = event?.title?.trim() || "Impact Hub Nairobi Event"
-  const tz = eventTimezone(event?.timezone)
-  const when = event?.startDate
-    ? `${formatEventDate(event.startDate, tz, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        year: undefined,
-      })} · ${formatEventTime(event.startDate, tz)}`
-    : "Impact Hub Nairobi"
+function imageResponse(body: Buffer, contentType: string) {
+  return new Response(new Uint8Array(body), {
+    headers: {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+    },
+  })
+}
 
-  let coverSrc: string | null = null
-  const storedId = parseStoredImageId(event?.imageUrl)
+async function fetchImageBytes(url: string): Promise<Buffer | null> {
+  try {
+    const res = await fetch(url, { redirect: "follow" })
+    if (!res.ok) return null
+    const bytes = toBuffer(new Uint8Array(await res.arrayBuffer()))
+    return bytes.length > 0 ? bytes : null
+  } catch {
+    return null
+  }
+}
+
+async function loadEventFlyerBuffer(imageUrl: string | null | undefined): Promise<Buffer | null> {
+  const storedId = parseStoredImageId(imageUrl)
+
   if (storedId) {
     const image = await getStoredImageBytes(storedId)
-    const bytes = image?.data
-    if (image && bytes && bytes.length > 0 && bytes.length < 1_500_000) {
-      coverSrc = toDataUrl(bytes, image.mimeType)
+    if (image?.data && image.data.length > 0) {
+      return toBuffer(image.data)
     }
-  } else if (event?.imageUrl && /^https?:\/\//i.test(event.imageUrl)) {
-    coverSrc = event.imageUrl
+    return fetchImageBytes(`${getAppBaseUrl()}/api/images/${storedId}`)
   }
 
+  if (imageUrl && /^https?:\/\//i.test(imageUrl)) {
+    return fetchImageBytes(imageUrl)
+  }
+
+  if (imageUrl?.startsWith("/")) {
+    return fetchImageBytes(`${getAppBaseUrl()}${imageUrl}`)
+  }
+
+  return null
+}
+
+async function flyerToOgJpeg(input: Buffer): Promise<Buffer> {
+  return sharp(input)
+    .rotate()
+    .resize(eventOgSize.width, eventOgSize.height, { fit: "cover", position: "centre" })
+    .jpeg({ quality: 85, mozjpeg: true })
+    .toBuffer()
+}
+
+function renderTitleCard(title: string, when: string) {
   return new ImageResponse(
     (
       <div
@@ -46,39 +74,13 @@ export async function renderEventOpenGraphImage(param: string) {
           width: "100%",
           height: "100%",
           display: "flex",
-          position: "relative",
           fontFamily: "system-ui, sans-serif",
           overflow: "hidden",
           background: "#0a1f38",
         }}
       >
-        {coverSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={coverSrc}
-            alt=""
-            width={1200}
-            height={630}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-          />
-        ) : null}
         <div
           style={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(to top, rgba(10,31,56,0.96) 0%, rgba(10,31,56,0.55) 48%, rgba(10,31,56,0.2) 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "relative",
             display: "flex",
             flexDirection: "column",
             justifyContent: "flex-end",
@@ -116,4 +118,35 @@ export async function renderEventOpenGraphImage(param: string) {
     ),
     { ...eventOgSize }
   )
+}
+
+export async function renderEventOpenGraphImage(param: string) {
+  const event = await findEventByPublicParam(prisma, param)
+  const flyer = await loadEventFlyerBuffer(event?.imageUrl)
+
+  if (flyer) {
+    try {
+      return imageResponse(await flyerToOgJpeg(flyer), eventOgContentType)
+    } catch (error) {
+      console.error("[event-og] flyer resize failed, serving original bytes", error)
+      return imageResponse(flyer, "image/png")
+    }
+  }
+
+  const title = event?.title?.trim() || "Impact Hub Nairobi Event"
+  const tz = eventTimezone(event?.timezone)
+  const when = event?.startDate
+    ? `${formatEventDate(event.startDate, tz, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: undefined,
+      })} · ${formatEventTime(event.startDate, tz)}`
+    : "Impact Hub Nairobi"
+
+  const png = await renderTitleCard(title, when)
+  const jpeg = await sharp(Buffer.from(await png.arrayBuffer()))
+    .jpeg({ quality: 85, mozjpeg: true })
+    .toBuffer()
+  return imageResponse(jpeg, eventOgContentType)
 }

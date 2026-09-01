@@ -72,12 +72,21 @@ export default auth((request) => {
     return NextResponse.next()
   }
 
-  // Public event pages (short /e/{code}, /events/public, and /events/{slug|id})
+  // Public event pages and share-preview images (crawlers are unauthenticated)
   const isPublicEventDetail =
     /^\/events\/[^/]+$/.test(pathname) && pathname !== "/events"
+  const isPublicEventShareImage =
+    /^\/events\/[^/]+\/(opengraph-image|twitter-image)/.test(pathname)
   const isPublicEventsBrowse = pathname === "/events/public"
   const isShortEventLink = /^\/e\/[^/]+$/.test(pathname)
-  if (isPublicEventDetail || isPublicEventsBrowse || isShortEventLink) {
+  const isShortEventShareImage = /^\/e\/[^/]+\/(opengraph-image|twitter-image)/.test(pathname)
+  if (
+    isPublicEventDetail ||
+    isPublicEventShareImage ||
+    isPublicEventsBrowse ||
+    isShortEventLink ||
+    isShortEventShareImage
+  ) {
     return NextResponse.next()
   }
 
