@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { prisma } from "@/lib/prisma"
 import { findEventByPublicParam, ensureEventSlugAndShortCode } from "@/lib/event-slug"
 import { getEventOpenGraphImageUrl, getEventPublicUrl, getEventShareText } from "@/lib/event-url"
-import { eventOgAlt, eventOgContentType, eventOgSize } from "@/lib/event-opengraph"
+import { eventOgAlt, eventOgContentType, getEventShareImageSize } from "@/lib/event-opengraph"
 import { richTextToPlainText } from "@/lib/rich-text"
 
 export async function buildEventShareMetadata(param: string): Promise<Metadata> {
@@ -17,15 +17,15 @@ export async function buildEventShareMetadata(param: string): Promise<Metadata> 
 
     const url = getEventPublicUrl(event)
     const ogImageUrl = getEventOpenGraphImageUrl(event)
+    const ogDimensions = await getEventShareImageSize(param)
     const description =
       richTextToPlainText(event.description, 160) ||
       getEventShareText(event.title, event.startDate)
 
-    // One absolute HTTPS image — crawlers (WhatsApp, Slack) often fail on multi-image tags or huge PNGs.
     const ogImage = {
       url: ogImageUrl,
-      width: eventOgSize.width,
-      height: eventOgSize.height,
+      width: ogDimensions.width,
+      height: ogDimensions.height,
       alt: event.title || eventOgAlt,
       type: eventOgContentType,
     }

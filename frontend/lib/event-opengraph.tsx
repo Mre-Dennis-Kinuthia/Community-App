@@ -7,12 +7,15 @@ import { parseStoredImageId } from "@/lib/stored-image"
 import { getStoredImageBytes } from "@/lib/stored-image-server"
 import { eventTimezone, formatEventDate, formatEventTime } from "@/lib/event-datetime"
 
-/** Standard link-preview size (WhatsApp, Slack, LinkedIn). */
-export const eventOgSize = { width: 1200, height: 630 }
+/** Fallback title card when an event has no flyer. */
+export const eventOgTitleCardSize = { width: 1200, height: 630 }
+/** @deprecated Use getEventShareImageSize() for flyer events. */
+export const eventOgSize = eventOgTitleCardSize
 export const eventOgContentType = "image/jpeg"
 export const eventOgAlt = "Impact Hub Nairobi event"
 
-const OG_CANVAS = { r: 10, g: 31, b: 56, alpha: 1 as const }
+const OG_MAX_EDGE = 1200
+const OG_MIN_EDGE = 200
 
 function toBuffer(data: Buffer | Uint8Array): Buffer {
   return Buffer.isBuffer(data) ? data : Buffer.from(data)
@@ -60,16 +63,41 @@ async function loadEventFlyerBuffer(imageUrl: string | null | undefined): Promis
   return null
 }
 
-async function flyerToOgJpeg(input: Buffer): Promise<Buffer> {
-  return sharp(input)
+/** Scale to max 1200px on the longest edge — same aspect ratio as the source, no padding. */
+export async function computeFlyerOgSize(input: Buffer): Promise<{ width: number; height: number }> {
+  const meta = await sharp(input).rotate().metadata()
+  const sourceW = meta.width ?? OG_MAX_EDGE
+  const sourceH = meta.height ?? OG_MAX_EDGE
+  const scale = OG_MAX_EDGE / Math.max(sourceW, sourceH, 1)
+
+  return {
+    width: Math.max(OG_MIN_EDGE, Math.round(sourceW * scale)),
+    height: Math.max(OG_MIN_EDGE, Math.round(sourceH * scale)),
+  }
+}
+
+async function flyerToOgJpeg(
+  input: Buffer
+): Promise<{ buffer: Buffer; width: number; height: number }> {
+  const { width, height } = await computeFlyerOgSize(input)
+  const buffer = await sharp(input)
     .rotate()
-    .resize(eventOgSize.width, eventOgSize.height, {
-      fit: "contain",
-      background: OG_CANVAS,
-    })
-    .flatten({ background: { r: OG_CANVAS.r, g: OG_CANVAS.g, b: OG_CANVAS.b } })
+    .resize(width, height, { fit: "fill" })
     .jpeg({ quality: 82, mozjpeg: true })
     .toBuffer()
+  return { buffer, width, height }
+}
+
+/** OG dimensions for meta tags — matches the generated share image. */
+export async function getEventShareImageSize(
+  param: string
+): Promise<{ width: number; height: number }> {
+  const event = await findEventByPublicParam(prisma, param)
+  const flyer = await loadEventFlyerBuffer(event?.imageUrl)
+  if (flyer) {
+    return computeFlyerOgSize(flyer)
+  }
+  return eventOgTitleCardSize
 }
 
 function renderTitleCard(title: string, when: string) {
@@ -122,7 +150,7 @@ function renderTitleCard(title: string, when: string) {
         </div>
       </div>
     ),
-    { ...eventOgSize }
+    { ...eventOgTitleCardSize }
   )
 }
 
@@ -132,7 +160,8 @@ export async function renderEventOpenGraphImage(param: string) {
 
   if (flyer) {
     try {
-      return imageResponse(await flyerToOgJpeg(flyer), eventOgContentType)
+      const { buffer } = await flyerToOgJpeg(flyer)
+      return imageResponse(buffer, eventOgContentType)
     } catch (error) {
       console.error("[event-og] flyer resize failed, serving original bytes", error)
       return imageResponse(flyer, "image/png")

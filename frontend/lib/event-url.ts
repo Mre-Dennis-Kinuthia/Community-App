@@ -32,7 +32,7 @@ export function getEventOpenGraphImageUrl(event: {
   slug?: string | null
 }): string {
   // Cache-bust key when share-preview rendering changes.
-  return `${getEventPublicUrl(event)}/opengraph-image?v=social3`
+  return `${getEventPublicUrl(event)}/opengraph-image?v=social4`
 }
 
 export function getEventShareText(title: string, startDate?: Date | string): string {
