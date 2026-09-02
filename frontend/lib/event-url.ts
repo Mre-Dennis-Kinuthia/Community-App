@@ -2,7 +2,6 @@
  * Canonical public URL for an event (short share link preferred).
  */
 import { getAppBaseUrl } from "@/lib/app-url"
-import { parseStoredImageId } from "@/lib/stored-image"
 
 export function getEventPublicPath(event: {
   id: string
@@ -27,28 +26,13 @@ export function getEventPublicUrl(event: {
   return `${root}${getEventPublicPath(event)}`
 }
 
-export function getEventFlyerPublicUrl(imageUrl: string | null | undefined): string | null {
-  if (!imageUrl?.trim()) return null
-  const storedId = parseStoredImageId(imageUrl)
-  if (storedId) {
-    return `${getAppBaseUrl()}/api/images/${storedId}`
-  }
-  if (/^https?:\/\//i.test(imageUrl)) {
-    return imageUrl
-  }
-  if (imageUrl.startsWith("/")) {
-    return `${getAppBaseUrl()}${imageUrl}`
-  }
-  return null
-}
-
 export function getEventOpenGraphImageUrl(event: {
   id: string
   shortCode?: string | null
   slug?: string | null
 }): string {
-  // Query busts crawler caches of the old title-card OG image.
-  return `${getEventPublicUrl(event)}/opengraph-image?v=flyer2`
+  // Cache-bust key when share-preview rendering changes.
+  return `${getEventPublicUrl(event)}/opengraph-image?v=social3`
 }
 
 export function getEventShareText(title: string, startDate?: Date | string): string {

@@ -7,10 +7,12 @@ import { parseStoredImageId } from "@/lib/stored-image"
 import { getStoredImageBytes } from "@/lib/stored-image-server"
 import { eventTimezone, formatEventDate, formatEventTime } from "@/lib/event-datetime"
 
-/** Match square event flyers (Luma-style posters). */
-export const eventOgSize = { width: 1200, height: 1200 }
+/** Standard link-preview size (WhatsApp, Slack, LinkedIn). */
+export const eventOgSize = { width: 1200, height: 630 }
 export const eventOgContentType = "image/jpeg"
 export const eventOgAlt = "Impact Hub Nairobi event"
+
+const OG_CANVAS = { r: 10, g: 31, b: 56, alpha: 1 as const }
 
 function toBuffer(data: Buffer | Uint8Array): Buffer {
   return Buffer.isBuffer(data) ? data : Buffer.from(data)
@@ -61,8 +63,12 @@ async function loadEventFlyerBuffer(imageUrl: string | null | undefined): Promis
 async function flyerToOgJpeg(input: Buffer): Promise<Buffer> {
   return sharp(input)
     .rotate()
-    .resize(eventOgSize.width, eventOgSize.height, { fit: "cover", position: "centre" })
-    .jpeg({ quality: 85, mozjpeg: true })
+    .resize(eventOgSize.width, eventOgSize.height, {
+      fit: "contain",
+      background: OG_CANVAS,
+    })
+    .flatten({ background: { r: OG_CANVAS.r, g: OG_CANVAS.g, b: OG_CANVAS.b } })
+    .jpeg({ quality: 82, mozjpeg: true })
     .toBuffer()
 }
 
