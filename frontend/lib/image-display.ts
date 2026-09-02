@@ -1,6 +1,16 @@
 import type { StoredImageCategory } from "@/lib/stored-image"
 import { cn } from "@/lib/utils"
 
+/** Face-friendly crop for circular member photos (head + shoulders, not chest-centered). */
+export const avatarImageClassName =
+  "aspect-square size-full object-cover object-[50%_20%] bg-muted"
+
+/** Upload preview matches live avatar framing. */
+export const profilePhotoPreviewClassName = avatarImageClassName
+
+/** Small rectangular thumbnails (e.g. project tile). */
+export const thumbnailImageClassName = "size-full object-contain object-center"
+
 /** CSS classes for upload previews — preserves aspect ratio, no stretch. */
 export function getImagePreviewClasses(
   category: StoredImageCategory,
@@ -13,7 +23,7 @@ export function getImagePreviewClasses(
           "relative size-32 shrink-0 overflow-hidden rounded-full border border-border bg-muted",
           previewClassName
         ),
-        img: "size-full object-cover object-center",
+        img: profilePhotoPreviewClassName,
       }
     case "partner_logo":
       return {
@@ -43,9 +53,3 @@ export function getImagePreviewClasses(
       }
   }
 }
-
-/** Avatar & circular thumbnails — center crop, never stretch. */
-export const avatarImageClassName = "aspect-square size-full object-cover object-center"
-
-/** Small rectangular thumbnails (e.g. project tile). */
-export const thumbnailImageClassName = "size-full object-contain object-center"
