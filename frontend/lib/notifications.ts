@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import { deliverNotificationEmails } from "@/lib/notification-email"
+import type { Prisma } from "@prisma/client"
+
+/** In-app alerts for the admin navbar — never shown to community members. */
+export const STAFF_ALERT_CATEGORY = "staff_alert"
+
+const MEMBER_HIDDEN_BROADCAST_CATEGORIES = [STAFF_ALERT_CATEGORY] as const
 
 export interface CreateNotificationParams {
   userId?: string | null
@@ -20,6 +26,8 @@ export interface CreateNotificationParams {
  */
 export async function createNotification(params: CreateNotificationParams) {
   try {
+    const isStaffAlert = params.category === STAFF_ALERT_CATEGORY
+
     const notification = await prisma.notification.create({
       data: {
         userId: params.userId ?? null,
@@ -38,7 +46,7 @@ export async function createNotification(params: CreateNotificationParams) {
       title: params.title,
       message: params.message,
       actionUrl: params.actionUrl,
-      skipEmail: params.skipEmail,
+      skipEmail: params.skipEmail || isStaffAlert,
     })
 
     console.log("[NOTIFICATIONS] Created notification:", notification.id)
@@ -238,4 +246,53 @@ export const NotificationTemplates = {
     relatedId: followId,
     relatedType: "follow",
   }),
+}
+
+type MemberNotificationFilters = {
+  unreadOnly?: boolean
+  category?: string | null
+}
+
+/** Notifications visible in the community member bell (excludes staff-only alerts). */
+export function memberNotificationsWhere(
+  userId: string,
+  filters: MemberNotificationFilters = {}
+): Prisma.NotificationWhereInput {
+  const where: Prisma.NotificationWhereInput = {
+    deletedAt: null,
+    OR: [
+      { userId },
+      {
+        userId: null,
+        NOT: {
+          category: { in: [...MEMBER_HIDDEN_BROADCAST_CATEGORIES] },
+        },
+      },
+    ],
+  }
+
+  if (filters.unreadOnly) {
+    where.read = false
+  }
+
+  if (filters.category) {
+    where.category = filters.category
+  }
+
+  return where
+}
+
+export function canMemberAccessNotification(
+  notification: { userId: string | null; category: string | null },
+  userId: string
+): boolean {
+  if (notification.userId === userId) return true
+  if (notification.userId !== null) return false
+  if (
+    notification.category &&
+    (MEMBER_HIDDEN_BROADCAST_CATEGORIES as readonly string[]).includes(notification.category)
+  ) {
+    return false
+  }
+  return true
 }

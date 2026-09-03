@@ -1,8 +1,9 @@
-import { createNotification } from "@/lib/notifications"
+import { createNotification, STAFF_ALERT_CATEGORY } from "@/lib/notifications"
 import { getAdminAppBaseUrl } from "@/lib/app-url"
 
+export { STAFF_ALERT_CATEGORY }
+
 /** In-app alerts shown in the admin navbar bell (userId null + this category). */
-export const STAFF_ALERT_CATEGORY = "staff_alert"
 
 export async function createStaffAlert(params: {
   title: string

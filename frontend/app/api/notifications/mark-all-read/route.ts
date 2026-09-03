@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { memberNotificationsWhere } from "@/lib/notifications"
 
 /**
  * POST /api/notifications/mark-all-read
@@ -19,12 +20,7 @@ export async function POST(request: NextRequest) {
 
     const result = await prisma.notification.updateMany({
       where: {
-        OR: [
-          { userId: session.user.id },
-          { userId: null }, // Broadcast notifications
-        ],
-        read: false,
-        deletedAt: null,
+        ...memberNotificationsWhere(session.user.id, { unreadOnly: true }),
       },
       data: {
         read: true,

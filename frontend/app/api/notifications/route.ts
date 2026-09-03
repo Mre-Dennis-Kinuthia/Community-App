@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { createNotification } from "@/lib/notifications"
+import { createNotification, memberNotificationsWhere } from "@/lib/notifications"
 import { z } from "zod"
 
 const createNotificationSchema = z.object({
@@ -38,22 +38,10 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    // Include both user-specific and broadcast (userId: null) notifications
-    const where: any = {
-      OR: [
-        { userId: session.user.id },
-        { userId: null }, // Broadcast notifications for all users
-      ],
-      deletedAt: null,
-    }
-
-    if (unreadOnly) {
-      where.read = false
-    }
-
-    if (category) {
-      where.category = category
-    }
+    const where = memberNotificationsWhere(session.user.id, {
+      unreadOnly,
+      category: category || undefined,
+    })
 
     const [notifications, total, unreadCount] = await Promise.all([
       prisma.notification.findMany({
@@ -66,14 +54,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.notification.count({ where }),
       prisma.notification.count({
-        where: {
-          OR: [
-            { userId: session.user.id },
-            { userId: null }, // Broadcast notifications
-          ],
-          read: false,
-          deletedAt: null,
-        },
+        where: memberNotificationsWhere(session.user.id, { unreadOnly: true }),
       }),
     ])
 
