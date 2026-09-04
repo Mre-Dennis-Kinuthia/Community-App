@@ -41,7 +41,8 @@
     "db:apply-newsletter-v2": "tsx scripts/apply-newsletter-v2.ts",
     "db:apply-member-profile-phone": "tsx scripts/apply-member-profile-phone.ts",
     "db:apply-member-profile-slug": "tsx scripts/apply-member-profile-slug.ts",
-    "db:backfill-member-slugs": "tsx scripts/backfill-member-slugs.ts"
+    "db:backfill-member-slugs": "tsx scripts/backfill-member-slugs.ts",
+    "db:subscribe-members-newsletter": "tsx scripts/subscribe-members-to-newsletter.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

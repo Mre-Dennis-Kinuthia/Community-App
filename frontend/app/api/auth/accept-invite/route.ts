@@ -10,6 +10,7 @@ import {
 } from "@/lib/member-invite"
 import { sendWelcomeEmail, sendEmailInBackground } from "@/lib/email"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
+import { subscribeMemberToNewsletter } from "@/lib/newsletter"
 
 const acceptInviteSchema = z.object({
   email: z.string().email().transform((val) => val.toLowerCase().trim()),
@@ -84,6 +85,7 @@ export async function POST(request: NextRequest) {
     })
 
     await consumeMemberInviteToken(email, token)
+    await subscribeMemberToNewsletter(email)
 
     const profile = await prisma.memberProfile.findUnique({
       where: { userId: user.id },

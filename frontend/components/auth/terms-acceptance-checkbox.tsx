@@ -50,7 +50,8 @@ export function TermsAcceptanceCheckbox({
           >
             Privacy Policy
           </Link>
-          .
+          . I understand I will be subscribed to the Impact Hub Nairobi community newsletter and can
+          unsubscribe at any time.
         </label>
       </div>
       {error ? (

@@ -2,6 +2,7 @@ import { randomBytes } from "crypto"
 import type { Plan, PrismaClient } from "@prisma/client"
 import { Prisma } from "@prisma/client"
 import { getAppBaseUrl } from "@/lib/app-url"
+import { subscribeMemberToNewsletter } from "@/lib/newsletter"
 import {
   addBillingPeriodEnd,
   isRecurringPlanInterval,
@@ -31,11 +32,17 @@ export async function resolveUserForMembership(
   const email = params.email.toLowerCase().trim()
   if (params.existingUserId) {
     const byId = await prisma.user.findUnique({ where: { id: params.existingUserId } })
-    if (byId && byId.email.toLowerCase() === email) return byId.id
+    if (byId && byId.email.toLowerCase() === email) {
+      await subscribeMemberToNewsletter(email)
+      return byId.id
+    }
   }
 
   const existing = await prisma.user.findUnique({ where: { email } })
-  if (existing) return existing.id
+  if (existing) {
+    await subscribeMemberToNewsletter(email)
+    return existing.id
+  }
 
   const created = await prisma.user.create({
     data: {
@@ -43,6 +50,7 @@ export async function resolveUserForMembership(
       name: params.name?.trim() || null,
     },
   })
+  await subscribeMemberToNewsletter(email)
   return created.id
 }
 

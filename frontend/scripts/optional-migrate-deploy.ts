@@ -55,6 +55,7 @@ const applyScripts = [
   "db:apply-newsletter-campaigns",
   "db:apply-newsletter-v2",
   "db:apply-member-profile-phone",
+  "db:subscribe-members-newsletter",
 ]
 
 for (const script of applyScripts) {

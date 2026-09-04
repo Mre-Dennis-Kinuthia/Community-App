@@ -8,6 +8,7 @@ import {
 } from "@/lib/membership-tier"
 import { sendMembershipTierRecognizedEmail } from "@/lib/email/membership-tier-recognized"
 import { isEmailConfigured, sendEmailInBackground } from "@/lib/email/send"
+import { subscribeMemberToNewsletter } from "@/lib/newsletter"
 
 export function queueMembershipTierRecognitionEmail(args: {
   email: string
@@ -64,6 +65,8 @@ export async function syncMembershipTierOnSignup(args: {
       ...args.options,
     }
   )
+
+  await subscribeMemberToNewsletter(args.email)
 
   /** Intent sign-ups get tier-specific welcome flows; ticket match gets recognition email */
   const shouldNotify =

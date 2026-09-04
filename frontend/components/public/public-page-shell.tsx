@@ -41,17 +41,25 @@ export function PublicPageShell({ title, updated, children }: PublicPageShellPro
 }
 
 export function LegalSection({
+  id,
   title,
   children,
 }: {
+  id?: string
   title: string
   children: ReactNode
 }) {
   return (
-    <section>
+    <section id={id} className="scroll-mt-8">
       <h2 className="mb-3 text-xl font-semibold text-[#0a1f38]">{title}</h2>
       <div className="space-y-3 text-[#1c395c]/90">{children}</div>
     </section>
+  )
+}
+
+export function LegalList({ children }: { children: ReactNode }) {
+  return (
+    <ul className="list-disc space-y-1.5 pl-5 marker:text-[#812926]">{children}</ul>
   )
 }
 
