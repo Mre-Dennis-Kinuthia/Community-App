@@ -423,18 +423,54 @@ export default function TermsPage() {
 
       <LegalSection id="liability" title="18. Limitation of liability">
         <p>
-          To the fullest extent permitted by law, IHN and its officers, employees, and agents are
-          not liable for any indirect, incidental, special, consequential, or punitive damages, or
-          for lost profits, lost data, loss of goodwill, or business interruption, arising from
-          your use of the Platform or from member-to-member interactions.
+          You use the Platform, hub facilities booked through it, and any dealings with other
+          members, partners, or third parties <strong>entirely at your own risk</strong>. IHN does
+          not control member-to-member interactions and is not a party to them.
         </p>
         <p>
-          Our total aggregate liability arising out of or relating to the Platform or these Terms
-          is limited to the greater of (a) the fees you paid to IHN through the Platform in the
-          twelve (12) months before the claim, and (b) Kenya Shillings ten thousand (KES 10,000).
+          To the maximum extent permitted by the laws of Kenya, Impact Hub Nairobi and its
+          officers, directors, employees, contractors, volunteers, and agents (
+          <strong>&ldquo;IHN Parties&rdquo;</strong>) have{" "}
+          <strong>no liability of any kind</strong> to you or any third party, whether in contract,
+          tort (including negligence), misrepresentation, strict liability, statute, equity, or
+          otherwise, and whether arising from the Platform, these Terms, membership, bookings,
+          events, programmes, payments, content, downtime, data loss, or any other matter.
+        </p>
+        <p>Without limiting the previous paragraph, the IHN Parties are not liable for:</p>
+        <LegalList>
+          <li>
+            any loss or damage, whether direct, indirect, incidental, special, consequential,
+            exemplary, or punitive;
+          </li>
+          <li>
+            lost profits, revenue, savings, business, opportunity, goodwill, or data; business
+            interruption; or cost of substitute services;
+          </li>
+          <li>
+            personal injury, property damage, or other harm occurring on or off the premises,
+            except where Kenyan law does not allow that exclusion;
+          </li>
+          <li>
+            acts or omissions of other members, visitors, partners, payment providers (including
+            Paystack and M-Pesa operators), hosting providers, or any third party;
+          </li>
+          <li>
+            unavailability, errors, delays, security incidents, or unauthorised access, to the
+            extent exclusion is permitted.
+          </li>
+        </LegalList>
+        <p>
+          If, despite the above, a court or tribunal holds that an IHN Party has any liability that
+          cannot be excluded, then to the maximum extent the law allows that remaining liability
+          is limited to <strong>Kenya Shillings zero (KES 0)</strong>, or if a zero cap is not
+          permitted, to the <strong>lowest amount the applicable law requires</strong>. You agree
+          that this allocation of risk is a fundamental basis of these Terms and that we would not
+          provide the Platform on a free or paid basis without it.
         </p>
         <p>
-          These limits do not apply to liability that cannot be limited under applicable law.
+          Nothing in this section excludes or limits liability that Kenyan law does not permit to
+          be excluded or limited, including (where such a prohibition applies) liability for fraud
+          or for death or personal injury caused by negligence.
         </p>
       </LegalSection>
 
