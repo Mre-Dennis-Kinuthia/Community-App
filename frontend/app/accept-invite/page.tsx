@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react"
 import { toast } from "@/lib/toast"
 import { startNavigation } from "@/lib/navigation"
 import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter"
+import { TermsAcceptanceCheckbox } from "@/components/auth/terms-acceptance-checkbox"
 import { AuthPageShell } from "@/components/auth/auth-page-shell"
 import { AUTH_LINK, AUTH_PRIMARY_BTN } from "@/components/auth/auth-form-styles"
 import {
@@ -32,6 +33,8 @@ function AcceptInviteForm() {
   const [confirm, setConfirm] = useState("")
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordPwned, setPasswordPwned] = useState<boolean | null>(null)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [termsError, setTermsError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +58,11 @@ function AcceptInviteForm() {
       toast.error("Invalid link", "Ask your community manager for a new invite.")
       return
     }
+    if (!acceptedTerms) {
+      setTermsError("You must accept the Terms of Service and Privacy Policy")
+      toast.error("Terms required", "Please accept the Terms of Service and Privacy Policy to continue.")
+      return
+    }
 
     setIsLoading(true)
     try {
@@ -62,7 +70,7 @@ function AcceptInviteForm() {
       const res = await fetch("/api/auth/accept-invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: normalizedEmail, token, password }),
+        body: JSON.stringify({ email: normalizedEmail, token, password, acceptedTerms: true }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Activation failed")
@@ -168,6 +176,15 @@ function AcceptInviteForm() {
             maxLength={PASSWORD_MAX_LENGTH}
           />
         </div>
+        <TermsAcceptanceCheckbox
+          id="accept-invite-terms"
+          checked={acceptedTerms}
+          onCheckedChange={(checked) => {
+            setAcceptedTerms(checked)
+            if (checked) setTermsError(null)
+          }}
+          error={termsError}
+        />
         <Button type="submit" className={AUTH_PRIMARY_BTN} disabled={isLoading}>
           {isLoading ? (
             <>

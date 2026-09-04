@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
 
     const accountMeta = await prisma.user.findUnique({
       where: { id: userId },
-      select: { createdAt: true, password: true },
+      select: { createdAt: true, password: true, termsAcceptedAt: true },
     })
 
     const userEmail =
@@ -219,6 +219,7 @@ export async function GET(request: NextRequest) {
               ? shouldShowOnboardingNudge(accountMeta.createdAt)
               : false,
           canDeleteWithPassword: Boolean(accountMeta?.password),
+          termsAccepted: Boolean(accountMeta?.termsAcceptedAt),
           stats: { connections, events, projects, following, followers },
         },
         { headers: corsHeaders }
@@ -271,6 +272,7 @@ export async function GET(request: NextRequest) {
             ? shouldShowOnboardingNudge(accountMeta.createdAt)
             : false,
         canDeleteWithPassword: Boolean(accountMeta?.password),
+        termsAccepted: Boolean(accountMeta?.termsAcceptedAt),
         stats: { connections, events, projects, following, followers },
       },
       { headers: corsHeaders }
@@ -310,6 +312,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
+    const acceptTerms = body.acceptTerms === true
     const validatedData = profileUpdateSchema.parse(body)
     const { name: nameUpdate, image: imageUpdate, socialLinks: socialLinksInput, ...profileData } =
       validatedData
@@ -359,12 +362,21 @@ export async function PUT(request: NextRequest) {
       ? isOnboardingComplete(onboardingSliceFromProfile(existing))
       : false
 
-    const userUpdates: { name?: string; image?: string | null } = {}
+    const userUpdates: { name?: string; image?: string | null; termsAcceptedAt?: Date } = {}
     if (nameUpdate !== undefined && nameUpdate.trim()) {
       userUpdates.name = nameUpdate.trim()
     }
     if (imageUpdate !== undefined) {
       userUpdates.image = imageUpdate
+    }
+    if (acceptTerms) {
+      const userTerms = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { termsAcceptedAt: true },
+      })
+      if (!userTerms?.termsAcceptedAt) {
+        userUpdates.termsAcceptedAt = new Date()
+      }
     }
     if (Object.keys(userUpdates).length > 0) {
       await prisma.user.update({

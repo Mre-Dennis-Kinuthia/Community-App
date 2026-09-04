@@ -15,6 +15,11 @@ const acceptInviteSchema = z.object({
   email: z.string().email().transform((val) => val.toLowerCase().trim()),
   token: z.string().min(1),
   password: z.string(),
+  acceptedTerms: z.literal(true, {
+    errorMap: () => ({
+      message: "You must accept the Terms of Service and Privacy Policy",
+    }),
+  }),
 })
 
 /**
@@ -74,6 +79,7 @@ export async function POST(request: NextRequest) {
       data: {
         password: hashedPassword,
         emailVerified: new Date(),
+        termsAcceptedAt: new Date(),
       },
     })
 

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/lib/toast"
 import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
-import { LegalLinks } from "@/components/legal-links"
+import { TermsAcceptanceCheckbox } from "@/components/auth/terms-acceptance-checkbox"
 import { AuthPageShell } from "@/components/auth/auth-page-shell"
 import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter"
 import {
@@ -43,7 +43,9 @@ function RegisterForm() {
     email?: string
     password?: string
     confirmPassword?: string
+    acceptedTerms?: string
   }>({})
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [passwordPwned, setPasswordPwned] = useState<boolean | null>(null)
 
@@ -129,6 +131,13 @@ function RegisterForm() {
     const emailValid = validateField("email", formData.email)
     const passwordValid = validateField("password", formData.password)
     const confirmPasswordValid = validateField("confirmPassword", formData.confirmPassword)
+    if (!acceptedTerms) {
+      setErrors((prev) => ({
+        ...prev,
+        acceptedTerms: "You must accept the Terms of Service and Privacy Policy",
+      }))
+      return false
+    }
     return firstNameValid && lastNameValid && emailValid && passwordValid && confirmPasswordValid
   }
 
@@ -173,6 +182,7 @@ function RegisterForm() {
         email: normalizedEmail,
         password: formData.password,
         name: name || undefined,
+        acceptedTerms: true as const,
         ...(organisationalIntent
           ? { membershipIntent: MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL }
           : {}),
@@ -355,6 +365,17 @@ function RegisterForm() {
             </p>
           )}
         </div>
+        <TermsAcceptanceCheckbox
+          id="register-terms"
+          checked={acceptedTerms}
+          onCheckedChange={(checked) => {
+            setAcceptedTerms(checked)
+            if (checked) {
+              setErrors((prev) => ({ ...prev, acceptedTerms: undefined }))
+            }
+          }}
+          error={errors.acceptedTerms}
+        />
         <Button
           type="submit"
           className="w-full bg-[#812926] hover:bg-[#6b2120]"
@@ -371,7 +392,6 @@ function RegisterForm() {
             "Become a member"
           )}
         </Button>
-        <LegalLinks showAgreement className="px-1" />
 
         <p className="text-center text-sm text-muted-foreground">
           Already have an account?{" "}

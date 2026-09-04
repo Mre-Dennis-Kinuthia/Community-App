@@ -17,6 +17,11 @@ const registerSchema = z.object({
   password: z.string(),
   name: z.string().optional(),
   membershipIntent: z.literal(MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL).optional(),
+  acceptedTerms: z.literal(true, {
+    errorMap: () => ({
+      message: "You must accept the Terms of Service and Privacy Policy",
+    }),
+  }),
 })
 
 export async function POST(request: NextRequest) {
@@ -42,7 +47,7 @@ export async function POST(request: NextRequest) {
     })
     
     const { email, password, name, membershipIntent } = registerSchema.parse(body)
-    const normalizedEmail = email.toLowerCase().trim()
+    const normalizedEmail = email
     console.log("[REGISTER API] Validation passed, normalized email:", normalizedEmail)
 
     const passwordResult = await validatePasswordAsync(password, {
@@ -77,6 +82,7 @@ export async function POST(request: NextRequest) {
         email: normalizedEmail, // Store email in lowercase
         name: name || null,
         password: hashedPassword,
+        termsAcceptedAt: new Date(),
       },
       select: {
         id: true,
@@ -181,6 +187,9 @@ export async function POST(request: NextRequest) {
         }
         if (err.path[0] === "password") {
           return err.message
+        }
+        if (err.path[0] === "acceptedTerms") {
+          return "You must accept the Terms of Service and Privacy Policy"
         }
         return err.message
       })

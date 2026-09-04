@@ -47,6 +47,7 @@ import { validatePhoneInput } from "@/lib/member-phone"
 import { isOrganisationalRegisterIntent } from "@/lib/membership-register-intent"
 import { ORGANISATIONAL_PLAN_NAME, ORGANISATIONAL_RESPONSE_SLA } from "@/lib/membership-inquiry"
 import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
+import { TermsAcceptanceCheckbox } from "@/components/auth/terms-acceptance-checkbox"
 
 const STEP_LABELS = ["Your profile", "Goals & community"] as const
 const TOTAL_STEPS = STEP_LABELS.length
@@ -77,6 +78,8 @@ function OnboardingContent() {
   const [skills, setSkills] = useState<string[]>([])
   const [customSkill, setCustomSkill] = useState("")
   const [showOnboardingNudge, setShowOnboardingNudge] = useState(false)
+  const [needsTermsAcceptance, setNeedsTermsAcceptance] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
 
   const checkProfile = useCallback(async () => {
     if (!session?.user?.id) return
@@ -86,6 +89,7 @@ function OnboardingContent() {
       const data = await res.json()
       setNeedsOnboarding(data.needsOnboarding === true)
       setShowOnboardingNudge(data.showOnboardingNudge === true)
+      setNeedsTermsAcceptance(data.termsAccepted !== true)
       const p = data.profile
       if (p?.memberType) setMemberType(p.memberType)
       else if (organisationalIntent) setMemberType("partner")
@@ -195,6 +199,10 @@ function OnboardingContent() {
       setStepError(step2Err)
       return
     }
+    if (needsTermsAcceptance && !acceptedTerms) {
+      setStepError("You must accept the Terms of Service and Privacy Policy")
+      return
+    }
     handleComplete()
   }
 
@@ -208,6 +216,11 @@ function OnboardingContent() {
     })
     if (step2Err) {
       setStepError(step2Err)
+      return
+    }
+    if (needsTermsAcceptance && !acceptedTerms) {
+      setStepError("You must accept the Terms of Service and Privacy Policy")
+      setStep(2)
       return
     }
     const phoneErr = validatePhoneInput(phone)
@@ -231,6 +244,7 @@ function OnboardingContent() {
         credentials: "include",
         body: JSON.stringify({
           ...(profileImage.trim() ? { image: profileImage.trim() } : {}),
+          ...(needsTermsAcceptance ? { acceptTerms: true } : {}),
           memberType: memberType || undefined,
           organization: organization.trim() || undefined,
           phone: phone.trim() || undefined,
@@ -685,7 +699,24 @@ function OnboardingContent() {
               </div>
             )}
 
-            {stepError ? (
+            {step === 2 && needsTermsAcceptance ? (
+              <TermsAcceptanceCheckbox
+                id="onboarding-terms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => {
+                  setAcceptedTerms(checked)
+                  if (checked) setStepError(null)
+                }}
+                error={
+                  stepError === "You must accept the Terms of Service and Privacy Policy"
+                    ? stepError
+                    : null
+                }
+              />
+            ) : null}
+
+            {stepError &&
+            stepError !== "You must accept the Terms of Service and Privacy Policy" ? (
               <p className="text-sm text-destructive" role="alert">
                 {stepError}
               </p>
