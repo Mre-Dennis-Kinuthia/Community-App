@@ -506,7 +506,7 @@ export function EventPublicView({
   )
 
   const flyer = (
-    <EventFlyer src={event.imageUrl} alt={`${event.title} flyer`} variant="poster" />
+    <EventFlyer src={event.imageUrl} alt={`${event.title} flyer`} variant="detail" />
   )
 
   const headerBlock = (

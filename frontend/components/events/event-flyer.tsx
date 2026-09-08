@@ -8,7 +8,7 @@ type EventFlyerProps = {
   alt?: string
   className?: string
   /** Compact listing vs square poster on the event page. */
-  variant?: "card" | "detail" | "poster" | "thumb"
+  variant?: "card" | "detail" | "thumb"
 }
 
 /** Event cover — square poster on detail, 16:10 crop on cards. */
@@ -21,19 +21,6 @@ export function EventFlyer({
   const imageSrc = getImageDisplayUrl(src || undefined)
 
   if (!imageSrc) {
-    if (variant === "poster") {
-      return (
-        <div
-          className={cn(
-            "mx-auto flex aspect-[4/5] w-[min(100%,16.75rem)] items-center justify-center overflow-hidden rounded-[1.35rem] bg-[#f3f1ec] sm:max-w-[18rem] lg:mx-0 lg:aspect-square lg:w-full lg:max-w-none",
-            className
-          )}
-          aria-hidden
-        >
-          <Calendar className="h-10 w-10 text-[#812926]/30" />
-        </div>
-      )
-    }
     if (variant === "detail") {
       return (
         <div
@@ -77,24 +64,6 @@ export function EventFlyer({
           alt={alt}
           className="h-full w-full object-cover"
           loading="lazy"
-        />
-      </div>
-    )
-  }
-
-  if (variant === "poster") {
-    return (
-      <div
-        className={cn(
-          "mx-auto aspect-[4/5] w-[min(100%,16.75rem)] overflow-hidden rounded-[1.35rem] bg-[#f3f1ec] shadow-sm sm:max-w-[18rem] lg:mx-0 lg:aspect-square lg:w-full lg:max-w-none",
-          className
-        )}
-      >
-        <img
-          src={imageSrc}
-          alt={alt}
-          className="h-full w-full object-cover"
-          loading="eager"
         />
       </div>
     )
