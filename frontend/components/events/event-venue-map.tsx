@@ -33,7 +33,7 @@ export function EventVenueMap({
 
   return (
     <div className={cn("relative max-w-lg overflow-hidden rounded-2xl bg-[#edeff2]", className)}>
-      <div className={cn("relative w-full", compact ? "h-40" : "h-48 sm:h-52")}>
+      <div className={cn("relative w-full", compact ? "h-36" : "h-40 sm:h-52")}>
         <iframe
           title={`Map of ${location || "event venue"}`}
           src={embedUrl}

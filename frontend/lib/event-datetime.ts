@@ -121,6 +121,19 @@ export function formatEventDateTimeLine(
   }).format(toDate(utcDate))
 }
 
+/** Luma-style countdown, e.g. "Starting in 16d 15h". Null if the event has started. */
+export function formatEventStartsIn(utcDate: Date | string): string | null {
+  const ms = toDate(utcDate).getTime() - Date.now()
+  if (ms <= 0) return null
+  const totalMins = Math.floor(ms / 60_000)
+  const days = Math.floor(totalMins / (60 * 24))
+  const hours = Math.floor((totalMins % (60 * 24)) / 60)
+  const mins = totalMins % 60
+  if (days > 0) return `Starting in ${days}d ${hours}h`
+  if (hours > 0) return `Starting in ${hours}h ${mins}m`
+  return `Starting in ${mins}m`
+}
+
 /** Calendar-tile parts for public event layouts (e.g. NOV / 19). */
 export function formatEventDateBadge(
   utcDate: Date | string,
