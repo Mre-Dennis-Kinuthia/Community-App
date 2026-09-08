@@ -18,6 +18,7 @@ import {
 } from "@/lib/membership-register-intent"
 import { ORGANISATIONAL_PLAN_NAME } from "@/lib/membership-inquiry"
 import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
+import { safeRedirectPath } from "@/lib/auth-routes"
 import {
   getPasswordValidationError,
   PASSWORD_MAX_LENGTH,
@@ -212,9 +213,10 @@ function RegisterForm() {
       }
 
       console.log("[REGISTER FORM] Registration successful, redirecting to login")
+      const requestedRedirect = safeRedirectPath(searchParams.get("redirect"))
       const loginRedirect = organisationalIntent
         ? "/onboarding?intent=organisational"
-        : "/onboarding"
+        : requestedRedirect ?? "/onboarding"
       const successDetail = organisationalIntent
         ? data.emailsQueued === false
           ? "Sign in and complete your profile. Our partnerships team will follow up."
@@ -399,7 +401,9 @@ function RegisterForm() {
             href={
               organisationalIntent
                 ? `/login?redirect=${encodeURIComponent("/onboarding?intent=organisational")}`
-                : "/login"
+                : searchParams.get("redirect")
+                  ? `/login?redirect=${encodeURIComponent(searchParams.get("redirect") || "")}`
+                  : "/login"
             }
             className="font-medium text-[#812926] hover:underline"
           >

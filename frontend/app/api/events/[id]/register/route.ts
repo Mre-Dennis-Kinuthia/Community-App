@@ -22,6 +22,11 @@ import { isLumaRegistration } from "@/lib/luma"
 import { sendEventRegistrationEmail, sendEventRegistrationCancelledEmail, sendEventRegistrationStaffEmail, sendEmailInBackground } from "@/lib/email"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { z } from "zod"
+import {
+  eventAllowsJoinWithoutOnboarding,
+  ONBOARDING_REQUIRED_CODE,
+} from "@/lib/event-onboarding-gate"
+import { isOnboardingComplete, onboardingSliceFromProfile } from "@/lib/member-segmentation"
 
 async function resolveEventId(param: string): Promise<string | null> {
   const event = await findEventByPublicParam(prisma, param)
@@ -169,6 +174,31 @@ export async function POST(
         },
         { status: 400, headers: corsHeaders(request) }
       )
+    }
+
+    if (!eventAllowsJoinWithoutOnboarding(event)) {
+      if (!userId) {
+        return NextResponse.json(
+          {
+            error: "Complete your member profile before registering for this event.",
+            code: ONBOARDING_REQUIRED_CODE,
+          },
+          { status: 403, headers: corsHeaders(request) }
+        )
+      }
+      const profile = await prisma.memberProfile.findUnique({
+        where: { userId },
+        include: { user: { select: { image: true } } },
+      })
+      if (!profile || !isOnboardingComplete(onboardingSliceFromProfile(profile))) {
+        return NextResponse.json(
+          {
+            error: "Complete your member profile before registering for this event.",
+            code: ONBOARDING_REQUIRED_CODE,
+          },
+          { status: 403, headers: corsHeaders(request) }
+        )
+      }
     }
 
     const existingRegistration = await prisma.eventRegistration.findFirst({

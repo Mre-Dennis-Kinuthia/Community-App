@@ -16,11 +16,11 @@ import {
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { EventPublicLayout } from "@/components/events/event-public-layout"
 import { EventPublicView } from "@/components/events/event-public-view"
-import { DashboardLayout } from "@/app/dashboard/layout"
 import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
 import { getEventCalendarLinks } from "@/lib/event-calendar"
 import { isLumaRegistration } from "@/lib/luma"
 import { isEventCuid } from "@/lib/event-slug"
+import { ONBOARDING_REQUIRED_CODE } from "@/lib/event-onboarding-gate"
 
 interface EventDetailPageProps {
   params: Promise<{ id: string }>
@@ -55,6 +55,7 @@ interface EventData {
   registrationProvider?: string | null
   lumaEventUrl?: string | null
   lumaEventId?: string | null
+  allowJoinWithoutOnboarding?: boolean
   attendeePreview?: Array<{ name: string; image: string | null }>
 }
 
@@ -202,7 +203,17 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         }),
       })
       const data = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(data.error || "Failed to register")
+      if (!response.ok) {
+        if (data.code === ONBOARDING_REQUIRED_CODE) {
+          toast.info("Complete your profile to join this event.")
+          setRegDialogOpen(false)
+          router.push(
+            `/onboarding?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+          )
+          return
+        }
+        throw new Error(data.error || "Failed to register")
+      }
       setRegDialogOpen(false)
 
       if (data.authorizationUrl) {
@@ -346,10 +357,6 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       )}
     </>
   )
-
-  if (user) {
-    return <DashboardLayout>{view}</DashboardLayout>
-  }
 
   return <EventPublicLayout>{view}</EventPublicLayout>
 }

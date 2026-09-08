@@ -48,6 +48,7 @@ import { isOrganisationalRegisterIntent } from "@/lib/membership-register-intent
 import { ORGANISATIONAL_PLAN_NAME, ORGANISATIONAL_RESPONSE_SLA } from "@/lib/membership-inquiry"
 import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
 import { TermsAcceptanceCheckbox } from "@/components/auth/terms-acceptance-checkbox"
+import { APP_HOME_PATH, safeRedirectPath } from "@/lib/auth-routes"
 
 const STEP_LABELS = ["Your profile", "Goals & community"] as const
 const TOTAL_STEPS = STEP_LABELS.length
@@ -56,6 +57,7 @@ function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const organisationalIntent = isOrganisationalRegisterIntent(searchParams.get("intent"))
+  const afterOnboardingPath = safeRedirectPath(searchParams.get("redirect")) ?? APP_HOME_PATH
   const organisationalNotifySent = useRef(false)
   const { data: session, status, update: updateSession } = useSession()
   const [loading, setLoading] = useState(true)
@@ -144,9 +146,9 @@ function OnboardingContent() {
 
   useEffect(() => {
     if (!loading && !needsOnboarding && status === "authenticated") {
-      router.replace("/dashboard")
+      router.replace(afterOnboardingPath)
     }
-  }, [loading, needsOnboarding, status, router])
+  }, [loading, needsOnboarding, status, router, afterOnboardingPath])
 
   const toggleGoal = (goal: string) => {
     setGoals((prev) =>
@@ -290,7 +292,7 @@ function OnboardingContent() {
         sessionStorage.setItem("onboardingJustCompleted", "true")
         resetWelcomeForNewMember()
       }
-      router.replace("/dashboard")
+      router.replace(afterOnboardingPath)
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Please try again."
       toast.error("Could not save", message)

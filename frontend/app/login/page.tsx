@@ -12,14 +12,14 @@ import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
 import { LegalLinks } from "@/components/legal-links"
 import { AuthPageShell } from "@/components/auth/auth-page-shell"
-import { DEFAULT_POST_LOGIN_PATH } from "@/lib/auth-routes"
+import { DEFAULT_POST_LOGIN_PATH, safeRedirectPath } from "@/lib/auth-routes"
 
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect =
-    searchParams.get("redirect") ??
-    searchParams.get("callbackUrl") ??
+    safeRedirectPath(searchParams.get("redirect")) ??
+    safeRedirectPath(searchParams.get("callbackUrl")) ??
     DEFAULT_POST_LOGIN_PATH
   const registeredEmail = searchParams.get("email")
   const isRegistered = searchParams.get("registered") === "true"

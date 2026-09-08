@@ -56,6 +56,7 @@ const applyScripts = [
   "db:apply-newsletter-v2",
   "db:apply-member-profile-phone",
   "db:subscribe-members-newsletter",
+  "db:apply-event-allow-join-without-onboarding",
 ]
 
 for (const script of applyScripts) {

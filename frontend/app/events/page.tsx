@@ -32,6 +32,7 @@ import { eventCalendarDate, formatEventTime24 } from "@/lib/event-datetime"
 import { getEventPublicPath, getEventPublicUrl } from "@/lib/event-url"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
+import { ONBOARDING_REQUIRED_CODE } from "@/lib/event-onboarding-gate"
 
 interface Event {
   id: number | string
@@ -259,7 +260,16 @@ export default function EventsPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({}))
+        if (errorData.code === ONBOARDING_REQUIRED_CODE) {
+          toast.info("Complete your profile to join this event.")
+          setRegDialogOpen(false)
+          setPendingRegistration(null)
+          router.push(
+            `/onboarding?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`
+          )
+          return
+        }
         throw new Error(errorData.error || "Failed to register for event")
       }
 

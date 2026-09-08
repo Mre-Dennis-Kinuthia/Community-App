@@ -293,6 +293,9 @@ model Event {
   waitlistEnabled              Boolean  @default(false)
   registrationRequired         Boolean  @default(true)
   registrationRequiresApproval Boolean  @default(false)
+  /// When true, members can register from a direct event link without finishing onboarding.
+  allowJoinWithoutOnboarding   Boolean  @default(true)
+
   organizerName        String?
   organizerEmail       String?
   tags                 String[]

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import { useSession } from "@/lib/use-session"
@@ -11,7 +12,9 @@ interface EventPublicLayoutProps {
 
 export function EventPublicLayout({ children }: EventPublicLayoutProps) {
   const { user, status } = useSession()
+  const pathname = usePathname()
   const isLoggedIn = status !== "loading" && !!user
+  const authRedirect = encodeURIComponent(pathname || "/events")
 
   return (
     <div className="min-h-screen flex flex-col bg-[#faf9f6]">
@@ -31,10 +34,10 @@ export function EventPublicLayout({ children }: EventPublicLayoutProps) {
             ) : (
               <>
                 <Button variant="ghost" size="sm" asChild className="text-[#1c395c]">
-                  <Link href="/login">Log in</Link>
+                  <Link href={`/login?redirect=${authRedirect}`}>Log in</Link>
                 </Button>
                 <Button size="sm" asChild className="bg-[#812926] hover:bg-[#6b2120]">
-                  <Link href="/register">Sign up</Link>
+                  <Link href={`/register?redirect=${authRedirect}`}>Sign up</Link>
                 </Button>
               </>
             )}
