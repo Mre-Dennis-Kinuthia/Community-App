@@ -23,7 +23,7 @@ import {
 interface SearchResult {
   id: string
   title: string
-  type: "event" | "member" | "project" | "partner" | "resource" | "news"
+  type: "event" | "member" | "project" | "partner" | "expert" | "resource" | "news"
   href: string
   description?: string
 }
@@ -33,6 +33,7 @@ const typeLabels: Record<string, string> = {
   member: "Member",
   project: "Project",
   partner: "Partner",
+  expert: "Expert",
   resource: "Resource",
   news: "News",
 }
@@ -160,7 +161,7 @@ export function GlobalSearch() {
           <DialogHeader>
             <DialogTitle>Search</DialogTitle>
             <DialogDescription>
-              Search for events, members, partners, and more
+              Search for events, members, experts, partners, and more
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

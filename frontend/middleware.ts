@@ -38,6 +38,7 @@ const protectedRoutes = [
   "/profile",
   "/events",
   "/partners",
+  "/experts",
   "/projects",
   "/news",
   "/newsletters",

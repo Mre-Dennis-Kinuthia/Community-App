@@ -9,6 +9,7 @@ import type { StarConnectInquiryPayload } from "../lib/email/membership-inquiry"
 const applicantEmail = process.argv[2] || process.env.EMAIL_STAFF_TO || "dennis.ndungu@impacthub.net"
 
 const sample: StarConnectInquiryPayload = {
+  applicationId: "community-monthly",
   fullName: "Test Applicant",
   email: applicantEmail,
   phone: "+254700000000",

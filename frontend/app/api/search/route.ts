@@ -7,6 +7,7 @@ export type SearchResultType =
   | "member"
   | "project"
   | "partner"
+  | "expert"
   | "resource"
   | "news"
 
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
 
     const contains = { contains: q, mode: "insensitive" as const }
 
-    const [news, events, projects, partners, resources, members] = await Promise.all([
+    const [news, events, projects, partners, experts, resources, members] = await Promise.all([
       prisma.newsPost.findMany({
         where: {
           status: "published",
@@ -74,6 +75,16 @@ export async function GET(request: NextRequest) {
           OR: [{ name: contains }, { description: contains }],
         },
         select: { id: true, name: true, description: true },
+        take: MAX_PER_TYPE,
+        orderBy: { name: "asc" },
+      }),
+      prisma.expertInResidence.findMany({
+        where: {
+          deletedAt: null,
+          isPublished: true,
+          OR: [{ name: contains }, { title: contains }, { bio: contains }],
+        },
+        select: { id: true, name: true, title: true, slug: true },
         take: MAX_PER_TYPE,
         orderBy: { name: "asc" },
       }),
@@ -132,6 +143,13 @@ export async function GET(request: NextRequest) {
         type: "partner" as const,
         href: `/partners/${p.id}`,
         description: p.description?.slice(0, 120) || undefined,
+      })),
+      ...experts.map((e) => ({
+        id: e.id,
+        title: e.name,
+        type: "expert" as const,
+        href: `/experts/${e.slug || e.id}`,
+        description: e.title || undefined,
       })),
       ...resources.map((r) => ({
         id: r.id,

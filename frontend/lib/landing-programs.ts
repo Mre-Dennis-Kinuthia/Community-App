@@ -111,7 +111,7 @@ export const LANDING_PROGRAMS: LandingProgram[] = [
     ],
     cta: {
       label: "Apply for Star Connect",
-      href: "/membership/star-connect",
+      href: "/membership/star-connect?plan=community-monthly",
     },
   },
   {

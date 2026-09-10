@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -27,13 +28,19 @@ import {
   HOW_HEARD_OPTIONS,
   STAR_CONNECT_DISCOVERY_CALL_URL,
   STAR_CONNECT_PLAN_NAME,
-  STAR_CONNECT_PRICE_LABEL,
-  STAR_CONNECT_PRIMARY_NEEDS,
   STAR_CONNECT_RESPONSE_SLA,
   TARGET_START,
   VENTURE_STAGES,
-  WORKSPACE_NEEDS,
 } from "@/lib/membership-inquiry"
+import {
+  STAR_CONNECT_APPLICATION_SWITCHER,
+  TEAM_SIZE_OPTIONS,
+  getStarConnectApplication,
+  parseStarConnectApplicationId,
+  starConnectApplyPath,
+  workspaceNeedForOption,
+  type StarConnectApplicationId,
+} from "@/lib/star-connect-applications"
 import { HUB_PUBLIC_EMAIL } from "@/lib/hub-contact"
 import { ArrowRight, Calendar, CheckCircle2, Linkedin, Loader2 } from "lucide-react"
 
@@ -41,7 +48,7 @@ const STEPS = ["About you & your venture", "What you need"] as const
 const VENTURE_MAX = 800
 const SUPPORT_MAX = 500
 
-function emptyForm() {
+function emptyForm(workspaceNeed = "", teamSize = "") {
   return {
     fullName: "",
     email: "",
@@ -55,9 +62,10 @@ function emptyForm() {
     sector: "",
     ventureStage: "",
     primaryNeeds: [] as string[],
-    workspaceNeed: "",
+    workspaceNeed,
     targetStart: "",
     supportNeeded: "",
+    teamSize,
     howHeard: "",
     referralName: "",
     message: "",
@@ -65,11 +73,49 @@ function emptyForm() {
   }
 }
 
-export default function StarConnectApplicationPage() {
+function StarConnectApplicationForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const applicationId = parseStarConnectApplicationId(searchParams.get("plan"))
+  const app = useMemo(() => getStarConnectApplication(applicationId), [applicationId])
+  const optionWorkspace = workspaceNeedForOption(searchParams.get("option"))
+
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState(() => emptyForm(optionWorkspace ?? ""))
+
+  useEffect(() => {
+    setForm((prev) => {
+      const allowedNeeds = new Set(app.primaryNeeds)
+      const nextNeeds = prev.primaryNeeds.filter((need) => allowedNeeds.has(need))
+      const nextWorkspace = app.workspaceNeeds.includes(prev.workspaceNeed)
+        ? prev.workspaceNeed
+        : optionWorkspace && app.workspaceNeeds.includes(optionWorkspace)
+          ? optionWorkspace
+          : ""
+      const nextTeamSize = app.requiresTeamSize ? prev.teamSize : ""
+      if (
+        nextNeeds.length === prev.primaryNeeds.length &&
+        nextWorkspace === prev.workspaceNeed &&
+        nextTeamSize === prev.teamSize
+      ) {
+        return prev
+      }
+      return {
+        ...prev,
+        primaryNeeds: nextNeeds,
+        workspaceNeed: nextWorkspace,
+        teamSize: nextTeamSize,
+      }
+    })
+  }, [app, optionWorkspace])
+
+  const selectPlan = (plan: StarConnectApplicationId) => {
+    if (plan === applicationId) return
+    router.replace(starConnectApplyPath(plan), { scroll: false })
+    setStep(1)
+  }
 
   const update = (field: keyof ReturnType<typeof emptyForm>, value: string | boolean | string[]) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -113,7 +159,11 @@ export default function StarConnectApplicationPage() {
       return
     }
     if (!form.workspaceNeed || !form.targetStart) {
-      toast.error("Almost there", "Select workspace needs and start timing.")
+      toast.error("Almost there", `Select ${app.workspaceLabel.toLowerCase()} and start timing.`)
+      return
+    }
+    if (app.requiresTeamSize && !form.teamSize) {
+      toast.error("Team size", "Select how many people are on the team.")
       return
     }
     if (form.supportNeeded.trim().length < 15) {
@@ -135,6 +185,7 @@ export default function StarConnectApplicationPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          applicationId,
           fullName: form.fullName,
           email: form.email,
           phone: form.phone,
@@ -150,6 +201,7 @@ export default function StarConnectApplicationPage() {
           workspaceNeed: form.workspaceNeed,
           targetStart: form.targetStart,
           supportNeeded: form.supportNeeded,
+          teamSize: app.requiresTeamSize ? form.teamSize || undefined : undefined,
           howHeard: form.howHeard || undefined,
           referralName: showReferral ? form.referralName.trim() : undefined,
           message: form.message.trim() || undefined,
@@ -182,10 +234,10 @@ export default function StarConnectApplicationPage() {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#812926]/10">
                 <CheckCircle2 className="h-6 w-6 text-[#812926]" aria-hidden />
               </div>
-              <CardTitle className="text-xl text-[#0a1f38]">You&apos;re on the list</CardTitle>
+              <CardTitle className="text-xl text-[#0a1f38]">{app.confirmationTitle}</CardTitle>
               <CardDescription className="text-base leading-relaxed text-[#1c395c]/80">
-                We emailed <strong className="text-[#0a1f38]">{form.email}</strong> with next
-                steps. Our team will reply {STAR_CONNECT_RESPONSE_SLA}.
+                We emailed <strong className="text-[#0a1f38]">{form.email}</strong>. {app.confirmationLead}{" "}
+                Our team will reply {STAR_CONNECT_RESPONSE_SLA}.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -203,7 +255,7 @@ export default function StarConnectApplicationPage() {
                 <Link href="/register">Create your platform account</Link>
               </Button>
               <p className="text-center text-xs text-[#1c395c]/70">
-                Use the same email ({form.email}) so we can link your Star Connect membership.
+                Use the same email ({form.email}) so we can link your {app.productName} membership.
               </p>
               <Button variant="ghost" asChild className="w-full text-[#1c395c]">
                 <Link href="/">Back to home</Link>
@@ -219,11 +271,36 @@ export default function StarConnectApplicationPage() {
         <div>
           <p className="section-label text-left">{STAR_CONNECT_PLAN_NAME}</p>
           <h1 className="text-2xl font-semibold tracking-tight text-[#0a1f38]">
-            Apply for membership
+            {app.pageTitle}
           </h1>
           <p className="mt-2 text-sm text-[#1c395c]/80">
-            {STAR_CONNECT_PRICE_LABEL} · Two quick steps · Response {STAR_CONNECT_RESPONSE_SLA}
+            {app.pageIntro}
           </p>
+          <p className="mt-1 text-sm font-medium text-[#0a1f38]">
+            {app.priceLabel} · Two quick steps · Response {STAR_CONNECT_RESPONSE_SLA}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-1.5" role="tablist" aria-label="Star Connect membership">
+            {STAR_CONNECT_APPLICATION_SWITCHER.map((item) => {
+              const active = item.id === applicationId
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => selectPlan(item.id)}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                    active
+                      ? "border-[#812926] bg-[#812926] text-white"
+                      : "border-[#edeff2] bg-white text-[#1c395c] hover:border-[#812926]/40"
+                  )}
+                >
+                  {item.label}
+                </button>
+              )
+            })}
+          </div>
           <div className="mt-4 flex gap-2" aria-label={`Step ${step} of 2`}>
             {STEPS.map((label, i) => (
               <div key={label} className="flex-1">
@@ -404,14 +481,12 @@ export default function StarConnectApplicationPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
-                <p className="text-sm text-muted-foreground">
-                  Help us understand how Star Connect can support you.
-                </p>
+                <p className="text-sm text-muted-foreground">{app.step2Intro}</p>
 
                 <div className="space-y-2">
-                  <Label>I&apos;m interested in…</Label>
+                  <Label>{app.primaryNeedsLabel}</Label>
                   <div className="flex flex-wrap gap-2">
-                    {STAR_CONNECT_PRIMARY_NEEDS.map((need) => (
+                    {app.primaryNeeds.map((need) => (
                       <button
                         key={need}
                         type="button"
@@ -431,16 +506,16 @@ export default function StarConnectApplicationPage() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="workspaceNeed">Workspace</Label>
+                    <Label htmlFor="workspaceNeed">{app.workspaceLabel}</Label>
                     <Select
                       value={form.workspaceNeed}
                       onValueChange={(v) => update("workspaceNeed", v)}
                     >
                       <SelectTrigger id="workspaceNeed">
-                        <SelectValue placeholder="How often?" />
+                        <SelectValue placeholder={app.workspacePlaceholder} />
                       </SelectTrigger>
                       <SelectContent>
-                        {WORKSPACE_NEEDS.map((s) => (
+                        {app.workspaceNeeds.map((s) => (
                           <SelectItem key={s} value={s}>
                             {s}
                           </SelectItem>
@@ -468,14 +543,35 @@ export default function StarConnectApplicationPage() {
                   </div>
                 </div>
 
+                {app.requiresTeamSize ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="teamSize">Team size</Label>
+                    <Select
+                      value={form.teamSize}
+                      onValueChange={(v) => update("teamSize", v)}
+                    >
+                      <SelectTrigger id="teamSize">
+                        <SelectValue placeholder="How many people?" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TEAM_SIZE_OPTIONS.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
+
                 <div className="space-y-2">
-                  <Label htmlFor="supportNeeded">What support do you need most right now?</Label>
+                  <Label htmlFor="supportNeeded">{app.supportLabel}</Label>
                   <Textarea
                     id="supportNeeded"
                     required
                     rows={3}
                     maxLength={SUPPORT_MAX}
-                    placeholder="e.g. introductions, program fit, workspace setup…"
+                    placeholder={app.supportPlaceholder}
                     value={form.supportNeeded}
                     onChange={(e) =>
                       update("supportNeeded", e.target.value.slice(0, SUPPORT_MAX))
@@ -537,7 +633,7 @@ export default function StarConnectApplicationPage() {
                     className="mt-0.5"
                   />
                   <span className="text-sm leading-relaxed text-muted-foreground">
-                    Impact Hub Nairobi may contact me about this application. *
+                    Impact Hub Nairobi may contact me about this {app.productName} application. *
                   </span>
                 </label>
 
@@ -555,7 +651,7 @@ export default function StarConnectApplicationPage() {
                     {submitting ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
-                    Submit application
+                    {app.submitLabel}
                   </Button>
                 </div>
               </form>
@@ -569,5 +665,21 @@ export default function StarConnectApplicationPage() {
           </a>
         </p>
     </MembershipPageShell>
+  )
+}
+
+export default function StarConnectApplicationPage() {
+  return (
+    <Suspense
+      fallback={
+        <MembershipPageShell>
+          <div className="flex justify-center py-16">
+            <Loader2 className="h-6 w-6 animate-spin text-[#812926]" aria-hidden />
+          </div>
+        </MembershipPageShell>
+      }
+    >
+      <StarConnectApplicationForm />
+    </Suspense>
   )
 }

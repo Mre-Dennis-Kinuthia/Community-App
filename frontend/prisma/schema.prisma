@@ -89,6 +89,7 @@ model User {
   projectVolunteers ProjectVolunteer[]
   projectCollaborations ProjectCollaboration[]
   investmentInterests ProjectInvestmentInterest[]
+  expertProfile ExpertInResidence?
 
   @@map("users")
 }
@@ -311,6 +312,9 @@ model Event {
   updatedAt            DateTime @updatedAt
   deletedAt            DateTime?
 
+  expertId        String?
+  expert          ExpertInResidence? @relation(fields: [expertId], references: [id], onDelete: SetNull)
+
   registrations   EventRegistration[]
   communications  EventCommunication[]
 
@@ -322,6 +326,7 @@ model Event {
   @@index([shortCode])
   @@index([lumaEventId])
   @@index([registrationProvider])
+  @@index([expertId])
   @@map("events")
 }
 
@@ -519,6 +524,64 @@ model PartnerOpportunity {
   @@map("partner_opportunities")
   @@index([partnerId])
   @@index([status])
+}
+
+// ============================================
+// EXPERTS IN RESIDENCE
+// ============================================
+
+model ExpertInResidence {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  email        String
+  title        String
+  organization String?
+  bio          String   @db.Text
+  photoUrl     String?
+  expertise    String[] @default([])
+  initiatives  String[] @default([])
+  bookingUrl   String?
+  linkedInUrl  String?
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  isPublished  Boolean  @default(true)
+  isFeatured   Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  meetings ExpertMeetingRequest[]
+  events   Event[]
+
+  @@map("experts_in_residence")
+  @@index([isPublished])
+  @@index([isFeatured])
+  @@index([email])
+}
+
+model ExpertMeetingRequest {
+  id              String   @id @default(cuid())
+  expertId        String
+  expert          ExpertInResidence @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  requesterUserId String
+  requesterEmail  String
+  requesterName   String
+  topic           String
+  message         String   @db.Text
+  preferredTimes  String?
+  meetingFormat   String   @default("virtual") // virtual, in-person, either
+  status          String   @default("pending") // pending, confirmed, declined, cancelled
+  ticketId        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("expert_meeting_requests")
+  @@index([expertId])
+  @@index([requesterUserId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // ============================================

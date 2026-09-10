@@ -18,6 +18,7 @@
     "db:apply-community-opportunities": "tsx scripts/apply-community-opportunities-table.ts",
     "db:apply-event-luma-fields": "tsx scripts/apply-event-luma-fields.ts",
     "db:apply-event-allow-join-without-onboarding": "tsx scripts/apply-event-allow-join-without-onboarding.ts",
+    "db:apply-experts-in-residence": "tsx scripts/apply-experts-in-residence.ts",
     "db:apply-space-inventory": "tsx scripts/apply-space-inventory.ts",
     "db:apply-phase2": "tsx scripts/apply-phase2-front-desk-finance.ts",
     "db:apply-phase3-6": "tsx scripts/apply-phase3-6-operations.ts",

@@ -18,6 +18,7 @@ export function getImagePreviewClasses(
 ) {
   switch (category) {
     case "profile":
+    case "expert_photo":
       return {
         container: cn(
           "relative size-32 shrink-0 overflow-hidden rounded-full border border-border bg-muted",

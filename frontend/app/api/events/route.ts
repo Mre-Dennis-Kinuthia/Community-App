@@ -74,6 +74,11 @@ export async function GET(request: NextRequest) {
         orderBy: {
           startDate: filter === "past" ? "desc" : "asc",
         },
+        include: {
+          expert: {
+            select: { id: true, name: true, slug: true, photoUrl: true },
+          },
+        },
       }),
       prisma.event.count({ where }),
     ])

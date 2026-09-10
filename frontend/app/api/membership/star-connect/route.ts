@@ -9,22 +9,32 @@ import { normalizeLinkedInUrl } from "@/lib/member-social-links"
 import {
   HOW_HEARD_OPTIONS,
   STAR_CONNECT_DISCOVERY_CALL_URL,
-  STAR_CONNECT_PRIMARY_NEEDS,
   TARGET_START,
   VENTURE_STAGES,
-  WORKSPACE_NEEDS,
 } from "@/lib/membership-inquiry"
+import {
+  STAR_CONNECT_APPLICATION_IDS,
+  TEAM_SIZE_OPTIONS,
+  formatStarConnectPlanLine,
+  getStarConnectApplication,
+  parseStarConnectApplicationId,
+  type StarConnectApplicationId,
+} from "@/lib/star-connect-applications"
 
 const roleValues = [...PRIMARY_ROLES] as [string, ...string[]]
 const sectorValues = [...IMPACT_SECTORS] as [string, ...string[]]
 const stageValues = [...VENTURE_STAGES] as [string, ...string[]]
-const workspaceValues = [...WORKSPACE_NEEDS] as [string, ...string[]]
 const startValues = [...TARGET_START] as [string, ...string[]]
-const needsValues = [...STAR_CONNECT_PRIMARY_NEEDS] as [string, ...string[]]
 const heardValues = [...HOW_HEARD_OPTIONS] as [string, ...string[]]
+const applicationValues = [...STAR_CONNECT_APPLICATION_IDS] as [
+  StarConnectApplicationId,
+  ...StarConnectApplicationId[],
+]
+const teamSizeValues = [...TEAM_SIZE_OPTIONS] as [string, ...string[]]
 
 const schema = z
   .object({
+    applicationId: z.enum(applicationValues).optional(),
     fullName: z.string().min(2, "Enter your full name").max(120),
     email: z.string().email("Enter a valid email address"),
     phone: z.string().min(7, "Enter a phone number").max(40),
@@ -39,15 +49,14 @@ const schema = z
     role: z.enum(roleValues, { message: "Select your role" }),
     sector: z.enum(sectorValues, { message: "Select your sector" }),
     ventureStage: z.enum(stageValues, { message: "Select your stage" }),
-    primaryNeeds: z
-      .array(z.enum(needsValues))
-      .min(1, "Pick at least one thing you need from membership"),
-    workspaceNeed: z.enum(workspaceValues, { message: "Select workspace needs" }),
+    primaryNeeds: z.array(z.string().min(1)).min(1, "Pick at least one thing you need from membership"),
+    workspaceNeed: z.string().min(1, "Select workspace needs"),
     targetStart: z.enum(startValues, { message: "Select when you want to start" }),
     supportNeeded: z
       .string()
       .min(15, "Tell us what support you need (at least 15 characters)")
       .max(500),
+    teamSize: z.enum(teamSizeValues).optional(),
     howHeard: z.enum(heardValues).optional(),
     referralName: z.string().max(120).optional(),
     message: z.string().max(500).optional(),
@@ -56,6 +65,29 @@ const schema = z
     }),
   })
   .superRefine((data, ctx) => {
+    const app = getStarConnectApplication(data.applicationId)
+    const allowedNeeds = new Set(app.primaryNeeds)
+    if (data.primaryNeeds.some((need) => !allowedNeeds.has(need))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pick options that match this membership",
+        path: ["primaryNeeds"],
+      })
+    }
+    if (!app.workspaceNeeds.includes(data.workspaceNeed)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Select ${app.workspaceLabel.toLowerCase()}`,
+        path: ["workspaceNeed"],
+      })
+    }
+    if (app.requiresTeamSize && !data.teamSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select team size",
+        path: ["teamSize"],
+      })
+    }
     if (data.linkedinUrl?.trim() && !normalizeLinkedInUrl(data.linkedinUrl)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -93,7 +125,9 @@ function normalizeWebsite(url: string | undefined): string | undefined {
 }
 
 function toPayload(data: z.infer<typeof schema>): StarConnectInquiryPayload {
+  const applicationId = parseStarConnectApplicationId(data.applicationId)
   return {
+    applicationId,
     fullName: data.fullName.trim(),
     email: data.email.toLowerCase().trim(),
     phone: data.phone.trim(),
@@ -111,6 +145,7 @@ function toPayload(data: z.infer<typeof schema>): StarConnectInquiryPayload {
     workspaceNeed: data.workspaceNeed,
     targetStart: data.targetStart,
     supportNeeded: data.supportNeeded.trim(),
+    teamSize: data.teamSize,
     howHeard: data.howHeard,
     referralName: data.referralName?.trim(),
     message: data.message?.trim(),
@@ -121,11 +156,13 @@ export async function POST(request: NextRequest) {
   try {
     const data = schema.parse(await request.json())
     const payload = toPayload(data)
+    const app = getStarConnectApplication(payload.applicationId)
+    const planLine = formatStarConnectPlanLine(app)
 
     const ticket = await prisma.supportTicket.create({
       data: {
         member: `${payload.fullName} <${payload.email}>`,
-        subject: `Star Connect membership — ${payload.organization}`,
+        subject: `${planLine} — ${payload.organization}`,
         description: buildStarConnectInquiryPlainText(payload),
         status: "open",
         priority: "high",

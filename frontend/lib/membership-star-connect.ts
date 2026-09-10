@@ -25,11 +25,7 @@ export function queueStarConnectInquiryEmails(payload: StarConnectInquiryPayload
         context: "star-connect-inquiry-staff",
       },
       {
-        send: () =>
-          sendStarConnectInquiryConfirmationEmail({
-            fullName: payload.fullName,
-            email: payload.email,
-          }),
+        send: () => sendStarConnectInquiryConfirmationEmail(payload),
         context: "star-connect-inquiry-confirmation",
       },
     ]
@@ -43,9 +39,6 @@ export async function sendStarConnectInquiryEmailsNow(
   payload: StarConnectInquiryPayload
 ): Promise<{ staff: SendEmailResult; confirmation: SendEmailResult }> {
   const staff = await sendStarConnectInquiryStaffEmail(payload)
-  const confirmation = await sendStarConnectInquiryConfirmationEmail({
-    fullName: payload.fullName,
-    email: payload.email,
-  })
+  const confirmation = await sendStarConnectInquiryConfirmationEmail(payload)
   return { staff, confirmation }
 }
