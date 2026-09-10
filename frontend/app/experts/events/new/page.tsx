@@ -18,6 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Breadcrumbs } from "@/components/breadcrumbs"
+import { MobileBreadcrumbsHidden, MobilePageHeader } from "@/components/mobile/mobile-page-shell"
+import { EmptyState } from "@/components/design/empty-state"
 import { expertEventCreateSchema } from "@/lib/experts"
 import { getEventPublicPath } from "@/lib/event-url"
 import { toast } from "@/lib/toast"
@@ -94,18 +97,24 @@ export default function NewExpertEventPage() {
   if (!data?.expert?.isPublished) {
     return (
       <DashboardLayout>
-        <div className="mx-auto max-w-2xl space-y-4">
-          <Card>
-            <CardContent className="space-y-4 py-10 text-center">
-              <p className="text-sm text-muted-foreground">
-                Virtual sessions can be created by published Experts in Residence. Ask the Hub team
-                to link your member account to your expert profile.
-              </p>
-              <Button asChild variant="outline">
+        <div className="mx-auto max-w-2xl space-y-6">
+          <MobileBreadcrumbsHidden>
+            <Breadcrumbs
+              items={[
+                { label: "Experts in Residence", href: "/experts" },
+                { label: "Host a session" },
+              ]}
+            />
+          </MobileBreadcrumbsHidden>
+          <EmptyState
+            title="Published experts only"
+            description="Virtual sessions can be created by published Experts in Residence. Ask the Hub team to link your member account to your expert profile."
+            action={
+              <Button asChild variant="outline" size="sm">
                 <Link href="/experts">Back to experts</Link>
               </Button>
-            </CardContent>
-          </Card>
+            }
+          />
         </div>
       </DashboardLayout>
     )
@@ -114,18 +123,24 @@ export default function NewExpertEventPage() {
   return (
     <DashboardLayout>
       <div className="mx-auto w-full max-w-2xl space-y-6">
+        <MobileBreadcrumbsHidden>
+          <Breadcrumbs
+            items={[
+              { label: "Experts in Residence", href: "/experts" },
+              { label: "Host a session" },
+            ]}
+          />
+        </MobileBreadcrumbsHidden>
         <Button variant="ghost" size="sm" className="-ml-2 w-fit" asChild>
-          <Link href="/experts">
+          <Link href="/dashboard/eir">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Experts in Residence
+            EIR dashboard
           </Link>
         </Button>
-        <div>
-          <h1 className="text-2xl font-semibold">Host a virtual session</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Publish an online event for members. It will appear on your expert profile and in Events.
-          </p>
-        </div>
+        <MobilePageHeader
+          title="Host a virtual session"
+          description="Publish an online event for members. It will appear on your expert profile and in Events."
+        />
         <Card className="border-border">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -186,7 +201,7 @@ export default function NewExpertEventPage() {
                   value={visibility}
                   onValueChange={(value) => setVisibility(value as "members" | "public")}
                 >
-                  <SelectTrigger id="visibility">
+                  <SelectTrigger id="visibility" className="h-9">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

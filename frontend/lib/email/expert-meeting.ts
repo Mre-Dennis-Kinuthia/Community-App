@@ -1,5 +1,10 @@
 import { getAdminAppBaseUrl, getAppBaseUrl } from "@/lib/app-url"
-import { expertPublicPath, meetingFormatLabel } from "@/lib/experts"
+import {
+  EIR_DASHBOARD_PATH,
+  expertPublicPath,
+  expertRequestTypeLabel,
+  meetingFormatLabel,
+} from "@/lib/experts"
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type SendEmailResult } from "./send"
 import {
@@ -21,22 +26,33 @@ export type ExpertMeetingEmailPayload = {
   message: string
   preferredTimes?: string | null
   meetingFormat: string
+  requestType?: string
 }
 
 function profileUrl(slug: string) {
   return `${getAppBaseUrl()}${expertPublicPath({ id: slug, slug })}`
 }
 
+function dashboardUrl() {
+  return `${getAppBaseUrl()}${EIR_DASHBOARD_PATH}`
+}
+
 function staffInboxUrl() {
   return `${getAdminAppBaseUrl()}/dashboard/support`
+}
+
+function requestTypeLabel(payload: ExpertMeetingEmailPayload) {
+  return expertRequestTypeLabel(payload.requestType || "clinic")
 }
 
 export async function sendExpertMeetingExpertEmail(
   payload: ExpertMeetingEmailPayload
 ): Promise<SendEmailResult> {
+  const typeLabel = requestTypeLabel(payload)
   const rows = [
     { label: "Member", value: escapeHtml(payload.requesterName) },
     { label: "Email", value: escapeHtml(payload.requesterEmail) },
+    { label: "Interest", value: escapeHtml(typeLabel) },
     { label: "Topic", value: escapeHtml(payload.topic) },
     { label: "Format", value: escapeHtml(meetingFormatLabel(payload.meetingFormat)) },
     {
@@ -47,27 +63,27 @@ export async function sendExpertMeetingExpertEmail(
 
   const html = layoutEmail({
     eyebrow: "Experts in Residence",
-    title: `${payload.requesterName} would like to meet`,
-    preheader: `${payload.requesterName} requested a meeting about ${payload.topic}`,
+    title: `${payload.requesterName} is interested in ${typeLabel.toLowerCase()}`,
+    preheader: `${payload.requesterName} requested ${typeLabel.toLowerCase()} about ${payload.topic}`,
     bodyHtml: `
       ${emailGreeting(payload.expertName)}
       ${emailParagraph(
-        `A community member asked to set up a meeting with you through <strong>Impact Hub Nairobi</strong>.`
+        `A community member asked about <strong>${escapeHtml(typeLabel.toLowerCase())}</strong> with you through <strong>Impact Hub Nairobi</strong>.`
       )}
       ${emailDetailCard(rows, { title: "Request" })}
       ${emailParagraph(`<strong>What they shared</strong><br />${escapeHtml(payload.message).replace(/\n/g, "<br />")}`)}
       ${emailMutedNote("Reply directly to this email to continue the conversation with the member.")}
     `,
-    ctaLabel: "View your profile",
-    ctaUrl: profileUrl(payload.expertSlug),
+    ctaLabel: "Open your EIR dashboard",
+    ctaUrl: dashboardUrl(),
   })
 
   return sendEmail({
     to: payload.expertEmail,
-    subject: `Meeting request: ${payload.topic}`,
+    subject: `${typeLabel} request: ${payload.topic}`,
     html,
     text: [
-      `${payload.requesterName} (${payload.requesterEmail}) asked to meet about ${payload.topic}.`,
+      `${payload.requesterName} (${payload.requesterEmail}) asked about ${typeLabel.toLowerCase()}: ${payload.topic}.`,
       `Format: ${meetingFormatLabel(payload.meetingFormat)}`,
       `Preferred times: ${payload.preferredTimes?.trim() || "Flexible"}`,
       "",
@@ -80,17 +96,19 @@ export async function sendExpertMeetingExpertEmail(
 export async function sendExpertMeetingMemberEmail(
   payload: ExpertMeetingEmailPayload
 ): Promise<SendEmailResult> {
+  const typeLabel = requestTypeLabel(payload)
   const html = layoutEmail({
     eyebrow: "Experts in Residence",
-    title: `We’ve sent your request to ${payload.expertName}`,
-    preheader: "The expert will follow up to confirm a time",
+    title: `We’ve sent your ${typeLabel.toLowerCase()} request to ${payload.expertName}`,
+    preheader: "The expert will follow up to confirm next steps",
     bodyHtml: `
       ${emailGreeting(payload.requesterName)}
       ${emailParagraph(
-        `Your meeting request with <strong>${escapeHtml(payload.expertName)}</strong> is with them now. They’ll reply by email to confirm a time.`
+        `Your ${escapeHtml(typeLabel.toLowerCase())} request with <strong>${escapeHtml(payload.expertName)}</strong> is with them now. They’ll reply by email to confirm next steps.`
       )}
       ${emailDetailCard(
         [
+          { label: "Interest", value: escapeHtml(typeLabel) },
           { label: "Topic", value: escapeHtml(payload.topic) },
           { label: "Format", value: escapeHtml(meetingFormatLabel(payload.meetingFormat)) },
         ],
@@ -103,25 +121,27 @@ export async function sendExpertMeetingMemberEmail(
 
   return sendEmail({
     to: payload.requesterEmail,
-    subject: `Meeting request sent to ${payload.expertName}`,
+    subject: `${typeLabel} request sent to ${payload.expertName}`,
     html,
-    text: `We’ve sent your meeting request to ${payload.expertName} about ${payload.topic}. They’ll follow up by email.`,
+    text: `We’ve sent your ${typeLabel.toLowerCase()} request to ${payload.expertName} about ${payload.topic}. They’ll follow up by email.`,
   })
 }
 
 export async function sendExpertMeetingStaffEmail(
   payload: ExpertMeetingEmailPayload
 ): Promise<SendEmailResult> {
+  const typeLabel = requestTypeLabel(payload)
   const html = layoutEmail({
     eyebrow: "Experts in Residence",
-    title: "New expert meeting request",
+    title: `New ${typeLabel.toLowerCase()} request`,
     preheader: `${payload.requesterName} → ${payload.expertName}`,
     bodyHtml: `
-      ${emailParagraph("A member requested a meeting with an Expert in Residence.")}
+      ${emailParagraph(`A member requested ${escapeHtml(typeLabel.toLowerCase())} with an Expert in Residence.`)}
       ${emailDetailCard(
         [
           { label: "Expert", value: escapeHtml(`${payload.expertName} <${payload.expertEmail}>`) },
           { label: "Member", value: escapeHtml(`${payload.requesterName} <${payload.requesterEmail}>`) },
+          { label: "Interest", value: escapeHtml(typeLabel) },
           { label: "Topic", value: escapeHtml(payload.topic) },
           { label: "Format", value: escapeHtml(meetingFormatLabel(payload.meetingFormat)) },
           {
@@ -129,7 +149,7 @@ export async function sendExpertMeetingStaffEmail(
             value: escapeHtml(payload.preferredTimes?.trim() || "Flexible"),
           },
         ],
-        { title: "Meeting" }
+        { title: "Request" }
       )}
       ${emailParagraph(`<strong>Message</strong><br />${escapeHtml(payload.message).replace(/\n/g, "<br />")}`)}
     `,
@@ -139,9 +159,9 @@ export async function sendExpertMeetingStaffEmail(
 
   return sendEmail({
     to: getEmailStaffTo(),
-    subject: `Experts in Residence · Meeting — ${payload.expertName}`,
+    subject: `Experts in Residence · ${typeLabel} — ${payload.expertName}`,
     html,
-    text: `${payload.requesterName} requested a meeting with ${payload.expertName} about ${payload.topic}.`,
+    text: `${payload.requesterName} requested ${typeLabel.toLowerCase()} with ${payload.expertName} about ${payload.topic}.`,
     replyTo: payload.requesterEmail,
   })
 }

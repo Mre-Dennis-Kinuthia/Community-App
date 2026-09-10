@@ -8,7 +8,6 @@ import {
   GraduationCap,
   Lightbulb,
   Newspaper,
-  Mail,
   FolderOpen,
   BarChart3,
   Sparkles,
@@ -19,6 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { isNavHrefEnabled } from "@/lib/feature-flags"
+import { isNewsHubPath } from "@/lib/news-hub"
 
 export type NavBadgeKey = "upcomingEvents"
 
@@ -29,6 +29,10 @@ export type NavItemConfig = {
   /** Workspace items shown under a collapsible "Front desk" sub-section */
   frontDesk?: boolean
   badgeKey?: NavBadgeKey
+  /** Only shown when the signed-in user is an Expert in Residence */
+  expertOnly?: boolean
+  /** Hidden when the signed-in user is an Expert in Residence */
+  hideForExpert?: boolean
 }
 
 export type NavGroupConfig = {
@@ -47,7 +51,15 @@ export type MobileNavItem = {
 export const NAV_GROUPS: NavGroupConfig[] = [
   {
     title: "Main",
-    items: [{ title: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
+    items: [
+      { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, hideForExpert: true },
+      {
+        title: "EIR dashboard",
+        href: "/dashboard/eir",
+        icon: GraduationCap,
+        expertOnly: true,
+      },
+    ],
   },
   {
     title: "Workspace",
@@ -66,7 +78,6 @@ export const NAV_GROUPS: NavGroupConfig[] = [
       { title: "Investments & Dealflow", href: "/investments", icon: BarChart3 },
       { title: "My projects", href: "/dashboard/projects", icon: FolderOpen },
       { title: "News & Updates", href: "/news", icon: Newspaper },
-      { title: "Newsletters", href: "/newsletters", icon: Mail },
       { title: "Partners & Network", href: "/partners", icon: Handshake },
       { title: "Experts in Residence", href: "/experts", icon: GraduationCap },
     ],
@@ -90,7 +101,6 @@ const MOBILE_PRIMARY_HREFS = ["/dashboard", "/booking", "/community", "/events"]
 /** "More" sheet — order matches desktop nav groups (disabled routes omitted at source). */
 const MOBILE_MORE_HREFS = [
   "/news",
-  "/newsletters",
   "/partners",
   "/experts",
   "/opportunities",
@@ -111,7 +121,6 @@ const MOBILE_TITLE_OVERRIDES: Record<string, string> = {
   "/dashboard/visitors": "Visitors",
   "/dashboard/deliveries": "Packages",
   "/news": "News",
-  "/newsletters": "Newsletters",
   "/partners": "Partners",
   "/experts": "Experts",
   "/opportunities": "Opportunities",
@@ -177,6 +186,12 @@ export function isNavPathActive(
   resourcesTab?: string | null
 ): boolean {
   if (href === "/dashboard") return pathname === "/dashboard"
+  if (href === "/dashboard/eir") {
+    return pathname === "/dashboard/eir" || pathname.startsWith("/dashboard/eir/")
+  }
+  if (href === "/news") {
+    return isNewsHubPath(pathname)
+  }
   if (href === "/opportunities") {
     return (
       pathname === "/opportunities" ||

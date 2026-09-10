@@ -19,6 +19,12 @@ import {
   ListPageShell,
 } from "@/components/design/list-page-shell"
 import { NewsCard, type NewsCardPost } from "@/components/news/news-card"
+import {
+  NewslettersArchiveList,
+  type NewsletterEdition,
+} from "@/components/news/newsletters-archive-list"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { NEWS_HUB_NEWSLETTERS_HREF, NEWS_HUB_PATH } from "@/lib/news-hub"
 
 type NewsPost = NewsCardPost
 
@@ -29,6 +35,7 @@ export default function NewsPage() {
   const searchQuery = searchParams.get("search") || ""
   const categoryId = searchParams.get("categoryId") || ""
   const tagId = searchParams.get("tagId") || ""
+  const section = searchParams.get("tab") === "newsletters" ? "newsletters" : "stories"
   const [searchInput, setSearchInput] = useState(searchQuery)
 
   const newsParams = new URLSearchParams()
@@ -37,9 +44,33 @@ export default function NewsPage() {
   if (tagId) newsParams.set("tagId", tagId)
   newsParams.set("limit", "50")
   const newsKey = `/api/news?${newsParams.toString()}`
-  const { data: newsResponse, error: newsError, isLoading: loading } = useSWR<{ posts?: NewsPost[] }>(newsKey)
+  const { data: newsResponse, error: newsError, isLoading: loading } = useSWR<{ posts?: NewsPost[] }>(
+    section === "stories" ? newsKey : null
+  )
   const news = Array.isArray(newsResponse?.posts) ? newsResponse.posts : []
   const error = newsError?.message ? "Failed to load news. Please try again later." : null
+
+  const {
+    data: newsletterResponse,
+    error: newsletterFetchError,
+    isLoading: newslettersLoading,
+  } = useSWR<{ campaigns?: NewsletterEdition[] }>(
+    section === "newsletters" ? "/api/newsletters?limit=50" : null
+  )
+  const campaigns = Array.isArray(newsletterResponse?.campaigns)
+    ? newsletterResponse.campaigns
+    : []
+  const newsletterError = newsletterFetchError
+    ? "Failed to load newsletters. Please try again later."
+    : null
+
+  const setSection = (next: "stories" | "newsletters") => {
+    if (next === "newsletters") {
+      router.replace(NEWS_HUB_NEWSLETTERS_HREF, { scroll: false })
+      return
+    }
+    router.replace(NEWS_HUB_PATH, { scroll: false })
+  }
 
   useEffect(() => {
     setSearchInput(searchQuery)
@@ -51,7 +82,7 @@ export default function NewsPage() {
     if (q) params.set("search", q)
     else params.delete("search")
     params.delete("page")
-    router.replace(params.toString() ? `?${params.toString()}` : "/news", { scroll: false })
+    router.replace(params.toString() ? `?${params.toString()}` : NEWS_HUB_PATH, { scroll: false })
   }
 
   const setCategoryFilter = (id: string) => {
@@ -59,7 +90,7 @@ export default function NewsPage() {
     if (id) params.set("categoryId", id)
     else params.delete("categoryId")
     params.delete("tagId")
-    router.replace(params.toString() ? `?${params.toString()}` : "/news", { scroll: false })
+    router.replace(params.toString() ? `?${params.toString()}` : NEWS_HUB_PATH, { scroll: false })
   }
 
   const setTagFilter = (id: string) => {
@@ -67,7 +98,7 @@ export default function NewsPage() {
     if (id) params.set("tagId", id)
     else params.delete("tagId")
     params.delete("categoryId")
-    router.replace(params.toString() ? `?${params.toString()}` : "/news", { scroll: false })
+    router.replace(params.toString() ? `?${params.toString()}` : NEWS_HUB_PATH, { scroll: false })
   }
 
   const uniqueCategories = Array.from(
@@ -85,7 +116,7 @@ export default function NewsPage() {
 
   const clearFilters = () => {
     setSearchInput("")
-    router.replace("/news", { scroll: false })
+    router.replace(NEWS_HUB_PATH, { scroll: false })
   }
 
   const hasActiveFilters = searchQuery || categoryId || tagId
@@ -115,14 +146,23 @@ export default function NewsPage() {
       <ListPageShell
         breadcrumb="News & Updates"
         title="News & updates"
-        description="Stories, announcements, and insights from Impact Hub Nairobi."
-        resultCount={news.length}
-        resultLabel="articles"
-        filterCount={filterCount}
-        hasActiveFilters={!!hasActiveFilters}
-        onClearFilters={clearFilters}
+        description="Stories, announcements, and newsletter editions from Impact Hub Nairobi."
+        resultCount={section === "newsletters" ? campaigns.length : news.length}
+        resultLabel={section === "newsletters" ? "editions" : "articles"}
+        filterCount={section === "stories" ? filterCount : 0}
+        hasActiveFilters={section === "stories" && !!hasActiveFilters}
+        onClearFilters={section === "stories" ? clearFilters : undefined}
         showDesktopFilterBadge={false}
+        toolbar={
+          <Tabs value={section} onValueChange={(v) => setSection(v as "stories" | "newsletters")}>
+            <TabsList>
+              <TabsTrigger value="stories">Stories</TabsTrigger>
+              <TabsTrigger value="newsletters">Newsletters</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        }
         mobileFilters={
+          section === "stories" ? (
           <>
             <MobileSearchBar
               value={searchInput}
@@ -143,8 +183,10 @@ export default function NewsPage() {
               ) : null}
             </div>
           </>
+          ) : undefined
         }
         desktopFilters={
+          section === "stories" ? (
           <>
             <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
               <ListPageSearchField
@@ -160,9 +202,10 @@ export default function NewsPage() {
               </Button>
             ) : null}
           </>
+          ) : undefined
         }
         filterChips={
-          (uniqueCategories.length > 0 || uniqueTags.length > 0) ? (
+          section === "stories" && (uniqueCategories.length > 0 || uniqueTags.length > 0) ? (
           <FilterChipRow>
             <FilterChip
               label="All"
@@ -192,6 +235,14 @@ export default function NewsPage() {
           ) : null
         }
       >
+        {section === "newsletters" ? (
+          <NewslettersArchiveList
+            campaigns={campaigns}
+            loading={newslettersLoading}
+            error={newsletterError}
+          />
+        ) : (
+          <>
         {hasActiveFilters && (
           <div className="hidden flex-wrap items-center gap-2 md:flex">
             <span className="text-sm text-muted-foreground">Active:</span>
@@ -285,6 +336,8 @@ export default function NewsPage() {
             ) : null}
           </div>
         </ListPageBody>
+          </>
+        )}
       </ListPageShell>
     </DashboardLayout>
   )

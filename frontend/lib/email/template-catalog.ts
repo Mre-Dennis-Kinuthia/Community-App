@@ -161,6 +161,28 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
       "You were invited to join Impact Hub Nairobi.\n\nCreate your password: {{inviteUrl}}\n\nThis link expires in 7 days.",
   },
   {
+    key: "eir_platform_invite",
+    name: "Expert in Residence invite",
+    description: "Invite a consultant to create an EIR account — not Connect or Star Connect.",
+    category: "account",
+    sentFrom: "admin",
+    variables: [
+      NAME,
+      { key: "inviteUrl", label: "Invite URL", sample: "https://example.com/invite" },
+      { key: "invitedBy", label: "Invited by", sample: "Alex from Impact Hub" },
+    ],
+    subject: "You're invited as an Expert in Residence",
+    preheader: "Create your EIR account at Impact Hub Nairobi",
+    title: "Expert in Residence invite",
+    eyebrow: "Experts in Residence",
+    bodyHtml: `<p>{{invitedBy}} invited you to join Impact Hub Nairobi as an <strong>Expert in Residence</strong>.</p>
+<p>This is a consultant account — not Connect or Star Connect membership. After you create your password you can see members requesting 1-on-1 clinics, service inquiries, and your events.</p>
+<p style="color:#71717A;font-size:13px;">This link expires in 7 days. If you were not expecting this invite, you can ignore this email.</p>`,
+    ctaLabel: "Create your EIR account",
+    textBody:
+      "You were invited as an Expert in Residence at Impact Hub Nairobi.\n\nThis is not Connect or Star Connect membership.\n\nCreate your password: {{inviteUrl}}\n\nThis link expires in 7 days.",
+  },
+  {
     key: "account_deleted",
     name: "Account deleted",
     description: "Confirmation after a member account is deleted.",

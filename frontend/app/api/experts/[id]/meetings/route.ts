@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 import {
+  EIR_DASHBOARD_PATH,
   EXPERT_MEETING_TICKET_CATEGORY,
   expertPublicParamWhere,
+  expertRequestTypeLabel,
   meetingRequestSchema,
 } from "@/lib/experts"
 import {
@@ -75,10 +77,11 @@ export async function POST(
     const ticket = await prisma.supportTicket.create({
       data: {
         member: `${requesterName} <${requesterEmail}>`,
-        subject: `Experts in Residence · Meeting — ${expert.name}`,
+        subject: `Experts in Residence · ${expertRequestTypeLabel(body.requestType)} — ${expert.name}`,
         description: [
           `Expert: ${expert.name} <${expert.email}>`,
           `Member: ${requesterName} <${requesterEmail}>`,
+          `Type: ${expertRequestTypeLabel(body.requestType)}`,
           `Topic: ${body.topic}`,
           `Format: ${body.meetingFormat}`,
           `Preferred times: ${body.preferredTimes?.trim() || "Flexible"}`,
@@ -101,6 +104,7 @@ export async function POST(
         message: body.message,
         preferredTimes: body.preferredTimes?.trim() || null,
         meetingFormat: body.meetingFormat,
+        requestType: body.requestType,
         ticketId: ticket.id,
       },
     })
@@ -115,6 +119,7 @@ export async function POST(
       message: body.message,
       preferredTimes: body.preferredTimes,
       meetingFormat: body.meetingFormat,
+      requestType: body.requestType,
     }
 
     if (isEmailConfigured()) {
@@ -128,11 +133,11 @@ export async function POST(
     if (expert.userId) {
       await createNotification({
         userId: expert.userId,
-        title: "New meeting request",
+        title: `New ${expertRequestTypeLabel(body.requestType).toLowerCase()} request`,
         message: `${requesterName} would like to meet about ${body.topic}.`,
         type: "info",
         category: "community",
-        actionUrl: `/experts/${expert.slug}`,
+        actionUrl: EIR_DASHBOARD_PATH,
         relatedId: meeting.id,
         relatedType: "expert_meeting",
         skipEmail: true,

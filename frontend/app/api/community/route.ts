@@ -39,9 +39,9 @@ export async function GET(request: NextRequest) {
     const session = await auth()
     const viewerId = await resolveUserIdFromSession(session)
 
-    // Build where clause
-    // Show all users - profiles are optional
-    const where: any = {}
+    const where: Record<string, unknown> = {
+      expertProfile: null,
+    }
 
     // Search filter
     if (search) {

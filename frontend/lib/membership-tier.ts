@@ -7,6 +7,7 @@ export const MEMBERSHIP_TIERS = {
   COMMUNITY: "community",
   STAR_CONNECT: "star_connect",
   ORGANISATIONAL: "organisational",
+  EXPERT_IN_RESIDENCE: "expert_in_residence",
 } as const
 
 export type MembershipTier =
@@ -16,6 +17,7 @@ export const MEMBERSHIP_TIER_LABELS: Record<MembershipTier, string> = {
   community: "Connect member",
   star_connect: "Star Connect member",
   organisational: "Organisation / Company member",
+  expert_in_residence: "Expert in Residence",
 }
 
 /** Monthly included meeting-room time (minutes) */
@@ -26,12 +28,14 @@ export const MEETING_ROOM_ALLOWANCE_MINUTES: Record<
   community: 0,
   star_connect: 120,
   organisational: 600,
+  expert_in_residence: 0,
 }
 
 const TIER_RANK: Record<MembershipTier, number> = {
   community: 0,
   star_connect: 1,
   organisational: 2,
+  expert_in_residence: 0,
 }
 
 export function parseMembershipTier(
@@ -42,7 +46,16 @@ export function parseMembershipTier(
   if (value === MEMBERSHIP_TIERS.ORGANISATIONAL) {
     return MEMBERSHIP_TIERS.ORGANISATIONAL
   }
+  if (value === MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE) {
+    return MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE
+  }
   return null
+}
+
+export function isExpertInResidenceTier(
+  value: string | null | undefined
+): boolean {
+  return parseMembershipTier(value) === MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE
 }
 
 export function getMembershipTierLabel(

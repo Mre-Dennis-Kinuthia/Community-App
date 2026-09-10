@@ -23,7 +23,7 @@ import {
 interface SearchResult {
   id: string
   title: string
-  type: "event" | "member" | "project" | "partner" | "expert" | "resource" | "news"
+  type: "event" | "member" | "project" | "partner" | "expert" | "resource" | "news" | "newsletter"
   href: string
   description?: string
 }
@@ -36,6 +36,7 @@ const typeLabels: Record<string, string> = {
   expert: "Expert",
   resource: "Resource",
   news: "News",
+  newsletter: "Newsletter",
 }
 
 export function GlobalSearch() {

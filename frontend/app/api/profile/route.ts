@@ -9,7 +9,7 @@ import {
   connectApplicationPayloadFromProfile,
   sendConnectApplicationStaffEmail,
 } from "@/lib/email/connect-application"
-import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
+import { MEMBERSHIP_TIERS, isExpertInResidenceTier } from "@/lib/membership-tier"
 import { isOnboardingComplete, onboardingSliceFromProfile, BIO_MAX_WORDS, countBioWords } from "@/lib/member-segmentation"
 import { shouldShowOnboardingNudge } from "@/lib/onboarding-reminders"
 import { buildMembershipSummary } from "@/lib/membership-profile"
@@ -207,9 +207,13 @@ export async function GET(request: NextRequest) {
           where: { followingId: userId },
         }),
       ])
-      const needsOnboarding = !isOnboardingComplete(
-        onboardingSliceFromProfile(profileAfterSlug ?? newProfile)
+      const needsOnboarding = isExpertInResidenceTier(
+        (profileAfterSlug ?? newProfile).membershipTier
       )
+        ? false
+        : !isOnboardingComplete(
+            onboardingSliceFromProfile(profileAfterSlug ?? newProfile)
+          )
       return NextResponse.json(
         {
           profile: formatProfileResponse(profileAfterSlug ?? newProfile),
@@ -247,7 +251,9 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    const needsOnboarding = !isOnboardingComplete(onboardingSliceFromProfile(profile))
+    const needsOnboarding = isExpertInResidenceTier(profile.membershipTier)
+      ? false
+      : !isOnboardingComplete(onboardingSliceFromProfile(profile))
     const userForSlug = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, name: true },

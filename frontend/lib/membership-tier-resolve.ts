@@ -106,7 +106,7 @@ export async function assignMembershipTierForUser(
   email: string,
   options: AssignMembershipTierOptions = {}
 ): Promise<AssignMembershipTierResult> {
-  const [profile, user] = await Promise.all([
+  const [profile, user, expert] = await Promise.all([
     prisma.memberProfile.findUnique({
       where: { userId },
       select: { membershipTier: true },
@@ -115,10 +115,50 @@ export async function assignMembershipTierForUser(
       where: { id: userId },
       select: { createdAt: true },
     }),
+    prisma.expertInResidence.findFirst({
+      where: { userId, deletedAt: null },
+      select: { id: true },
+    }),
   ])
 
   const previousTier =
     (profile?.membershipTier as MembershipTier | null) ?? null
+
+  if (
+    expert ||
+    previousTier === MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE
+  ) {
+    if (previousTier !== MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE) {
+      await prisma.memberProfile.upsert({
+        where: { userId },
+        create: {
+          userId,
+          skills: [],
+          availability: [],
+          interests: [],
+          memberType: "expert_in_residence",
+          membershipTier: MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE,
+          meetingRoomFreeMinutesUsed: 0,
+        },
+        update: {
+          memberType: "expert_in_residence",
+          membershipTier: MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE,
+        },
+      })
+      return {
+        tier: MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE,
+        previousTier,
+        changed: true,
+        source: "existing",
+      }
+    }
+    return {
+      tier: MEMBERSHIP_TIERS.EXPERT_IN_RESIDENCE,
+      previousTier,
+      changed: false,
+      source: "existing",
+    }
+  }
 
   let detected: MembershipTier | null = null
   let source: AssignMembershipTierResult["source"] = "existing"

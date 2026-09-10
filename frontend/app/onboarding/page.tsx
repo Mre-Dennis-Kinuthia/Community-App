@@ -435,7 +435,7 @@ function OnboardingContent() {
                     I am a… <span className="text-destructive">*</span>
                   </Label>
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {MEMBER_TYPES.map((type) => (
+                    {MEMBER_TYPES.filter((type) => type.value !== "expert_in_residence").map((type) => (
                       <button
                         key={type.value}
                         type="button"

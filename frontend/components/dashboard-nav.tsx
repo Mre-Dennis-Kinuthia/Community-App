@@ -84,8 +84,37 @@ export function DashboardNav() {
   const resourcesTab = searchParams.get("tab")
   const { isCollapsed } = useSidebar()
   const badges = useNavBadges()
+  const [isExpert, setIsExpert] = useState(() => pathname.startsWith("/dashboard/eir"))
 
-  const visibleNavGroups = useMemo(() => getVisibleNavGroups(), [])
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/experts/me", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setIsExpert(Boolean(data?.expert))
+      })
+      .catch(() => {
+        if (!cancelled) setIsExpert(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const visibleNavGroups = useMemo(
+    () =>
+      getVisibleNavGroups()
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) => {
+            if (item.expertOnly && !isExpert) return false
+            if (item.hideForExpert && isExpert) return false
+            return true
+          }),
+        }))
+        .filter((group) => group.items.length > 0),
+    [isExpert]
+  )
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
     getDefaultOpenGroups(pathname, visibleNavGroups, resourcesTab)

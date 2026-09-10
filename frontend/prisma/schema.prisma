@@ -149,7 +149,7 @@ model MemberProfile {
   industry  String?
   role      String?
   memberType String? // entrepreneur, employee, student, investor, partner, freelancer, other
-  membershipTier String? // community | star_connect | organisational
+  membershipTier String? // community | star_connect | organisational | expert_in_residence
   meetingRoomFreeMinutesUsed Int @default(0)
   meetingRoomAllowancePeriodStart DateTime?
   organization String? // company, NGO, or institution name
@@ -572,6 +572,8 @@ model ExpertMeetingRequest {
   message         String   @db.Text
   preferredTimes  String?
   meetingFormat   String   @default("virtual") // virtual, in-person, either
+  /// clinic = 1-on-1 clinic, services = procure their services
+  requestType     String   @default("clinic")
   status          String   @default("pending") // pending, confirmed, declined, cancelled
   ticketId        String?
   createdAt       DateTime @default(now())
@@ -582,6 +584,7 @@ model ExpertMeetingRequest {
   @@index([requesterUserId])
   @@index([status])
   @@index([createdAt])
+  @@index([requestType])
 }
 
 // ============================================

@@ -5,6 +5,7 @@ import { CalendarDays } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ExpertPhoto } from "@/components/experts/expert-photo"
+import { expertPublicPath } from "@/lib/experts"
 import type { Expert } from "@/types/expert"
 
 type ExpertCardProps = {
@@ -13,7 +14,7 @@ type ExpertCardProps = {
 
 export function ExpertCard({ expert }: ExpertCardProps) {
   return (
-    <Link href={`/experts/${expert.slug}`} className="group block h-full">
+    <Link href={expertPublicPath(expert)} className="group block h-full">
       <Card className="h-full border-border transition-colors hover:border-primary/40 hover:bg-muted/20">
         <CardContent className="flex h-full flex-col gap-4 p-5">
           <div className="flex items-start gap-4">

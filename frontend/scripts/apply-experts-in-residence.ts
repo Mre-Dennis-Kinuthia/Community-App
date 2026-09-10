@@ -64,6 +64,7 @@ async function main() {
       "message" TEXT NOT NULL,
       "preferredTimes" TEXT,
       "meetingFormat" TEXT NOT NULL DEFAULT 'virtual',
+      "requestType" TEXT NOT NULL DEFAULT 'clinic',
       "status" TEXT NOT NULL DEFAULT 'pending',
       "ticketId" TEXT,
       "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -111,6 +112,12 @@ async function main() {
       WHEN duplicate_object THEN NULL;
     END $$
   `
+
+  await sql`
+    ALTER TABLE "expert_meeting_requests"
+    ADD COLUMN IF NOT EXISTS "requestType" TEXT NOT NULL DEFAULT 'clinic'
+  `
+  await sql`CREATE INDEX IF NOT EXISTS "expert_meeting_requests_requestType_idx" ON "expert_meeting_requests"("requestType")`
 
   const experts = await sql`SELECT COUNT(*)::int AS n FROM "experts_in_residence"`
   console.log("[apply-experts-in-residence] Ready. Experts:", experts[0]?.n ?? 0)

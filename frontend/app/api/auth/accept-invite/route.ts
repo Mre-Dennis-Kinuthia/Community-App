@@ -8,6 +8,11 @@ import {
   consumeMemberInviteToken,
   validateMemberInviteToken,
 } from "@/lib/member-invite"
+import {
+  consumeEirInviteToken,
+  validateEirInviteToken,
+} from "@/lib/expert-invite"
+import { ensureEirMembership, findLinkedExpert } from "@/lib/experts-server"
 import { sendWelcomeEmail, sendEmailInBackground } from "@/lib/email"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 import { subscribeMemberToNewsletter } from "@/lib/newsletter"
@@ -44,9 +49,20 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, token, password } = acceptInviteSchema.parse(body)
 
-    const validation = await validateMemberInviteToken(email, token)
-    if (!validation.valid) {
-      return NextResponse.json({ error: validation.error }, { status: 400 })
+    const [memberValidation, eirValidation] = await Promise.all([
+      validateMemberInviteToken(email, token),
+      validateEirInviteToken(email, token),
+    ])
+    const inviteKind = eirValidation.valid
+      ? "eir"
+      : memberValidation.valid
+        ? "member"
+        : null
+    if (!inviteKind) {
+      return NextResponse.json(
+        { error: eirValidation.error || memberValidation.error },
+        { status: 400 }
+      )
     }
 
     const passwordResult = await validatePasswordAsync(password, { email })
@@ -84,27 +100,38 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    await consumeMemberInviteToken(email, token)
-    await subscribeMemberToNewsletter(email)
+    if (inviteKind === "eir") {
+      await consumeEirInviteToken(email, token)
+      await ensureEirMembership(user.id)
+      await findLinkedExpert(user.id, email)
+      await prisma.expertInResidence.updateMany({
+        where: { userId: user.id, deletedAt: null },
+        data: { isPublished: true },
+      })
+    } else {
+      await consumeMemberInviteToken(email, token)
+      await subscribeMemberToNewsletter(email)
 
-    const profile = await prisma.memberProfile.findUnique({
-      where: { userId: user.id },
-      select: { membershipTier: true },
-    })
-    const tier = profile?.membershipTier
-    const skipGenericWelcome =
-      tier === MEMBERSHIP_TIERS.STAR_CONNECT ||
-      tier === MEMBERSHIP_TIERS.ORGANISATIONAL
+      const profile = await prisma.memberProfile.findUnique({
+        where: { userId: user.id },
+        select: { membershipTier: true },
+      })
+      const tier = profile?.membershipTier
+      const skipGenericWelcome =
+        tier === MEMBERSHIP_TIERS.STAR_CONNECT ||
+        tier === MEMBERSHIP_TIERS.ORGANISATIONAL
 
-    if (!skipGenericWelcome) {
-      sendEmailInBackground(
-        () => sendWelcomeEmail({ to: user.email, name: user.name }),
-        "welcome"
-      )
+      if (!skipGenericWelcome) {
+        sendEmailInBackground(
+          () => sendWelcomeEmail({ to: user.email, name: user.name }),
+          "welcome"
+        )
+      }
     }
 
     return NextResponse.json({
       message: "Password created. You can sign in now.",
+      kind: inviteKind,
       user: {
         id: user.id,
         email: user.email,

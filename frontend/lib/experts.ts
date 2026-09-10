@@ -31,6 +31,12 @@ export const EXPERT_INITIATIVE_SUGGESTIONS = [
 export const EXPERT_MEETING_FORMATS = ["virtual", "in-person", "either"] as const
 export type ExpertMeetingFormat = (typeof EXPERT_MEETING_FORMATS)[number]
 
+export const EXPERT_REQUEST_TYPES = ["clinic", "services"] as const
+export type ExpertRequestType = (typeof EXPERT_REQUEST_TYPES)[number]
+
+export const EIR_DASHBOARD_PATH = "/dashboard/eir"
+export const EIR_INVITE_PREFIX = "eir-invite:"
+
 export const EXPERT_MEETING_STATUSES = [
   "pending",
   "confirmed",
@@ -94,6 +100,17 @@ export function meetingFormatLabel(format: string): string {
   }
 }
 
+export function expertRequestTypeLabel(type: string): string {
+  switch (type) {
+    case "clinic":
+      return "1-on-1 clinic"
+    case "services":
+      return "Services"
+    default:
+      return type
+  }
+}
+
 export const meetingRequestSchema = z.object({
   topic: z.string().trim().min(3, "Add a short topic").max(160),
   message: z
@@ -103,6 +120,7 @@ export const meetingRequestSchema = z.object({
     .max(2000),
   preferredTimes: z.string().trim().max(400).optional().or(z.literal("")),
   meetingFormat: z.enum(EXPERT_MEETING_FORMATS).default("virtual"),
+  requestType: z.enum(EXPERT_REQUEST_TYPES).default("clinic"),
 })
 
 export type MeetingRequestInput = z.infer<typeof meetingRequestSchema>

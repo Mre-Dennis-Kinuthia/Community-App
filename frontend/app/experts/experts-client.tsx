@@ -4,10 +4,10 @@ import { useEffect, useState } from "react"
 import useSWR from "swr"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
-import { GraduationCap, Sparkles, Users, CalendarDays } from "lucide-react"
+import { GraduationCap, Plus, Sparkles, Users, CalendarDays } from "lucide-react"
 import { DashboardLayout } from "@/app/dashboard/layout"
-import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { MetricCard, MetricCardGrid } from "@/components/design/metric-card"
 import {
   Select,
   SelectContent,
@@ -102,30 +102,19 @@ export default function ExpertsPageClient() {
         stats={[
           { label: "Experts", value: experts.length, icon: GraduationCap },
           { label: "Focus areas", value: filters.expertise.length, icon: Users },
-          { label: "Upcoming sessions", value: upcomingSessions, icon: CalendarDays },
+          { label: "Sessions", value: upcomingSessions, icon: CalendarDays },
         ]}
         statsLoading={isLoading}
         metrics={
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card className="border-border">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground">Experts</p>
-                <p className="mt-1 text-2xl font-semibold">{experts.length}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-border">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground">Focus areas</p>
-                <p className="mt-1 text-2xl font-semibold">{filters.expertise.length}</p>
-              </CardContent>
-            </Card>
-            <Card className="border-border">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground">Upcoming sessions</p>
-                <p className="mt-1 text-2xl font-semibold">{upcomingSessions}</p>
-              </CardContent>
-            </Card>
-          </div>
+          <MetricCardGrid className="md:grid-cols-3 xl:grid-cols-3">
+            <MetricCard label="Experts" value={experts.length} icon={GraduationCap} />
+            <MetricCard label="Focus areas" value={filters.expertise.length} icon={Users} />
+            <MetricCard
+              label="Upcoming sessions"
+              value={upcomingSessions}
+              icon={CalendarDays}
+            />
+          </MetricCardGrid>
         }
         resultCount={experts.length}
         resultLabel="experts"
@@ -134,8 +123,11 @@ export default function ExpertsPageClient() {
         onClearFilters={clearFilters}
         actions={
           me?.expert?.isPublished ? (
-            <Button asChild>
-              <Link href="/experts/events/new">Host a virtual session</Link>
+            <Button asChild size="sm" className="h-9 shrink-0 text-sm md:h-10">
+              <Link href="/experts/events/new">
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Host a session
+              </Link>
             </Button>
           ) : null
         }
@@ -269,10 +261,8 @@ export default function ExpertsPageClient() {
             {featuredExperts.length > 0 ? (
               <section className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                    Featured experts
-                  </h2>
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  <h2 className="section-label">Featured experts</h2>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {featuredExperts.map((expert) => (
@@ -284,9 +274,7 @@ export default function ExpertsPageClient() {
 
             <section className="space-y-4">
               {featuredExperts.length > 0 ? (
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  All experts
-                </h2>
+                <h2 className="section-label">All experts</h2>
               ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 {(featuredExperts.length > 0 ? regularExperts : experts).map((expert) => (

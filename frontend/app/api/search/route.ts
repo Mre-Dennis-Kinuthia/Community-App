@@ -10,6 +10,7 @@ export type SearchResultType =
   | "expert"
   | "resource"
   | "news"
+  | "newsletter"
 
 export interface SearchResultItem {
   id: string
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     const contains = { contains: q, mode: "insensitive" as const }
 
-    const [news, events, projects, partners, experts, resources, members] = await Promise.all([
+    const [news, events, projects, partners, experts, resources, members, newsletters] = await Promise.all([
       prisma.newsPost.findMany({
         where: {
           status: "published",
@@ -109,6 +110,17 @@ export async function GET(request: NextRequest) {
         },
         take: MAX_PER_TYPE,
       }),
+      prisma.newsletterCampaign.findMany({
+        where: {
+          deletedAt: null,
+          publishedToWeb: true,
+          status: "sent",
+          OR: [{ title: contains }, { subject: contains }, { preheader: contains }],
+        },
+        select: { id: true, title: true, slug: true, preheader: true, subject: true },
+        take: MAX_PER_TYPE,
+        orderBy: { sentAt: "desc" },
+      }),
     ])
 
     const results: SearchResultItem[] = [
@@ -118,6 +130,13 @@ export async function GET(request: NextRequest) {
         type: "news" as const,
         href: `/news/${n.slug || n.id}`,
         description: n.excerpt?.slice(0, 120) || undefined,
+      })),
+      ...newsletters.map((n) => ({
+        id: n.id,
+        title: n.title,
+        type: "newsletter" as const,
+        href: `/newsletters/${n.slug}`,
+        description: n.preheader?.slice(0, 120) || n.subject?.slice(0, 120) || undefined,
       })),
       ...events.map((e) => ({
         id: e.id,

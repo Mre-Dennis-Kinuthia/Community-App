@@ -16,6 +16,7 @@ export const MEMBER_TYPES = [
   { value: "investor", label: "Investor" },
   { value: "partner", label: "Partner / NGO / Government" },
   { value: "freelancer", label: "Freelancer / Consultant" },
+  { value: "expert_in_residence", label: "Expert in Residence" },
   { value: "other", label: "Other" },
 ] as const
 

@@ -8,6 +8,9 @@ import {
   meetingRequestSchema,
   expertEventCreateSchema,
   normalizeTagList,
+  expertRequestTypeLabel,
+  EIR_INVITE_PREFIX,
+  EIR_DASHBOARD_PATH,
 } from "@/lib/experts"
 
 describe("Experts in Residence", () => {
@@ -49,6 +52,19 @@ describe("Experts in Residence", () => {
       meetingFormat: "virtual",
     })
     expect(meeting.success).toBe(true)
+    if (meeting.success) {
+      expect(meeting.data.requestType).toBe("clinic")
+    }
+
+    const services = meetingRequestSchema.safeParse({
+      topic: "Advisory retainer",
+      message: "We would like to procure strategy support for a six-month programme.",
+      requestType: "services",
+    })
+    expect(services.success).toBe(true)
+    expect(expertRequestTypeLabel("services")).toBe("Services")
+    expect(EIR_DASHBOARD_PATH).toBe("/dashboard/eir")
+    expect(EIR_INVITE_PREFIX).toBe("eir-invite:")
 
     const tooShort = meetingRequestSchema.safeParse({
       topic: "Hi",

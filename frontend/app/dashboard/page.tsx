@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CalendarDays, Users2, CheckCircle2, Sparkles, X, Plus } from "lucide-react"
+import { CalendarDays, Users2, CheckCircle2, Sparkles, X, Plus, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { Breadcrumbs } from "@/components/breadcrumbs"
 import {
@@ -10,6 +10,7 @@ import {
   MobileBreadcrumbsHidden,
 } from "@/components/mobile/mobile-page-shell"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import useSWR from "swr"
 import { WelcomeModal } from "@/components/welcome-modal"
 import { DashboardSpaceWidget } from "@/components/dashboard-space-widget"
@@ -33,6 +34,7 @@ import {
 import { StatusDot } from "@/components/design/status-dot"
 import { EmptyState } from "@/components/design/empty-state"
 import { cn } from "@/lib/utils"
+import { EIR_DASHBOARD_PATH } from "@/lib/experts"
 import {
   dismissGettingStarted,
   shouldShowGettingStarted,
@@ -76,9 +78,20 @@ interface Event {
 
 export default function DashboardPage() {
   const { user } = useSession()
+  const router = useRouter()
   const [greeting, setGreeting] = useState("Good morning")
   const [showGettingStarted, setShowGettingStarted] = useState(false)
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null)
+
+  const { data: expertMe, isLoading: loadingExpert } = useSWR<{
+    expert: { id: string } | null
+  }>(user ? "/api/experts/me" : null)
+
+  useEffect(() => {
+    if (expertMe?.expert) {
+      router.replace(EIR_DASHBOARD_PATH)
+    }
+  }, [expertMe, router])
 
   // Only show tutorial after onboarding is complete (or when user just completed onboarding)
   useEffect(() => {
@@ -187,6 +200,14 @@ export default function DashboardPage() {
     "flex flex-1 items-center justify-center py-6 text-sm text-muted-foreground"
   const dashboardFeedEmpty =
     "flex flex-1 flex-col items-center justify-center border-0 bg-transparent px-4 py-6 shadow-none md:px-6 md:py-8"
+
+  if (loadingExpert || expertMe?.expert) {
+    return (
+      <div className="flex min-h-[320px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Loading" />
+      </div>
+    )
+  }
 
   return (
     <>

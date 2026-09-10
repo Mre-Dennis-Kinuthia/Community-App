@@ -22,12 +22,14 @@ import {
   PASSWORD_REQUIREMENTS_LINES,
 } from "@/lib/password-policy"
 import { DEFAULT_POST_LOGIN_PATH } from "@/lib/auth-routes"
+import { EIR_DASHBOARD_PATH } from "@/lib/experts"
 
 function AcceptInviteForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token") || ""
   const email = searchParams.get("email") || ""
+  const isEirInvite = searchParams.get("role") === "eir"
 
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
@@ -87,9 +89,14 @@ function AcceptInviteForm() {
         return
       }
 
-      toast.success("Welcome!", "Your account is ready.")
+      toast.success(
+        isEirInvite || data.kind === "eir" ? "Welcome, Expert in Residence" : "Welcome!",
+        "Your account is ready."
+      )
       startNavigation()
-      router.push(DEFAULT_POST_LOGIN_PATH)
+      router.push(
+        isEirInvite || data.kind === "eir" ? EIR_DASHBOARD_PATH : DEFAULT_POST_LOGIN_PATH
+      )
     } catch (err) {
       toast.error(
         "Activation failed",
@@ -115,13 +122,21 @@ function AcceptInviteForm() {
     )
   }
 
-  return (
-    <AuthPageShell
-      title="Join Impact Hub Nairobi"
-      subtitle={`You were invited to ${email}. Create a password to activate your member account.`}
-      panelTitle="Welcome to the community"
-      panelDescription="Programs, workspace, events, and a local-to-global network of impact makers — all in one place."
-    >
+    return (
+      <AuthPageShell
+        title={isEirInvite ? "Join as an Expert in Residence" : "Join Impact Hub Nairobi"}
+        subtitle={
+          isEirInvite
+            ? `You were invited as an Expert in Residence at ${email}. Create a password to open your EIR dashboard.`
+            : `You were invited to ${email}. Create a password to activate your member account.`
+        }
+        panelTitle={isEirInvite ? "Expert in Residence" : "Welcome to the community"}
+        panelDescription={
+          isEirInvite
+            ? "This is a consultant account — not Connect or Star Connect. See members requesting clinics, services, and your events."
+            : "Programs, workspace, events, and a local-to-global network of impact makers — all in one place."
+        }
+      >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>

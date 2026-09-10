@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { EXPERT_MEETING_FORMATS, meetingFormatLabel, meetingRequestSchema } from "@/lib/experts"
+import { EXPERT_MEETING_FORMATS, EXPERT_REQUEST_TYPES, expertRequestTypeLabel, meetingFormatLabel, meetingRequestSchema } from "@/lib/experts"
 import { toast } from "@/lib/toast"
 
 type ExpertMeetingFormProps = {
@@ -26,6 +26,7 @@ export function ExpertMeetingForm({ expertId, expertName }: ExpertMeetingFormPro
   const [message, setMessage] = useState("")
   const [preferredTimes, setPreferredTimes] = useState("")
   const [meetingFormat, setMeetingFormat] = useState<(typeof EXPERT_MEETING_FORMATS)[number]>("virtual")
+  const [requestType, setRequestType] = useState<(typeof EXPERT_REQUEST_TYPES)[number]>("clinic")
   const [submitting, setSubmitting] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +38,7 @@ export function ExpertMeetingForm({ expertId, expertName }: ExpertMeetingFormPro
       message,
       preferredTimes,
       meetingFormat,
+      requestType,
     })
     if (!parsed.success) {
       setError(parsed.error.errors[0]?.message || "Please complete the form")
@@ -67,10 +69,10 @@ export function ExpertMeetingForm({ expertId, expertName }: ExpertMeetingFormPro
 
   if (sent) {
     return (
-      <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm">
+      <div className="rounded-md border border-border bg-muted/30 p-4 text-sm">
         <p className="font-medium">Request sent</p>
         <p className="mt-1 text-muted-foreground">
-          {expertName} will follow up by email to confirm a time.
+          {expertName} will follow up by email to confirm next steps.
         </p>
       </div>
     )
@@ -78,6 +80,24 @@ export function ExpertMeetingForm({ expertId, expertName }: ExpertMeetingFormPro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="request-type">I am interested in</Label>
+        <Select
+          value={requestType}
+          onValueChange={(value) => setRequestType(value as typeof requestType)}
+        >
+          <SelectTrigger id="request-type">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {EXPERT_REQUEST_TYPES.map((type) => (
+              <SelectItem key={type} value={type}>
+                {expertRequestTypeLabel(type)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="topic">Topic</Label>
         <Input
@@ -129,7 +149,7 @@ export function ExpertMeetingForm({ expertId, expertName }: ExpertMeetingFormPro
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <Button type="submit" className="w-full" disabled={submitting}>
         {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Request a meeting
+        Send request
       </Button>
     </form>
   )

@@ -707,7 +707,11 @@ export default function ProfilePage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="__none__">Not specified</SelectItem>
-                          {MEMBER_TYPES.map((t) => (
+                          {MEMBER_TYPES.filter(
+                            (t) =>
+                              t.value !== "expert_in_residence" ||
+                              form.memberType === "expert_in_residence"
+                          ).map((t) => (
                             <SelectItem key={t.value} value={t.value}>
                               {t.label}
                             </SelectItem>
