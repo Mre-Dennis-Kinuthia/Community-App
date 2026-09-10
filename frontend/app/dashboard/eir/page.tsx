@@ -285,8 +285,9 @@ export default function ExpertInResidenceDashboardPage() {
       />
 
       <div className="hidden md:block">
-        <MetricCardGrid>
+        <MetricCardGrid compact className="sm:grid-cols-4 xl:grid-cols-4">
           <MetricCard
+            compact
             label="Clinic requests"
             value={stats?.clinicPending ?? 0}
             description={`${stats?.clinicsTotal ?? 0} total`}
@@ -294,6 +295,7 @@ export default function ExpertInResidenceDashboardPage() {
             highlight={(stats?.clinicPending ?? 0) > 0}
           />
           <MetricCard
+            compact
             label="Service inquiries"
             value={stats?.servicesPending ?? 0}
             description={`${stats?.servicesTotal ?? 0} total`}
@@ -301,12 +303,13 @@ export default function ExpertInResidenceDashboardPage() {
             highlight={(stats?.servicesPending ?? 0) > 0}
           />
           <MetricCard
-            label="Upcoming sessions"
+            compact
+            label="Sessions"
             value={stats?.upcomingEvents ?? 0}
             icon={CalendarDays}
             href="/events"
           />
-          <MetricCard label="Event guests" value={stats?.totalGuests ?? 0} icon={Users2} />
+          <MetricCard compact label="Event guests" value={stats?.totalGuests ?? 0} icon={Users2} />
         </MetricCardGrid>
       </div>
 

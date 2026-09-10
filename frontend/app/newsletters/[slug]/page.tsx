@@ -11,7 +11,7 @@ import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { Button } from "@/components/ui/button"
 import { NewsletterWebRenderer } from "@/lib/newsletter/render-web"
 import type { NewsletterSection } from "@/lib/newsletter"
-import { NEWS_HUB_LABEL, NEWS_HUB_NEWSLETTERS_HREF } from "@/lib/news-hub"
+import { NEWS_HUB_LABEL, NEWS_HUB_PATH } from "@/lib/news-hub"
 
 type Campaign = {
   title: string
@@ -49,7 +49,7 @@ export default function NewsletterDetailPage() {
         <MobileBreadcrumbsHidden>
           <Breadcrumbs
             items={[
-              { label: NEWS_HUB_LABEL, href: NEWS_HUB_NEWSLETTERS_HREF },
+              { label: NEWS_HUB_LABEL, href: NEWS_HUB_PATH },
               {
                 label: campaign?.title
                   ? campaign.title.length > 40
@@ -62,9 +62,9 @@ export default function NewsletterDetailPage() {
         </MobileBreadcrumbsHidden>
 
         <Button variant="ghost" size="sm" className="-ml-2 w-fit" asChild>
-          <Link href={NEWS_HUB_NEWSLETTERS_HREF}>
+          <Link href={NEWS_HUB_PATH}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            All newsletters
+            All updates
           </Link>
         </Button>
 
@@ -80,9 +80,9 @@ export default function NewsletterDetailPage() {
               {error || "Newsletter not found"}
             </p>
             <Button variant="outline" asChild>
-              <Link href={NEWS_HUB_NEWSLETTERS_HREF}>
+              <Link href={NEWS_HUB_PATH}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to newsletters
+                Back to News & updates
               </Link>
             </Button>
           </div>
@@ -154,9 +154,9 @@ export default function NewsletterDetailPage() {
 
             <div className="border-t border-border pt-6">
               <Button variant="outline" asChild>
-                <Link href={NEWS_HUB_NEWSLETTERS_HREF}>
+                <Link href={NEWS_HUB_PATH}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to newsletters
+                  Back to News & updates
                 </Link>
               </Button>
             </div>

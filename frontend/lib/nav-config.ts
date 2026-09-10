@@ -175,7 +175,10 @@ export const MOBILE_MORE_TRIGGER: MobileNavItem = {
 export function getVisibleNavGroups(): NavGroupConfig[] {
   return NAV_GROUPS.map((group) => ({
     ...group,
-    items: group.items.filter((item) => isNavHrefEnabled(item.href)),
+    items: group.items
+      .filter((item) => isNavHrefEnabled(item.href))
+      // One Community nav item for articles + newsletter editions.
+      .filter((item) => item.href !== "/newsletters"),
   })).filter((group) => group.items.length > 0)
 }
 

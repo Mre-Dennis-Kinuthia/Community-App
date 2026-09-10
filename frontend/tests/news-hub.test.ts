@@ -11,6 +11,6 @@ describe("News & updates hub", () => {
     expect(isNewsHubPath("/events")).toBe(false)
 
     expect(isNavPathActive("/newsletters/june", NEWS_HUB_PATH)).toBe(true)
-    expect(NEWS_HUB_NEWSLETTERS_HREF).toBe("/news?tab=newsletters")
+    expect(NEWS_HUB_NEWSLETTERS_HREF).toBe("/news?categoryId=newsletter")
   })
 })

@@ -35,6 +35,8 @@ export interface NewsCardPost {
   author: { id: string; name: string | null; email: string } | null
   category: NewsCardCategory | null
   tags: { tag: NewsCardTag }[]
+  /** Override default `/news/{slug}` — used for newsletter editions in the hub */
+  href?: string
 }
 
 export type NewsCardVariant = "hero" | "featured" | "standard"
@@ -196,7 +198,7 @@ export function NewsCard({
   variant?: NewsCardVariant
   className?: string
 }) {
-  const href = `/news/${post.slug || post.id}`
+  const href = post.href ?? `/news/${post.slug || post.id}`
   const preview = post.excerpt || stripHtml(post.content)
 
   if (variant === "hero") {

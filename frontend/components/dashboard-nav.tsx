@@ -109,6 +109,7 @@ export function DashboardNav() {
           items: group.items.filter((item) => {
             if (item.expertOnly && !isExpert) return false
             if (item.hideForExpert && isExpert) return false
+            if (item.href === "/newsletters") return false
             return true
           }),
         }))

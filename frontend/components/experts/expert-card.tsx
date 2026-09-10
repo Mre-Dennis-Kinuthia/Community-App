@@ -2,10 +2,9 @@
 
 import Link from "next/link"
 import { CalendarDays } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { ExpertPhoto } from "@/components/experts/expert-photo"
 import { expertPublicPath } from "@/lib/experts"
+import { cn } from "@/lib/utils"
 import type { Expert } from "@/types/expert"
 
 type ExpertCardProps = {
@@ -13,57 +12,46 @@ type ExpertCardProps = {
 }
 
 export function ExpertCard({ expert }: ExpertCardProps) {
+  const subtitle = [expert.title, expert.organization].filter(Boolean).join(" · ")
+  const chips = expert.expertise.slice(0, 2)
+  const extra = expert.expertise.length - chips.length
+
   return (
-    <Link href={expertPublicPath(expert)} className="group block h-full">
-      <Card className="h-full border-border transition-colors hover:border-primary/40 hover:bg-muted/20">
-        <CardContent className="flex h-full flex-col gap-4 p-5">
-          <div className="flex items-start gap-4">
-            <ExpertPhoto name={expert.name} photoUrl={expert.photoUrl} size="md" />
-            <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex flex-wrap gap-1.5">
-                {expert.isFeatured ? <Badge className="text-xs">Featured</Badge> : null}
-                {expert.organization ? (
-                  <Badge variant="outline" className="text-xs font-normal">
-                    {expert.organization}
-                  </Badge>
-                ) : null}
-              </div>
-              <h3 className="text-lg font-semibold leading-snug group-hover:text-primary">
-                {expert.name}
-              </h3>
-              <p className="text-sm text-muted-foreground">{expert.title}</p>
-            </div>
-          </div>
-
-          {expert.bio ? (
-            <p className="line-clamp-2 text-sm text-muted-foreground">{expert.bio}</p>
+    <Link
+      href={expertPublicPath(expert)}
+      className={cn(
+        "group flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2.5",
+        "transition-colors hover:border-primary/40 hover:bg-muted/20"
+      )}
+    >
+      <ExpertPhoto name={expert.name} photoUrl={expert.photoUrl} size="sm" />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <h3 className="truncate text-sm font-semibold leading-tight group-hover:text-primary">
+            {expert.name}
+          </h3>
+          {expert.isFeatured ? (
+            <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-primary">
+              Featured
+            </span>
           ) : null}
-
-          <div className="mt-auto space-y-3">
-            {expert.expertise.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {expert.expertise.slice(0, 3).map((area) => (
-                  <Badge key={area} variant="outline" className="text-xs font-normal">
-                    {area}
-                  </Badge>
-                ))}
-                {expert.expertise.length > 3 ? (
-                  <Badge variant="outline" className="text-xs font-normal">
-                    +{expert.expertise.length - 3}
-                  </Badge>
-                ) : null}
-              </div>
-            ) : null}
-
-            {expert.eventsCount > 0 ? (
-              <p className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-                {expert.eventsCount} upcoming {expert.eventsCount === 1 ? "session" : "sessions"}
-              </p>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+        {subtitle ? (
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
+        ) : null}
+        {chips.length > 0 ? (
+          <p className="mt-1 truncate text-[11px] text-muted-foreground/80">
+            {chips.join(" · ")}
+            {extra > 0 ? ` · +${extra}` : ""}
+          </p>
+        ) : null}
+      </div>
+      {expert.eventsCount > 0 ? (
+        <span className="hidden shrink-0 items-center gap-1 text-[11px] text-muted-foreground sm:inline-flex">
+          <CalendarDays className="h-3 w-3" />
+          {expert.eventsCount}
+        </span>
+      ) : null}
     </Link>
   )
 }

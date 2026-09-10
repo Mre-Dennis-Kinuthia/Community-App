@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useMemo, useState, useEffect } from "react"
 import useSWR from "swr"
 import { useSearchParams, useRouter } from "next/navigation"
 import { DashboardLayout } from "@/app/dashboard/layout"
@@ -19,58 +19,104 @@ import {
   ListPageShell,
 } from "@/components/design/list-page-shell"
 import { NewsCard, type NewsCardPost } from "@/components/news/news-card"
+import type { NewsletterEdition } from "@/components/news/newsletters-archive-list"
 import {
-  NewslettersArchiveList,
-  type NewsletterEdition,
-} from "@/components/news/newsletters-archive-list"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { NEWS_HUB_NEWSLETTERS_HREF, NEWS_HUB_PATH } from "@/lib/news-hub"
+  NEWS_HUB_PATH,
+  NEWSLETTER_CATEGORY,
+  NEWSLETTER_CATEGORY_ID,
+} from "@/lib/news-hub"
 
 type NewsPost = NewsCardPost
+
+function editionToCard(c: NewsletterEdition): NewsCardPost {
+  const when = c.sentAt || new Date().toISOString()
+  return {
+    id: `newsletter:${c.id}`,
+    title: c.title,
+    slug: c.slug,
+    content: "",
+    excerpt: c.preheader || c.subject,
+    imageUrl: c.coverImageUrl ?? null,
+    publishedAt: when,
+    createdAt: when,
+    isFeatured: false,
+    isPinned: false,
+    viewCount: 0,
+    readingTimeMinutes: null,
+    author: null,
+    category: { ...NEWSLETTER_CATEGORY },
+    tags: [],
+    href: `/newsletters/${c.slug}`,
+  }
+}
+
+function itemDate(post: NewsCardPost): number {
+  return new Date(post.publishedAt ?? post.createdAt).getTime()
+}
 
 export default function NewsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
   const searchQuery = searchParams.get("search") || ""
-  const categoryId = searchParams.get("categoryId") || ""
+  const rawCategoryId = searchParams.get("categoryId") || ""
+  const tabParam = searchParams.get("tab")
+  const categoryId =
+    rawCategoryId || (tabParam === "newsletters" ? NEWSLETTER_CATEGORY_ID : "")
   const tagId = searchParams.get("tagId") || ""
-  const section = searchParams.get("tab") === "newsletters" ? "newsletters" : "stories"
   const [searchInput, setSearchInput] = useState(searchQuery)
 
   const newsParams = new URLSearchParams()
   if (searchQuery) newsParams.set("search", searchQuery)
-  if (categoryId) newsParams.set("categoryId", categoryId)
+  if (categoryId && categoryId !== NEWSLETTER_CATEGORY_ID) {
+    newsParams.set("categoryId", categoryId)
+  }
   if (tagId) newsParams.set("tagId", tagId)
   newsParams.set("limit", "50")
-  const newsKey = `/api/news?${newsParams.toString()}`
-  const { data: newsResponse, error: newsError, isLoading: loading } = useSWR<{ posts?: NewsPost[] }>(
-    section === "stories" ? newsKey : null
-  )
+
+  const { data: newsResponse, error: newsError, isLoading: newsLoading } = useSWR<{
+    posts?: NewsPost[]
+  }>(`/api/news?${newsParams.toString()}`)
   const news = Array.isArray(newsResponse?.posts) ? newsResponse.posts : []
-  const error = newsError?.message ? "Failed to load news. Please try again later." : null
 
   const {
     data: newsletterResponse,
     error: newsletterFetchError,
     isLoading: newslettersLoading,
-  } = useSWR<{ campaigns?: NewsletterEdition[] }>(
-    section === "newsletters" ? "/api/newsletters?limit=50" : null
-  )
+  } = useSWR<{ campaigns?: NewsletterEdition[] }>("/api/newsletters?limit=50")
   const campaigns = Array.isArray(newsletterResponse?.campaigns)
     ? newsletterResponse.campaigns
     : []
-  const newsletterError = newsletterFetchError
-    ? "Failed to load newsletters. Please try again later."
-    : null
 
-  const setSection = (next: "stories" | "newsletters") => {
-    if (next === "newsletters") {
-      router.replace(NEWS_HUB_NEWSLETTERS_HREF, { scroll: false })
-      return
-    }
-    router.replace(NEWS_HUB_PATH, { scroll: false })
-  }
+  const loading = newsLoading || newslettersLoading
+  const error = newsError
+    ? "Failed to load news. Please try again later."
+    : newsletterFetchError
+      ? "Failed to load updates. Please try again later."
+      : null
+
+  const newsletterCards = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return campaigns
+      .map(editionToCard)
+      .filter((post) => {
+        if (!q) return true
+        const hay = `${post.title} ${post.excerpt ?? ""}`.toLowerCase()
+        return hay.includes(q)
+      })
+  }, [campaigns, searchQuery])
+
+  const feed = useMemo(() => {
+    const articles =
+      categoryId === NEWSLETTER_CATEGORY_ID || tagId ? [] : news
+    const editions =
+      !categoryId || categoryId === NEWSLETTER_CATEGORY_ID ? newsletterCards : []
+    return [...articles, ...editions].sort((a, b) => {
+      if (a.isPinned !== b.isPinned) return Number(b.isPinned) - Number(a.isPinned)
+      if (a.isFeatured !== b.isFeatured) return Number(b.isFeatured) - Number(a.isFeatured)
+      return itemDate(b) - itemDate(a)
+    })
+  }, [news, newsletterCards, categoryId, tagId])
 
   useEffect(() => {
     setSearchInput(searchQuery)
@@ -79,6 +125,7 @@ export default function NewsPage() {
   const applySearch = (value?: string) => {
     const q = (value ?? searchInput).trim()
     const params = new URLSearchParams(searchParams.toString())
+    params.delete("tab")
     if (q) params.set("search", q)
     else params.delete("search")
     params.delete("page")
@@ -87,6 +134,7 @@ export default function NewsPage() {
 
   const setCategoryFilter = (id: string) => {
     const params = new URLSearchParams(searchParams.toString())
+    params.delete("tab")
     if (id) params.set("categoryId", id)
     else params.delete("categoryId")
     params.delete("tagId")
@@ -95,6 +143,7 @@ export default function NewsPage() {
 
   const setTagFilter = (id: string) => {
     const params = new URLSearchParams(searchParams.toString())
+    params.delete("tab")
     if (id) params.set("tagId", id)
     else params.delete("tagId")
     params.delete("categoryId")
@@ -121,25 +170,23 @@ export default function NewsPage() {
 
   const hasActiveFilters = searchQuery || categoryId || tagId
   const activeCategoryName =
-    categoryId && (news.find((p) => p.category?.id === categoryId)?.category?.name ?? "Category")
+    categoryId === NEWSLETTER_CATEGORY_ID
+      ? NEWSLETTER_CATEGORY.name
+      : categoryId &&
+        (news.find((p) => p.category?.id === categoryId)?.category?.name ?? "Category")
   const activeTagName =
-    tagId && (news.find((p) => p.tags?.some((t) => t.tag.id === tagId))?.tags?.find((t) => t.tag.id === tagId)?.tag.name ?? "Tag")
+    tagId &&
+    (news.find((p) => p.tags?.some((t) => t.tag.id === tagId))?.tags?.find((t) => t.tag.id === tagId)
+      ?.tag.name ?? "Tag")
 
   const filterCount = [searchQuery, categoryId, tagId].filter(Boolean).length
 
-  /* Editorial partition: hierarchy only when browsing, plain grid when filtering. */
-  const showHierarchy = !hasActiveFilters && news.length > 2
-  const lead = showHierarchy
-    ? news.find((p) => p.isPinned) ?? news.find((p) => p.isFeatured) ?? news[0]
-    : null
-  const afterLead = lead ? news.filter((p) => p.id !== lead.id) : news
-  const secondary = showHierarchy
-    ? [...afterLead].sort((a, b) => Number(b.isFeatured) - Number(a.isFeatured)).slice(0, 2)
-    : []
+  const showHierarchy = !hasActiveFilters && feed.length > 2
+  const lead = showHierarchy ? feed[0] : null
+  const afterLead = lead ? feed.filter((p) => p.id !== lead.id) : feed
+  const secondary = showHierarchy ? afterLead.slice(0, 2) : []
   const secondaryIds = new Set(secondary.map((p) => p.id))
-  const rest = showHierarchy
-    ? afterLead.filter((p) => !secondaryIds.has(p.id))
-    : news
+  const rest = showHierarchy ? afterLead.filter((p) => !secondaryIds.has(p.id)) : feed
 
   return (
     <DashboardLayout>
@@ -147,22 +194,13 @@ export default function NewsPage() {
         breadcrumb="News & Updates"
         title="News & updates"
         description="Stories, announcements, and newsletter editions from Impact Hub Nairobi."
-        resultCount={section === "newsletters" ? campaigns.length : news.length}
-        resultLabel={section === "newsletters" ? "editions" : "articles"}
-        filterCount={section === "stories" ? filterCount : 0}
-        hasActiveFilters={section === "stories" && !!hasActiveFilters}
-        onClearFilters={section === "stories" ? clearFilters : undefined}
+        resultCount={feed.length}
+        resultLabel="updates"
+        filterCount={filterCount}
+        hasActiveFilters={!!hasActiveFilters}
+        onClearFilters={clearFilters}
         showDesktopFilterBadge={false}
-        toolbar={
-          <Tabs value={section} onValueChange={(v) => setSection(v as "stories" | "newsletters")}>
-            <TabsList>
-              <TabsTrigger value="stories">Stories</TabsTrigger>
-              <TabsTrigger value="newsletters">Newsletters</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        }
         mobileFilters={
-          section === "stories" ? (
           <>
             <MobileSearchBar
               value={searchInput}
@@ -170,7 +208,7 @@ export default function NewsPage() {
                 setSearchInput(v)
                 if (!v.trim() && searchQuery) applySearch("")
               }}
-              placeholder="Search articles…"
+              placeholder="Search updates…"
             />
             <div className="flex gap-2">
               <Button type="button" size="sm" className="h-9 rounded-lg px-4" onClick={() => applySearch()}>
@@ -183,17 +221,15 @@ export default function NewsPage() {
               ) : null}
             </div>
           </>
-          ) : undefined
         }
         desktopFilters={
-          section === "stories" ? (
           <>
             <FilterBarItem className="sm:min-w-[280px] sm:flex-1">
               <ListPageSearchField
                 value={searchInput}
                 onChange={setSearchInput}
                 onKeyDown={(e) => e.key === "Enter" && applySearch()}
-                placeholder="Search articles…"
+                placeholder="Search updates…"
               />
             </FilterBarItem>
             {hasActiveFilters ? (
@@ -202,57 +238,48 @@ export default function NewsPage() {
               </Button>
             ) : null}
           </>
-          ) : undefined
         }
         filterChips={
-          section === "stories" && (uniqueCategories.length > 0 || uniqueTags.length > 0) ? (
-          <FilterChipRow>
-            <FilterChip
-              label="All"
-              active={!categoryId && !tagId}
-              onClick={() => {
-                setCategoryFilter("")
-                setTagFilter("")
-              }}
-            />
-            {uniqueCategories.map((cat) => (
+          uniqueCategories.length > 0 || uniqueTags.length > 0 ? (
+            <FilterChipRow>
               <FilterChip
-                key={cat.id}
-                label={cat.name}
-                active={categoryId === cat.id}
-                onClick={() => setCategoryFilter(categoryId === cat.id ? "" : cat.id)}
+                label="All"
+                active={!categoryId && !tagId}
+                onClick={() => {
+                  setCategoryFilter("")
+                  setTagFilter("")
+                }}
               />
-            ))}
-            {uniqueTags.slice(0, 8).map((tag) => (
-              <FilterChip
-                key={tag.id}
-                label={`#${tag.name}`}
-                active={tagId === tag.id}
-                onClick={() => setTagFilter(tagId === tag.id ? "" : tag.id)}
-              />
-            ))}
-          </FilterChipRow>
+              {uniqueCategories.map((cat) => (
+                <FilterChip
+                  key={cat.id}
+                  label={cat.name}
+                  active={categoryId === cat.id}
+                  onClick={() => setCategoryFilter(categoryId === cat.id ? "" : cat.id)}
+                />
+              ))}
+              {uniqueTags.slice(0, 8).map((tag) => (
+                <FilterChip
+                  key={tag.id}
+                  label={`#${tag.name}`}
+                  active={tagId === tag.id}
+                  onClick={() => setTagFilter(tagId === tag.id ? "" : tag.id)}
+                />
+              ))}
+            </FilterChipRow>
           ) : null
         }
       >
-        {section === "newsletters" ? (
-          <NewslettersArchiveList
-            campaigns={campaigns}
-            loading={newslettersLoading}
-            error={newsletterError}
-          />
-        ) : (
-          <>
-        {hasActiveFilters && (
+        {hasActiveFilters ? (
           <div className="hidden flex-wrap items-center gap-2 md:flex">
             <span className="text-sm text-muted-foreground">Active:</span>
-            {searchQuery && (
+            {searchQuery ? (
               <Badge variant="secondary" className="font-normal">
                 &quot;{searchQuery}&quot;
               </Badge>
-            )}
-            {activeCategoryName && <Badge variant="outline">{activeCategoryName}</Badge>}
-            {activeTagName && <Badge variant="outline">{activeTagName}</Badge>}
+            ) : null}
+            {activeCategoryName ? <Badge variant="outline">{activeCategoryName}</Badge> : null}
+            {activeTagName ? <Badge variant="outline">{activeTagName}</Badge> : null}
             <Button
               variant="ghost"
               size="sm"
@@ -262,35 +289,33 @@ export default function NewsPage() {
               Clear all
             </Button>
             <span className="ml-auto text-sm text-muted-foreground">
-              {loading ? "Loading…" : `${news.length} article${news.length === 1 ? "" : "s"}`}
+              {loading ? "Loading…" : `${feed.length} update${feed.length === 1 ? "" : "s"}`}
             </span>
           </div>
-        )}
-
-        {!hasActiveFilters && (
+        ) : (
           <p className="hidden text-sm text-muted-foreground md:block">
-            {loading ? "Loading…" : `${news.length} article${news.length === 1 ? "" : "s"}`}
+            {loading ? "Loading…" : `${feed.length} update${feed.length === 1 ? "" : "s"}`}
           </p>
         )}
 
         <ListPageBody
           loading={loading}
-          loadingMessage="Loading news…"
+          loadingMessage="Loading updates…"
           error={error}
           errorAction={
             <Button variant="outline" onClick={() => window.location.reload()}>
               Retry
             </Button>
           }
-          isEmpty={news.length === 0}
+          isEmpty={feed.length === 0}
           empty={
             <EmptyState
               icon={Newspaper}
-              title={hasActiveFilters ? "No articles match your filters" : "No articles yet"}
+              title={hasActiveFilters ? "No updates match your filters" : "No updates yet"}
               description={
                 hasActiveFilters
-                  ? "Try clearing filters to see all published updates."
-                  : "Hub news and announcements will appear here when published."
+                  ? "Try clearing filters to see all published stories and newsletters."
+                  : "Hub stories, announcements, and newsletter editions will appear here."
               }
               action={
                 hasActiveFilters ? (
@@ -323,7 +348,7 @@ export default function NewsPage() {
                   <div className="flex items-center gap-3 pt-1">
                     <span className="h-1 w-8 rounded-full bg-primary" aria-hidden />
                     <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      Latest stories
+                      Latest updates
                     </h2>
                   </div>
                 ) : null}
@@ -336,8 +361,6 @@ export default function NewsPage() {
             ) : null}
           </div>
         </ListPageBody>
-          </>
-        )}
       </ListPageShell>
     </DashboardLayout>
   )

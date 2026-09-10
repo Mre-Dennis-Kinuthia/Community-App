@@ -106,14 +106,10 @@ export default function ExpertsPageClient() {
         ]}
         statsLoading={isLoading}
         metrics={
-          <MetricCardGrid className="md:grid-cols-3 xl:grid-cols-3">
-            <MetricCard label="Experts" value={experts.length} icon={GraduationCap} />
-            <MetricCard label="Focus areas" value={filters.expertise.length} icon={Users} />
-            <MetricCard
-              label="Upcoming sessions"
-              value={upcomingSessions}
-              icon={CalendarDays}
-            />
+          <MetricCardGrid compact className="grid-cols-3 sm:grid-cols-3 xl:grid-cols-3">
+            <MetricCard compact label="Experts" value={experts.length} icon={GraduationCap} />
+            <MetricCard compact label="Focus areas" value={filters.expertise.length} icon={Users} />
+            <MetricCard compact label="Sessions" value={upcomingSessions} icon={CalendarDays} />
           </MetricCardGrid>
         }
         resultCount={experts.length}
@@ -257,14 +253,14 @@ export default function ExpertsPageClient() {
             />
           }
         >
-          <div className="space-y-8">
+          <div className="space-y-5">
             {featuredExperts.length > 0 ? (
-              <section className="space-y-4">
+              <section className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 text-primary" />
                   <h2 className="section-label">Featured experts</h2>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2 sm:grid-cols-2">
                   {featuredExperts.map((expert) => (
                     <ExpertCard key={expert.id} expert={expert} />
                   ))}
@@ -272,11 +268,11 @@ export default function ExpertsPageClient() {
               </section>
             ) : null}
 
-            <section className="space-y-4">
+            <section className="space-y-2">
               {featuredExperts.length > 0 ? (
                 <h2 className="section-label">All experts</h2>
               ) : null}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {(featuredExperts.length > 0 ? regularExperts : experts).map((expert) => (
                   <ExpertCard key={expert.id} expert={expert} />
                 ))}
