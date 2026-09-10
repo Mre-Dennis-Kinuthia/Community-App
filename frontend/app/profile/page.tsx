@@ -660,7 +660,11 @@ export default function ProfilePage() {
             <Card className="border-border">
               <CardHeader className="p-4 pb-3 md:p-6">
                 <CardTitle className="text-lg">About you</CardTitle>
-                <CardDescription>Short introduction visible on your public member card.</CardDescription>
+                <CardDescription>
+                  {form.memberType === "expert_in_residence"
+                    ? "Shown on your Experts in Residence card and public member profile."
+                    : "Short introduction visible on your public member card."}
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 p-4 pt-0 md:p-6 md:pt-0">
                 <div className="space-y-2">

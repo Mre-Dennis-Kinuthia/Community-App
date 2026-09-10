@@ -260,7 +260,7 @@ export default function ExpertsPageClient() {
                   <Sparkles className="h-3.5 w-3.5 text-primary" />
                   <h2 className="section-label">Featured experts</h2>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   {featuredExperts.map((expert) => (
                     <ExpertCard key={expert.id} expert={expert} />
                   ))}
@@ -272,7 +272,7 @@ export default function ExpertsPageClient() {
               {featuredExperts.length > 0 ? (
                 <h2 className="section-label">All experts</h2>
               ) : null}
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {(featuredExperts.length > 0 ? regularExperts : experts).map((expert) => (
                   <ExpertCard key={expert.id} expert={expert} />
                 ))}

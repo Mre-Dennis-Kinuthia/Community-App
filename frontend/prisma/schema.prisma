@@ -537,6 +537,8 @@ model ExpertInResidence {
   email        String
   title        String
   organization String?
+  industry     String?
+  location     String?
   bio          String   @db.Text
   photoUrl     String?
   expertise    String[] @default([])

@@ -26,6 +26,7 @@ import { cn, getInitials } from "@/lib/utils"
 import { useSession } from "@/lib/use-session"
 import { getImageDisplayUrl } from "@/lib/stored-image"
 import { toast } from "@/lib/toast"
+import { useAppShellLock } from "@/lib/hooks/use-app-shell-lock"
 
 function DashboardLayoutContent({
   children,
@@ -35,6 +36,7 @@ function DashboardLayoutContent({
   const router = useRouter()
   const { isCollapsed, toggleSidebar } = useSidebar()
   const { user, status } = useSession()
+  useAppShellLock()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [onboardingChecked, setOnboardingChecked] = useState(false)
   const [redirectingToOnboarding, setRedirectingToOnboarding] = useState(false)
@@ -118,7 +120,7 @@ function DashboardLayoutContent({
 
   if (showLoading) {
     return (
-      <div className="flex h-[100svh] w-full items-center justify-center bg-background">
+      <div className="fixed inset-0 flex w-full items-center justify-center overflow-hidden bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" aria-label="Loading" />
         <span className="sr-only">Loading dashboard…</span>
       </div>
@@ -126,7 +128,7 @@ function DashboardLayoutContent({
   }
 
   return (
-    <div className="flex h-[100svh] flex-col overflow-hidden bg-background">
+    <div className="fixed inset-0 flex flex-col overflow-hidden overscroll-none bg-background">
       <header className="surface-header z-50 flex h-14 shrink-0 overflow-x-hidden border-b border-border md:h-16">
         <div className="container flex h-full min-w-0 items-center justify-between gap-2 px-3 md:gap-4 md:px-6">
           <div className="flex min-w-0 items-center gap-4 overflow-visible">
@@ -182,10 +184,10 @@ function DashboardLayoutContent({
           </div>
         </div>
       </header>
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         <aside
           className={cn(
-            "relative hidden shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar md:flex",
+            "relative hidden h-full min-h-0 shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar md:flex",
             "transition-[width] duration-300 ease-out",
             isCollapsed ? "w-16" : "w-64 min-w-64"
           )}
@@ -214,7 +216,7 @@ function DashboardLayoutContent({
         </aside>
         <main
           id="main-content"
-          className="container flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto px-3 py-3 pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom))] md:px-8 md:py-8 md:pb-8"
+          className="container flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain px-3 py-3 pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom))] md:px-8 md:py-8 md:pb-8"
         >
           {children}
         </main>

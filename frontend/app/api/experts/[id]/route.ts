@@ -6,6 +6,7 @@ import {
   mapPublicExpert,
   mapPublicExpertEvent,
 } from "@/lib/experts"
+import { expertUserOverlaySelect } from "@/lib/experts-server"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -26,6 +27,7 @@ export async function GET(
         isPublished: true,
       },
       include: {
+        user: { select: expertUserOverlaySelect },
         _count: {
           select: {
             events: { where: { deletedAt: null, startDate: { gte: now } } },

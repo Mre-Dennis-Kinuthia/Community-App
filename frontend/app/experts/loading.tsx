@@ -30,17 +30,16 @@ export default function ExpertsLoading() {
           <Skeleton className="h-9 w-[180px]" />
           <Skeleton className="h-9 w-[180px]" />
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2.5"
+              className="flex flex-col items-center rounded-xl border border-border bg-card px-4 py-5"
             >
-              <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
-              <div className="min-w-0 flex-1 space-y-1.5">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-48 max-w-full" />
-              </div>
+              <Skeleton className="h-16 w-16 shrink-0 rounded-full" />
+              <Skeleton className="mt-3 h-4 w-32" />
+              <Skeleton className="mt-2 h-3 w-24" />
+              <Skeleton className="mt-3 h-12 w-full" />
             </div>
           ))}
         </div>

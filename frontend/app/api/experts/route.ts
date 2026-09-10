@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { mapPublicExpert } from "@/lib/experts"
+import { expertUserOverlaySelect } from "@/lib/experts-server"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -26,6 +27,8 @@ export async function GET(request: NextRequest) {
         | { title: { contains: string; mode: "insensitive" } }
         | { bio: { contains: string; mode: "insensitive" } }
         | { organization: { contains: string; mode: "insensitive" } }
+        | { industry: { contains: string; mode: "insensitive" } }
+        | { location: { contains: string; mode: "insensitive" } }
         | { expertise: { has: string } }
         | { initiatives: { has: string } }
       >
@@ -40,6 +43,8 @@ export async function GET(request: NextRequest) {
         { title: { contains: search, mode: "insensitive" } },
         { bio: { contains: search, mode: "insensitive" } },
         { organization: { contains: search, mode: "insensitive" } },
+        { industry: { contains: search, mode: "insensitive" } },
+        { location: { contains: search, mode: "insensitive" } },
         { expertise: { has: search } },
         { initiatives: { has: search } },
       ]
@@ -55,6 +60,7 @@ export async function GET(request: NextRequest) {
         skip: offset,
         orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
         include: {
+          user: { select: expertUserOverlaySelect },
           _count: {
             select: {
               events: { where: { deletedAt: null, startDate: { gte: now } } },
@@ -65,24 +71,32 @@ export async function GET(request: NextRequest) {
       prisma.expertInResidence.count({ where }),
       prisma.expertInResidence.findMany({
         where: { deletedAt: null, isPublished: true },
-        select: { expertise: true, initiatives: true },
+        select: { expertise: true, initiatives: true, industry: true },
       }),
     ])
 
     const expertiseSet = new Set<string>()
     const initiativeSet = new Set<string>()
+    const industrySet = new Set<string>()
     for (const row of allPublished) {
       row.expertise.forEach((tag) => expertiseSet.add(tag))
       row.initiatives.forEach((tag) => initiativeSet.add(tag))
+      if (row.industry?.trim()) industrySet.add(row.industry.trim())
+    }
+
+    const experts = rows.map(mapPublicExpert)
+    for (const expert of experts) {
+      if (expert.industry) industrySet.add(expert.industry)
     }
 
     return NextResponse.json(
       {
-        experts: rows.map(mapPublicExpert),
+        experts,
         total,
         filters: {
           expertise: Array.from(expertiseSet).sort(),
           initiatives: Array.from(initiativeSet).sort(),
+          industries: Array.from(industrySet).sort(),
         },
       },
       { headers: corsHeaders(request) }

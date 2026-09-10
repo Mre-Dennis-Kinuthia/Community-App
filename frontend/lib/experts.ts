@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { parseMemberSocialLinks } from "@/lib/member-social-links"
 
 export const EXPERT_EXPERTISE_SUGGESTIONS = [
   "Strategy",
@@ -142,12 +143,16 @@ export const expertEventCreateSchema = z.object({
 
 export type ExpertEventCreateInput = z.infer<typeof expertEventCreateSchema>
 
+export const DEFAULT_EIR_TITLE = "Expert in Residence"
+
 export type PublicExpert = {
   id: string
   slug: string
   name: string
   title: string
   organization: string | null
+  industry: string | null
+  location: string | null
   bio: string
   photoUrl: string | null
   expertise: string[]
@@ -158,36 +163,129 @@ export type PublicExpert = {
   eventsCount: number
 }
 
-export function mapPublicExpert(row: {
-  id: string
-  slug: string
-  name: string
-  title: string
-  organization: string | null
-  bio: string
-  photoUrl: string | null
-  expertise: string[]
-  initiatives: string[]
-  bookingUrl: string | null
-  linkedInUrl: string | null
-  isFeatured: boolean
-  _count?: { events?: number }
-}): PublicExpert {
+export type ExpertMemberOverlay = {
+  name?: string | null
+  image?: string | null
+  profile?: {
+    bio?: string | null
+    organization?: string | null
+    industry?: string | null
+    role?: string | null
+    location?: string | null
+    skills?: string[] | null
+    socialLinks?: unknown
+  } | null
+} | null
+
+function firstText(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    const trimmed = value?.trim()
+    if (trimmed) return trimmed
+  }
+  return null
+}
+
+export function mapPublicExpert(
+  row: {
+    id: string
+    slug: string
+    name: string
+    title: string
+    organization: string | null
+    industry?: string | null
+    location?: string | null
+    bio: string
+    photoUrl: string | null
+    expertise: string[]
+    initiatives: string[]
+    bookingUrl: string | null
+    linkedInUrl: string | null
+    isFeatured: boolean
+    _count?: { events?: number }
+    user?: ExpertMemberOverlay
+  },
+  overlay?: ExpertMemberOverlay
+): PublicExpert {
+  const member = overlay ?? row.user ?? null
+  const profile = member?.profile
+  const linkedin = parseMemberSocialLinks(profile?.socialLinks).linkedin ?? null
+
   return {
     id: row.id,
     slug: row.slug,
-    name: row.name,
+    name: firstText(member?.name, row.name) ?? row.name,
     title: row.title,
-    organization: row.organization,
-    bio: row.bio,
-    photoUrl: row.photoUrl,
-    expertise: row.expertise ?? [],
+    organization: firstText(profile?.organization, row.organization),
+    industry: firstText(profile?.industry, row.industry),
+    location: firstText(profile?.location, row.location),
+    bio: firstText(profile?.bio, row.bio) ?? row.bio,
+    photoUrl: firstText(member?.image, row.photoUrl),
+    expertise: normalizeTagList([...(row.expertise ?? []), ...(profile?.skills ?? [])]),
     initiatives: row.initiatives ?? [],
     bookingUrl: row.bookingUrl,
-    linkedInUrl: row.linkedInUrl,
+    linkedInUrl: firstText(linkedin, row.linkedInUrl),
     isFeatured: row.isFeatured,
     eventsCount: row._count?.events ?? 0,
   }
+}
+
+export type ExpertProfileSyncPatch = {
+  name?: string
+  image?: string | null
+  bio?: string | null
+  role?: string | null
+  organization?: string | null
+  industry?: string | null
+  location?: string | null
+  skills?: string[]
+  linkedInUrl?: string | null
+}
+
+export function buildExpertProfileSyncData(
+  expert: { title: string; expertise: string[] },
+  patch: ExpertProfileSyncPatch
+) {
+  const data: {
+    name?: string
+    photoUrl?: string | null
+    bio?: string
+    title?: string
+    organization?: string | null
+    industry?: string | null
+    location?: string | null
+    expertise?: string[]
+    linkedInUrl?: string | null
+  } = {}
+
+  if (patch.name !== undefined && patch.name.trim()) data.name = patch.name.trim()
+  if (patch.image !== undefined) data.photoUrl = patch.image
+  if (patch.bio !== undefined) {
+    const bio = patch.bio?.trim() ?? ""
+    if (bio) data.bio = bio
+  }
+  if (patch.role?.trim()) {
+    const currentTitle = expert.title.trim()
+    if (!currentTitle || currentTitle === DEFAULT_EIR_TITLE) {
+      data.title = patch.role.trim()
+    }
+  }
+  if (patch.organization !== undefined) {
+    data.organization = patch.organization?.trim() || null
+  }
+  if (patch.industry !== undefined) {
+    data.industry = patch.industry?.trim() || null
+  }
+  if (patch.location !== undefined) {
+    data.location = patch.location?.trim() || null
+  }
+  if (patch.skills?.length) {
+    data.expertise = normalizeTagList([...(expert.expertise ?? []), ...patch.skills])
+  }
+  if (patch.linkedInUrl !== undefined) {
+    data.linkedInUrl = patch.linkedInUrl
+  }
+
+  return data
 }
 
 export function mapPublicExpertEvent(event: {

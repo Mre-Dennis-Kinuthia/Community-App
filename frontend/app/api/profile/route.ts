@@ -26,6 +26,7 @@ import {
 import { normalizeAvailabilityList } from "@/lib/member-segmentation"
 import { normalizePhoneNumber, validatePhoneInput } from "@/lib/member-phone"
 import { ensureMemberSlug } from "@/lib/member-slug"
+import { syncLinkedExpertFromProfileUpdate } from "@/lib/experts-server"
 
 /**
  * Handle OPTIONS preflight for CORS
@@ -433,6 +434,25 @@ export async function PUT(request: NextRequest) {
         imageUpdate !== undefined
           ? { ...completedProfile.user, image: imageUpdate }
           : completedProfile.user,
+    }
+
+    try {
+      await syncLinkedExpertFromProfileUpdate(userId, session.user.email, {
+        name: nameUpdate,
+        image: imageUpdate,
+        bio: profileData.bio,
+        role: profileData.role,
+        organization: profileData.organization,
+        industry: profileData.industry,
+        location: profileData.location,
+        skills: profileData.skills,
+        linkedInUrl:
+          socialLinksPayload === undefined
+            ? undefined
+            : socialLinksPayload?.linkedin ?? null,
+      })
+    } catch (syncError) {
+      console.error("[PROFILE API] Expert in Residence sync failed:", syncError)
     }
     const nowComplete = isOnboardingComplete(
       onboardingSliceFromProfile(profileForCompletion)

@@ -5,12 +5,29 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Logged-in app shell: lock the document Y-axis so chrome (nav) stays put. */
+html.app-shell,
+html.app-shell body {
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html.app-shell {
+  scroll-behavior: auto;
+}
+
+html.app-shell #main-content {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Installed PWA — full viewport including notches */
 html.pwa-standalone {
   -webkit-tap-highlight-color: transparent;
 }
 
-html.pwa-standalone body {
+html.pwa-standalone:not(.app-shell) body {
   min-height: 100dvh;
 }
 

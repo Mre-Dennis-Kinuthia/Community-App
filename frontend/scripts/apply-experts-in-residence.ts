@@ -31,6 +31,8 @@ async function main() {
       "email" TEXT NOT NULL,
       "title" TEXT NOT NULL,
       "organization" TEXT,
+      "industry" TEXT,
+      "location" TEXT,
       "bio" TEXT NOT NULL,
       "photoUrl" TEXT,
       "expertise" TEXT[] DEFAULT ARRAY[]::TEXT[],
@@ -112,6 +114,9 @@ async function main() {
       WHEN duplicate_object THEN NULL;
     END $$
   `
+
+  await sql`ALTER TABLE "experts_in_residence" ADD COLUMN IF NOT EXISTS "industry" TEXT`
+  await sql`ALTER TABLE "experts_in_residence" ADD COLUMN IF NOT EXISTS "location" TEXT`
 
   await sql`
     ALTER TABLE "expert_meeting_requests"

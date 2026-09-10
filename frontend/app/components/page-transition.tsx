@@ -52,7 +52,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={cn(
-        "min-h-0 transition-opacity duration-150 ease-out",
+        "h-full min-h-0 transition-opacity duration-150 ease-out",
         isVisible ? "opacity-100" : "opacity-0"
       )}
     >

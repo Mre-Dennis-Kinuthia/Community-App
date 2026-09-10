@@ -49,6 +49,12 @@ export function ExpertConnectPanel({ expert }: ExpertConnectPanelProps) {
             {expert.organization ? (
               <Badge variant="outline">{expert.organization}</Badge>
             ) : null}
+            {expert.industry ? (
+              <Badge variant="outline">{expert.industry}</Badge>
+            ) : null}
+            {expert.location ? (
+              <p className="text-sm text-muted-foreground">{expert.location}</p>
+            ) : null}
           </div>
           {expert.eventsCount > 0 ? (
             <div>

@@ -4,6 +4,8 @@ export type Expert = {
   name: string
   title: string
   organization: string | null
+  industry: string | null
+  location: string | null
   bio: string
   photoUrl: string | null
   expertise: string[]
@@ -34,5 +36,6 @@ export type ExpertsListResponse = {
   filters: {
     expertise: string[]
     initiatives: string[]
+    industries?: string[]
   }
 }
