@@ -504,17 +504,17 @@ function StarConnectApplicationForm() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
+                <div className="grid gap-4">
+                  <div className="min-w-0 space-y-2">
                     <Label htmlFor="workspaceNeed">{app.workspaceLabel}</Label>
                     <Select
                       value={form.workspaceNeed}
                       onValueChange={(v) => update("workspaceNeed", v)}
                     >
-                      <SelectTrigger id="workspaceNeed">
+                      <SelectTrigger id="workspaceNeed" className="h-auto min-h-9 w-full py-2">
                         <SelectValue placeholder={app.workspacePlaceholder} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-w-[min(100vw-2rem,28rem)]">
                         {app.workspaceNeeds.map((s) => (
                           <SelectItem key={s} value={s}>
                             {s}
@@ -523,13 +523,13 @@ function StarConnectApplicationForm() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="min-w-0 space-y-2">
                     <Label htmlFor="targetStart">Start</Label>
                     <Select
                       value={form.targetStart}
                       onValueChange={(v) => update("targetStart", v)}
                     >
-                      <SelectTrigger id="targetStart">
+                      <SelectTrigger id="targetStart" className="w-full">
                         <SelectValue placeholder="When?" />
                       </SelectTrigger>
                       <SelectContent>
