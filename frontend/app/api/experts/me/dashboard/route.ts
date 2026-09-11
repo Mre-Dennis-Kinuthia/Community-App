@@ -17,6 +17,9 @@ function serializeMeeting(meeting: {
   topic: string
   message: string
   preferredTimes: string | null
+  scheduledAt: Date | null
+  scheduledEndAt: Date | null
+  agenda: string | null
   meetingFormat: string
   requestType: string
   status: string
@@ -29,6 +32,9 @@ function serializeMeeting(meeting: {
     topic: meeting.topic,
     message: meeting.message,
     preferredTimes: meeting.preferredTimes,
+    scheduledAt: meeting.scheduledAt?.toISOString() ?? null,
+    scheduledEndAt: meeting.scheduledEndAt?.toISOString() ?? null,
+    agenda: meeting.agenda,
     meetingFormat: meeting.meetingFormat,
     requestType: meeting.requestType,
     status: meeting.status,

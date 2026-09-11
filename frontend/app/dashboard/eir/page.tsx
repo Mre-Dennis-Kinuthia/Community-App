@@ -30,6 +30,8 @@ import {
   expertRequestTypeLabel,
   meetingFormatLabel,
 } from "@/lib/experts"
+import { formatNairobiRange } from "@/lib/expert-availability"
+import { ExpertAvailabilityEditor } from "@/components/experts/expert-availability-editor"
 import { getEventPublicPath } from "@/lib/event-url"
 import { toast } from "@/lib/toast"
 
@@ -40,6 +42,9 @@ type MeetingRow = {
   topic: string
   message: string
   preferredTimes: string | null
+  scheduledAt: string | null
+  scheduledEndAt: string | null
+  agenda: string | null
   meetingFormat: string
   requestType: string
   status: string
@@ -66,7 +71,16 @@ type EventRow = {
 }
 
 type DashboardResponse = {
-  expert: { name: string; title: string; isPublished: boolean }
+  expert: {
+    name: string
+    title: string
+    isPublished: boolean
+    industries: string[]
+    websiteUrl: string | null
+    sessionDurationMinutes: number
+    availabilityEnabled: boolean
+    availabilityWindows: Array<{ weekday: number; startTime: string; endTime: string }>
+  }
   stats: {
     clinicPending: number
     servicesPending: number
@@ -137,8 +151,20 @@ function MeetingRequests({
             <p className="whitespace-pre-wrap text-sm text-muted-foreground">{row.message}</p>
             <p className="text-xs text-muted-foreground">
               {expertRequestTypeLabel(row.requestType)} · {meetingFormatLabel(row.meetingFormat)}
-              {row.preferredTimes ? ` · ${row.preferredTimes}` : ""}
+              {row.scheduledAt && row.scheduledEndAt
+                ? ` · ${formatNairobiRange(row.scheduledAt, row.scheduledEndAt)}`
+                : row.preferredTimes
+                  ? ` · ${row.preferredTimes}`
+                  : ""}
             </p>
+            {row.agenda ? (
+              <details className="rounded-md border border-border bg-muted/20 p-3">
+                <summary className="cursor-pointer text-xs font-medium">Session agenda & prep</summary>
+                <pre className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
+                  {row.agenda}
+                </pre>
+              </details>
+            ) : null}
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <a
                 className="text-xs font-medium text-primary hover:underline"
@@ -185,6 +211,7 @@ export default function ExpertInResidenceDashboardPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [openEventId, setOpenEventId] = useState<string | null>(null)
   const [tab, setTab] = useState("clinics")
+  const [savingSettings, setSavingSettings] = useState(false)
 
   const stats = data?.stats
   const greeting = useMemo(() => {
@@ -193,6 +220,33 @@ export default function ExpertInResidenceDashboardPage() {
     if (hour < 17) return "Good afternoon"
     return "Good evening"
   }, [])
+
+  const handleSaveAvailability = async (payload: {
+    industries: string[]
+    websiteUrl: string
+    sessionDurationMinutes: number
+    availabilityEnabled: boolean
+    availabilityWindows: Array<{ weekday: number; startTime: string; endTime: string }>
+  }) => {
+    setSavingSettings(true)
+    try {
+      const res = await fetch("/api/experts/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        throw new Error(typeof json.error === "string" ? json.error : "Could not save availability")
+      }
+      toast.success("Availability saved")
+      await mutate()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save availability")
+    } finally {
+      setSavingSettings(false)
+    }
+  }
 
   const handleStatusChange = async (id: string, status: string) => {
     setUpdatingId(id)
@@ -320,6 +374,7 @@ export default function ExpertInResidenceDashboardPage() {
               { value: "clinics", label: "1-on-1 clinics", count: data.clinics.length },
               { value: "services", label: "Services", count: data.services.length },
               { value: "events", label: "Events", count: data.events.length },
+              { value: "availability", label: "Availability" },
             ]}
             value={tab}
             onChange={setTab}
@@ -413,6 +468,19 @@ export default function ExpertInResidenceDashboardPage() {
               })}
             </DataList>
           )
+        ) : null}
+
+        {tab === "availability" ? (
+          <ExpertAvailabilityEditor
+            key={`${data.expert.websiteUrl ?? ""}-${data.expert.availabilityWindows.length}-${data.expert.industries.join(",")}`}
+            industries={data.expert.industries ?? []}
+            websiteUrl={data.expert.websiteUrl ?? ""}
+            sessionDurationMinutes={data.expert.sessionDurationMinutes ?? 45}
+            availabilityEnabled={data.expert.availabilityEnabled}
+            windows={data.expert.availabilityWindows ?? []}
+            saving={savingSettings}
+            onSave={handleSaveAvailability}
+          />
         ) : null}
       </div>
     </div>

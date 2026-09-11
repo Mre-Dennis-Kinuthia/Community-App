@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarDays, ExternalLink, Linkedin } from "lucide-react"
+import { CalendarDays, ExternalLink, Globe, Linkedin } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,30 +12,48 @@ type ExpertConnectPanelProps = {
 }
 
 export function ExpertConnectPanel({ expert }: ExpertConnectPanelProps) {
+  const sectors = expert.industries.length > 0 ? expert.industries : expert.industry ? [expert.industry] : []
+
   return (
     <div className="space-y-4 lg:sticky lg:top-6">
       <Card className="border-border">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Request a clinic or services</CardTitle>
+          <CardTitle className="text-base">
+            {expert.availabilityEnabled ? "Book a session" : "Request a clinic or services"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {expert.bookingUrl ? (
-            <Button className="w-full" asChild>
+            <Button className="w-full" variant="outline" asChild>
               <a href={expert.bookingUrl} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="mr-2 h-4 w-4" />
-                Open calendar
+                Open external calendar
               </a>
             </Button>
           ) : null}
-          {expert.linkedInUrl ? (
-            <Button variant="outline" className="w-full" asChild>
-              <a href={expert.linkedInUrl} target="_blank" rel="noopener noreferrer">
-                <Linkedin className="mr-2 h-4 w-4" />
-                LinkedIn
-              </a>
-            </Button>
-          ) : null}
-          <ExpertMeetingForm expertId={expert.slug || expert.id} expertName={expert.name} />
+          <div className="flex flex-wrap gap-2">
+            {expert.linkedInUrl ? (
+              <Button variant="outline" className="flex-1" asChild>
+                <a href={expert.linkedInUrl} target="_blank" rel="noopener noreferrer">
+                  <Linkedin className="mr-2 h-4 w-4" />
+                  LinkedIn
+                </a>
+              </Button>
+            ) : null}
+            {expert.websiteUrl ? (
+              <Button variant="outline" className="flex-1" asChild>
+                <a href={expert.websiteUrl} target="_blank" rel="noopener noreferrer">
+                  <Globe className="mr-2 h-4 w-4" />
+                  Website
+                </a>
+              </Button>
+            ) : null}
+          </div>
+          <ExpertMeetingForm
+            expertId={expert.slug || expert.id}
+            expertName={expert.name}
+            availabilityEnabled={expert.availabilityEnabled}
+          />
         </CardContent>
       </Card>
 
@@ -49,9 +67,11 @@ export function ExpertConnectPanel({ expert }: ExpertConnectPanelProps) {
             {expert.organization ? (
               <Badge variant="outline">{expert.organization}</Badge>
             ) : null}
-            {expert.industry ? (
-              <Badge variant="outline">{expert.industry}</Badge>
-            ) : null}
+            {sectors.map((sector) => (
+              <Badge key={sector} variant="outline">
+                {sector}
+              </Badge>
+            ))}
             {expert.location ? (
               <p className="text-sm text-muted-foreground">{expert.location}</p>
             ) : null}

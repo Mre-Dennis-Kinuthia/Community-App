@@ -5,6 +5,7 @@ export type Expert = {
   title: string
   organization: string | null
   industry: string | null
+  industries: string[]
   location: string | null
   bio: string
   photoUrl: string | null
@@ -12,6 +13,9 @@ export type Expert = {
   initiatives: string[]
   bookingUrl: string | null
   linkedInUrl: string | null
+  websiteUrl: string | null
+  availabilityEnabled: boolean
+  sessionDurationMinutes: number
   isFeatured: boolean
   eventsCount: number
 }

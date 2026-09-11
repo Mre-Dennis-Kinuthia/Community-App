@@ -41,6 +41,11 @@ export async function ensureEirMembership(userId: string) {
   })
 }
 
+const expertInclude = {
+  user: { select: expertUserOverlaySelect },
+  availabilityWindows: { orderBy: [{ weekday: "asc" as const }, { startTime: "asc" as const }] },
+}
+
 export async function findLinkedExpert(userId: string, email: string | null | undefined) {
   const normalized = email?.toLowerCase().trim() || null
   const expert = await prisma.expertInResidence.findFirst({
@@ -51,7 +56,7 @@ export async function findLinkedExpert(userId: string, email: string | null | un
         ...(normalized ? [{ email: { equals: normalized, mode: "insensitive" as const } }] : []),
       ],
     },
-    include: { user: { select: expertUserOverlaySelect } },
+    include: expertInclude,
   })
   if (!expert) return null
 
@@ -59,7 +64,7 @@ export async function findLinkedExpert(userId: string, email: string | null | un
     const linked = await prisma.expertInResidence.update({
       where: { id: expert.id },
       data: { userId },
-      include: { user: { select: expertUserOverlaySelect } },
+      include: expertInclude,
     })
     await ensureEirMembership(userId)
     return linked
@@ -82,8 +87,36 @@ export async function syncLinkedExpertFromProfileUpdate(
   return prisma.expertInResidence.update({
     where: { id: expert.id },
     data,
-    include: { user: { select: expertUserOverlaySelect } },
+    include: expertInclude,
   })
+}
+
+export function bookedRangesFromMeetings(
+  meetings: Array<{ scheduledAt: Date | null; scheduledEndAt: Date | null; status: string }>
+) {
+  return meetings
+    .filter(
+      (row) =>
+        row.scheduledAt &&
+        row.scheduledEndAt &&
+        row.status !== "declined" &&
+        row.status !== "cancelled"
+    )
+    .map((row) => ({
+      start: row.scheduledAt as Date,
+      end: row.scheduledEndAt as Date,
+    }))
+}
+
+export function serializeAvailabilityWindows(
+  windows: Array<{ id: string; weekday: number; startTime: string; endTime: string }>
+) {
+  return windows.map((window) => ({
+    id: window.id,
+    weekday: window.weekday,
+    startTime: window.startTime,
+    endTime: window.endTime,
+  }))
 }
 
 export function serializeLinkedExpert(expert: NonNullable<Awaited<ReturnType<typeof findLinkedExpert>>>) {
@@ -92,5 +125,27 @@ export function serializeLinkedExpert(expert: NonNullable<Awaited<ReturnType<typ
     email: expert.email,
     isPublished: expert.isPublished,
     canHostEvents: true,
+    availabilityWindows: serializeAvailabilityWindows(expert.availabilityWindows),
   }
+}
+
+export async function replaceExpertAvailabilityWindows(
+  expertId: string,
+  windows: Array<{ weekday: number; startTime: string; endTime: string }>
+) {
+  await prisma.$transaction([
+    prisma.expertAvailabilityWindow.deleteMany({ where: { expertId } }),
+    ...(windows.length
+      ? [
+          prisma.expertAvailabilityWindow.createMany({
+            data: windows.map((window) => ({
+              expertId,
+              weekday: window.weekday,
+              startTime: window.startTime,
+              endTime: window.endTime,
+            })),
+          }),
+        ]
+      : []),
+  ])
 }

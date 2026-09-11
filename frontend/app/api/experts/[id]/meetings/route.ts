@@ -9,8 +9,14 @@ import {
   EXPERT_MEETING_TICKET_CATEGORY,
   expertPublicParamWhere,
   expertRequestTypeLabel,
+  generateSessionAgenda,
   meetingRequestSchema,
 } from "@/lib/experts"
+import {
+  findMatchingSlot,
+  generateBookableSlots,
+} from "@/lib/expert-availability"
+import { bookedRangesFromMeetings } from "@/lib/experts-server"
 import {
   sendExpertMeetingExpertEmail,
   sendExpertMeetingMemberEmail,
@@ -52,6 +58,16 @@ export async function POST(
         deletedAt: null,
         isPublished: true,
       },
+      include: {
+        availabilityWindows: true,
+        meetings: {
+          where: {
+            scheduledAt: { not: null },
+            status: { notIn: ["declined", "cancelled"] },
+          },
+          select: { scheduledAt: true, scheduledEndAt: true, status: true },
+        },
+      },
     })
     if (!expert) {
       return NextResponse.json(
@@ -74,6 +90,41 @@ export async function POST(
       )
     }
 
+    let scheduledAt: Date | null = null
+    let scheduledEndAt: Date | null = null
+    let status = "pending"
+    const requestedSlot = body.scheduledAt?.trim() || ""
+    if (requestedSlot) {
+      const slots = generateBookableSlots({
+        windows: expert.availabilityWindows,
+        durationMinutes: expert.sessionDurationMinutes,
+        booked: bookedRangesFromMeetings(expert.meetings),
+      })
+      const match = findMatchingSlot(slots, requestedSlot)
+      if (!match) {
+        return NextResponse.json(
+          { error: "That time is no longer available. Pick another slot." },
+          { status: 409, headers: corsHeaders(request) }
+        )
+      }
+      scheduledAt = new Date(match.start)
+      scheduledEndAt = new Date(match.end)
+      status = "confirmed"
+    }
+
+    const agenda = generateSessionAgenda({
+      expertName: expert.name,
+      expertTitle: expert.title,
+      requesterName,
+      topic: body.topic,
+      message: body.message,
+      requestType: body.requestType,
+      meetingFormat: body.meetingFormat,
+      durationMinutes: expert.sessionDurationMinutes,
+      scheduledAt,
+      scheduledEndAt,
+    })
+
     const ticket = await prisma.supportTicket.create({
       data: {
         member: `${requesterName} <${requesterEmail}>`,
@@ -85,9 +136,14 @@ export async function POST(
           `Topic: ${body.topic}`,
           `Format: ${body.meetingFormat}`,
           `Preferred times: ${body.preferredTimes?.trim() || "Flexible"}`,
+          scheduledAt ? `Booked: ${scheduledAt.toISOString()}` : "",
           "",
           body.message,
-        ].join("\n"),
+          "",
+          agenda,
+        ]
+          .filter((line) => line !== "")
+          .join("\n"),
         status: "open",
         priority: "medium",
         category: EXPERT_MEETING_TICKET_CATEGORY,
@@ -103,8 +159,12 @@ export async function POST(
         topic: body.topic,
         message: body.message,
         preferredTimes: body.preferredTimes?.trim() || null,
+        scheduledAt,
+        scheduledEndAt,
+        agenda,
         meetingFormat: body.meetingFormat,
         requestType: body.requestType,
+        status,
         ticketId: ticket.id,
       },
     })
@@ -118,6 +178,9 @@ export async function POST(
       topic: body.topic,
       message: body.message,
       preferredTimes: body.preferredTimes,
+      scheduledAt: scheduledAt?.toISOString() ?? null,
+      scheduledEndAt: scheduledEndAt?.toISOString() ?? null,
+      agenda,
       meetingFormat: body.meetingFormat,
       requestType: body.requestType,
     }
@@ -133,8 +196,12 @@ export async function POST(
     if (expert.userId) {
       await createNotification({
         userId: expert.userId,
-        title: `New ${expertRequestTypeLabel(body.requestType).toLowerCase()} request`,
-        message: `${requesterName} would like to meet about ${body.topic}.`,
+        title: scheduledAt
+          ? `Session booked: ${body.topic}`
+          : `New ${expertRequestTypeLabel(body.requestType).toLowerCase()} request`,
+        message: scheduledAt
+          ? `${requesterName} booked a session about ${body.topic}.`
+          : `${requesterName} would like to meet about ${body.topic}.`,
         type: "info",
         category: "community",
         actionUrl: EIR_DASHBOARD_PATH,
@@ -145,7 +212,14 @@ export async function POST(
     }
 
     return NextResponse.json(
-      { meeting: { id: meeting.id, status: meeting.status } },
+      {
+        meeting: {
+          id: meeting.id,
+          status: meeting.status,
+          scheduledAt: meeting.scheduledAt,
+          agenda: meeting.agenda,
+        },
+      },
       { status: 201, headers: corsHeaders(request) }
     )
   } catch (error: unknown) {

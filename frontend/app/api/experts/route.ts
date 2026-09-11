@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")?.trim() || ""
     const expertise = searchParams.get("expertise")?.trim() || ""
     const initiative = searchParams.get("initiative")?.trim() || ""
+    const industry = searchParams.get("industry")?.trim() || ""
     const limit = Math.min(Math.max(parseInt(searchParams.get("limit") || "100", 10), 1), 200)
     const offset = Math.max(parseInt(searchParams.get("offset") || "0", 10), 0)
 
@@ -22,12 +23,14 @@ export async function GET(request: NextRequest) {
       isPublished: true
       expertise?: { has: string }
       initiatives?: { has: string }
+      industries?: { has: string }
       OR?: Array<
         | { name: { contains: string; mode: "insensitive" } }
         | { title: { contains: string; mode: "insensitive" } }
         | { bio: { contains: string; mode: "insensitive" } }
         | { organization: { contains: string; mode: "insensitive" } }
         | { industry: { contains: string; mode: "insensitive" } }
+        | { industries: { has: string } }
         | { location: { contains: string; mode: "insensitive" } }
         | { expertise: { has: string } }
         | { initiatives: { has: string } }
@@ -44,6 +47,7 @@ export async function GET(request: NextRequest) {
         { bio: { contains: search, mode: "insensitive" } },
         { organization: { contains: search, mode: "insensitive" } },
         { industry: { contains: search, mode: "insensitive" } },
+        { industries: { has: search } },
         { location: { contains: search, mode: "insensitive" } },
         { expertise: { has: search } },
         { initiatives: { has: search } },
@@ -51,6 +55,7 @@ export async function GET(request: NextRequest) {
     }
     if (expertise) where.expertise = { has: expertise }
     if (initiative) where.initiatives = { has: initiative }
+    if (industry) where.industries = { has: industry }
 
     const now = new Date()
     const [rows, total, allPublished] = await Promise.all([
@@ -71,7 +76,7 @@ export async function GET(request: NextRequest) {
       prisma.expertInResidence.count({ where }),
       prisma.expertInResidence.findMany({
         where: { deletedAt: null, isPublished: true },
-        select: { expertise: true, initiatives: true, industry: true },
+        select: { expertise: true, initiatives: true, industry: true, industries: true },
       }),
     ])
 
@@ -82,11 +87,13 @@ export async function GET(request: NextRequest) {
       row.expertise.forEach((tag) => expertiseSet.add(tag))
       row.initiatives.forEach((tag) => initiativeSet.add(tag))
       if (row.industry?.trim()) industrySet.add(row.industry.trim())
+      row.industries.forEach((tag) => industrySet.add(tag))
     }
 
     const experts = rows.map(mapPublicExpert)
     for (const expert of experts) {
       if (expert.industry) industrySet.add(expert.industry)
+      expert.industries.forEach((tag) => industrySet.add(tag))
     }
 
     return NextResponse.json(

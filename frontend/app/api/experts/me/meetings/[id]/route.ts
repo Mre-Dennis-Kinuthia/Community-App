@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { resolveUserIdFromSession } from "@/lib/resolve-session-user"
 import { findLinkedExpert } from "@/lib/experts-server"
-import { EXPERT_MEETING_STATUSES } from "@/lib/experts"
+import { EXPERT_MEETING_STATUSES, generateSessionAgenda } from "@/lib/experts"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -55,9 +55,24 @@ export async function PATCH(
     }
 
     const data = schema.parse(await request.json())
+    const agenda =
+      data.status === "confirmed" && !meeting.agenda
+        ? generateSessionAgenda({
+            expertName: expert.name,
+            expertTitle: expert.title,
+            requesterName: meeting.requesterName,
+            topic: meeting.topic,
+            message: meeting.message,
+            requestType: meeting.requestType,
+            meetingFormat: meeting.meetingFormat,
+            durationMinutes: expert.sessionDurationMinutes,
+            scheduledAt: meeting.scheduledAt,
+            scheduledEndAt: meeting.scheduledEndAt,
+          })
+        : undefined
     const updated = await prisma.expertMeetingRequest.update({
       where: { id: meeting.id },
-      data: { status: data.status },
+      data: { status: data.status, ...(agenda ? { agenda } : {}) },
     })
 
     return NextResponse.json(

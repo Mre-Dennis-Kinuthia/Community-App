@@ -531,36 +531,55 @@ model PartnerOpportunity {
 // ============================================
 
 model ExpertInResidence {
-  id           String   @id @default(cuid())
-  slug         String   @unique
-  name         String
-  email        String
-  title        String
-  organization String?
-  industry     String?
-  location     String?
-  bio          String   @db.Text
-  photoUrl     String?
-  expertise    String[] @default([])
-  initiatives  String[] @default([])
-  bookingUrl   String?
-  linkedInUrl  String?
-  userId       String?  @unique
-  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  isPublished  Boolean  @default(true)
-  isFeatured   Boolean  @default(false)
-  sortOrder    Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime?
+  id                      String   @id @default(cuid())
+  slug                    String   @unique
+  name                    String
+  email                   String
+  title                   String
+  organization            String?
+  industry                String?
+  industries              String[] @default([])
+  location                String?
+  bio                     String   @db.Text
+  photoUrl                String?
+  expertise               String[] @default([])
+  initiatives             String[] @default([])
+  bookingUrl              String?
+  linkedInUrl             String?
+  websiteUrl              String?
+  sessionDurationMinutes  Int      @default(45)
+  availabilityEnabled     Boolean  @default(false)
+  userId                  String?  @unique
+  user                    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  isPublished             Boolean  @default(true)
+  isFeatured              Boolean  @default(false)
+  sortOrder               Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  deletedAt               DateTime?
 
-  meetings ExpertMeetingRequest[]
-  events   Event[]
+  meetings             ExpertMeetingRequest[]
+  events               Event[]
+  availabilityWindows  ExpertAvailabilityWindow[]
 
   @@map("experts_in_residence")
   @@index([isPublished])
   @@index([isFeatured])
   @@index([email])
+}
+
+model ExpertAvailabilityWindow {
+  id        String   @id @default(cuid())
+  expertId  String
+  expert    ExpertInResidence @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  weekday   Int
+  startTime String
+  endTime   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expertId])
+  @@map("expert_availability_windows")
 }
 
 model ExpertMeetingRequest {
@@ -573,6 +592,9 @@ model ExpertMeetingRequest {
   topic           String
   message         String   @db.Text
   preferredTimes  String?
+  scheduledAt     DateTime?
+  scheduledEndAt  DateTime?
+  agenda          String?  @db.Text
   meetingFormat   String   @default("virtual") // virtual, in-person, either
   /// clinic = 1-on-1 clinic, services = procure their services
   requestType     String   @default("clinic")
@@ -587,6 +609,7 @@ model ExpertMeetingRequest {
   @@index([status])
   @@index([createdAt])
   @@index([requestType])
+  @@index([scheduledAt])
 }
 
 // ============================================

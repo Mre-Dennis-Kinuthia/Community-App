@@ -5,6 +5,7 @@ import {
   expertRequestTypeLabel,
   meetingFormatLabel,
 } from "@/lib/experts"
+import { formatNairobiRange } from "@/lib/expert-availability"
 import { getEmailStaffTo } from "./config"
 import { sendEmail, type SendEmailResult } from "./send"
 import {
@@ -25,6 +26,9 @@ export type ExpertMeetingEmailPayload = {
   topic: string
   message: string
   preferredTimes?: string | null
+  scheduledAt?: string | null
+  scheduledEndAt?: string | null
+  agenda?: string | null
   meetingFormat: string
   requestType?: string
 }
@@ -45,10 +49,25 @@ function requestTypeLabel(payload: ExpertMeetingEmailPayload) {
   return expertRequestTypeLabel(payload.requestType || "clinic")
 }
 
+function whenLabel(payload: ExpertMeetingEmailPayload) {
+  if (payload.scheduledAt && payload.scheduledEndAt) {
+    return formatNairobiRange(payload.scheduledAt, payload.scheduledEndAt)
+  }
+  return payload.preferredTimes?.trim() || "Flexible"
+}
+
+function agendaHtml(payload: ExpertMeetingEmailPayload) {
+  if (!payload.agenda?.trim()) return ""
+  return emailParagraph(
+    `<strong>Session agenda & prep</strong><br />${escapeHtml(payload.agenda).replace(/\n/g, "<br />")}`
+  )
+}
+
 export async function sendExpertMeetingExpertEmail(
   payload: ExpertMeetingEmailPayload
 ): Promise<SendEmailResult> {
   const typeLabel = requestTypeLabel(payload)
+  const booked = Boolean(payload.scheduledAt)
   const rows = [
     { label: "Member", value: escapeHtml(payload.requesterName) },
     { label: "Email", value: escapeHtml(payload.requesterEmail) },
@@ -56,22 +75,29 @@ export async function sendExpertMeetingExpertEmail(
     { label: "Topic", value: escapeHtml(payload.topic) },
     { label: "Format", value: escapeHtml(meetingFormatLabel(payload.meetingFormat)) },
     {
-      label: "Preferred times",
-      value: escapeHtml(payload.preferredTimes?.trim() || "Flexible"),
+      label: booked ? "When" : "Preferred times",
+      value: escapeHtml(whenLabel(payload)),
     },
   ]
 
   const html = layoutEmail({
     eyebrow: "Experts in Residence",
-    title: `${payload.requesterName} is interested in ${typeLabel.toLowerCase()}`,
-    preheader: `${payload.requesterName} requested ${typeLabel.toLowerCase()} about ${payload.topic}`,
+    title: booked
+      ? `${payload.requesterName} booked a session`
+      : `${payload.requesterName} is interested in ${typeLabel.toLowerCase()}`,
+    preheader: booked
+      ? `${payload.requesterName} booked ${payload.topic}`
+      : `${payload.requesterName} requested ${typeLabel.toLowerCase()} about ${payload.topic}`,
     bodyHtml: `
       ${emailGreeting(payload.expertName)}
       ${emailParagraph(
-        `A community member asked about <strong>${escapeHtml(typeLabel.toLowerCase())}</strong> with you through <strong>Impact Hub Nairobi</strong>.`
+        booked
+          ? `A community member booked a <strong>${escapeHtml(typeLabel.toLowerCase())}</strong> with you through <strong>Impact Hub Nairobi</strong>. An agenda is included so you can prepare.`
+          : `A community member asked about <strong>${escapeHtml(typeLabel.toLowerCase())}</strong> with you through <strong>Impact Hub Nairobi</strong>.`
       )}
-      ${emailDetailCard(rows, { title: "Request" })}
+      ${emailDetailCard(rows, { title: booked ? "Session" : "Request" })}
       ${emailParagraph(`<strong>What they shared</strong><br />${escapeHtml(payload.message).replace(/\n/g, "<br />")}`)}
+      ${agendaHtml(payload)}
       ${emailMutedNote("Reply directly to this email to continue the conversation with the member.")}
     `,
     ctaLabel: "Open your EIR dashboard",
@@ -97,23 +123,32 @@ export async function sendExpertMeetingMemberEmail(
   payload: ExpertMeetingEmailPayload
 ): Promise<SendEmailResult> {
   const typeLabel = requestTypeLabel(payload)
+  const booked = Boolean(payload.scheduledAt)
   const html = layoutEmail({
     eyebrow: "Experts in Residence",
-    title: `We’ve sent your ${typeLabel.toLowerCase()} request to ${payload.expertName}`,
-    preheader: "The expert will follow up to confirm next steps",
+    title: booked
+      ? `Your session with ${payload.expertName} is booked`
+      : `We’ve sent your ${typeLabel.toLowerCase()} request to ${payload.expertName}`,
+    preheader: booked
+      ? "A session agenda is included so you can prepare"
+      : "The expert will follow up to confirm next steps",
     bodyHtml: `
       ${emailGreeting(payload.requesterName)}
       ${emailParagraph(
-        `Your ${escapeHtml(typeLabel.toLowerCase())} request with <strong>${escapeHtml(payload.expertName)}</strong> is with them now. They’ll reply by email to confirm next steps.`
+        booked
+          ? `Your ${escapeHtml(typeLabel.toLowerCase())} with <strong>${escapeHtml(payload.expertName)}</strong> is confirmed. Use the agenda below to prepare.`
+          : `Your ${escapeHtml(typeLabel.toLowerCase())} request with <strong>${escapeHtml(payload.expertName)}</strong> is with them now. They’ll reply by email to confirm next steps.`
       )}
       ${emailDetailCard(
         [
           { label: "Interest", value: escapeHtml(typeLabel) },
           { label: "Topic", value: escapeHtml(payload.topic) },
           { label: "Format", value: escapeHtml(meetingFormatLabel(payload.meetingFormat)) },
+          { label: booked ? "When" : "Preferred times", value: escapeHtml(whenLabel(payload)) },
         ],
-        { title: "Your request" }
+        { title: booked ? "Your session" : "Your request" }
       )}
+      ${agendaHtml(payload)}
     `,
     ctaLabel: "Back to profile",
     ctaUrl: profileUrl(payload.expertSlug),
@@ -121,9 +156,13 @@ export async function sendExpertMeetingMemberEmail(
 
   return sendEmail({
     to: payload.requesterEmail,
-    subject: `${typeLabel} request sent to ${payload.expertName}`,
+    subject: booked
+      ? `Session booked with ${payload.expertName}`
+      : `${typeLabel} request sent to ${payload.expertName}`,
     html,
-    text: `We’ve sent your ${typeLabel.toLowerCase()} request to ${payload.expertName} about ${payload.topic}. They’ll follow up by email.`,
+    text: booked
+      ? `Your ${typeLabel.toLowerCase()} with ${payload.expertName} is booked for ${whenLabel(payload)}.`
+      : `We’ve sent your ${typeLabel.toLowerCase()} request to ${payload.expertName} about ${payload.topic}. They’ll follow up by email.`,
   })
 }
 
@@ -145,13 +184,14 @@ export async function sendExpertMeetingStaffEmail(
           { label: "Topic", value: escapeHtml(payload.topic) },
           { label: "Format", value: escapeHtml(meetingFormatLabel(payload.meetingFormat)) },
           {
-            label: "Preferred times",
-            value: escapeHtml(payload.preferredTimes?.trim() || "Flexible"),
+            label: payload.scheduledAt ? "When" : "Preferred times",
+            value: escapeHtml(whenLabel(payload)),
           },
         ],
         { title: "Request" }
       )}
       ${emailParagraph(`<strong>Message</strong><br />${escapeHtml(payload.message).replace(/\n/g, "<br />")}`)}
+      ${agendaHtml(payload)}
     `,
     ctaLabel: "Open support inbox",
     ctaUrl: staffInboxUrl(),

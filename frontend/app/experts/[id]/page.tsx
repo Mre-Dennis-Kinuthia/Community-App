@@ -114,9 +114,16 @@ export default function ExpertDetailPage({ params }: { params: Promise<{ id: str
                       {expert.organization ? (
                         <Badge variant="outline">{expert.organization}</Badge>
                       ) : null}
-                      {expert.industry ? (
-                        <Badge variant="outline">{expert.industry}</Badge>
-                      ) : null}
+                      {(expert.industries.length > 0
+                        ? expert.industries
+                        : expert.industry
+                          ? [expert.industry]
+                          : []
+                      ).map((sector) => (
+                        <Badge key={sector} variant="outline">
+                          {sector}
+                        </Badge>
+                      ))}
                     </div>
                     <p className="text-base text-muted-foreground">{expert.title}</p>
                     {expert.location ? (

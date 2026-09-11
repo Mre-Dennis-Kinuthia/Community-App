@@ -53,7 +53,7 @@ import { validatePhoneInput } from "@/lib/member-phone"
 import { getCommunityMemberProfilePath } from "@/lib/member-slug"
 import { HUB_CONTACT_EMAIL } from "@/lib/hub-contact"
 import { validateLinkedInInput } from "@/lib/member-social-links"
-import { Linkedin } from "lucide-react"
+import { Linkedin, Globe } from "lucide-react"
 import { MembershipTierBadge } from "@/components/membership-tier-badge"
 import { MembershipCardDialog } from "@/components/membership/membership-card-dialog"
 import type { MembershipBenefits } from "@/lib/hooks/use-membership"
@@ -93,7 +93,7 @@ type ProfilePayload = {
   experienceLevel: string | null
   availability: string[]
   interests: string[]
-  socialLinks?: { linkedin?: string } | null
+  socialLinks?: { linkedin?: string; website?: string } | null
   updatedAt: string
   user: {
     id: string
@@ -121,6 +121,7 @@ function emptyForm() {
     interests: [] as string[],
     availability: [] as string[],
     linkedin: "",
+    website: "",
   }
 }
 
@@ -166,6 +167,7 @@ export default function ProfilePage() {
       interests: [...(profile.interests || [])],
       availability: [...(profile.availability || [])],
       linkedin: profile.socialLinks?.linkedin?.trim() || "",
+      website: profile.socialLinks?.website?.trim() || "",
     })
   }, [])
 
@@ -327,9 +329,10 @@ export default function ProfilePage() {
           experienceLevel: form.experienceLevel.trim() ? form.experienceLevel.trim() : null,
           availability: normalizedAvailability,
           interests: form.interests,
-          socialLinks: form.linkedin.trim()
-            ? { linkedin: form.linkedin.trim() }
-            : null,
+          socialLinks: {
+            linkedin: form.linkedin.trim() || null,
+            website: form.website.trim() || null,
+          },
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -650,6 +653,17 @@ export default function ProfilePage() {
                     Edit your profile to pick an avatar, add a photo, or link LinkedIn.
                   </p>
                 ) : null}
+                {!isEditing && form.website.trim() ? (
+                  <a
+                    href={form.website.trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 pt-1 text-sm font-medium text-primary hover:underline"
+                  >
+                    <Globe className="h-4 w-4" aria-hidden />
+                    Website
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>
@@ -843,6 +857,22 @@ export default function ProfilePage() {
                       <p className="text-xs text-muted-foreground">
                         Shown on your public community profile when you add a link.
                       </p>
+                    </div>
+                  ) : null}
+                  {isEditing ? (
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="website" className="flex items-center gap-2">
+                        <Globe className="h-4 w-4" aria-hidden />
+                        Personal website
+                      </Label>
+                      <Input
+                        id="website"
+                        type="url"
+                        inputMode="url"
+                        placeholder="https://your-site.com"
+                        value={form.website}
+                        onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
+                      />
                     </div>
                   ) : null}
                   <div className="space-y-2 sm:col-span-2">

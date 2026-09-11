@@ -50,7 +50,12 @@ export function ExpertCard({ expert }: ExpertCardProps) {
           </p>
         ) : null}
 
-        {expert.industry ? (
+        {expert.industries.length > 0 ? (
+          <p className="mt-1 line-clamp-2 w-full text-[11px] font-medium text-foreground/80">
+            {expert.industries.slice(0, 2).join(" · ")}
+            {expert.industries.length > 2 ? ` · +${expert.industries.length - 2}` : ""}
+          </p>
+        ) : expert.industry ? (
           <p className="mt-1 line-clamp-1 w-full text-[11px] font-medium text-foreground/80">
             {expert.industry}
           </p>

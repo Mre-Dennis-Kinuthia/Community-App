@@ -13,7 +13,9 @@ import {
   EIR_DASHBOARD_PATH,
   buildExpertProfileSyncData,
   DEFAULT_EIR_TITLE,
+  generateSessionAgenda,
 } from "@/lib/experts"
+import { generateBookableSlots } from "@/lib/expert-availability"
 
 describe("Experts in Residence", () => {
   it("builds slugs and public paths", () => {
@@ -43,6 +45,8 @@ describe("Experts in Residence", () => {
     expect(expert.eventsCount).toBe(2)
     expect(expert.bookingUrl).toContain("calendar.google.com")
     expect(expert.industry).toBeNull()
+    expect(expert.industries).toEqual([])
+    expect(expert.websiteUrl).toBeNull()
     expect(expert.location).toBeNull()
   })
 
@@ -79,6 +83,7 @@ describe("Experts in Residence", () => {
     expect(expert.photoUrl).toBe("/amina.jpg")
     expect(expert.organization).toBe("AECF")
     expect(expert.industry).toBe("Climate & Energy")
+    expect(expert.industries).toEqual(["Climate & Energy", "Other"])
     expect(expert.location).toBe("Nairobi")
     expect(expert.bio).toContain("climate ventures")
     expect(expert.expertise).toEqual(["Climate", "Fundraising"])
@@ -105,6 +110,7 @@ describe("Experts in Residence", () => {
     expect(patch.title).toBe("Program / Project Lead")
     expect(patch.organization).toBe("AECF")
     expect(patch.industry).toBe("Climate & Energy")
+    expect(patch.industries).toEqual(["Climate & Energy"])
     expect(patch.location).toBe("Nairobi")
     expect(patch.expertise).toEqual(["Climate", "Fundraising"])
     expect(patch.linkedInUrl).toContain("linkedin.com/in/amina")
@@ -155,5 +161,51 @@ describe("Experts in Residence", () => {
       visibility: "members",
     })
     expect(event.success).toBe(true)
+  })
+
+  it("lets a meeting request include a booked slot", () => {
+    const meeting = meetingRequestSchema.safeParse({
+      topic: "Fundraising intro",
+      message: "We are preparing a climate seed round and would like 30 minutes.",
+      meetingFormat: "virtual",
+      scheduledAt: "2026-09-18T07:00:00.000Z",
+    })
+    expect(meeting.success).toBe(true)
+  })
+
+  it("builds a session agenda after a booking", () => {
+    const agenda = generateSessionAgenda({
+      expertName: "Amina Otieno",
+      expertTitle: "Climate advisor",
+      requesterName: "Jordan",
+      topic: "Fundraising intro",
+      message: "We are preparing a climate seed round.",
+      requestType: "clinic",
+      meetingFormat: "virtual",
+      durationMinutes: 45,
+      scheduledAt: "2026-09-18T07:00:00.000Z",
+      scheduledEndAt: "2026-09-18T07:45:00.000Z",
+    })
+    expect(agenda).toContain("Session agenda — Fundraising intro")
+    expect(agenda).toContain("Prep for the member")
+    expect(agenda).toContain("Prep for the mentor")
+    expect(agenda).toContain("Jordan")
+  })
+
+  it("opens weekday windows into bookable slots and skips collisions", () => {
+    const slots = generateBookableSlots({
+      windows: [{ weekday: 1, startTime: "09:00", endTime: "11:00" }],
+      durationMinutes: 60,
+      from: new Date("2026-09-13T21:00:00.000Z"),
+      days: 2,
+      booked: [
+        {
+          start: new Date("2026-09-14T06:00:00.000Z"),
+          end: new Date("2026-09-14T07:00:00.000Z"),
+        },
+      ],
+    })
+    expect(slots.length).toBeGreaterThan(0)
+    expect(slots.some((slot) => slot.start === "2026-09-14T06:00:00.000Z")).toBe(false)
   })
 })

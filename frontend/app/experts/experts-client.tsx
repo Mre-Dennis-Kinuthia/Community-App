@@ -42,12 +42,14 @@ export default function ExpertsPageClient() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
   const [expertiseFilter, setExpertiseFilter] = useState(searchParams.get("expertise") || "all")
   const [initiativeFilter, setInitiativeFilter] = useState(searchParams.get("initiative") || "all")
+  const [industryFilter, setIndustryFilter] = useState(searchParams.get("industry") || "all")
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
   const params = new URLSearchParams()
   if (searchQuery.trim()) params.set("search", searchQuery.trim())
   if (expertiseFilter !== "all") params.set("expertise", expertiseFilter)
   if (initiativeFilter !== "all") params.set("initiative", initiativeFilter)
+  if (industryFilter !== "all") params.set("industry", industryFilter)
 
   const { data, error, isLoading } = useSWR<ExpertsListResponse>(
     `/api/experts?${params.toString()}`,
@@ -74,22 +76,28 @@ export default function ExpertsPageClient() {
     if (searchQuery.trim()) next.set("search", searchQuery.trim())
     if (expertiseFilter !== "all") next.set("expertise", expertiseFilter)
     if (initiativeFilter !== "all") next.set("initiative", initiativeFilter)
+    if (industryFilter !== "all") next.set("industry", industryFilter)
     const newUrl = next.toString() ? `?${next.toString()}` : window.location.pathname
     router.replace(newUrl, { scroll: false })
-  }, [searchQuery, expertiseFilter, initiativeFilter, router])
+  }, [searchQuery, expertiseFilter, initiativeFilter, industryFilter, router])
 
   const clearFilters = () => {
     setExpertiseFilter("all")
     setInitiativeFilter("all")
+    setIndustryFilter("all")
     setSearchQuery("")
     router.replace(window.location.pathname, { scroll: false })
   }
 
   const hasActiveFilters =
-    expertiseFilter !== "all" || initiativeFilter !== "all" || searchQuery.trim().length > 0
+    expertiseFilter !== "all" ||
+    initiativeFilter !== "all" ||
+    industryFilter !== "all" ||
+    searchQuery.trim().length > 0
   const activeFilterCount = [
     expertiseFilter !== "all",
     initiativeFilter !== "all",
+    industryFilter !== "all",
     searchQuery.trim().length > 0,
   ].filter(Boolean).length
 
@@ -161,6 +169,23 @@ export default function ExpertsPageClient() {
                       ))}
                     </FilterChipRow>
                   </ListPageFilterSection>
+                  <ListPageFilterSection label="Sectors">
+                    <FilterChipRow>
+                      <FilterChip
+                        label="All"
+                        active={industryFilter === "all"}
+                        onClick={() => setIndustryFilter("all")}
+                      />
+                      {(filters.industries ?? []).map((tag) => (
+                        <FilterChip
+                          key={tag}
+                          label={tag}
+                          active={industryFilter === tag}
+                          onClick={() => setIndustryFilter(tag)}
+                        />
+                      ))}
+                    </FilterChipRow>
+                  </ListPageFilterSection>
                   <ListPageFilterSection label="Initiatives">
                     <FilterChipRow>
                       <FilterChip
@@ -215,6 +240,21 @@ export default function ExpertsPageClient() {
                 <SelectContent>
                   <SelectItem value="all">All initiatives</SelectItem>
                   {filters.initiatives.map((tag) => (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FilterBarItem>
+            <FilterBarItem>
+              <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                <SelectTrigger className="h-9 w-[180px]">
+                  <SelectValue placeholder="Sector" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All sectors</SelectItem>
+                  {(filters.industries ?? []).map((tag) => (
                     <SelectItem key={tag} value={tag}>
                       {tag}
                     </SelectItem>

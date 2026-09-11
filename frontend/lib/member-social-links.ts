@@ -2,11 +2,13 @@ import { z } from "zod"
 
 export type MemberSocialLinks = {
   linkedin?: string
+  website?: string
 }
 
 export const memberSocialLinksSchema = z
   .object({
     linkedin: z.union([z.string(), z.null()]).optional(),
+    website: z.union([z.string(), z.null()]).optional(),
   })
   .optional()
   .nullable()
@@ -16,7 +18,11 @@ export function parseMemberSocialLinks(raw: unknown): MemberSocialLinks {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {}
   const record = raw as Record<string, unknown>
   const linkedin = typeof record.linkedin === "string" ? record.linkedin.trim() : ""
-  return linkedin ? { linkedin } : {}
+  const website = typeof record.website === "string" ? record.website.trim() : ""
+  const out: MemberSocialLinks = {}
+  if (linkedin) out.linkedin = linkedin
+  if (website) out.website = website
+  return out
 }
 
 /** Normalize user input to a canonical LinkedIn profile URL, or null if empty/invalid. */
@@ -55,13 +61,36 @@ export function validateLinkedInInput(input: string): string | null {
   return null
 }
 
-/** Build payload for Prisma JSON column from optional linkedin string. */
+export function normalizeWebsiteUrl(input: string): string | null {
+  const trimmed = input.trim()
+  if (!trimmed) return null
+
+  let candidate = trimmed
+  if (!/^https?:\/\//i.test(candidate)) {
+    candidate = `https://${candidate.replace(/^\/+/, "")}`
+  }
+
+  try {
+    const url = new URL(candidate)
+    if (!url.hostname.includes(".")) return null
+    url.hash = ""
+    return url.toString().replace(/\/$/, "")
+  } catch {
+    return null
+  }
+}
+
+/** Build payload for Prisma JSON column from optional linkedin/website strings. */
 export function socialLinksFromInput(
   links: MemberSocialLinks | null | undefined
 ): MemberSocialLinks | null {
   if (links === null) return null
   if (!links) return null
   const linkedin = links.linkedin ? normalizeLinkedInUrl(links.linkedin) : null
-  if (!linkedin) return null
-  return { linkedin }
+  const website = links.website ? normalizeWebsiteUrl(links.website) : null
+  if (!linkedin && !website) return null
+  return {
+    ...(linkedin ? { linkedin } : {}),
+    ...(website ? { website } : {}),
+  }
 }

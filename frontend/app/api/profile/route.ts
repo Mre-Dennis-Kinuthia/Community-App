@@ -450,6 +450,10 @@ export async function PUT(request: NextRequest) {
           socialLinksPayload === undefined
             ? undefined
             : socialLinksPayload?.linkedin ?? null,
+        websiteUrl:
+          socialLinksPayload === undefined
+            ? undefined
+            : socialLinksPayload?.website ?? null,
       })
     } catch (syncError) {
       console.error("[PROFILE API] Expert in Residence sync failed:", syncError)

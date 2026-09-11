@@ -1,5 +1,21 @@
 import { z } from "zod"
 import { parseMemberSocialLinks } from "@/lib/member-social-links"
+import { formatNairobiRange } from "@/lib/expert-availability"
+
+export const EXPERT_SECTOR_SUGGESTIONS = [
+  "Agriculture & Food Systems",
+  "Circularity & Waste",
+  "Climate & Energy",
+  "E-Mobility & Transport",
+  "Digitization & Tech",
+  "Gender Equity & Inclusion",
+  "Health & Wellbeing",
+  "Education & Skills",
+  "Finance & Inclusion",
+  "Creative Economy",
+  "General / Cross-sector",
+  "Other",
+] as const
 
 export const EXPERT_EXPERTISE_SUGGESTIONS = [
   "Strategy",
@@ -74,10 +90,11 @@ export function expertPublicPath(expert: { id: string; slug?: string | null }): 
   return `/experts/${expert.slug || expert.id}`
 }
 
-export function normalizeTagList(tags: string[] | undefined | null): string[] {
+export function normalizeTagList(tags: Array<string | null | undefined> | undefined | null): string[] {
   const seen = new Set<string>()
   const out: string[] = []
   for (const raw of tags ?? []) {
+    if (typeof raw !== "string") continue
     const tag = raw.trim()
     if (!tag) continue
     const key = tag.toLowerCase()
@@ -120,6 +137,7 @@ export const meetingRequestSchema = z.object({
     .min(20, "Tell the expert a little more about what you need (at least 20 characters)")
     .max(2000),
   preferredTimes: z.string().trim().max(400).optional().or(z.literal("")),
+  scheduledAt: z.union([z.string().datetime(), z.literal("")]).optional(),
   meetingFormat: z.enum(EXPERT_MEETING_FORMATS).default("virtual"),
   requestType: z.enum(EXPERT_REQUEST_TYPES).default("clinic"),
 })
@@ -152,6 +170,7 @@ export type PublicExpert = {
   title: string
   organization: string | null
   industry: string | null
+  industries: string[]
   location: string | null
   bio: string
   photoUrl: string | null
@@ -159,8 +178,91 @@ export type PublicExpert = {
   initiatives: string[]
   bookingUrl: string | null
   linkedInUrl: string | null
+  websiteUrl: string | null
+  availabilityEnabled: boolean
+  sessionDurationMinutes: number
   isFeatured: boolean
   eventsCount: number
+}
+
+export type SessionAgendaInput = {
+  expertName: string
+  expertTitle?: string | null
+  requesterName: string
+  topic: string
+  message: string
+  requestType: string
+  meetingFormat: string
+  durationMinutes?: number | null
+  scheduledAt?: string | Date | null
+  scheduledEndAt?: string | Date | null
+}
+
+export function generateSessionAgenda(input: SessionAgendaInput) {
+  const typeLabel = expertRequestTypeLabel(input.requestType)
+  const formatLabel = meetingFormatLabel(input.meetingFormat)
+  const duration = input.durationMinutes && input.durationMinutes > 0 ? input.durationMinutes : 45
+  const when =
+    input.scheduledAt && input.scheduledEndAt
+      ? formatNairobiRange(
+          new Date(input.scheduledAt).toISOString(),
+          new Date(input.scheduledEndAt).toISOString()
+        )
+      : "To be confirmed"
+
+  const context = input.message.trim()
+  const purpose = context.split(/\n+/)[0]?.slice(0, 240) || input.topic
+
+  const intro =
+    duration >= 60
+      ? [
+          "1. Welcome & goals (8 min)",
+          "2. Context and current challenge (12 min)",
+          "3. Advice, options, and working session (28 min)",
+          "4. Next steps and follow-up (12 min)",
+        ]
+      : duration <= 30
+        ? [
+            "1. Goal for this session (5 min)",
+            "2. Challenge and constraints (8 min)",
+            "3. Advice and options (12 min)",
+            "4. Next steps (5 min)",
+          ]
+        : [
+            "1. Context & goals (5 min)",
+            "2. Current challenge (10 min)",
+            "3. Options & advice (20 min)",
+            "4. Next steps & follow-up (10 min)",
+          ]
+
+  return [
+    `Session agenda — ${input.topic}`,
+    "",
+    `Mentor: ${input.expertName}${input.expertTitle ? ` · ${input.expertTitle}` : ""}`,
+    `Member: ${input.requesterName}`,
+    `Type: ${typeLabel}`,
+    `When: ${when}`,
+    `Format: ${formatLabel}`,
+    `Duration: ${duration} minutes`,
+    "",
+    "Purpose",
+    purpose,
+    "",
+    `Suggested flow (${duration} min)`,
+    ...intro,
+    "",
+    "Prep for the member",
+    "- Share any relevant docs, links, or metrics ahead of time.",
+    "- Arrive with 1–2 specific questions.",
+    "- Note what a useful outcome looks like after this session.",
+    "",
+    "Prep for the mentor",
+    "- Review the member’s topic and context below.",
+    "- Identify 2–3 practical next steps they can take this week.",
+    "",
+    "Member context",
+    context,
+  ].join("\n")
 }
 
 export type ExpertMemberOverlay = {
@@ -193,6 +295,7 @@ export function mapPublicExpert(
     title: string
     organization: string | null
     industry?: string | null
+    industries?: string[]
     location?: string | null
     bio: string
     photoUrl: string | null
@@ -200,6 +303,9 @@ export function mapPublicExpert(
     initiatives: string[]
     bookingUrl: string | null
     linkedInUrl: string | null
+    websiteUrl?: string | null
+    availabilityEnabled?: boolean
+    sessionDurationMinutes?: number
     isFeatured: boolean
     _count?: { events?: number }
     user?: ExpertMemberOverlay
@@ -208,7 +314,12 @@ export function mapPublicExpert(
 ): PublicExpert {
   const member = overlay ?? row.user ?? null
   const profile = member?.profile
-  const linkedin = parseMemberSocialLinks(profile?.socialLinks).linkedin ?? null
+  const social = parseMemberSocialLinks(profile?.socialLinks)
+  const industries = normalizeTagList([
+    profile?.industry,
+    ...(row.industries ?? []),
+    row.industry,
+  ])
 
   return {
     id: row.id,
@@ -216,14 +327,18 @@ export function mapPublicExpert(
     name: firstText(member?.name, row.name) ?? row.name,
     title: row.title,
     organization: firstText(profile?.organization, row.organization),
-    industry: firstText(profile?.industry, row.industry),
+    industries,
+    industry: industries[0] ?? null,
     location: firstText(profile?.location, row.location),
     bio: firstText(profile?.bio, row.bio) ?? row.bio,
     photoUrl: firstText(member?.image, row.photoUrl),
     expertise: normalizeTagList([...(row.expertise ?? []), ...(profile?.skills ?? [])]),
     initiatives: row.initiatives ?? [],
     bookingUrl: row.bookingUrl,
-    linkedInUrl: firstText(linkedin, row.linkedInUrl),
+    linkedInUrl: firstText(social.linkedin, row.linkedInUrl),
+    websiteUrl: firstText(social.website, row.websiteUrl),
+    availabilityEnabled: row.availabilityEnabled ?? false,
+    sessionDurationMinutes: row.sessionDurationMinutes ?? 45,
     isFeatured: row.isFeatured,
     eventsCount: row._count?.events ?? 0,
   }
@@ -236,13 +351,15 @@ export type ExpertProfileSyncPatch = {
   role?: string | null
   organization?: string | null
   industry?: string | null
+  industries?: string[]
   location?: string | null
   skills?: string[]
   linkedInUrl?: string | null
+  websiteUrl?: string | null
 }
 
 export function buildExpertProfileSyncData(
-  expert: { title: string; expertise: string[] },
+  expert: { title: string; expertise: string[]; industries?: string[] },
   patch: ExpertProfileSyncPatch
 ) {
   const data: {
@@ -252,9 +369,11 @@ export function buildExpertProfileSyncData(
     title?: string
     organization?: string | null
     industry?: string | null
+    industries?: string[]
     location?: string | null
     expertise?: string[]
     linkedInUrl?: string | null
+    websiteUrl?: string | null
   } = {}
 
   if (patch.name !== undefined && patch.name.trim()) data.name = patch.name.trim()
@@ -272,8 +391,14 @@ export function buildExpertProfileSyncData(
   if (patch.organization !== undefined) {
     data.organization = patch.organization?.trim() || null
   }
-  if (patch.industry !== undefined) {
-    data.industry = patch.industry?.trim() || null
+  if (patch.industries) {
+    const industries = normalizeTagList(patch.industries)
+    data.industries = industries
+    data.industry = industries[0] ?? null
+  } else if (patch.industry !== undefined) {
+    const industries = normalizeTagList([...(expert.industries ?? []), patch.industry])
+    data.industries = industries
+    data.industry = industries[0] ?? null
   }
   if (patch.location !== undefined) {
     data.location = patch.location?.trim() || null
@@ -283,6 +408,9 @@ export function buildExpertProfileSyncData(
   }
   if (patch.linkedInUrl !== undefined) {
     data.linkedInUrl = patch.linkedInUrl
+  }
+  if (patch.websiteUrl !== undefined) {
+    data.websiteUrl = patch.websiteUrl?.trim() || null
   }
 
   return data
