@@ -6,6 +6,7 @@
 export const STORED_IMAGE_CATEGORIES = [
   "profile",
   "event_cover",
+  "event_consent_form",
   "news_cover",
   "project_cover",
   "partner_logo",
@@ -24,9 +25,12 @@ export const ALLOWED_IMAGE_MIME_TYPES = [
   "image/gif",
 ] as const
 
+export const ALLOWED_DOCUMENT_MIME_TYPES = ["application/pdf"] as const
+
 const MAX_BYTES: Record<StoredImageCategory, number> = {
   profile: 2 * 1024 * 1024,
   event_cover: 10 * 1024 * 1024,
+  event_consent_form: 4 * 1024 * 1024,
   news_cover: 10 * 1024 * 1024,
   project_cover: 10 * 1024 * 1024,
   partner_logo: 5 * 1024 * 1024,
@@ -39,6 +43,7 @@ const MAX_BYTES: Record<StoredImageCategory, number> = {
 const MEMBER_CATEGORIES: StoredImageCategory[] = ["profile", "project_cover"]
 const ADMIN_CATEGORIES: StoredImageCategory[] = [
   "event_cover",
+  "event_consent_form",
   "news_cover",
   "project_cover",
   "partner_logo",
@@ -62,6 +67,20 @@ export function categoryAllowedForMember(category: StoredImageCategory): boolean
 
 export function categoryAllowedForAdmin(category: StoredImageCategory): boolean {
   return ADMIN_CATEGORIES.includes(category) || category === "profile"
+}
+
+export function allowedMimeTypesForCategory(category: StoredImageCategory): readonly string[] {
+  if (category === "event_consent_form") {
+    return [...ALLOWED_IMAGE_MIME_TYPES, ...ALLOWED_DOCUMENT_MIME_TYPES]
+  }
+  return ALLOWED_IMAGE_MIME_TYPES
+}
+
+export function isAllowedMimeTypeForCategory(
+  category: StoredImageCategory,
+  mimeType: string
+): boolean {
+  return allowedMimeTypesForCategory(category).includes(mimeType)
 }
 
 /** Canonical path saved on User.image, Event.imageUrl, etc. */

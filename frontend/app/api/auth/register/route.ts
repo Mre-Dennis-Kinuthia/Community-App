@@ -10,12 +10,20 @@ import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 import { validatePasswordAsync } from "@/lib/password-policy"
 import { issueEmailVerificationForEmail } from "@/lib/email-verification"
+import {
+  isDatabaseUnavailableError,
+  MEMBER_REGISTER_QUEUED_MESSAGE,
+} from "@/lib/database-unavailable"
+import { queueRegistrationDuringOutage } from "@/lib/queue-registration-during-outage"
+import { isScheduledMaintenance } from "@/lib/maintenance"
 import { z } from "zod"
 
 const registerSchema = z.object({
   email: z.string().email().transform((val) => val.toLowerCase().trim()),
-  password: z.string(),
+  password: z.string().optional(),
   name: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
   membershipIntent: z.literal(MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL).optional(),
   acceptedTerms: z.literal(true, {
     errorMap: () => ({
@@ -23,6 +31,32 @@ const registerSchema = z.object({
     }),
   }),
 })
+
+async function queueOutageSignup(input: {
+  email: string
+  firstName?: string | null
+  lastName?: string | null
+  name?: string | null
+  organisational?: boolean
+}) {
+  const queued = await queueRegistrationDuringOutage(input)
+  if (queued.ok) {
+    return NextResponse.json(
+      {
+        queued: true,
+        message: MEMBER_REGISTER_QUEUED_MESSAGE,
+      },
+      { status: 202 }
+    )
+  }
+  return NextResponse.json(
+    {
+      error: "We couldn't save your request. Please try again.",
+      code: "database_unavailable",
+    },
+    { status: 503 }
+  )
+}
 
 export async function POST(request: NextRequest) {
   const ip = clientIpFromRequest(request)
@@ -37,19 +71,52 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  let body: unknown
   try {
-    const body = await request.json()
-    console.log("[REGISTER API] Received registration request:", {
-      email: body.email,
-      hasPassword: !!body.password,
-      passwordLength: body.password?.length,
-      name: body.name,
-    })
-    
-    const { email, password, name, membershipIntent } = registerSchema.parse(body)
-    const normalizedEmail = email
-    console.log("[REGISTER API] Validation passed, normalized email:", normalizedEmail)
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+  }
 
+  const parsed = registerSchema.safeParse(body)
+  if (!parsed.success) {
+    const errorMessages = parsed.error.errors.map((err) => {
+      if (err.path[0] === "email") return "Please enter a valid email address"
+      if (err.path[0] === "password") return err.message
+      if (err.path[0] === "acceptedTerms") {
+        return "You must accept the Terms of Service and Privacy Policy"
+      }
+      return err.message
+    })
+    return NextResponse.json(
+      { error: errorMessages[0] || "Invalid input" },
+      { status: 400 }
+    )
+  }
+
+  const { email, password, name, firstName, lastName, membershipIntent } = parsed.data
+  const normalizedEmail = email
+  const isOrganisational =
+    membershipIntent === MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL
+
+  console.log("[REGISTER API] Received registration request:", {
+    email: normalizedEmail,
+    hasPassword: !!password,
+    passwordLength: password?.length,
+    name,
+  })
+
+  if (isScheduledMaintenance()) {
+    return queueOutageSignup({
+      email: normalizedEmail,
+      firstName,
+      lastName,
+      name,
+      organisational: isOrganisational,
+    })
+  }
+
+  if (password) {
     const passwordResult = await validatePasswordAsync(password, {
       email: normalizedEmail,
       name: name || undefined,
@@ -57,8 +124,9 @@ export async function POST(request: NextRequest) {
     if (!passwordResult.ok) {
       return NextResponse.json({ error: passwordResult.message }, { status: 400 })
     }
+  }
 
-    // Check if user already exists (case-insensitive)
+  try {
     console.log("[REGISTER API] Checking if user exists:", normalizedEmail)
     const existingUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -72,14 +140,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hash password and create user
+    if (!password) {
+      return NextResponse.json({ error: "Password is required" }, { status: 400 })
+    }
+
     console.log("[REGISTER API] Hashing password...")
     const hashedPassword = await hashPassword(password)
     console.log("[REGISTER API] Password hashed, creating user...")
 
     const user = await prisma.user.create({
       data: {
-        email: normalizedEmail, // Store email in lowercase
+        email: normalizedEmail,
         name: name || null,
         password: hashedPassword,
         termsAcceptedAt: new Date(),
@@ -104,9 +175,6 @@ export async function POST(request: NextRequest) {
       name: user.name || user.email,
       email: user.email,
     })
-
-    const isOrganisational =
-      membershipIntent === MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL
 
     await syncMembershipTierOnSignup({
       userId: user.id,
@@ -165,57 +233,32 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error("[REGISTER API] Error occurred:", error)
-    
-    // Check for missing environment variables
+
     if (!process.env.DATABASE_URL) {
       console.error("[REGISTER API] DATABASE_URL is not set!")
       return NextResponse.json(
-        { 
+        {
           error: "Server configuration error",
-          details: "DATABASE_URL environment variable is not set. Please contact support."
+          details: "DATABASE_URL environment variable is not set. Please contact support.",
         },
         { status: 500 }
       )
     }
-    
-    if (error instanceof z.ZodError) {
-      console.log("[REGISTER API] Validation errors:", error.errors)
-      // Format Zod errors into user-friendly messages
-      const errorMessages = error.errors.map((err) => {
-        if (err.path[0] === "email") {
-          return "Please enter a valid email address"
-        }
-        if (err.path[0] === "password") {
-          return err.message
-        }
-        if (err.path[0] === "acceptedTerms") {
-          return "You must accept the Terms of Service and Privacy Policy"
-        }
-        return err.message
+
+    if (isDatabaseUnavailableError(error)) {
+      console.error("[REGISTER API] Database unavailable, queueing membership request")
+      return queueOutageSignup({
+        email: normalizedEmail,
+        firstName,
+        lastName,
+        name,
+        organisational: isOrganisational,
       })
-      return NextResponse.json(
-        { error: errorMessages[0] || "Invalid input" },
-        { status: 400 }
-      )
     }
-    
-    // Check if it's a Prisma connection error
+
     if (error && typeof error === "object") {
-      const errorObj = error as any
-      
-      // Prisma connection errors
-      if (errorObj.code === "P1001" || errorObj.message?.includes("Can't reach database")) {
-        console.error("[REGISTER API] Database connection error:", errorObj.message)
-        return NextResponse.json(
-          { 
-            error: "Database connection failed",
-            details: "Unable to connect to the database. Please try again later."
-          },
-          { status: 500 }
-        )
-      }
-      
-      // Prisma unique constraint error (duplicate email)
+      const errorObj = error as { code?: string; message?: string }
+
       if (errorObj.code === "P2002") {
         console.log("[REGISTER API] Duplicate email detected (Prisma P2002)")
         return NextResponse.json(
@@ -223,16 +266,19 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      
-      // Log the error code and message for debugging
-      console.error("[REGISTER API] Prisma error code:", errorObj.code, "Message:", errorObj.message)
+
+      console.error(
+        "[REGISTER API] Prisma error code:",
+        errorObj.code,
+        "Message:",
+        errorObj.message
+      )
     }
 
-    console.error("[REGISTER API] Unexpected error:", error)
     return NextResponse.json(
-      { 
+      {
         error: "Failed to create user. Please try again later.",
-        details: process.env.NODE_ENV === "development" ? String(error) : undefined
+        details: process.env.NODE_ENV === "development" ? String(error) : undefined,
       },
       { status: 500 }
     )

@@ -1,5 +1,9 @@
-import NextAuth from "next-auth"
+import NextAuth, { CredentialsSignin } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import {
+  DATABASE_UNAVAILABLE_CODE,
+  isDatabaseUnavailableError,
+} from "@/lib/database-unavailable"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword } from "@/lib/auth-utils"
@@ -146,86 +150,96 @@ const nextAuthConfig = {
         adminAccessToken: { label: "Admin access token", type: "text" },
       },
       async authorize(credentials) {
-        if (credentials?.adminAccessToken) {
-          const user = await consumeAdminMemberAccessToken(
-            credentials.adminAccessToken as string
-          )
-          if (!user) {
-            console.log("[AUTH] Invalid or expired admin access token")
-            return null
-          }
+        try {
+          if (credentials?.adminAccessToken) {
+            const user = await consumeAdminMemberAccessToken(
+              credentials.adminAccessToken as string
+            )
+            if (!user) {
+              console.log("[AUTH] Invalid or expired admin access token")
+              return null
+            }
 
-          touchMemberLastActiveInBackground(user.id)
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            image: user.image,
-            staffAccess: true,
-          }
-        }
-
-        console.log("[AUTH] Authorize called with credentials:", {
-          email: credentials?.email,
-          hasPassword: !!credentials?.password,
-        })
-
-        if (!credentials?.email || !credentials?.password) {
-          console.log("[AUTH] Missing email or password")
-          return null
-        }
-
-        const normalizedEmail = (credentials.email as string).toLowerCase().trim()
-        console.log("[AUTH] Normalized email for lookup:", normalizedEmail)
-
-        const user = await prisma.user.findUnique({
-          where: { email: normalizedEmail },
-        })
-
-        if (user?.password) {
-          const isValid = await verifyPassword(
-            credentials.password as string,
-            user.password
-          )
-
-          if (isValid) {
-            console.log("[AUTH] Member authentication successful for:", normalizedEmail)
             touchMemberLastActiveInBackground(user.id)
             return {
               id: user.id,
               email: user.email,
               name: user.name,
               image: user.image,
+              staffAccess: true,
             }
           }
-        }
 
-        const adminAuth = await authenticateAdminForMemberPlatform(
-          normalizedEmail,
-          credentials.password as string
-        )
+          console.log("[AUTH] Authorize called with credentials:", {
+            email: credentials?.email,
+            hasPassword: !!credentials?.password,
+          })
 
-        if (adminAuth) {
-          console.log("[AUTH] Admin staff access for member platform:", normalizedEmail)
-          touchMemberLastActiveInBackground(adminAuth.user.id)
-          return {
-            id: adminAuth.user.id,
-            email: adminAuth.user.email,
-            name: adminAuth.user.name,
-            image: adminAuth.user.image,
-            staffAccess: true,
+          if (!credentials?.email || !credentials?.password) {
+            console.log("[AUTH] Missing email or password")
+            return null
           }
-        }
 
-        if (!user) {
-          console.log("[AUTH] User not found:", normalizedEmail)
-        } else if (!user.password) {
-          console.log("[AUTH] User has no password set:", normalizedEmail)
-        } else {
-          console.log("[AUTH] Password verification failed for:", normalizedEmail)
-        }
+          const normalizedEmail = (credentials.email as string).toLowerCase().trim()
+          console.log("[AUTH] Normalized email for lookup:", normalizedEmail)
 
-        return null
+          const user = await prisma.user.findUnique({
+            where: { email: normalizedEmail },
+          })
+
+          if (user?.password) {
+            const isValid = await verifyPassword(
+              credentials.password as string,
+              user.password
+            )
+
+            if (isValid) {
+              console.log("[AUTH] Member authentication successful for:", normalizedEmail)
+              touchMemberLastActiveInBackground(user.id)
+              return {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                image: user.image,
+              }
+            }
+          }
+
+          const adminAuth = await authenticateAdminForMemberPlatform(
+            normalizedEmail,
+            credentials.password as string
+          )
+
+          if (adminAuth) {
+            console.log("[AUTH] Admin staff access for member platform:", normalizedEmail)
+            touchMemberLastActiveInBackground(adminAuth.user.id)
+            return {
+              id: adminAuth.user.id,
+              email: adminAuth.user.email,
+              name: adminAuth.user.name,
+              image: adminAuth.user.image,
+              staffAccess: true,
+            }
+          }
+
+          if (!user) {
+            console.log("[AUTH] User not found:", normalizedEmail)
+          } else if (!user.password) {
+            console.log("[AUTH] User has no password set:", normalizedEmail)
+          } else {
+            console.log("[AUTH] Password verification failed for:", normalizedEmail)
+          }
+
+          return null
+        } catch (error) {
+          if (isDatabaseUnavailableError(error)) {
+            console.error("[AUTH] Database unavailable during sign-in")
+            const unavailable = new CredentialsSignin()
+            unavailable.code = DATABASE_UNAVAILABLE_CODE
+            throw unavailable
+          }
+          throw error
+        }
       },
     }),
   ],

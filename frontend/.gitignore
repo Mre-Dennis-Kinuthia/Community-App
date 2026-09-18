@@ -110,8 +110,7 @@ Desktop.ini
 *.old
 .cache/
 .temp/
-tmp/
-temp/
+data/pending-registrations.json
 
 # ============================================
 # Package Manager Locks (optional - uncomment if you want to ignore)

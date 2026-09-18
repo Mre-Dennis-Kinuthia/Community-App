@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { issuePasswordResetForEmail } from "@/lib/password-reset"
 import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
+import {
+  isDatabaseUnavailableError,
+  MEMBER_LOGIN_OUTAGE_MESSAGE,
+} from "@/lib/database-unavailable"
 
 const schema = z.object({
   email: z.string().email().transform((v) => v.toLowerCase().trim()),
@@ -59,6 +63,12 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ message: GENERIC_MESSAGE })
+    }
+    if (isDatabaseUnavailableError(error)) {
+      return NextResponse.json(
+        { error: MEMBER_LOGIN_OUTAGE_MESSAGE, code: "database_unavailable" },
+        { status: 503 }
+      )
     }
     console.error("[FORGOT PASSWORD]", error)
     return NextResponse.json({ message: GENERIC_MESSAGE })

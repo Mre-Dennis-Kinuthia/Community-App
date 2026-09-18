@@ -8,12 +8,19 @@ import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import { toast } from "@/lib/toast"
 import { AuthPageShell } from "@/components/auth/auth-page-shell"
+import {
+  DatabaseOutageNotice,
+  useDatabaseHealth,
+} from "@/components/auth/database-outage-notice"
+import { MEMBER_LOGIN_OUTAGE_MESSAGE } from "@/lib/database-unavailable"
 import { AUTH_LINK, AUTH_PRIMARY_BTN } from "@/components/auth/auth-form-styles"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const databaseHealth = useDatabaseHealth()
+  const databaseDown = databaseHealth?.ok === false
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,10 +38,16 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email: normalized }),
       })
       const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data.error || "Could not send a reset link")
+      }
       setSubmitted(true)
       toast.success("Check your inbox", data.message || "If an account exists, we sent a reset link.")
-    } catch {
-      toast.error("Something went wrong", "Please try again in a moment.")
+    } catch (error) {
+      toast.error(
+        "Could not send reset link",
+        error instanceof Error ? error.message : "Please try again in a moment."
+      )
     } finally {
       setIsLoading(false)
     }
@@ -53,6 +66,11 @@ export default function ForgotPasswordPage() {
     >
       {!submitted ? (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {databaseDown ? (
+            <DatabaseOutageNotice title="Password reset is paused">
+              {MEMBER_LOGIN_OUTAGE_MESSAGE}
+            </DatabaseOutageNotice>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -64,7 +82,7 @@ export default function ForgotPasswordPage() {
               required
             />
           </div>
-          <Button type="submit" className={AUTH_PRIMARY_BTN} disabled={isLoading}>
+          <Button type="submit" className={AUTH_PRIMARY_BTN} disabled={isLoading || databaseDown}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

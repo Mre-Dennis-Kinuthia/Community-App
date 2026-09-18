@@ -12,6 +12,14 @@ import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
 import { LegalLinks } from "@/components/legal-links"
 import { AuthPageShell } from "@/components/auth/auth-page-shell"
+import {
+  DatabaseOutageNotice,
+  useDatabaseHealth,
+} from "@/components/auth/database-outage-notice"
+import {
+  DATABASE_UNAVAILABLE_CODE,
+  MEMBER_LOGIN_OUTAGE_MESSAGE,
+} from "@/lib/database-unavailable"
 import { DEFAULT_POST_LOGIN_PATH, safeRedirectPath } from "@/lib/auth-routes"
 
 function LoginForm() {
@@ -29,6 +37,8 @@ function LoginForm() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [isLoading, setIsLoading] = useState(false)
   const [resendingVerification, setResendingVerification] = useState(false)
+  const databaseHealth = useDatabaseHealth()
+  const databaseDown = databaseHealth?.ok === false
 
   useEffect(() => {
     if (accountDeleted) {
@@ -131,6 +141,12 @@ function LoginForm() {
     console.log("[LOGIN FORM] Validation passed, attempting sign in with normalized email...")
     setIsLoading(true)
     try {
+      const healthRes = await fetch("/api/health/database", { cache: "no-store" })
+      const health = (await healthRes.json().catch(() => ({}))) as { ok?: boolean }
+      if (!healthRes.ok || health.ok === false) {
+        throw new Error(MEMBER_LOGIN_OUTAGE_MESSAGE)
+      }
+
       const result = await signIn("credentials", {
         redirect: false,
         email: normalizedEmail,
@@ -147,6 +163,10 @@ function LoginForm() {
 
       if (result?.error) {
         console.log("[LOGIN FORM] Sign in failed:", result.error)
+
+        if (result.code === DATABASE_UNAVAILABLE_CODE) {
+          throw new Error(MEMBER_LOGIN_OUTAGE_MESSAGE)
+        }
         
         // Handle configuration errors
         if (result.error === "Configuration") {
@@ -182,6 +202,11 @@ function LoginForm() {
       subtitle="Sign in to access your member platform — workspace, events, programs, and community."
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {databaseDown ? (
+          <DatabaseOutageNotice title="Sign-in is paused">
+            {MEMBER_LOGIN_OUTAGE_MESSAGE}
+          </DatabaseOutageNotice>
+        ) : null}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -236,13 +261,15 @@ function LoginForm() {
         <Button
           type="submit"
           className="w-full bg-[#812926] hover:bg-[#6b2120]"
-          disabled={isLoading}
+          disabled={isLoading || databaseDown}
         >
-          {isLoading ? (
+            {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Signing in...
             </>
+          ) : databaseDown ? (
+            "Sign-in unavailable"
           ) : (
             "Sign in"
           )}

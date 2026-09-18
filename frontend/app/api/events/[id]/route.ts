@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { countConfirmedRegistrations } from "@/lib/event-registrations"
 import { findEventByPublicParam, ensureEventSlugAndShortCode } from "@/lib/event-slug"
+import { omitEventConsentForms } from "@/lib/event-consent-forms"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 
 export async function OPTIONS(request: NextRequest) {
@@ -102,7 +103,7 @@ export async function GET(
     return NextResponse.json(
       {
         event: {
-          ...event,
+          ...omitEventConsentForms(event),
           confirmedCount,
           waitlistCount,
           attendeePreview,

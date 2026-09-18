@@ -11,6 +11,15 @@ import { startNavigation } from "@/lib/navigation"
 import { Loader2 } from "lucide-react"
 import { TermsAcceptanceCheckbox } from "@/components/auth/terms-acceptance-checkbox"
 import { AuthPageShell } from "@/components/auth/auth-page-shell"
+import {
+  DatabaseOutageNotice,
+  useDatabaseHealth,
+} from "@/components/auth/database-outage-notice"
+import {
+  MEMBER_REGISTER_OUTAGE_MESSAGE,
+  MEMBER_REGISTER_QUEUED_MESSAGE,
+} from "@/lib/database-unavailable"
+import { MAINTENANCE_UNTIL_LABEL, isScheduledMaintenance } from "@/lib/maintenance"
 import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter"
 import {
   isOrganisationalRegisterIntent,
@@ -49,6 +58,10 @@ function RegisterForm() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [passwordPwned, setPasswordPwned] = useState<boolean | null>(null)
+  const [queuedRequest, setQueuedRequest] = useState(false)
+  const databaseHealth = useDatabaseHealth()
+  const databaseDown = databaseHealth?.ok === false
+  const capturingSignup = databaseDown || isScheduledMaintenance()
 
   useEffect(() => {
     if (organisationalIntent) markOrganisationalSignupPending()
@@ -130,8 +143,12 @@ function RegisterForm() {
     const firstNameValid = validateField("firstName", formData.firstName)
     const lastNameValid = validateField("lastName", formData.lastName)
     const emailValid = validateField("email", formData.email)
-    const passwordValid = validateField("password", formData.password)
-    const confirmPasswordValid = validateField("confirmPassword", formData.confirmPassword)
+    const passwordValid = capturingSignup
+      ? true
+      : validateField("password", formData.password)
+    const confirmPasswordValid = capturingSignup
+      ? true
+      : validateField("confirmPassword", formData.confirmPassword)
     if (!acceptedTerms) {
       setErrors((prev) => ({
         ...prev,
@@ -166,7 +183,7 @@ function RegisterForm() {
       return
     }
 
-    if (passwordPwned) {
+    if (passwordPwned && !capturingSignup) {
       setErrors((prev) => ({ ...prev, password: PASSWORD_PWNED_MESSAGE }))
       toast.error("Password not allowed", PASSWORD_PWNED_MESSAGE)
       return
@@ -181,9 +198,11 @@ function RegisterForm() {
       const normalizedEmail = formData.email.toLowerCase().trim()
       const payload = {
         email: normalizedEmail,
-        password: formData.password,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         name: name || undefined,
         acceptedTerms: true as const,
+        ...(capturingSignup ? {} : { password: formData.password }),
         ...(organisationalIntent
           ? { membershipIntent: MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL }
           : {}),
@@ -191,8 +210,7 @@ function RegisterForm() {
 
       console.log("[REGISTER FORM] Sending request to /api/auth/register:", {
         email: payload.email,
-        hasPassword: !!payload.password,
-        passwordLength: payload.password.length,
+        hasPassword: Boolean(payload.password),
         name: payload.name,
       })
 
@@ -208,8 +226,14 @@ function RegisterForm() {
       const data = await response.json()
       console.log("[REGISTER FORM] Response data:", data)
 
-      if (!response.ok) {
+      if (!response.ok && response.status !== 202) {
         throw new Error(data.error || "Registration failed")
+      }
+
+      if (data.queued || response.status === 202) {
+        setQueuedRequest(true)
+        toast.success("Request received", data.message || MEMBER_REGISTER_QUEUED_MESSAGE)
+        return
       }
 
       console.log("[REGISTER FORM] Registration successful, redirecting to login")
@@ -252,7 +276,25 @@ function RegisterForm() {
           : "Inclusive and sustainable innovation at scale — programs, workspace, events, and a local-to-global impact community."
       }
     >
+      {queuedRequest ? (
+        <div className="space-y-4 text-sm leading-relaxed text-[#1c395c]/90">
+          <DatabaseOutageNotice title="We'll have your account ready">
+            {MEMBER_REGISTER_QUEUED_MESSAGE}
+          </DatabaseOutageNotice>
+          <p>
+            Come back {MAINTENANCE_UNTIL_LABEL} to sign in.
+          </p>
+          <Link href="/maintenance" className="inline-block font-medium text-[#812926] hover:underline">
+            Back to maintenance notice
+          </Link>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-4">
+        {capturingSignup ? (
+          <DatabaseOutageNotice title="Create your account now">
+            {MEMBER_REGISTER_OUTAGE_MESSAGE}
+          </DatabaseOutageNotice>
+        ) : null}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="first-name">First Name</Label>
@@ -313,6 +355,8 @@ function RegisterForm() {
             </p>
           )}
         </div>
+        {!capturingSignup ? (
+        <>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -367,6 +411,8 @@ function RegisterForm() {
             </p>
           )}
         </div>
+        </>
+        ) : null}
         <TermsAcceptanceCheckbox
           id="register-terms"
           checked={acceptedTerms}
@@ -386,8 +432,10 @@ function RegisterForm() {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
+              {capturingSignup ? "Saving your details..." : "Creating account..."}
             </>
+          ) : capturingSignup ? (
+            "Submit details"
           ) : organisationalIntent ? (
             "Create account"
           ) : (
@@ -418,6 +466,7 @@ function RegisterForm() {
           </p>
         ) : null}
       </form>
+      )}
     </AuthPageShell>
   )
 }

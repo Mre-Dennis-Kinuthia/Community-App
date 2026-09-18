@@ -2,7 +2,7 @@ import "server-only"
 
 import { prisma } from "@/lib/prisma"
 import {
-  ALLOWED_IMAGE_MIME_TYPES,
+  isAllowedMimeTypeForCategory,
   maxBytesForCategory,
   storedImagePath,
   type StoredImageCategory,
@@ -16,12 +16,16 @@ export async function createStoredImage(input: {
   userId?: string
   adminUserId?: string
 }) {
-  if (!ALLOWED_IMAGE_MIME_TYPES.includes(input.mimeType as (typeof ALLOWED_IMAGE_MIME_TYPES)[number])) {
-    throw new Error("Unsupported image type. Use JPEG, PNG, WebP, or GIF.")
+  if (!isAllowedMimeTypeForCategory(input.category, input.mimeType)) {
+    throw new Error(
+      input.category === "event_consent_form"
+        ? "Unsupported file type. Use PDF, JPEG, PNG, or WebP."
+        : "Unsupported image type. Use JPEG, PNG, WebP, or GIF."
+    )
   }
   const maxBytes = maxBytesForCategory(input.category)
   if (input.buffer.length > maxBytes) {
-    throw new Error(`Image must be smaller than ${Math.round(maxBytes / (1024 * 1024))}MB`)
+    throw new Error(`File must be smaller than ${Math.round(maxBytes / (1024 * 1024))}MB`)
   }
 
   const row = await prisma.storedImage.create({

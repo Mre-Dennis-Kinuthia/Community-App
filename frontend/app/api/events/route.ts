@@ -6,6 +6,7 @@ import {
   getRegistrationCountsByEventIds,
 } from "@/lib/event-registrations"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
+import { omitEventConsentForms } from "@/lib/event-consent-forms"
 
 export async function OPTIONS(request: NextRequest) {
   return handleOptions(request)
@@ -88,7 +89,7 @@ export async function GET(request: NextRequest) {
       events.map((e) => e.id)
     )
 
-    let eventsWithCounts = enrichEventsWithCounts(events, counts)
+    let eventsWithCounts = enrichEventsWithCounts(events, counts).map(omitEventConsentForms)
 
     if (session?.user?.email) {
       const email = session.user.email.toLowerCase().trim()

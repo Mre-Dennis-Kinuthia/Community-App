@@ -77,6 +77,7 @@ model User {
   checkIns  CheckIn[]
   hostedVisitors Visitor[] @relation("HostedVisitors")
   deliveries Delivery[]
+  maintenanceTickets MaintenanceTicket[] @relation("MaintenanceReporter")
   surveyResponses SurveyResponse[]
   notifications Notification[]
   subscriptions Subscription[]
@@ -308,6 +309,10 @@ model Event {
   registrationProvider String   @default("platform") // platform, luma
   lumaEventUrl         String?
   lumaEventId          String?
+  /// When true, staff will collect signed consent forms for this event.
+  collectConsentForms Boolean  @default(false)
+  /// Scanned consent forms: [{ url, fileName, mimeType, uploadedAt }]
+  consentForms         Json     @default("[]")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   deletedAt            DateTime?
@@ -757,6 +762,7 @@ model Location {
   checkIns    CheckIn[]
   visitors    Visitor[]
   deliveries  Delivery[]
+  maintenanceTickets MaintenanceTicket[]
   cleaningSchedules CleaningSchedule[]
   utilities   UtilityInventory[]
 
@@ -814,6 +820,7 @@ model SpaceAsset {
 
   bookings    WorkspaceBooking[]
   assignments DeskAssignment[]
+  maintenanceTickets MaintenanceTicket[]
 
   @@unique([zoneId, slug])
   @@map("space_assets")
@@ -940,6 +947,55 @@ model Delivery {
 // ============================================
 // OPERATIONS & FACILITIES
 // ============================================
+
+enum MaintenanceCategory {
+  internet
+  cleaning
+  printer
+  hvac
+  other
+}
+
+enum MaintenancePriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum MaintenanceStatus {
+  open
+  in_progress
+  resolved
+  cancelled
+}
+
+model MaintenanceTicket {
+  id           String               @id @default(cuid())
+  title        String
+  description  String               @db.Text
+  category     MaintenanceCategory
+  priority     MaintenancePriority  @default(medium)
+  status       MaintenanceStatus    @default(open)
+  locationId   String               @map("location_id")
+  location     Location             @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  spaceAssetId String?              @map("space_asset_id")
+  spaceAsset   SpaceAsset?          @relation(fields: [spaceAssetId], references: [id], onDelete: SetNull)
+  assignedTo   String?              @map("assigned_to")
+  reportedBy   String?              @map("reported_by")
+  reporter     User?                @relation("MaintenanceReporter", fields: [reportedBy], references: [id], onDelete: SetNull)
+  resolvedAt   DateTime?            @map("resolved_at")
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@map("maintenance_tickets")
+  @@index([status])
+  @@index([priority])
+  @@index([locationId])
+  @@index([spaceAssetId])
+  @@index([reportedBy])
+  @@index([createdAt])
+}
 
 enum CleaningFrequency {
   daily
