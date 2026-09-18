@@ -15,10 +15,13 @@ describe("scheduled maintenance", () => {
   })
 
   it("lets the maintenance page and APIs through", () => {
+    expect(shouldBypassMaintenance("/")).toBe(true)
+    expect(shouldBypassMaintenance("/programs")).toBe(true)
     expect(shouldBypassMaintenance("/maintenance")).toBe(true)
     expect(shouldBypassMaintenance("/register")).toBe(true)
     expect(shouldBypassMaintenance("/api/health")).toBe(true)
     expect(shouldBypassMaintenance("/login")).toBe(false)
+    expect(shouldBypassMaintenance("/dashboard")).toBe(false)
   })
 
   it("uses the Monday 5PM EAT cutoff", () => {

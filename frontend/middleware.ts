@@ -69,7 +69,7 @@ export default auth((request) => {
   // Signed-in users should use the app, not marketing or sign-in screens
   if (
     isLoggedIn &&
-    (isAuthPage || pathname === MARKETING_HOME_PATH)
+    (isAuthPage || (pathname === MARKETING_HOME_PATH && !isScheduledMaintenance()))
   ) {
     const destination = resolveAuthenticatedRedirect(
       request.nextUrl.searchParams.get("redirect"),
