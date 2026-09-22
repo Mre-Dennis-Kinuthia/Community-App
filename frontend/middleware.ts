@@ -8,11 +8,6 @@ import {
   MARKETING_HOME_PATH,
   resolveAuthenticatedRedirect,
 } from "@/lib/auth-routes"
-import {
-  isScheduledMaintenance,
-  MAINTENANCE_PATH,
-  shouldBypassMaintenance,
-} from "@/lib/maintenance"
 
 // Create auth function for middleware (Edge runtime) - no Prisma
 const { auth } = NextAuth(authConfig)
@@ -54,10 +49,6 @@ const protectedRoutes = [
 export default auth((request) => {
   const { pathname } = request.nextUrl
 
-  if (isScheduledMaintenance() && !shouldBypassMaintenance(pathname)) {
-    return NextResponse.redirect(new URL(MAINTENANCE_PATH, request.url))
-  }
-
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next()
   }
@@ -67,10 +58,7 @@ export default auth((request) => {
   const isLoggedIn = !!request.auth
 
   // Signed-in users should use the app, not marketing or sign-in screens
-  if (
-    isLoggedIn &&
-    (isAuthPage || (pathname === MARKETING_HOME_PATH && !isScheduledMaintenance()))
-  ) {
+  if (isLoggedIn && (isAuthPage || pathname === MARKETING_HOME_PATH)) {
     const destination = resolveAuthenticatedRedirect(
       request.nextUrl.searchParams.get("redirect"),
       request.nextUrl.searchParams.get("callbackUrl")

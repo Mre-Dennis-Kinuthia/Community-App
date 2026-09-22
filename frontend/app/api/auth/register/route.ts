@@ -15,7 +15,6 @@ import {
   MEMBER_REGISTER_QUEUED_MESSAGE,
 } from "@/lib/database-unavailable"
 import { queueRegistrationDuringOutage } from "@/lib/queue-registration-during-outage"
-import { isScheduledMaintenance } from "@/lib/maintenance"
 import { z } from "zod"
 
 const registerSchema = z.object({
@@ -105,16 +104,6 @@ export async function POST(request: NextRequest) {
     passwordLength: password?.length,
     name,
   })
-
-  if (isScheduledMaintenance()) {
-    return queueOutageSignup({
-      email: normalizedEmail,
-      firstName,
-      lastName,
-      name,
-      organisational: isOrganisational,
-    })
-  }
 
   if (password) {
     const passwordResult = await validatePasswordAsync(password, {

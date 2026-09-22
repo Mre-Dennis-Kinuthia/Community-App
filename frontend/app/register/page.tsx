@@ -19,7 +19,6 @@ import {
   MEMBER_REGISTER_OUTAGE_MESSAGE,
   MEMBER_REGISTER_QUEUED_MESSAGE,
 } from "@/lib/database-unavailable"
-import { MAINTENANCE_UNTIL_LABEL, isScheduledMaintenance } from "@/lib/maintenance"
 import { PasswordStrengthMeter } from "@/components/auth/password-strength-meter"
 import {
   isOrganisationalRegisterIntent,
@@ -61,7 +60,6 @@ function RegisterForm() {
   const [queuedRequest, setQueuedRequest] = useState(false)
   const databaseHealth = useDatabaseHealth()
   const databaseDown = databaseHealth?.ok === false
-  const capturingSignup = databaseDown || isScheduledMaintenance()
 
   useEffect(() => {
     if (organisationalIntent) markOrganisationalSignupPending()
@@ -143,10 +141,10 @@ function RegisterForm() {
     const firstNameValid = validateField("firstName", formData.firstName)
     const lastNameValid = validateField("lastName", formData.lastName)
     const emailValid = validateField("email", formData.email)
-    const passwordValid = capturingSignup
+    const passwordValid = databaseDown
       ? true
       : validateField("password", formData.password)
-    const confirmPasswordValid = capturingSignup
+    const confirmPasswordValid = databaseDown
       ? true
       : validateField("confirmPassword", formData.confirmPassword)
     if (!acceptedTerms) {
@@ -183,7 +181,7 @@ function RegisterForm() {
       return
     }
 
-    if (passwordPwned && !capturingSignup) {
+    if (passwordPwned && !databaseDown) {
       setErrors((prev) => ({ ...prev, password: PASSWORD_PWNED_MESSAGE }))
       toast.error("Password not allowed", PASSWORD_PWNED_MESSAGE)
       return
@@ -202,7 +200,7 @@ function RegisterForm() {
         lastName: formData.lastName.trim(),
         name: name || undefined,
         acceptedTerms: true as const,
-        ...(capturingSignup ? {} : { password: formData.password }),
+        ...(databaseDown ? {} : { password: formData.password }),
         ...(organisationalIntent
           ? { membershipIntent: MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL }
           : {}),
@@ -281,16 +279,10 @@ function RegisterForm() {
           <DatabaseOutageNotice title="We'll have your account ready">
             {MEMBER_REGISTER_QUEUED_MESSAGE}
           </DatabaseOutageNotice>
-          <p>
-            Come back {MAINTENANCE_UNTIL_LABEL} to sign in.
-          </p>
-          <Link href="/maintenance" className="inline-block font-medium text-[#812926] hover:underline">
-            Back to maintenance notice
-          </Link>
         </div>
       ) : (
       <form onSubmit={handleSubmit} className="space-y-4">
-        {capturingSignup ? (
+        {databaseDown ? (
           <DatabaseOutageNotice title="Create your account now">
             {MEMBER_REGISTER_OUTAGE_MESSAGE}
           </DatabaseOutageNotice>
@@ -355,7 +347,7 @@ function RegisterForm() {
             </p>
           )}
         </div>
-        {!capturingSignup ? (
+        {!databaseDown ? (
         <>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
@@ -432,9 +424,9 @@ function RegisterForm() {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {capturingSignup ? "Saving your details..." : "Creating account..."}
+              {databaseDown ? "Saving your details..." : "Creating account..."}
             </>
-          ) : capturingSignup ? (
+          ) : databaseDown ? (
             "Submit details"
           ) : organisationalIntent ? (
             "Create account"

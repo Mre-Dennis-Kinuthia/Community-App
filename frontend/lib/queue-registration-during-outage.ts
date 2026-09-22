@@ -7,7 +7,6 @@ import {
   layoutEmail,
   escapeHtml,
 } from "@/lib/email/templates"
-import { MAINTENANCE_UNTIL_LABEL } from "@/lib/maintenance"
 import { capturePendingRegistrationJson } from "@/lib/pending-registration-store"
 
 export async function queueRegistrationDuringOutage(input: {
@@ -48,11 +47,11 @@ export async function queueRegistrationDuringOutage(input: {
       },
     ],
     html: layoutEmail({
-      title: "New account created during maintenance",
+      title: "New account submitted while the database was unavailable",
       preheader: `${signup.email} submitted membership details.`,
       bodyHtml:
         emailParagraph(
-          `A new member submitted account details while the platform is in maintenance. Their record is attached as JSON. Create the account when the database is back — they were told to return <strong>${escapeHtml(MAINTENANCE_UNTIL_LABEL)}</strong>.`
+          "A new member submitted account details while the database was unavailable. Their record is attached as JSON. Create the account when the database is back — they were told we will email them when it is ready."
         ) +
         `<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:16px 0;">
           <tr><td style="padding:8px 0;font-size:14px;"><strong>Name</strong><br />${escapeHtml(name || "—")}</td></tr>
@@ -63,12 +62,12 @@ export async function queueRegistrationDuringOutage(input: {
         emailParagraph(`JSON file: <code>${escapeHtml(filename)}</code>`),
     }),
     text: [
-      "New account created during maintenance.",
+      "New account submitted while the database was unavailable.",
       `Name: ${name || "—"}`,
       `Email: ${signup.email}`,
       `Intent: ${intent}`,
       `Submitted: ${signup.submittedAt}`,
-      `Ask them to return ${MAINTENANCE_UNTIL_LABEL}.`,
+      "They were told we will email them when the account is ready.",
       "",
       json,
     ].join("\n"),
@@ -76,25 +75,25 @@ export async function queueRegistrationDuringOutage(input: {
 
   const applicant = await sendEmail({
     to: signup.email,
-    subject: "Your Impact Hub Nairobi account — come back Monday",
+    subject: "Your Impact Hub Nairobi account",
     skipConfiguredCc: true,
     html: layoutEmail({
-      title: "Come back Monday to access your account",
-      preheader: `We'll be ready by ${MAINTENANCE_UNTIL_LABEL}.`,
+      title: "We have your account details",
+      preheader: "We'll email you when your account is ready.",
       bodyHtml:
         emailGreeting(name) +
         emailParagraph(
           "Thanks for creating your Impact Hub Nairobi membership. We have your details."
         ) +
         emailParagraph(
-          `The platform is under maintenance. Please return <strong>${escapeHtml(MAINTENANCE_UNTIL_LABEL)}</strong> to access your account.`
+          "We'll email you when your account is ready."
         ),
     }),
     text: [
       name ? `Hi ${name},` : "Hi there,",
       "",
       "Thanks for creating your Impact Hub Nairobi membership. We have your details.",
-      `The platform is under maintenance. Please return ${MAINTENANCE_UNTIL_LABEL} to access your account.`,
+      "We'll email you when your account is ready.",
     ].join("\n"),
   })
 

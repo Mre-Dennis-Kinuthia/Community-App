@@ -1,18 +1,16 @@
-import { MAINTENANCE_UNTIL_LABEL } from "@/lib/maintenance"
-
 export const DATABASE_UNAVAILABLE_CODE = "database_unavailable"
 
 export const MEMBER_LOGIN_OUTAGE_MESSAGE =
-  `The platform is under maintenance. Things will be back to normal by ${MAINTENANCE_UNTIL_LABEL}.`
+  "Sign-in is temporarily unavailable. Please try again shortly."
 
 export const MEMBER_REGISTER_OUTAGE_MESSAGE =
-  `You can submit your details now. Come back ${MAINTENANCE_UNTIL_LABEL} to access your account.`
+  "You can submit your details now. We'll email you when your account is ready."
 
 export const MEMBER_REGISTER_QUEUED_MESSAGE =
-  `We received your details. Come back ${MAINTENANCE_UNTIL_LABEL} to access your account.`
+  "We received your details. We'll email you when your account is ready."
 
 export const ADMIN_LOGIN_OUTAGE_MESSAGE =
-  `The admin platform is under maintenance. Things will be back to normal by ${MAINTENANCE_UNTIL_LABEL}.`
+  "Sign-in is temporarily unavailable. Please try again shortly."
 
 export function isDatabaseUnavailableError(error: unknown): boolean {
   if (!error || typeof error !== "object") {
