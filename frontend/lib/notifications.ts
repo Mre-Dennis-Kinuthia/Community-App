@@ -123,8 +123,8 @@ export const NotificationTemplates = {
   }),
 
   bookingPaymentDue: (bookingId: string, resourceType: string, date: string) => ({
-    title: "Please complete payment",
-    message: `Your ${resourceType} booking for ${date} is available. Complete payment to finalize it.`,
+    title: "Pay at the front desk",
+    message: `Your ${resourceType} booking for ${date} is available. Pay at the front desk in the space when you arrive.`,
     type: "warning" as const,
     category: "booking",
     actionUrl: `/dashboard/bookings/${bookingId}`,

@@ -214,7 +214,7 @@ export default function BookingPaymentPage() {
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Checkout</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Review your details. The calendar check shows the slot is free; the hub team still confirms availability
-            {isFree ? "." : ". You’ll be asked to pay after they confirm."}
+            {isFree ? "." : ". Pay at the front desk in the space after they confirm."}
           </p>
         </div>
 
@@ -322,7 +322,7 @@ export default function BookingPaymentPage() {
                   {availabilityStatus === "available"
                     ? isFree
                       ? "No payment required. The hub team will confirm availability."
-                      : "You’ll pay after the hub team confirms this slot is available."
+                      : "Pay at the front desk in the space after the hub team confirms this slot."
                     : "Availability must be checked on the calendar before you can submit."}
                 </p>
               </CardContent>

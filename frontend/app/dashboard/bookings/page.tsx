@@ -51,7 +51,7 @@ function statusVariant(booking: {
 }
 
 function statusLabel(booking: { status: string; paymentStatus?: string; totalPrice: number }) {
-  if (bookingNeedsPayment(booking)) return "Payment due"
+  if (bookingNeedsPayment(booking)) return "Pay at front desk"
   switch (booking.status?.toLowerCase()) {
     case "pending":
       return "Awaiting confirmation"

@@ -12,8 +12,7 @@ import { format } from "date-fns"
 import Link from "next/link"
 import { autoImportEventToCalendar } from "@/lib/event-calendar-client"
 import { resolveBookingAddOns } from "@/lib/booking-add-ons"
-import { bookingNeedsPayment, startBookingPaystack } from "@/lib/booking-pay-client"
-import { toast } from "@/lib/toast"
+import { bookingNeedsPayment } from "@/lib/booking-pay-client"
 
 interface BookingDetails {
   id: string
@@ -38,7 +37,6 @@ function SuccessContent() {
   const [error, setError] = useState<string | null>(null)
 
   const [calendarImported, setCalendarImported] = useState(false)
-  const [paying, setPaying] = useState(false)
 
   useEffect(() => {
     if (!bookingId) {
@@ -156,26 +154,15 @@ function SuccessContent() {
   })
 
   const headline = needsPayment
-    ? "Complete payment"
+    ? "Pay at the front desk"
     : isFullyConfirmed
       ? "Booking confirmed"
       : "Request received"
   const subhead = needsPayment
-    ? "Your slot is available. Pay now to finalize this booking."
+    ? "Your slot is available. Pay at the front desk in the space when you arrive."
     : isFullyConfirmed
       ? "Your workspace booking is confirmed."
       : "The calendar showed this slot as free. The hub team will confirm availability shortly."
-
-  const handlePay = async () => {
-    setPaying(true)
-    try {
-      const url = await startBookingPaystack(booking.id)
-      window.location.href = url
-    } catch (err) {
-      toast.error("Payment failed", err instanceof Error ? err.message : "Please try again.")
-      setPaying(false)
-    }
-  }
 
   return (
     <DashboardLayout>
@@ -222,7 +209,7 @@ function SuccessContent() {
               </Badge>
               {booking.paymentStatus && (
                 <Badge variant="outline" className="ml-3">
-                  Payment: {booking.paymentStatus}
+                  {needsPayment ? "Pay at the front desk" : `Payment: ${booking.paymentStatus}`}
                 </Badge>
               )}
             </CardContent>
@@ -308,14 +295,14 @@ function SuccessContent() {
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 {needsPayment
-                  ? "The hub team confirmed this slot. Complete payment to finalize your booking."
+                  ? "The hub team confirmed this slot. Pay the amount above at the front desk in the space. Online payment is not available for this booking."
                   : isFullyConfirmed
                     ? `You'll receive a confirmation email with all the details of your booking${
                         booking.resourceType === "meeting-room"
                           ? ", including a calendar invite you can add to your calendar."
                           : "."
                       }`
-                    : "You'll get a confirmation email once the hub team confirms availability. If payment is due, you’ll be asked to pay then."}
+                    : "You'll get a confirmation email once the hub team confirms availability. If a fee is due, pay it at the front desk in the space."}
               </p>
               {isFullyConfirmed && booking.resourceType === "meeting-room" && (
                 <p className="text-sm text-muted-foreground">
@@ -324,18 +311,6 @@ function SuccessContent() {
                     : "If your browser did not prompt you, use the calendar file attached to your confirmation email."}
                 </p>
               )}
-              {needsPayment ? (
-                <Button className="w-full sm:w-auto" onClick={() => void handlePay()} disabled={paying}>
-                  {paying ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Redirecting…
-                    </>
-                  ) : (
-                    "Pay with Paystack"
-                  )}
-                </Button>
-              ) : null}
               <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
                 {isFullyConfirmed ? (
                   <>
@@ -345,8 +320,8 @@ function SuccessContent() {
                   </>
                 ) : needsPayment ? (
                   <>
-                    <li>Pay now with card or M-Pesa via Paystack</li>
-                    <li>Your booking is not finalized until payment completes</li>
+                    <li>Pay at the front desk in the space when you arrive</li>
+                    <li>Bring this booking reference so reception can match your payment</li>
                   </>
                 ) : (
                   <>

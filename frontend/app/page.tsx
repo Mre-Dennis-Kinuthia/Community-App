@@ -98,7 +98,7 @@ const FAQS = [
   {
     question: "How do I book workspace?",
     answer:
-      "Once you're a member, book through the platform. Connect is free. All workspace rates — Day Passes, packs, desks and rooms — are listed under Star Connect. The hub team confirms availability, then you’ll complete payment if a fee is due.",
+      "Once you're a member, book through the platform. Connect is free. All workspace rates — Day Passes, packs, desks and rooms — are listed under Star Connect. The hub team confirms availability. If a fee is due, pay it at the front desk in the space.",
   },
   {
     question: "What does the Star Connect membership include?",

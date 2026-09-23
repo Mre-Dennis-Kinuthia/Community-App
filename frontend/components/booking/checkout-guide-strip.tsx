@@ -17,7 +17,7 @@ export function CheckoutGuideStrip({
 }: CheckoutGuideStripProps) {
   const message =
     ready
-      ? "Ready for checkout — tap below to continue to payment"
+      ? "Ready — tap below to submit. Pay at the front desk in the space."
       : hint ?? "Complete the steps above, then checkout at the bottom"
 
   return (

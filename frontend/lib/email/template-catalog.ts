@@ -229,7 +229,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
   {
     key: "booking_payment_due",
     name: "Booking payment due",
-    description: "Sent when an admin confirms availability and the member still needs to pay.",
+    description: "Sent when an admin confirms availability and the member still needs to pay at the front desk.",
     category: "bookings",
     sentFrom: "admin",
     variables: [
@@ -240,15 +240,15 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
       { key: "total", label: "Amount due", sample: "KES 5,000" },
       { key: "bookingUrl", label: "Booking URL", sample: "https://example.com/bookings/1" },
     ],
-    subject: "Complete payment — {{resource}} is available",
-    preheader: "Your slot is confirmed — please pay to finalize",
-    title: "Please complete payment",
+    subject: "Pay at the front desk — {{resource}} is available",
+    preheader: "Your slot is confirmed — pay at the front desk in the space",
+    title: "Pay at the front desk",
     eyebrow: "Workspace",
     bodyHtml: `<p>Good news — the hub team confirmed that <strong>{{resource}}</strong> is available on {{date}}.</p>
-<p>Complete payment now to finalize your booking.</p>`,
-    ctaLabel: "Pay now",
+<p>Pay the amount due at the front desk in the space when you arrive. Online payment is not available for this booking.</p>`,
+    ctaLabel: "View booking",
     textBody:
-      "Your booking is available. Please complete payment.\n{{resource}}\n{{date}}\n{{time}}\nAmount due: {{total}}\n{{bookingUrl}}",
+      "Your booking is available. Pay at the front desk in the space when you arrive.\n{{resource}}\n{{date}}\n{{time}}\nAmount due: {{total}}\n{{bookingUrl}}",
   },
   {
     key: "booking_cancelled",

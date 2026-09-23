@@ -9,8 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { format } from "date-fns"
 import { MobilePageHeader } from "@/components/mobile/mobile-page-shell"
-import { toast } from "@/lib/toast"
-import { bookingNeedsPayment, startBookingPaystack } from "@/lib/booking-pay-client"
+import { bookingNeedsPayment } from "@/lib/booking-pay-client"
 
 interface Booking {
   id: string
@@ -34,7 +33,6 @@ export default function DashboardBookingDetailPage() {
   const [booking, setBooking] = useState<Booking | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [paying, setPaying] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -144,12 +142,12 @@ export default function DashboardBookingDetailPage() {
           <div className="flex items-center gap-2">
             <Badge variant={statusVariant(booking.status)} className="text-[10px]">
               {bookingNeedsPayment(booking)
-                ? "Payment due"
+                ? "Pay at front desk"
                 : booking.status === "pending"
                   ? "Awaiting confirmation"
                   : booking.status}
             </Badge>
-            {booking.paymentStatus && (
+            {booking.paymentStatus && !bookingNeedsPayment(booking) && (
               <Badge variant="outline" className="text-[10px]">
                 {booking.paymentStatus}
               </Badge>
@@ -160,13 +158,13 @@ export default function DashboardBookingDetailPage() {
           <p className="mb-4 text-sm text-muted-foreground">
             The hub team will confirm availability shortly
             {Number(booking.totalPrice) > 0
-              ? ". You’ll be asked to pay after they confirm."
+              ? ". Pay at the front desk in the space after they confirm."
               : "."}
           </p>
         )}
         {bookingNeedsPayment(booking) && (
           <p className="mb-4 text-sm text-muted-foreground">
-            This slot is available. Complete payment to finalize your booking.
+            This slot is available. Pay at the front desk in the space when you arrive.
           </p>
         )}
         <p className="mb-4 text-xs text-muted-foreground">Reference: {booking.id}</p>
@@ -208,34 +206,6 @@ export default function DashboardBookingDetailPage() {
         <Button asChild variant="outline" size="sm">
           <Link href="/dashboard/bookings">Back to bookings</Link>
         </Button>
-        {bookingNeedsPayment(booking) && (
-          <Button
-            size="sm"
-            disabled={paying}
-            onClick={async () => {
-              setPaying(true)
-              try {
-                const url = await startBookingPaystack(booking.id)
-                window.location.href = url
-              } catch (err) {
-                toast.error(
-                  "Payment failed",
-                  err instanceof Error ? err.message : "Please try again."
-                )
-                setPaying(false)
-              }
-            }}
-          >
-            {paying ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Redirecting…
-              </>
-            ) : (
-              "Pay with Paystack"
-            )}
-          </Button>
-        )}
         {booking.status !== "cancelled" && new Date(booking.date) >= new Date() && (
           <Button asChild size="sm">
             <Link href="/booking">Book again</Link>

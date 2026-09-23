@@ -901,6 +901,7 @@ model Visitor {
 
   @@map("visitors")
   @@index([hostUserId])
+  @@index([email])
   @@index([expectedAt])
   @@index([status])
   @@index([locationId])

@@ -41,6 +41,7 @@ async function main() {
     )
   `
   await sql`CREATE INDEX IF NOT EXISTS "visitors_host_user_id_idx" ON "visitors"("host_user_id")`
+  await sql`CREATE INDEX IF NOT EXISTS "visitors_email_idx" ON "visitors"("email")`
   await sql`CREATE INDEX IF NOT EXISTS "visitors_expected_at_idx" ON "visitors"("expected_at")`
   await sql`CREATE INDEX IF NOT EXISTS "visitors_status_idx" ON "visitors"("status")`
   await sql`CREATE INDEX IF NOT EXISTS "visitors_location_id_idx" ON "visitors"("location_id")`

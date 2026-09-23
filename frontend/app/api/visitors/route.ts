@@ -8,7 +8,12 @@ import { z } from "zod"
 
 const visitorBodySchema = z.object({
   name: z.string().min(1),
-  email: z.string().email().optional().nullable(),
+  email: z.preprocess((val) => {
+    if (val == null) return null
+    if (typeof val !== "string") return val
+    const trimmed = val.trim().toLowerCase()
+    return trimmed === "" ? null : trimmed
+  }, z.string().email().nullable().optional()),
   phone: z.string().optional().nullable(),
   company: z.string().optional().nullable(),
   expectedAt: z.string().transform((s) => new Date(s)),
