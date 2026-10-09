@@ -238,7 +238,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
       { key: "date", label: "Date", sample: "Monday, 14 July 2026" },
       { key: "time", label: "Time", sample: "09:00 – 11:00" },
       { key: "total", label: "Amount due", sample: "KES 5,000" },
-      { key: "bookingUrl", label: "Booking URL", sample: "https://example.com/bookings/1" },
+      { key: "bookingUrl", label: "Front desk payment URL", sample: "https://example.com/booking/front-desk?id=1" },
     ],
     subject: "Pay at the front desk — {{resource}} is available",
     preheader: "Your slot is confirmed — pay at the front desk in the space",
@@ -246,7 +246,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
     eyebrow: "Workspace",
     bodyHtml: `<p>Good news — the hub team confirmed that <strong>{{resource}}</strong> is available on {{date}}.</p>
 <p>Pay the amount due at the front desk in the space when you arrive. Online payment is not available for this booking.</p>`,
-    ctaLabel: "View booking",
+    ctaLabel: "Pay at the front desk",
     textBody:
       "Your booking is available. Pay at the front desk in the space when you arrive.\n{{resource}}\n{{date}}\n{{time}}\nAmount due: {{total}}\n{{bookingUrl}}",
   },

@@ -91,6 +91,7 @@ model User {
   projectCollaborations ProjectCollaboration[]
   investmentInterests ProjectInvestmentInterest[]
   expertProfile ExpertInResidence?
+  accessCredentials AccessCredential[]
 
   @@map("users")
 }
@@ -898,6 +899,7 @@ model Visitor {
   updatedAt  DateTime      @updatedAt
 
   checkIns   VisitorCheckIn[]
+  accessCredentials AccessCredential[]
 
   @@map("visitors")
   @@index([hostUserId])
@@ -1102,16 +1104,79 @@ model SurveyResponse {
   @@index([userId])
 }
 
+enum AccessCredentialStatus {
+  pending
+  active
+  revoked
+}
+
+enum AccessSyncAction {
+  upsert_user
+  grant_card
+  revoke_card
+}
+
+enum AccessSyncJobStatus {
+  pending
+  processing
+  done
+  failed
+}
+
 model AccessControlIntegration {
-  id        String   @id @default(cuid())
-  provider  String
-  config    Json     @default("{}")
-  isActive  Boolean  @default(false) @map("is_active")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String    @id @default(cuid())
+  provider         String
+  config           Json      @default("{}")
+  isActive         Boolean   @default(false) @map("is_active")
+  bridgeLastSeenAt DateTime? @map("bridge_last_seen_at")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@map("access_control_integrations")
   @@index([isActive])
+}
+
+model AccessCredential {
+  id            String                  @id @default(cuid())
+  userId        String?                 @map("user_id")
+  user          User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  visitorId     String?                 @map("visitor_id")
+  visitor       Visitor?                @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  cardNo        String                  @unique @map("card_no")
+  employeeNo    String                  @map("employee_no")
+  status        AccessCredentialStatus  @default(pending)
+  validFrom     DateTime?               @map("valid_from")
+  validUntil    DateTime?               @map("valid_until")
+  lastSyncedAt  DateTime?               @map("last_synced_at")
+  lastSyncError String?                 @map("last_sync_error") @db.Text
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  jobs AccessSyncJob[]
+
+  @@map("access_credentials")
+  @@index([userId])
+  @@index([visitorId])
+  @@index([status])
+  @@index([employeeNo])
+}
+
+model AccessSyncJob {
+  id           String               @id @default(cuid())
+  credentialId String?              @map("credential_id")
+  credential   AccessCredential?    @relation(fields: [credentialId], references: [id], onDelete: SetNull)
+  action       AccessSyncAction
+  payload      Json                 @default("{}")
+  status       AccessSyncJobStatus  @default(pending)
+  attempts     Int                  @default(0)
+  lastError    String?              @map("last_error") @db.Text
+  processedAt  DateTime?            @map("processed_at")
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@map("access_sync_jobs")
+  @@index([status, createdAt])
+  @@index([credentialId])
 }
 
 // ============================================

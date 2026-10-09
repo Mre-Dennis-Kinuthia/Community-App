@@ -164,6 +164,14 @@ export async function activateMembershipPlan(
     }
 
     return { payment, subscription, plan }
+  }).then(async (result) => {
+    try {
+      const { syncAccessForSubscription } = await import("@/lib/integrations/access-control")
+      await syncAccessForSubscription(params.userId, { active: true })
+    } catch (err) {
+      console.error("[MEMBERSHIP] Access grant failed:", err)
+    }
+    return result
   })
 }
 

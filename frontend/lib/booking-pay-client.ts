@@ -1,3 +1,8 @@
+/** Destination for booking payment emails and notifications. */
+export function bookingFrontDeskPath(bookingId: string): string {
+  return `/booking/front-desk?id=${encodeURIComponent(bookingId)}`
+}
+
 export async function startBookingPaystack(bookingId: string): Promise<string> {
   const payRes = await fetch("/api/billing/paystack/initialize", {
     method: "POST",

@@ -71,7 +71,12 @@ DATABASE_URL="postgresql://..."   # same database as web
 ADMIN_SESSION_SECRET="..."        # openssl rand -base64 32
 NEXT_PUBLIC_COMMUNITY_APP_URL="http://localhost:3000"
 CRON_SECRET="..."                 # optional locally
+# Hikvision bridge only (run on the hub LAN, not on Vercel):
+# HIKVISION_USERNAME="admin"
+# HIKVISION_PASSWORD="..."
 ```
+
+Badge access: apply schema with `npm run db:apply-access-credentials` in Community-App/frontend, then run `npm run hikvision:bridge` from Community-app-admin on a host that can reach `http://10.136.7.253` (hub LAN, gateway `10.136.7.1`). See [Community-app-admin/SETUP.md](../Community-app-admin/SETUP.md).
 
 ---
 

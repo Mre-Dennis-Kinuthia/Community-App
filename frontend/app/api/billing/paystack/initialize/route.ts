@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
 import { startPaystackCheckout } from "@/lib/paystack-checkout"
 import { isPaystackConfigured } from "@/lib/paystack"
+import { bookingFrontDeskPath } from "@/lib/booking-pay-client"
 import { z } from "zod"
 
 export async function OPTIONS(request: NextRequest) {
@@ -23,18 +24,11 @@ const bodySchema = z.discriminatedUnion("type", [
 
 /**
  * POST /api/billing/paystack/initialize
- * Start Paystack checkout for an existing confirmed booking or event registration.
+ * Workspace bookings are paid at the front desk. Event registrations still start Paystack.
  * Membership uses /api/billing/subscribe or /api/membership/pay/[token] instead.
  */
 export async function POST(request: NextRequest) {
   try {
-    if (!isPaystackConfigured()) {
-      return NextResponse.json(
-        { error: "Paystack is not configured. Set PAYSTACK_SECRET_KEY." },
-        { status: 503, headers: corsHeaders(request) }
-      )
-    }
-
     const session = await auth()
     if (!session?.user?.id || !session.user.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: corsHeaders(request) })
@@ -71,25 +65,21 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const checkout = await startPaystackCheckout(prisma, {
-        userId: session.user.id,
-        email: session.user.email,
-        amount: booking.totalPrice,
-        metadata: {
-          type: "booking",
-          successPath: `/booking/success?id=${booking.id}`,
-        },
-        bookingId: booking.id,
-      })
-
+      const frontDeskUrl = bookingFrontDeskPath(booking.id)
       return NextResponse.json(
         {
-          paymentId: checkout.paymentId,
-          authorizationUrl: checkout.authorizationUrl,
+          frontDeskUrl,
           pending: true,
-          message: checkout.message,
+          message: "Pay at the front desk in the space.",
         },
         { headers: corsHeaders(request) }
+      )
+    }
+
+    if (!isPaystackConfigured()) {
+      return NextResponse.json(
+        { error: "Paystack is not configured. Set PAYSTACK_SECRET_KEY." },
+        { status: 503, headers: corsHeaders(request) }
       )
     }
 

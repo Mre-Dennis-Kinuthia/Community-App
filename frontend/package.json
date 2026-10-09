@@ -23,6 +23,7 @@
     "db:apply-space-inventory": "tsx scripts/apply-space-inventory.ts",
     "db:apply-phase2": "tsx scripts/apply-phase2-front-desk-finance.ts",
     "db:apply-phase3-6": "tsx scripts/apply-phase3-6-operations.ts",
+    "db:apply-access-credentials": "tsx scripts/apply-access-credentials.ts",
     "db:apply-maintenance-tickets": "tsx scripts/apply-maintenance-tickets.ts",
     "test": "vitest run",
     "db:studio": "prisma studio",

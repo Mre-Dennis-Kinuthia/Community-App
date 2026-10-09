@@ -206,6 +206,13 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
+    try {
+      const { syncAccessForSubscription } = await import("@/lib/integrations/access-control")
+      await syncAccessForSubscription(userId, { active: false })
+    } catch (err) {
+      console.error("[BILLING SUBSCRIPTION API] Access revoke failed:", err)
+    }
+
     return NextResponse.json(
       {
         message: "Your subscription has been cancelled immediately.",

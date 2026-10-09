@@ -127,7 +127,7 @@ export const NotificationTemplates = {
     message: `Your ${resourceType} booking for ${date} is available. Pay at the front desk in the space when you arrive.`,
     type: "warning" as const,
     category: "booking",
-    actionUrl: `/dashboard/bookings/${bookingId}`,
+    actionUrl: `/booking/front-desk?id=${encodeURIComponent(bookingId)}`,
     relatedId: bookingId,
     relatedType: "booking",
   }),
