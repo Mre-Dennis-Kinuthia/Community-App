@@ -53,7 +53,6 @@ export async function listSentCampaignsForMember(params: {
         c.sections
       FROM newsletter_campaigns c
       WHERE c."deletedAt" IS NULL
-        AND c.status = 'sent'
         AND EXISTS (
           SELECT 1
           FROM newsletter_sends s
@@ -69,7 +68,6 @@ export async function listSentCampaignsForMember(params: {
       SELECT COUNT(DISTINCT c.id)::int AS total
       FROM newsletter_campaigns c
       WHERE c."deletedAt" IS NULL
-        AND c.status = 'sent'
         AND EXISTS (
           SELECT 1
           FROM newsletter_sends s
@@ -105,7 +103,6 @@ export async function getSentCampaignForMember(
     FROM newsletter_campaigns c
     WHERE c.slug = ${slug}
       AND c."deletedAt" IS NULL
-      AND c.status = 'sent'
       AND EXISTS (
         SELECT 1
         FROM newsletter_sends s
