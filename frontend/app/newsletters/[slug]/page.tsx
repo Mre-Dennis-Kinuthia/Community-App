@@ -42,7 +42,7 @@ export default function NewsletterDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8 md:py-12">
+      <div className="mx-auto w-full max-w-3xl min-w-0 space-y-6 py-8 md:py-12">
         <Button variant="ghost" size="sm" className="-ml-2 w-fit" asChild>
           <Link href="/newsletters">
             <ArrowLeft className="mr-2 h-4 w-4" />

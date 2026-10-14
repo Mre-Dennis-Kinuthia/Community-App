@@ -1,0 +1,34 @@
+.newsletter-web-content,
+.newsletter-web-content * {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.newsletter-web-content img,
+.newsletter-web-content video,
+.newsletter-web-content iframe,
+.newsletter-web-content svg {
+  max-width: 100% !important;
+  height: auto;
+}
+
+.newsletter-web-content table {
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: fixed;
+}
+
+.newsletter-web-content th,
+.newsletter-web-content td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.newsletter-web-content pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

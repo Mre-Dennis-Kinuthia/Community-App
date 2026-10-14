@@ -368,8 +368,8 @@ export function NewsletterWebRenderer({
     <article
       className={
         isArticle
-          ? `mx-auto w-full max-w-2xl ${className}`
-          : `mx-auto max-w-[600px] rounded-xl border bg-white p-6 shadow-sm sm:p-8 ${className}`
+          ? `newsletter-web-content mx-auto min-w-0 w-full max-w-2xl ${className}`
+          : `newsletter-web-content mx-auto min-w-0 w-full max-w-[600px] rounded-xl border bg-white p-6 shadow-sm sm:p-8 ${className}`
       }
       style={
         isArticle
