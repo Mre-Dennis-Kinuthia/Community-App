@@ -32,3 +32,34 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+@media (max-width: 640px) {
+  .newsletter-web-content .prose {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  .newsletter-web-content .prose [style*="font-size"] {
+    font-size: clamp(0.875rem, 4.4vw, 1.125rem) !important;
+  }
+
+  .newsletter-web-content .prose [style*="font-size: 0px"],
+  .newsletter-web-content .prose [style*="font-size:0px"] {
+    font-size: 0 !important;
+  }
+
+  .newsletter-web-content .prose h1 {
+    font-size: 1.375rem;
+    line-height: 1.25;
+  }
+
+  .newsletter-web-content .prose h2 {
+    font-size: 1.2rem;
+    line-height: 1.3;
+  }
+
+  .newsletter-web-content .prose h3 {
+    font-size: 1.05rem;
+    line-height: 1.35;
+  }
+}

@@ -77,7 +77,7 @@ function SectionView({
             />
           ) : null}
           <h1
-            className="mb-2 text-3xl font-bold tracking-tight"
+            className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl"
             style={{ color: brand.text }}
           >
             {section.headline}
