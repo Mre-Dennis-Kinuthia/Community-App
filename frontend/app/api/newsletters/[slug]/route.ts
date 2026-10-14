@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/auth"
 import {
   coverFromSections,
   enrichNewsletterSections,
-  getPublishedCampaignBySlug,
+  getSentCampaignForMember,
   parseCampaignSections,
 } from "@/lib/newsletter/db"
 
@@ -13,8 +14,16 @@ export async function GET(
   context: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const { slug } = await context.params
-    const campaign = await getPublishedCampaignBySlug(slug)
+    const campaign = await getSentCampaignForMember(slug, {
+      userId: session.user.id,
+      email: session.user.email ?? "",
+    })
 
     if (!campaign) {
       return NextResponse.json({ error: "Not found" }, { status: 404 })

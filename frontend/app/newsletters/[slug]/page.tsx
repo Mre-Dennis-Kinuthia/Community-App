@@ -6,12 +6,9 @@ import Link from "next/link"
 import { format } from "date-fns"
 import { ArrowLeft, Calendar, Loader2, Mail } from "lucide-react"
 import { DashboardLayout } from "@/app/dashboard/layout"
-import { Breadcrumbs } from "@/components/breadcrumbs"
-import { MobileBreadcrumbsHidden } from "@/components/mobile/mobile-page-shell"
 import { Button } from "@/components/ui/button"
 import { NewsletterWebRenderer } from "@/lib/newsletter/render-web"
 import type { NewsletterSection } from "@/lib/newsletter"
-import { NEWS_HUB_LABEL, NEWS_HUB_PATH } from "@/lib/news-hub"
 
 type Campaign = {
   title: string
@@ -45,26 +42,11 @@ export default function NewsletterDetailPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto w-full max-w-3xl space-y-6">
-        <MobileBreadcrumbsHidden>
-          <Breadcrumbs
-            items={[
-              { label: NEWS_HUB_LABEL, href: NEWS_HUB_PATH },
-              {
-                label: campaign?.title
-                  ? campaign.title.length > 40
-                    ? `${campaign.title.slice(0, 40)}…`
-                    : campaign.title
-                  : "Edition",
-              },
-            ]}
-          />
-        </MobileBreadcrumbsHidden>
-
+      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8 md:py-12">
         <Button variant="ghost" size="sm" className="-ml-2 w-fit" asChild>
-          <Link href={NEWS_HUB_PATH}>
+          <Link href="/newsletters">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            All updates
+            All newsletters
           </Link>
         </Button>
 
@@ -80,9 +62,9 @@ export default function NewsletterDetailPage() {
               {error || "Newsletter not found"}
             </p>
             <Button variant="outline" asChild>
-              <Link href={NEWS_HUB_PATH}>
+              <Link href="/newsletters">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to News & updates
+                Back to newsletters
               </Link>
             </Button>
           </div>
@@ -154,9 +136,9 @@ export default function NewsletterDetailPage() {
 
             <div className="border-t border-border pt-6">
               <Button variant="outline" asChild>
-                <Link href={NEWS_HUB_PATH}>
+                <Link href="/newsletters">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to News & updates
+                  Back to newsletters
                 </Link>
               </Button>
             </div>

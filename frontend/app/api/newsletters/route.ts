@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/auth"
 import {
   coverFromSections,
-  listPublishedCampaigns,
+  listSentCampaignsForMember,
   parseCampaignSections,
 } from "@/lib/newsletter/db"
 
@@ -9,12 +10,22 @@ export const runtime = "nodejs"
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     const searchParams = request.nextUrl.searchParams
     const page = parseInt(searchParams.get("page") || "1", 10)
     const limit = Math.min(parseInt(searchParams.get("limit") || "12", 10), 50)
     const skip = (page - 1) * limit
 
-    const { rows, total } = await listPublishedCampaigns({ skip, limit })
+    const { rows, total } = await listSentCampaignsForMember({
+      skip,
+      limit,
+      userId: session.user.id,
+      email: session.user.email ?? "",
+    })
 
     const campaigns = rows.map((c) => {
       const sections = parseCampaignSections(c.sections)

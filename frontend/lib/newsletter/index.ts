@@ -23,7 +23,7 @@ export {
 export {
   coverFromSections,
   enrichNewsletterSections,
-  getPublishedCampaignBySlug,
-  listPublishedCampaigns,
+  getSentCampaignForMember,
+  listSentCampaignsForMember,
   parseCampaignSections,
 } from "./db"

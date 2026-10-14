@@ -33,36 +33,50 @@ export function coverFromSections(sections: NewsletterSection[]): string | null 
   return null
 }
 
-export async function listPublishedCampaigns(params: {
+export async function listSentCampaignsForMember(params: {
   skip: number
   limit: number
+  userId: string
+  email: string
 }): Promise<{ rows: PublishedCampaignRow[]; total: number }> {
   const sql = getSql()
   const [rows, countRows] = await Promise.all([
     sql`
       SELECT
-        id,
-        title,
-        slug,
-        subject,
-        preheader,
-        "brandPrimary",
-        "sentAt",
-        sections
-      FROM newsletter_campaigns
-      WHERE "deletedAt" IS NULL
-        AND "publishedToWeb" = true
-        AND status = 'sent'
-      ORDER BY "sentAt" DESC NULLS LAST
+        DISTINCT c.id,
+        c.title,
+        c.slug,
+        c.subject,
+        c.preheader,
+        c."brandPrimary",
+        c."sentAt",
+        c.sections
+      FROM newsletter_campaigns c
+      WHERE c."deletedAt" IS NULL
+        AND c.status = 'sent'
+        AND EXISTS (
+          SELECT 1
+          FROM newsletter_sends s
+          WHERE s."campaignId" = c.id
+            AND s.status = 'sent'
+            AND (s."userId" = ${params.userId} OR lower(s.email) = lower(${params.email}))
+        )
+      ORDER BY c."sentAt" DESC NULLS LAST
       LIMIT ${params.limit}
       OFFSET ${params.skip}
     `,
     sql`
-      SELECT COUNT(*)::int AS total
-      FROM newsletter_campaigns
-      WHERE "deletedAt" IS NULL
-        AND "publishedToWeb" = true
-        AND status = 'sent'
+      SELECT COUNT(DISTINCT c.id)::int AS total
+      FROM newsletter_campaigns c
+      WHERE c."deletedAt" IS NULL
+        AND c.status = 'sent'
+        AND EXISTS (
+          SELECT 1
+          FROM newsletter_sends s
+          WHERE s."campaignId" = c.id
+            AND s.status = 'sent'
+            AND (s."userId" = ${params.userId} OR lower(s.email) = lower(${params.email}))
+        )
     `,
   ])
 
@@ -72,26 +86,33 @@ export async function listPublishedCampaigns(params: {
   }
 }
 
-export async function getPublishedCampaignBySlug(
-  slug: string
+export async function getSentCampaignForMember(
+  slug: string,
+  params: { userId: string; email: string }
 ): Promise<PublishedCampaignRow | null> {
   const sql = getSql()
   const rows = await sql`
     SELECT
-      id,
-      title,
-      slug,
-      subject,
-      preheader,
-      "brandPrimary",
-      "brandAccent",
-      "sentAt",
-      sections
-    FROM newsletter_campaigns
-    WHERE slug = ${slug}
-      AND "deletedAt" IS NULL
-      AND "publishedToWeb" = true
-      AND status IN ('sent', 'sending')
+      c.id,
+      c.title,
+      c.slug,
+      c.subject,
+      c.preheader,
+      c."brandPrimary",
+      c."brandAccent",
+      c."sentAt",
+      c.sections
+    FROM newsletter_campaigns c
+    WHERE c.slug = ${slug}
+      AND c."deletedAt" IS NULL
+      AND c.status = 'sent'
+      AND EXISTS (
+        SELECT 1
+        FROM newsletter_sends s
+        WHERE s."campaignId" = c.id
+          AND s.status = 'sent'
+          AND (s."userId" = ${params.userId} OR lower(s.email) = lower(${params.email}))
+      )
     LIMIT 1
   `
   return (rows[0] as PublishedCampaignRow | undefined) ?? null
