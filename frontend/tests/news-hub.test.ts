@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { isNewsHubPath, NEWS_HUB_NEWSLETTERS_HREF, NEWS_HUB_PATH } from "@/lib/news-hub"
-import { isNavPathActive } from "@/lib/nav-config"
+import { getVisibleNavGroups, isNavPathActive } from "@/lib/nav-config"
 
 describe("News & updates hub", () => {
   it("treats articles and newsletter editions as one nav section", () => {
@@ -12,5 +12,9 @@ describe("News & updates hub", () => {
 
     expect(isNavPathActive("/newsletters/june", NEWS_HUB_PATH)).toBe(true)
     expect(NEWS_HUB_NEWSLETTERS_HREF).toBe("/news?categoryId=newsletter")
+    expect(getVisibleNavGroups().flatMap((group) => group.items).some((item) => item.href === "/newsletters")).toBe(true)
+    expect(isNavPathActive("/newsletters", "/newsletters")).toBe(true)
+    expect(isNavPathActive("/news", "/newsletters", null, "newsletter")).toBe(true)
+    expect(isNavPathActive("/news", NEWS_HUB_PATH, null, "newsletter")).toBe(false)
   })
 })

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { MobileMoreSheet } from "@/components/mobile-more-sheet"
 import {
@@ -16,13 +16,15 @@ const HIDDEN_PATHS = new Set(["/", "/login", "/register"])
 
 export function MobileBottomNav() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const newsCategoryId = searchParams.get("categoryId")
   const [moreOpen, setMoreOpen] = useState(false)
 
   if (HIDDEN_PATHS.has(pathname)) {
     return null
   }
 
-  const moreActive = isMoreNavActive(pathname) || moreOpen
+  const moreActive = isMoreNavActive(pathname, newsCategoryId) || moreOpen
 
   return (
     <>
@@ -33,7 +35,7 @@ export function MobileBottomNav() {
         <div className="grid h-14 grid-cols-5">
           {MOBILE_PRIMARY_NAV.map((item) => {
             const Icon = item.icon
-            const isActive = isNavItemActive(pathname, item.href)
+            const isActive = isNavItemActive(pathname, item.href, newsCategoryId)
             return (
               <Link
                 key={item.href}

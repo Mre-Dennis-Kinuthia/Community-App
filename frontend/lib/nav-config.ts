@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Lightbulb,
   Newspaper,
+  Mail,
   FolderOpen,
   BarChart3,
   Sparkles,
@@ -18,7 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { isNavHrefEnabled } from "@/lib/feature-flags"
-import { isNewsHubPath } from "@/lib/news-hub"
+import { isNewsHubPath, NEWSLETTER_CATEGORY_ID } from "@/lib/news-hub"
 
 export type NavBadgeKey = "upcomingEvents"
 
@@ -78,6 +79,7 @@ export const NAV_GROUPS: NavGroupConfig[] = [
       { title: "Investments & Dealflow", href: "/investments", icon: BarChart3 },
       { title: "My projects", href: "/dashboard/projects", icon: FolderOpen },
       { title: "News & Updates", href: "/news", icon: Newspaper },
+      { title: "Newsletters", href: "/newsletters", icon: Mail },
       { title: "Partners & Network", href: "/partners", icon: Handshake },
       { title: "Experts in Residence", href: "/experts", icon: GraduationCap },
     ],
@@ -101,6 +103,7 @@ const MOBILE_PRIMARY_HREFS = ["/dashboard", "/booking", "/community", "/events"]
 /** "More" sheet — order matches desktop nav groups (disabled routes omitted at source). */
 const MOBILE_MORE_HREFS = [
   "/news",
+  "/newsletters",
   "/partners",
   "/experts",
   "/opportunities",
@@ -121,6 +124,7 @@ const MOBILE_TITLE_OVERRIDES: Record<string, string> = {
   "/dashboard/visitors": "Visitors",
   "/dashboard/deliveries": "Packages",
   "/news": "News",
+  "/newsletters": "Newsletters",
   "/partners": "Partners",
   "/experts": "Experts",
   "/opportunities": "Opportunities",
@@ -175,10 +179,7 @@ export const MOBILE_MORE_TRIGGER: MobileNavItem = {
 export function getVisibleNavGroups(): NavGroupConfig[] {
   return NAV_GROUPS.map((group) => ({
     ...group,
-    items: group.items
-      .filter((item) => isNavHrefEnabled(item.href))
-      // One Community nav item for articles + newsletter editions.
-      .filter((item) => item.href !== "/newsletters"),
+    items: group.items.filter((item) => isNavHrefEnabled(item.href)),
   })).filter((group) => group.items.length > 0)
 }
 
@@ -186,14 +187,25 @@ export function getVisibleNavGroups(): NavGroupConfig[] {
 export function isNavPathActive(
   pathname: string,
   href: string,
-  resourcesTab?: string | null
+  resourcesTab?: string | null,
+  newsCategoryId?: string | null
 ): boolean {
   if (href === "/dashboard") return pathname === "/dashboard"
   if (href === "/dashboard/eir") {
     return pathname === "/dashboard/eir" || pathname.startsWith("/dashboard/eir/")
   }
   if (href === "/news") {
-    return isNewsHubPath(pathname)
+    return (
+      isNewsHubPath(pathname) &&
+      !(pathname === "/news" && newsCategoryId === NEWSLETTER_CATEGORY_ID)
+    )
+  }
+  if (href === "/newsletters") {
+    return (
+      pathname === "/newsletters" ||
+      pathname.startsWith("/newsletters/") ||
+      (pathname === "/news" && newsCategoryId === NEWSLETTER_CATEGORY_ID)
+    )
   }
   if (href === "/opportunities") {
     return (
@@ -206,12 +218,18 @@ export function isNavPathActive(
 }
 
 /** Alias used by mobile navigation components */
-export function isNavItemActive(pathname: string, href: string): boolean {
-  return isNavPathActive(pathname, href, null)
+export function isNavItemActive(
+  pathname: string,
+  href: string,
+  newsCategoryId?: string | null
+): boolean {
+  return isNavPathActive(pathname, href, null, newsCategoryId)
 }
 
-export function isMoreNavActive(pathname: string): boolean {
-  return MOBILE_MORE_NAV.some((item) => isNavItemActive(pathname, item.href))
+export function isMoreNavActive(pathname: string, newsCategoryId?: string | null): boolean {
+  return MOBILE_MORE_NAV.some((item) =>
+    isNavItemActive(pathname, item.href, newsCategoryId)
+  )
 }
 
 /** Expand only Main and the group containing the active route by default. */

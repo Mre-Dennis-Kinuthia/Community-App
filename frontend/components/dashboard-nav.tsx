@@ -82,6 +82,7 @@ export function DashboardNav() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const resourcesTab = searchParams.get("tab")
+  const newsCategoryId = searchParams.get("categoryId")
   const { isCollapsed } = useSidebar()
   const badges = useNavBadges()
   const [isExpert, setIsExpert] = useState(() => pathname.startsWith("/dashboard/eir"))
@@ -109,7 +110,6 @@ export function DashboardNav() {
           items: group.items.filter((item) => {
             if (item.expertOnly && !isExpert) return false
             if (item.hideForExpert && isExpert) return false
-            if (item.href === "/newsletters") return false
             return true
           }),
         }))
@@ -145,7 +145,7 @@ export function DashboardNav() {
   }
 
   const renderNavItem = (item: NavItemConfig, indent = false) => {
-    const isActive = isNavPathActive(pathname, item.href, resourcesTab)
+    const isActive = isNavPathActive(pathname, item.href, resourcesTab, newsCategoryId)
     const badge = resolveBadge(item, badges)
 
     return (
@@ -178,7 +178,7 @@ export function DashboardNav() {
               )}
             >
               {group.items.map((item) => {
-                const isActive = isNavPathActive(pathname, item.href, resourcesTab)
+                const isActive = isNavPathActive(pathname, item.href, resourcesTab, newsCategoryId)
                 const badge = resolveBadge(item, badges)
                 return (
                   <SidebarNavTooltip key={item.href} label={item.title} group={group.title}>
@@ -208,7 +208,7 @@ export function DashboardNav() {
       {visibleNavGroups.map((group, groupIndex) => {
         const isOpen = openGroups[group.title]
         const hasActiveItem = group.items.some((item) =>
-          isNavPathActive(pathname, item.href, resourcesTab)
+          isNavPathActive(pathname, item.href, resourcesTab, newsCategoryId)
         )
         const primaryItems = group.items.filter((item) => !item.frontDesk)
         const frontDeskItems = group.items.filter((item) => item.frontDesk)
@@ -256,7 +256,7 @@ export function DashboardNav() {
                         className={cn(
                           "flex w-full items-center justify-between rounded-sm px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                           frontDeskItems.some((item) =>
-                            isNavPathActive(pathname, item.href, resourcesTab)
+                            isNavPathActive(pathname, item.href, resourcesTab, newsCategoryId)
                           ) && "text-foreground"
                         )}
                       >

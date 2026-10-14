@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/logo"
 import {
@@ -19,6 +19,8 @@ type MobileMoreSheetProps = {
 
 export function MobileMoreSheet({ open, onOpenChange }: MobileMoreSheetProps) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const newsCategoryId = searchParams.get("categoryId")
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -31,7 +33,7 @@ export function MobileMoreSheet({ open, onOpenChange }: MobileMoreSheetProps) {
         <nav className="grid gap-0.5 overflow-y-auto p-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           {MOBILE_MORE_NAV.map((item) => {
             const Icon = item.icon
-            const isActive = isNavItemActive(pathname, item.href)
+            const isActive = isNavItemActive(pathname, item.href, newsCategoryId)
             return (
               <Link
                 key={item.href}
