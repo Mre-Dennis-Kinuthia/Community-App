@@ -1,132 +1,79 @@
 import type { Metadata } from "next"
-import Image from "next/image"
 import Link from "next/link"
-import { ArrowRight, CheckCircle2 } from "lucide-react"
+import { ArrowRight, BadgePercent, CheckCircle2, Mail } from "lucide-react"
 import { MarketingPublicLayout } from "@/components/marketing/marketing-public-layout"
 import { Button } from "@/components/ui/button"
-import { LANDING_PROGRAMS, type LandingProgram } from "@/lib/landing-programs"
-import { MEMBERSHIP_PRICING_TIERS } from "@/lib/workspace-pricing"
-import { cn } from "@/lib/utils"
+import { HUB_PUBLIC_EMAIL } from "@/lib/hub-contact"
+import {
+  formatKes,
+  WORKSPACE_PRICING_CATEGORIES,
+} from "@/lib/workspace-pricing"
+
+const STAR_CONNECT_OPTIONS = WORKSPACE_PRICING_CATEGORIES.filter(
+  (category) => category.membershipId === "star_connect"
+)
 
 export const metadata: Metadata = {
-  title: "Offers | Impact Hub Nairobi",
+  title: "Star Connect offer | Impact Hub Nairobi",
   description:
-    "Explore Impact Hub Nairobi membership, workspace, partnerships, and programmes for people building a more inclusive and sustainable future.",
+    "Get 30% off your first Star Connect billing period or purchase with offer code Community30. Offer ends December 31, 2026.",
 }
 
-function statusTone(status: LandingProgram["status"]) {
-  switch (status) {
-    case "active":
-      return "bg-[#7ebb55]/15 text-[#3d6b28]"
-    case "upcoming":
-      return "bg-[#41bed0]/15 text-[#1c395c]"
-    case "ongoing":
-      return "bg-[#822929]/10 text-[#822929]"
-    default:
-      return "bg-[#edeff2] text-[#1c395c]"
-  }
-}
-
-function ProgramOfferCard({ program }: { program: LandingProgram }) {
-  const href = program.detailHref ?? program.cta?.href ?? "/programs"
-  const label = program.detailHref ? "Explore programme" : program.cta?.label ?? "Learn more"
-
-  return (
-    <article className="overflow-hidden rounded-md border border-[#edeff2] bg-white shadow-sm">
-      <div className="relative aspect-[16/9] overflow-hidden bg-[#1c395c]/10">
-        <Image
-          src={program.image}
-          alt=""
-          fill
-          sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover"
-          unoptimized
-        />
-        <span
-          className={cn(
-            "absolute left-4 top-4 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
-            statusTone(program.status)
-          )}
-        >
-          {program.statusLabel}
-        </span>
-      </div>
-
-      <div className="flex h-full flex-col p-5 md:p-6">
-        <div className="flex flex-wrap gap-2">
-          {program.themes.slice(0, 3).map((theme) => (
-            <span
-              key={theme}
-              className="rounded-full bg-[#f3f5f8] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#1c395c]/75"
-            >
-              {theme}
-            </span>
-          ))}
-        </div>
-        <h3 className="mt-3 text-lg font-semibold leading-snug text-[#0a1f38]">
-          {program.name}
-        </h3>
-        <p className="mt-2 text-sm leading-relaxed text-[#1c395c]/80">{program.tagline}</p>
-        {program.duration ? (
-          <p className="mt-3 text-xs font-medium text-[#812926]">{program.duration}</p>
-        ) : null}
-        <ul className="mt-4 space-y-2">
-          {program.highlights.slice(0, 2).map((highlight) => (
-            <li key={highlight} className="flex items-start gap-2 text-sm text-[#1c395c]/80">
-              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#7ebb55]" aria-hidden />
-              <span>{highlight}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-auto pt-5">
-          <Button
-            asChild
-            className="bg-[#812926] hover:bg-[#6b2120]"
-          >
-            {program.cta?.external && !program.detailHref ? (
-              <a href={href} target="_blank" rel="noopener noreferrer">
-                {label}
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </a>
-            ) : (
-              <Link href={href}>
-                {label}
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            )}
-          </Button>
-        </div>
-      </div>
-    </article>
-  )
+function discountedAmount(amount: number) {
+  return Math.round(amount * 0.7)
 }
 
 export default function OffersPage() {
+  const redemptionEmail = `mailto:${HUB_PUBLIC_EMAIL}?subject=${encodeURIComponent(
+    "Star Connect offer: Community30"
+  )}`
+
   return (
     <MarketingPublicLayout>
       <div className="bg-[#faf9f6]">
         <section className="border-b border-[#edeff2] bg-[#f3f5f8]/60">
           <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 md:py-20">
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#812926]">
-              Impact Hub Nairobi
-            </p>
-            <h1 className="mt-2 max-w-3xl text-3xl font-semibold text-[#0a1f38] md:text-5xl">
-              Find the support that moves your work forward
-            </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#1c395c]/80 md:text-base">
-              Explore community membership, workspace, partnerships, and programmes for people
-              building ventures and ideas with positive impact.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Button asChild className="bg-[#812926] hover:bg-[#6b2120]">
-                <Link href="/register">
-                  Join the community
-                  <ArrowRight className="h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="border-[#1c395c]/20 bg-white">
-                <Link href="/programs">Explore programmes</Link>
-              </Button>
+            <div className="mx-auto max-w-3xl text-center">
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#812926]/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#812926]">
+                <BadgePercent className="h-4 w-4" aria-hidden />
+                Star Connect offer
+              </span>
+              <h1 className="mt-5 text-4xl font-semibold tracking-tight text-[#0a1f38] md:text-6xl">
+                Get 30% off Star Connect
+              </h1>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-[#1c395c]/80 md:text-base">
+                Save on any Star Connect workspace option for your first billing period or
+                purchase. Use the offer code below and the Hub team will apply the discount.
+              </p>
+              <div className="mx-auto mt-7 inline-flex flex-col items-center rounded-md border border-[#edeff2] bg-white px-7 py-4 shadow-sm">
+                <span className="text-xs font-medium uppercase tracking-[0.14em] text-[#1c395c]/65">
+                  Your offer code
+                </span>
+                <span className="mt-1 text-2xl font-bold tracking-wider text-[#812926]">
+                  Community30
+                </span>
+              </div>
+              <p className="mt-4 text-sm font-medium text-[#1c395c]">
+                Offer ends December 31, 2026
+              </p>
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <Button asChild className="bg-[#812926] hover:bg-[#6b2120]">
+                  <a href={redemptionEmail}>
+                    Redeem this offer
+                    <Mail className="h-4 w-4" aria-hidden />
+                  </a>
+                </Button>
+                <Button asChild variant="outline" className="border-[#1c395c]/20 bg-white">
+                  <Link href="/pricing">
+                    View Star Connect rates
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+              </div>
+              <p className="mx-auto mt-4 max-w-xl text-xs leading-relaxed text-[#1c395c]/65">
+                Email the Hub team with code Community30 before completing your application or
+                payment. The team will confirm and apply your discount.
+              </p>
             </div>
           </div>
         </section>
@@ -134,88 +81,74 @@ export default function OffersPage() {
         <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 md:py-16">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#812926]">
-              Ways to connect
+              Eligible options
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-[#0a1f38] md:text-3xl">
-              Start where you are
+              Choose your Star Connect option
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-[#1c395c]/75">
-              Whether you are building a venture, looking for a place to work, or seeking a
-              programme partner, there is a way to get involved.
+              The discount applies to the first billing period or purchase of any Star Connect
+              option. Promotional prices shown are estimates before VAT; the Hub team will confirm
+              your final price when you redeem the code.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {MEMBERSHIP_PRICING_TIERS.map((tier) => (
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {STAR_CONNECT_OPTIONS.map((option) => (
               <article
-                key={tier.id}
+                key={option.id}
                 className="flex flex-col rounded-md border border-[#edeff2] bg-white p-5 shadow-sm"
               >
-                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#812926]">
-                  {tier.audience}
-                </p>
-                <h3 className="mt-2 text-lg font-semibold text-[#0a1f38]">{tier.name}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-[#1c395c]/80">
-                  {tier.intro}
-                </p>
-                <p className="mt-4 text-sm font-semibold text-[#812926]">
-                  {tier.staticPrice ?? (tier.id === "star_connect" ? "Workspace rates available" : "")}
-                </p>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="mt-4 justify-between border-[#812926]/25 text-[#812926] hover:bg-[#812926]/5"
-                >
-                  <Link href={tier.id === "star_connect" ? "/pricing" : tier.href}>
-                    {tier.id === "star_connect" ? "View workspace rates" : tier.cta}
-                    <ArrowRight className="h-4 w-4" aria-hidden />
-                  </Link>
-                </Button>
+                <h3 className="text-base font-semibold text-[#0a1f38]">{option.name}</h3>
+                <p className="mt-1 text-xs text-[#1c395c]/65">{option.bestFor}</p>
+                <div className="mt-5">
+                  <p className="text-xs text-[#1c395c]/65">
+                    <span className="sr-only">Regular price: </span>
+                    <span className="line-through">
+                      {option.priceFrom ? "From " : ""}
+                      {formatKes(option.priceAmount)}
+                    </span>
+                    {" "}
+                    {option.pricePeriod}
+                  </p>
+                  <p className="mt-1 text-lg font-bold text-[#812926]">
+                    {option.priceFrom ? "From " : ""}
+                    {formatKes(discountedAmount(option.priceAmount))}
+                    <span className="ml-1 text-xs font-normal text-[#1c395c]/65">
+                      {option.pricePeriod}
+                    </span>
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-[#3d6b28]">30% off with Community30</p>
+                </div>
+                {option.validity ? (
+                  <p className="mt-3 text-xs text-[#1c395c]/65">{option.validity}</p>
+                ) : null}
+                {option.note ? (
+                  <p className="mt-2 text-xs leading-relaxed text-[#1c395c]/65">{option.note}</p>
+                ) : null}
+                <div className="mt-auto pt-5">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full justify-between border-[#812926]/25 text-[#812926] hover:bg-[#812926]/5"
+                  >
+                    <Link href={option.href}>
+                      {option.cta}
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </Link>
+                  </Button>
+                </div>
               </article>
             ))}
           </div>
-        </section>
 
-        <section className="border-y border-[#edeff2] bg-[#f3f5f8]">
-          <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 md:py-16">
-            <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-[#812926]">
-                  Programmes & initiatives
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold text-[#0a1f38] md:text-3xl">
-                  Explore what is happening now
-                </h2>
-              </div>
-              <Link
-                href="/programs"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#812926] hover:underline"
-              >
-                View all programmes
-                <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            </div>
-            <div className="grid gap-5 md:grid-cols-2">
-              {LANDING_PROGRAMS.map((program) => (
-                <ProgramOfferCard key={program.id} program={program} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-5xl px-4 py-12 text-center sm:px-6 md:py-16">
-          <h2 className="text-2xl font-semibold text-[#0a1f38]">Ready to take the next step?</h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-[#1c395c]/75">
-            Create a free Connect account to join the community, or explore the right programme
-            and workspace option for you.
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Button asChild className="bg-[#812926] hover:bg-[#6b2120]">
-              <Link href="/register">Create a free account</Link>
-            </Button>
-            <Button asChild variant="outline" className="border-[#1c395c]/20 bg-white">
-              <Link href="/pricing">Compare memberships and workspace</Link>
-            </Button>
+          <div className="mx-auto mt-8 flex max-w-3xl items-start gap-3 rounded-md border border-[#edeff2] bg-white p-4 text-sm leading-relaxed text-[#1c395c]/75">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#7ebb55]" aria-hidden />
+            <p>
+              This offer is exclusively for Star Connect options, applies once to the first billing
+              period or purchase, and expires December 31, 2026. Prices exclude 16% VAT and are
+              subject to availability and the applicable membership agreement.
+            </p>
           </div>
         </section>
       </div>
