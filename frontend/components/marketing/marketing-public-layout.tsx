@@ -23,6 +23,9 @@ export function MarketingPublicLayout({ children }: MarketingPublicLayoutProps) 
               <Link href="/programs">Programs</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="text-[#1c395c]">
+              <Link href="/offers">Offers</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="text-[#1c395c]">
               <Link href="/events/public">Events</Link>
             </Button>
           </nav>

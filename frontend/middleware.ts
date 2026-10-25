@@ -23,6 +23,7 @@ const publicRoutes = [
   "/terms",
   "/pay",
   "/membership",
+  "/offers",
   "/newsletter",
   "/admin-access",
   "/api",

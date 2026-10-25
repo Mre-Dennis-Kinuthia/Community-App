@@ -11,6 +11,7 @@ export function getLandingFooterPlatformLinks(): LandingFooterLink[] {
   const links: LandingFooterLink[] = [
     { href: "/community", label: "Community" },
     { href: "/programs", label: "Programs & Initiatives" },
+    { href: "/offers", label: "Offers" },
     { href: "/events/public", label: "Events & Programs" },
     { href: "/booking", label: "Book Workspace" },
     { href: "/pricing", label: "Pricing" },
@@ -44,6 +45,7 @@ export type LandingNavGroup = {
 export const LANDING_HEADER_LINKS: LandingNavItem[] = [
   { href: "#services", label: "What we offer" },
   { href: "/programs", label: "Programs" },
+  { href: "/offers", label: "Offers" },
   { href: "#events", label: "Events" },
   { href: "#community", label: "Community" },
   { href: "#membership", label: "Membership" },
@@ -58,6 +60,7 @@ export const LANDING_HEADER_GROUPS: LandingNavGroup[] = [
     items: [
       { href: "#services", label: "What we offer" },
       { href: "/programs", label: "Programs" },
+      { href: "/offers", label: "Offers" },
       { href: "#events", label: "Events" },
       { href: "#community", label: "Community" },
     ],
