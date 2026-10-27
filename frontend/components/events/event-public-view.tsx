@@ -328,7 +328,7 @@ export function EventPublicView({
         ) : !registrationRequired ? (
           <p className="text-[13px] text-[#1c395c]/75">Just show up — you&apos;re welcome.</p>
         ) : canRegister && isLumaEvent ? (
-          <LumaRegistration event={event} />
+          <LumaRegistration event={event} isLoggedIn={isLoggedIn} />
         ) : canRegister ? (
           <div className="space-y-2.5">
             {priceLabel ? (
@@ -626,7 +626,7 @@ export function EventPublicView({
 
       {isLumaEvent && event.lumaEventUrl && !canRegister ? (
         <section className="rounded-2xl border border-border bg-card p-4">
-          <LumaRegistration event={event} />
+          <LumaRegistration event={event} isLoggedIn={isLoggedIn} />
         </section>
       ) : null}
 

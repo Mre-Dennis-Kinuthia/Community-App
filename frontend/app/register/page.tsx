@@ -27,6 +27,7 @@ import {
 import { ORGANISATIONAL_PLAN_NAME } from "@/lib/membership-inquiry"
 import { markOrganisationalSignupPending } from "@/lib/membership-pending-intent"
 import { safeRedirectPath } from "@/lib/auth-routes"
+import { safeLumaRedirectUrl } from "@/lib/luma"
 import {
   getPasswordValidationError,
   PASSWORD_MAX_LENGTH,
@@ -235,7 +236,9 @@ function RegisterForm() {
       }
 
       console.log("[REGISTER FORM] Registration successful, redirecting to login")
-      const requestedRedirect = safeRedirectPath(searchParams.get("redirect"))
+      const requestedRedirect =
+        safeRedirectPath(searchParams.get("redirect")) ??
+        safeLumaRedirectUrl(searchParams.get("redirect"))
       const loginRedirect = organisationalIntent
         ? "/onboarding?intent=organisational"
         : requestedRedirect ?? "/onboarding"

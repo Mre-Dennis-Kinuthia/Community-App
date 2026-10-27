@@ -21,13 +21,18 @@ import {
   MEMBER_LOGIN_OUTAGE_MESSAGE,
 } from "@/lib/database-unavailable"
 import { DEFAULT_POST_LOGIN_PATH, safeRedirectPath } from "@/lib/auth-routes"
+import { safeLumaRedirectUrl } from "@/lib/luma"
 
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const lumaRedirect =
+    safeLumaRedirectUrl(searchParams.get("redirect")) ??
+    safeLumaRedirectUrl(searchParams.get("callbackUrl"))
   const redirect =
     safeRedirectPath(searchParams.get("redirect")) ??
     safeRedirectPath(searchParams.get("callbackUrl")) ??
+    lumaRedirect ??
     DEFAULT_POST_LOGIN_PATH
   const registeredEmail = searchParams.get("email")
   const isRegistered = searchParams.get("registered") === "true"
@@ -57,9 +62,9 @@ function LoginForm() {
         "Check your inbox for a verification link, then sign in."
       )
       // Clean up URL
-      router.replace(`/login?redirect=${encodeURIComponent(redirect)}`)
+      router.replace(`/login?redirect=${encodeURIComponent(lumaRedirect ?? redirect)}`)
     }
-  }, [isRegistered, registeredEmail, redirect, router])
+  }, [isRegistered, registeredEmail, lumaRedirect, redirect, router])
 
   const handleResendVerification = async () => {
     const normalizedEmail = email.toLowerCase().trim()
@@ -183,6 +188,10 @@ function LoginForm() {
 
       console.log("[LOGIN FORM] Sign in successful, redirecting to:", result?.url || redirect)
       toast.success("Welcome back!", "You've been successfully logged in")
+      if (lumaRedirect) {
+        window.location.assign(lumaRedirect)
+        return
+      }
       startNavigation()
       router.push(result?.url || redirect)
     } catch (error) {

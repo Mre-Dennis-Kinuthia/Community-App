@@ -18,7 +18,7 @@ import { EventPublicLayout } from "@/components/events/event-public-layout"
 import { EventPublicView } from "@/components/events/event-public-view"
 import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
 import { getEventCalendarLinks } from "@/lib/event-calendar"
-import { isLumaRegistration } from "@/lib/luma"
+import { isLumaRegistration, safeLumaRedirectUrl } from "@/lib/luma"
 import { isEventCuid } from "@/lib/event-slug"
 import { ONBOARDING_REQUIRED_CODE } from "@/lib/event-onboarding-gate"
 
@@ -250,7 +250,16 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   const handleRegister = () => {
     if (!event || !canRegister) return
     if (isLumaEvent && event.lumaEventUrl) {
-      window.open(event.lumaEventUrl, "_blank", "noopener,noreferrer")
+      const lumaUrl = safeLumaRedirectUrl(event.lumaEventUrl)
+      if (!lumaUrl) {
+        toast.error("This event's Luma registration link is invalid.")
+        return
+      }
+      if (!user?.email) {
+        router.push(`/register?redirect=${encodeURIComponent(lumaUrl)}`)
+        return
+      }
+      window.open(lumaUrl, "_blank", "noopener,noreferrer")
       return
     }
     if (!user?.email) {

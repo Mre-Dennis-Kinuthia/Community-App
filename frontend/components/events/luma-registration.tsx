@@ -1,21 +1,9 @@
 "use client"
 
-import { useEffect } from "react"
+import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { resolveLumaRegistration } from "@/lib/luma"
-
-const LUMA_SCRIPT_ID = "luma-checkout"
-
-function ensureLumaCheckoutScript() {
-  if (typeof document === "undefined") return
-  if (document.getElementById(LUMA_SCRIPT_ID)) return
-  const script = document.createElement("script")
-  script.id = LUMA_SCRIPT_ID
-  script.src = "https://embed.luma.com/checkout-button.js"
-  script.type = "module"
-  document.body.appendChild(script)
-}
+import { resolveLumaRegistration, safeLumaRedirectUrl } from "@/lib/luma"
 
 interface LumaRegistrationProps {
   event: {
@@ -25,20 +13,19 @@ interface LumaRegistrationProps {
   }
   className?: string
   label?: string
+  isLoggedIn: boolean
 }
 
 export function LumaRegistration({
   event,
   className,
   label = "Register on Luma",
+  isLoggedIn,
 }: LumaRegistrationProps) {
-  const { url, eventId } = resolveLumaRegistration(event)
+  const { url } = resolveLumaRegistration(event)
+  const safeUrl = safeLumaRedirectUrl(url)
 
-  useEffect(() => {
-    if (eventId) ensureLumaCheckoutScript()
-  }, [eventId])
-
-  if (!url) {
+  if (!safeUrl) {
     return (
       <p className="text-sm text-muted-foreground">
         Luma registration link is not configured for this event.
@@ -46,30 +33,19 @@ export function LumaRegistration({
     )
   }
 
-  if (eventId) {
-    return (
-      <a
-        href={url}
-        className={
-          className ??
-          "luma-checkout--button inline-flex w-full items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        }
-        data-luma-action="checkout"
-        data-luma-event-id={eventId}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {label}
-      </a>
-    )
-  }
-
   return (
     <Button className={className ?? "w-full"} size="lg" asChild>
-      <a href={url} target="_blank" rel="noopener noreferrer">
-        {label}
-        <ExternalLink className="ml-2 h-4 w-4" />
-      </a>
+      {isLoggedIn ? (
+        <a href={safeUrl} target="_blank" rel="noopener noreferrer">
+          {label}
+          <ExternalLink className="ml-2 h-4 w-4" />
+        </a>
+      ) : (
+        <Link href={`/register?redirect=${encodeURIComponent(safeUrl)}`}>
+          {label}
+          <ExternalLink className="ml-2 h-4 w-4" />
+        </Link>
+      )}
     </Button>
   )
 }

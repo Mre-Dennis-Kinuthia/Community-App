@@ -33,6 +33,7 @@ import { getEventPublicPath, getEventPublicUrl } from "@/lib/event-url"
 import { EventRegistrationDialog } from "@/components/events/event-registration-dialog"
 import { autoImportFromRegistrationResponse } from "@/lib/event-calendar-client"
 import { ONBOARDING_REQUIRED_CODE } from "@/lib/event-onboarding-gate"
+import { safeLumaRedirectUrl } from "@/lib/luma"
 
 interface Event {
   id: number | string
@@ -316,7 +317,16 @@ export default function EventsPage() {
     }
 
     if (event.registrationProvider === "luma" && event.lumaEventUrl) {
-      window.open(event.lumaEventUrl, "_blank", "noopener,noreferrer")
+      const lumaUrl = safeLumaRedirectUrl(event.lumaEventUrl)
+      if (!lumaUrl) {
+        toast.error("This event's Luma registration link is invalid.")
+        return
+      }
+      if (!user?.email) {
+        router.push(`/register?redirect=${encodeURIComponent(lumaUrl)}`)
+        return
+      }
+      window.open(lumaUrl, "_blank", "noopener,noreferrer")
       return
     }
 

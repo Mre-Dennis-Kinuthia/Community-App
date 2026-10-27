@@ -9,6 +9,19 @@ export function isLumaUrl(url: string): boolean {
   }
 }
 
+export function safeLumaRedirectUrl(url: string | null | undefined): string | null {
+  if (!url?.trim()) return null
+  try {
+    const parsed = new URL(url.trim())
+    if (parsed.protocol !== "https:" || !isLumaUrl(parsed.toString())) return null
+    parsed.username = ""
+    parsed.password = ""
+    return parsed.toString()
+  } catch {
+    return null
+  }
+}
+
 export function normalizeLumaEventUrl(url: string): string {
   const trimmed = url.trim()
   if (!trimmed) return ""
