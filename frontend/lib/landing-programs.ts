@@ -41,8 +41,9 @@ export const LANDING_PROGRAMS: LandingProgram[] = [
     id: "aac",
     slug: "aac",
     name: "Advancing Agricultural Circularity (AAC)",
-    shortName: "AAC",
-    tagline: "Closing the loop together: shifting Kenya's agri-food system toward circular, regenerative models.",
+    shortName: "AAC Regenerative Circularity Accelerator",
+    tagline:
+      "A 16-week accelerator for enterprises in regenerative and circular agriculture in Kenya. The program is designed to move participants beyond training into tested collaborations, skills enhancement, buyer/funder readiness, and field-to-market validation. The accelerator will provide structured diagnostics, curated matchmaking, targeted skills clinics, bedrock investor-readiness services, validation sprints, and a final AAC Market and Learning Showcase. It will generate enterprise value, ecosystem value, and donor learning value by building practical evidence around circularity, regenerative practices, market access, trust, farmer learning, and investment readiness.",
     description:
       "A multi-stakeholder programme convened by Impact Hub Nairobi with the DOEN Foundation. Year One established a 38-member Working Group, trained 150 farmers across three Kiambu sub-counties, and tested consumer demand through market activation at the HereAfrica festival.",
     status: "active",
