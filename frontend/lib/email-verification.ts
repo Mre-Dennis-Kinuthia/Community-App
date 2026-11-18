@@ -103,61 +103,45 @@ export async function consumeEmailVerificationToken(
   const email = emailInput.toLowerCase().trim()
   const user = await prisma.user.findUnique({
     where: { email },
-    select: {
-      id: true,
-      emailVerified: true,
-      registrationIntent: true,
-    },
+    select: { id: true },
   })
 
   if (!user) return { ok: false, reason: "invalid" }
-  if (user.emailVerified) {
-    await prisma.emailActionToken.deleteMany({
-      where: { purpose: VERIFY_PURPOSE, subjectId: user.id },
-    })
-    await activateVerifiedRegistration(user.id)
-    return { ok: false, reason: "already_verified" }
-  }
 
   const now = new Date()
   const result = await prisma.$transaction(async (tx) => {
-    const tokenRecord = await tx.emailActionToken.findFirst({
+    const consumed = await tx.emailActionToken.deleteMany({
       where: {
         purpose: VERIFY_PURPOSE,
         subjectId: user.id,
         tokenHash: hashEmailActionToken(token),
         expiresAt: { gt: now },
       },
-      select: { id: true },
     })
 
-    if (!tokenRecord) return false
+    if (consumed.count !== 1) return "invalid" as const
+
+    const currentUser = await tx.user.findUnique({
+      where: { id: user.id },
+      select: { emailVerified: true },
+    })
+    if (!currentUser) return "invalid" as const
+    if (currentUser.emailVerified) return "already_verified" as const
 
     const updated = await tx.user.updateMany({
       where: { id: user.id, emailVerified: null },
       data: { emailVerified: now },
     })
-    if (updated.count !== 1) return false
-
-    await tx.emailActionToken.deleteMany({
-      where: { purpose: VERIFY_PURPOSE, subjectId: user.id },
-    })
-    return true
+    return updated.count === 1 ? ("verified" as const) : ("invalid" as const)
   })
 
-  if (!result) {
-    const currentUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { emailVerified: true },
-    })
-    if (currentUser?.emailVerified) {
-      await activateVerifiedRegistration(user.id)
-      return { ok: false, reason: "already_verified" }
-    }
-    return { ok: false, reason: "invalid" }
-  }
+  if (result === "invalid") return { ok: false, reason: "invalid" }
 
   await activateVerifiedRegistration(user.id)
+  if (result === "already_verified") {
+    return { ok: false, reason: "already_verified" }
+  }
+
   return { ok: true, userId: user.id }
 }
 
