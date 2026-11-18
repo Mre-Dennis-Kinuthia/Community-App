@@ -23,4 +23,15 @@ describe("validateEmailAddress", () => {
       reason: "disposable",
     })
   })
+
+  it("rejects test.com addresses and its subdomains", () => {
+    expect(validateEmailAddress("member@test.com")).toEqual({
+      valid: false,
+      reason: "reserved",
+    })
+    expect(validateEmailAddress("member@mail.test.com")).toEqual({
+      valid: false,
+      reason: "reserved",
+    })
+  })
 })

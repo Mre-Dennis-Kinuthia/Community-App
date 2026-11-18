@@ -2,7 +2,7 @@
 
 ## Member account verification
 
-- New password-based registrations remain pending until the member explicitly confirms the link on `/verify-email`. The page does not consume tokens on load, so email security scanners cannot verify an account just by opening the link.
+- New password-based registrations remain pending until the member opens the verification link. The `/verify-email` page automatically posts the token, so there is no second confirmation button. Email security scanners that execute page JavaScript may verify an account when scanning the link.
 - Verification tokens are random, stored as SHA-256 hashes, single-use, and expire after one hour. Resending replaces the previous token.
 - Credentials sign-in and the shared server-side `auth()` helper reject unverified members. Session refresh and route gates also redirect stale unverified sessions to the verification page.
 - Existing accounts with a null `emailVerified` value are backfilled to their original `createdAt` timestamp by the migration. New registrations store their registration intent and defer membership notifications and welcome flows until verification.
@@ -30,9 +30,9 @@ The migration backfills legacy account and subscriber state. Review its effects 
 
 ## Staging checks
 
-1. Register with a real, reachable address and verify the account; confirm the account cannot sign in before confirmation.
-2. Open the verification link without clicking the button and confirm the account is still pending. Then click the button and confirm sign-in succeeds.
-3. Try a reserved address such as `member@example.com` and a disposable address such as `member@mailinator.com`.
+1. Register with a real, reachable address; confirm the next page clearly tells the member to check their email and the account cannot sign in before verification.
+2. Open the verification link and confirm the email is verified automatically, then sign in successfully.
+3. Try reserved addresses such as `member@example.com` and `member@test.com`, and a disposable address such as `member@mailinator.com`.
 4. Resend a verification link, use the email-change form with the account password, and verify that the previous address/token no longer grants access.
 5. Submit a newsletter address, confirm that no campaign is sent before opt-in, then explicitly confirm and verify it becomes eligible. Verify unsubscribing removes it from campaign recipients.
 6. Exercise the Admin-to-member handoff and verify that the member `password` column does not receive the Admin hash.

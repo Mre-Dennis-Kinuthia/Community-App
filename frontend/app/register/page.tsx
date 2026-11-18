@@ -243,10 +243,13 @@ function RegisterForm() {
         ? "/onboarding?intent=organisational"
         : requestedRedirect ?? "/onboarding"
       const verificationEmailSent = data.verificationEmailed !== false
+      const verificationParams = new URLSearchParams({
+        email: normalizedEmail,
+        sent: String(verificationEmailSent),
+        redirect: loginRedirect,
+      })
       startNavigation()
-      router.push(
-        `/login?email=${encodeURIComponent(formData.email)}&registered=true&verificationEmailSent=${verificationEmailSent}&redirect=${encodeURIComponent(loginRedirect)}`
-      )
+      router.push(`/verify-email?${verificationParams.toString()}`)
     } catch (error) {
       console.error("[REGISTER FORM] Error:", error)
       toast.error(
