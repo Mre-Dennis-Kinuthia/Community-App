@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
+import { clientIpFromRequest } from "@/lib/rate-limit"
 import { consumeEmailVerificationToken } from "@/lib/email-verification"
+import { persistentRateLimit } from "@/lib/persistent-rate-limit"
 
 const schema = z.object({
   email: z.string().email().transform((v) => v.toLowerCase().trim()),
-  token: z.string().min(1),
+  token: z.string().min(1).max(256),
 })
 
 /**
@@ -13,21 +14,27 @@ const schema = z.object({
  * Confirm a member's email using the link from the verification email.
  */
 export async function POST(request: NextRequest) {
-  const ip = clientIpFromRequest(request)
-  const limited = rateLimit(`verify-email:${ip}`, {
-    limit: 20,
-    windowMs: 15 * 60 * 1000,
-  })
-  if (!limited.ok) {
-    return NextResponse.json(
-      { error: "Too many attempts. Please try again later." },
-      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
-    )
-  }
-
   try {
     const body = await request.json()
     const { email, token } = schema.parse(body)
+    const limits = await Promise.all([
+      persistentRateLimit(`verify-email:ip:${clientIpFromRequest(request)}`, {
+        limit: 20,
+        windowMs: 15 * 60 * 1000,
+      }),
+      persistentRateLimit(`verify-email:token:${token}`, {
+        limit: 10,
+        windowMs: 15 * 60 * 1000,
+      }),
+    ])
+    const exceeded = limits.find((limit) => !limit.ok)
+    if (exceeded && !exceeded.ok) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(exceeded.retryAfterSec) } }
+      )
+    }
+
     const result = await consumeEmailVerificationToken(email, token)
 
     if (!result.ok) {

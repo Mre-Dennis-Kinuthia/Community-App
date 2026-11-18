@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { corsHeaders, handleOptions } from "@/middleware-cors"
-import {
-  sendNewsletterSubscribeEmail,
-  sendNewsletterSubscribeStaffEmail,
-  sendEmailInBackground,
-} from "@/lib/email"
-import { subscribeNewsletterEmail } from "@/lib/newsletter"
-import { prisma } from "@/lib/prisma"
+import { requestNewsletterSubscription } from "@/lib/newsletter"
+import { persistentRateLimit } from "@/lib/persistent-rate-limit"
+import { clientIpFromRequest } from "@/lib/rate-limit"
+import { validateEmailAddress } from "@/lib/email-validation"
 
 const schema = z.object({
   email: z.string().email().transform((v) => v.toLowerCase().trim()),
@@ -23,33 +20,42 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, source } = schema.parse(body)
 
-    const result = await subscribeNewsletterEmail({ email, source })
-
-    if (result === "created" || result === "reactivated") {
-      const subscriber = await prisma.newsletterSubscriber.findUnique({
-        where: { email },
-        select: { unsubscribeToken: true },
-      })
-
-      sendEmailInBackground(
-        () =>
-          sendNewsletterSubscribeEmail({
-            to: email,
-            unsubscribeToken: subscriber?.unsubscribeToken,
-          }),
-        "newsletter-subscribe"
-      )
-
-      sendEmailInBackground(
-        () => sendNewsletterSubscribeStaffEmail({ email }),
-        "newsletter-subscribe-staff"
+    const emailValidation = validateEmailAddress(email)
+    if (!emailValidation.valid) {
+      return NextResponse.json(
+        { error: "Please enter a valid, non-disposable email address." },
+        { status: 400, headers: corsHeaders(request) }
       )
     }
+
+    const limited = await persistentRateLimit(
+      `newsletter:ip:${clientIpFromRequest(request)}`,
+      { limit: 5, windowMs: 60 * 60 * 1000 }
+    )
+    const emailLimit = await persistentRateLimit(
+      `newsletter:email:${emailValidation.email}`,
+      { limit: 3, windowMs: 60 * 60 * 1000 }
+    )
+    const exceeded = !limited.ok ? limited : !emailLimit.ok ? emailLimit : null
+    if (exceeded) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders(request),
+            "Retry-After": String(exceeded.retryAfterSec),
+          },
+        }
+      )
+    }
+
+    await requestNewsletterSubscription({ email: emailValidation.email, source })
 
     return NextResponse.json(
       {
         success: true,
-        status: result,
+        message: "If this address can subscribe, a confirmation email has been sent.",
       },
       { headers: corsHeaders(request) }
     )

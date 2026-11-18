@@ -2,13 +2,13 @@
 
 ## Architecture Decisions
 
-The backend lives entirely as **Next.js API Route Handlers** (`/app/api`) inside the Community-App repo. There is no separate Node service; the `backend/` directory is a placeholder and can be removed once all endpoints are verified.
+The Community App and Admin App are separate Next.js applications with separate API route handlers. Both use Prisma to connect directly to the same PostgreSQL database; the Admin App does not proxy its data operations through the Community App API.
 
-Both the Community App and the Admin App (`Community-app-admin`) share the same API. The Admin app calls Community-App's `/api` routes (same-origin or cross-origin with CORS).
+- Community API routes live under `frontend/app/api/`.
+- Admin API routes live under `Community-app-admin/app/api/admin/`.
+- Each app has its own deployment and Prisma client.
 
-**Deployment model:**
-- Phase 1 (current): single Next.js app on Vercel; `/api` routes serve both frontends.
-- Phase 2 (scale): split into a dedicated API app or edge functions if needed — same Neon + Prisma.
+See [docs/PLATFORM_RELATIONSHIPS.md](./docs/PLATFORM_RELATIONSHIPS.md) for the current cross-app data, schema, and authentication relationships. The route coverage and roadmap sections below contain older implementation notes and may not reflect the current code.
 
 ## Tech Stack
 

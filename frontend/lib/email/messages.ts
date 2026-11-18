@@ -526,13 +526,13 @@ export async function sendNewsletterSubscribeEmail(params: {
 
   const bodyHtml = `
     ${emailGreeting()}
-    ${emailParagraph("Thanks for subscribing to <strong>Impact Hub Nairobi</strong> updates.")}
+    ${emailParagraph("Your subscription to <strong>Impact Hub Nairobi</strong> updates is confirmed.")}
     ${emailParagraph("You'll hear about upcoming events, programs, and community news from Nairobi's impact ecosystem.")}
   `
 
   return sendEmail({
     to: params.to,
-    subject: "You're subscribed to Impact Hub Nairobi",
+    subject: "Your Impact Hub Nairobi newsletter subscription is confirmed",
     html: layoutEmail({
       preheader: "Subscription confirmed",
       title: "Welcome to our newsletter",
@@ -542,7 +542,33 @@ export async function sendNewsletterSubscribeEmail(params: {
       ctaUrl: `${appUrl}/events/public`,
       footerExtraHtml: unsubscribeUrl ? emailUnsubscribeFooter(unsubscribeUrl) : undefined,
     }),
-    text: `Thanks for subscribing to Impact Hub Nairobi updates.\n${appUrl}${unsubscribeUrl ? `\nUnsubscribe: ${unsubscribeUrl}` : ""}`,
+    text: `Your subscription to Impact Hub Nairobi updates is confirmed.\n${appUrl}${unsubscribeUrl ? `\nUnsubscribe: ${unsubscribeUrl}` : ""}`,
+    emailCategory: "requests",
+  })
+}
+
+export async function sendNewsletterConfirmationEmail(params: {
+  to: string
+  confirmUrl: string
+}): Promise<SendEmailResult> {
+  const bodyHtml = `
+    ${emailGreeting()}
+    ${emailParagraph("Please confirm that you want to receive Impact Hub Nairobi updates.")}
+    ${emailParagraph("This link expires in 24 hours. If you did not request the newsletter, you can ignore this email.")}
+  `
+
+  return sendEmail({
+    to: params.to,
+    subject: "Confirm your Impact Hub Nairobi newsletter subscription",
+    html: layoutEmail({
+      preheader: "Confirm your newsletter subscription",
+      title: "Confirm your subscription",
+      eyebrow: "Newsletter",
+      bodyHtml,
+      ctaLabel: "Confirm subscription",
+      ctaUrl: params.confirmUrl,
+    }),
+    text: `Confirm your Impact Hub Nairobi newsletter subscription: ${params.confirmUrl}\nThis link expires in 24 hours.`,
     emailCategory: "requests",
   })
 }

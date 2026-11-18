@@ -48,7 +48,7 @@ export async function findMemberByPublicParam(prisma: PrismaClient, param: strin
 
   if (isMemberCuid(p)) {
     return prisma.user.findUnique({
-      where: { id: p },
+      where: { id: p, emailVerified: { not: null } },
       select,
     })
   }
@@ -60,7 +60,7 @@ export async function findMemberByPublicParam(prisma: PrismaClient, param: strin
   if (!profile) return null
 
   return prisma.user.findUnique({
-    where: { id: profile.userId },
+    where: { id: profile.userId, emailVerified: { not: null } },
     select,
   })
 }
@@ -75,7 +75,7 @@ export async function resolveMemberIdByPublicParam(
 
   if (isMemberCuid(p)) {
     const user = await prisma.user.findUnique({
-      where: { id: p },
+      where: { id: p, emailVerified: { not: null } },
       select: { id: true },
     })
     return user?.id ?? null

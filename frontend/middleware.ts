@@ -54,6 +54,19 @@ export default auth((request) => {
     return NextResponse.next()
   }
 
+  if (
+    request.auth?.user?.needsEmailVerification &&
+    !request.auth.user.staffAccess &&
+    !pathname.startsWith("/api") &&
+    pathname !== "/verify-email"
+  ) {
+    const verificationUrl = new URL("/verify-email", request.url)
+    if (request.auth.user.email) {
+      verificationUrl.searchParams.set("email", request.auth.user.email)
+    }
+    return NextResponse.redirect(verificationUrl)
+  }
+
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
   const isAuthPage = isAuthPagePath(pathname)
   const isLoggedIn = !!request.auth

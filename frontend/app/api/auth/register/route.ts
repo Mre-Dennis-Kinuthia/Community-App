@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth-utils"
-import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
-import { sendWelcomeEmail, sendEmailInBackground } from "@/lib/email"
-import { notifyStaffNewMember } from "@/lib/staff-alerts"
-import { recordOrganisationalRegistration } from "@/lib/membership-organisational-register"
+import { clientIpFromRequest, rateLimit } from "@/lib/rate-limit"
 import { MEMBERSHIP_REGISTER_INTENT } from "@/lib/membership-register-intent"
-import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
-import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 import { validatePasswordAsync } from "@/lib/password-policy"
 import { issueEmailVerificationForEmail } from "@/lib/email-verification"
+import { persistentRateLimit } from "@/lib/persistent-rate-limit"
+import { validateEmailAddress } from "@/lib/email-validation"
 import {
   isDatabaseUnavailableError,
   MEMBER_REGISTER_QUEUED_MESSAGE,
@@ -59,14 +56,14 @@ async function queueOutageSignup(input: {
 
 export async function POST(request: NextRequest) {
   const ip = clientIpFromRequest(request)
-  const limited = rateLimit(`register:${ip}`, {
+  const localLimit = rateLimit(`register:${ip}`, {
     limit: 10,
     windowMs: 60 * 60 * 1000,
   })
-  if (!limited.ok) {
+  if (!localLimit.ok) {
     return NextResponse.json(
       { error: "Too many registration attempts. Please try again later." },
-      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
+      { status: 429, headers: { "Retry-After": String(localLimit.retryAfterSec) } }
     )
   }
 
@@ -95,6 +92,21 @@ export async function POST(request: NextRequest) {
 
   const { email, password, name, firstName, lastName, membershipIntent } = parsed.data
   const normalizedEmail = email
+  const emailValidation = validateEmailAddress(normalizedEmail)
+  if (!emailValidation.valid) {
+    return NextResponse.json(
+      {
+        error:
+          emailValidation.reason === "disposable"
+            ? "Please use a non-disposable email address."
+            : emailValidation.reason === "reserved"
+              ? "Please use a real email address."
+              : "Please enter a valid email address.",
+      },
+      { status: 400 }
+    )
+  }
+
   const isOrganisational =
     membershipIntent === MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL
 
@@ -105,17 +117,35 @@ export async function POST(request: NextRequest) {
     name,
   })
 
-  if (password) {
-    const passwordResult = await validatePasswordAsync(password, {
-      email: normalizedEmail,
-      name: name || undefined,
-    })
-    if (!passwordResult.ok) {
-      return NextResponse.json({ error: passwordResult.message }, { status: 400 })
-    }
-  }
-
   try {
+    const limits = await Promise.all([
+      persistentRateLimit(`register:ip:${ip}`, {
+        limit: 10,
+        windowMs: 60 * 60 * 1000,
+      }),
+      persistentRateLimit(`register:email:${normalizedEmail}`, {
+        limit: 5,
+        windowMs: 60 * 60 * 1000,
+      }),
+    ])
+    const limited = limits.find((limit) => !limit.ok)
+    if (limited && !limited.ok) {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
+      )
+    }
+
+    if (password) {
+      const passwordResult = await validatePasswordAsync(password, {
+        email: normalizedEmail,
+        name: name || undefined,
+      })
+      if (!passwordResult.ok) {
+        return NextResponse.json({ error: passwordResult.message }, { status: 400 })
+      }
+    }
+
     console.log("[REGISTER API] Checking if user exists:", normalizedEmail)
     const existingUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -143,6 +173,9 @@ export async function POST(request: NextRequest) {
         name: name || null,
         password: hashedPassword,
         termsAcceptedAt: new Date(),
+        registrationIntent: isOrganisational
+          ? MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL
+          : "community",
       },
       select: {
         id: true,
@@ -159,49 +192,6 @@ export async function POST(request: NextRequest) {
       createdAt: user.createdAt,
     })
 
-    void notifyStaffNewMember({
-      id: user.id,
-      name: user.name || user.email,
-      email: user.email,
-    })
-
-    await syncMembershipTierOnSignup({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-      options: {
-        explicitIntent: isOrganisational
-          ? MEMBERSHIP_REGISTER_INTENT.ORGANISATIONAL
-          : null,
-        defaultCommunity: true,
-      },
-    })
-
-    let emailsQueued = true
-    if (isOrganisational) {
-      const result = await recordOrganisationalRegistration({
-        email: user.email,
-        name: user.name,
-      })
-      emailsQueued = result.emailsQueued
-    } else {
-      const profile = await prisma.memberProfile.findUnique({
-        where: { userId: user.id },
-        select: { membershipTier: true },
-      })
-      const tier = profile?.membershipTier
-      const skipGenericWelcome =
-        tier === MEMBERSHIP_TIERS.STAR_CONNECT ||
-        tier === MEMBERSHIP_TIERS.ORGANISATIONAL
-
-      if (!skipGenericWelcome) {
-        sendEmailInBackground(
-          () => sendWelcomeEmail({ to: user.email, name: user.name }),
-          "welcome"
-        )
-      }
-    }
-
     const verifyResult = await issueEmailVerificationForEmail(user.email, {
       name: user.name,
     })
@@ -211,10 +201,9 @@ export async function POST(request: NextRequest) {
       {
         message: verificationEmailed
           ? "Account created. Check your email to verify your address."
-          : "User created successfully",
+          : "Account created, but we couldn't send the verification email. Please request a new link later.",
         user,
         membershipIntent: membershipIntent ?? null,
-        emailsQueued,
         verificationEmailed,
         needsEmailVerification: true,
       },

@@ -57,6 +57,7 @@ export const authConfig = {
         session.user.name = token.name as string
         session.user.image = token.image as string
         session.user.staffAccess = Boolean(token.staffAccess)
+        session.user.needsEmailVerification = Boolean(token.needsEmailVerification)
       }
       return session
     },

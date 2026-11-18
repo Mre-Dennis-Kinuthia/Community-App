@@ -70,7 +70,10 @@ tsconfig.tsbuildinfo
 # Prisma
 # ============================================
 /lib/generated/prisma
-prisma/migrations/
+prisma/migrations/*
+!prisma/migrations/migration_lock.toml
+!prisma/migrations/20261118120000_email_verification_newsletter_and_rate_limits/
+!prisma/migrations/20261118120000_email_verification_newsletter_and_rate_limits/migration.sql
 *.db
 *.db-journal
 

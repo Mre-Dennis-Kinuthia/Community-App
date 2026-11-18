@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit
 
-    const where: any = {}
+    const where: any = { emailVerified: { not: null } }
 
     // Add search filter if provided
     if (search) {

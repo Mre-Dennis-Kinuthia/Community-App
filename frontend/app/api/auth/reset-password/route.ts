@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth-utils"
 import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
 import { validatePasswordAsync } from "@/lib/password-policy"
+import { activateVerifiedRegistration } from "@/lib/registration-activation"
 
 const schema = z.object({
   email: z.string().email().transform((v) => v.toLowerCase().trim()),
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
         },
       }),
     ])
+    await activateVerifiedRegistration(user.id)
 
     return NextResponse.json({ message: "Password updated. You can sign in now." })
   } catch (error) {

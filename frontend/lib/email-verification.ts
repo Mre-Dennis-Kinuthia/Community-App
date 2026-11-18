@@ -1,15 +1,15 @@
-import { randomBytes } from "crypto"
 import { prisma } from "@/lib/prisma"
+import {
+  hashEmailActionToken,
+  issueEmailActionToken,
+} from "@/lib/email-action-tokens"
 import { getAppBaseUrl } from "@/lib/app-url"
 import { isEmailConfigured, sendEmailInBackground } from "@/lib/email/send"
 import { sendEmailVerificationEmail } from "@/lib/email/messages"
+import { activateVerifiedRegistration } from "@/lib/registration-activation"
 
-const VERIFY_PREFIX = "email-verify:"
-const VERIFY_TTL_MS = 48 * 60 * 60 * 1000 // 48 hours
-
-export function emailVerifyIdentifier(email: string): string {
-  return `${VERIFY_PREFIX}${email.toLowerCase().trim()}`
-}
+const VERIFY_PURPOSE = "member-email-verification"
+const VERIFY_TTL_MS = 60 * 60 * 1000
 
 export function buildEmailVerifyUrl(email: string, token: string, baseUrl?: string): string {
   const root = (baseUrl || getAppBaseUrl()).replace(/\/$/, "")
@@ -49,15 +49,11 @@ export async function issueEmailVerificationForEmail(
     return { ok: true, emailed: false, email: user.email, reason: "email_not_configured" }
   }
 
-  const token = randomBytes(32).toString("hex")
-  const expires = new Date(Date.now() + VERIFY_TTL_MS)
-  const identifier = emailVerifyIdentifier(email)
-
-  await prisma.verificationToken.deleteMany({ where: { identifier } })
-  await prisma.verificationToken.create({
-    data: { identifier, token, expires },
+  const { token } = await issueEmailActionToken({
+    purpose: VERIFY_PURPOSE,
+    subjectId: user.id,
+    expiresAt: new Date(Date.now() + VERIFY_TTL_MS),
   })
-
   const verifyUrl = buildEmailVerifyUrl(email, token, options?.baseUrl)
 
   sendEmailInBackground(async () => {
@@ -68,9 +64,13 @@ export async function issueEmailVerificationForEmail(
     })
     if (!result.ok) {
       console.error("[EMAIL VERIFY] Email not sent:", result.error)
-      await prisma.verificationToken
-        .deleteMany({ where: { identifier, token } })
-        .catch(() => {})
+      await prisma.emailActionToken.deleteMany({
+        where: {
+          purpose: VERIFY_PURPOSE,
+          subjectId: user.id,
+          tokenHash: hashEmailActionToken(token),
+        },
+      })
     }
     return result
   }, "email-verification")
@@ -96,57 +96,92 @@ export async function issueEmailVerificationForUserId(
 export async function consumeEmailVerificationToken(
   emailInput: string,
   token: string
-): Promise<{ ok: true; userId: string } | { ok: false; reason: "invalid" | "already_verified" }> {
+): Promise<
+  | { ok: true; userId: string }
+  | { ok: false; reason: "invalid" | "already_verified" }
+> {
   const email = emailInput.toLowerCase().trim()
-  const identifier = emailVerifyIdentifier(email)
-
-  const record = await prisma.verificationToken.findFirst({
-    where: { identifier, token },
-  })
-
-  if (!record || record.expires < new Date()) {
-    return { ok: false, reason: "invalid" }
-  }
-
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, emailVerified: true },
+    select: {
+      id: true,
+      emailVerified: true,
+      registrationIntent: true,
+    },
   })
 
-  if (!user) {
-    return { ok: false, reason: "invalid" }
-  }
-
+  if (!user) return { ok: false, reason: "invalid" }
   if (user.emailVerified) {
-    await prisma.verificationToken.deleteMany({ where: { identifier } })
+    await prisma.emailActionToken.deleteMany({
+      where: { purpose: VERIFY_PURPOSE, subjectId: user.id },
+    })
+    await activateVerifiedRegistration(user.id)
     return { ok: false, reason: "already_verified" }
   }
 
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: user.id },
-      data: { emailVerified: new Date() },
-    }),
-    prisma.verificationToken.deleteMany({ where: { identifier } }),
-  ])
+  const now = new Date()
+  const result = await prisma.$transaction(async (tx) => {
+    const tokenRecord = await tx.emailActionToken.findFirst({
+      where: {
+        purpose: VERIFY_PURPOSE,
+        subjectId: user.id,
+        tokenHash: hashEmailActionToken(token),
+        expiresAt: { gt: now },
+      },
+      select: { id: true },
+    })
 
+    if (!tokenRecord) return false
+
+    const updated = await tx.user.updateMany({
+      where: { id: user.id, emailVerified: null },
+      data: { emailVerified: now },
+    })
+    if (updated.count !== 1) return false
+
+    await tx.emailActionToken.deleteMany({
+      where: { purpose: VERIFY_PURPOSE, subjectId: user.id },
+    })
+    return true
+  })
+
+  if (!result) {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { emailVerified: true },
+    })
+    if (currentUser?.emailVerified) {
+      await activateVerifiedRegistration(user.id)
+      return { ok: false, reason: "already_verified" }
+    }
+    return { ok: false, reason: "invalid" }
+  }
+
+  await activateVerifiedRegistration(user.id)
   return { ok: true, userId: user.id }
 }
 
 export async function markUserEmailVerified(userId: string): Promise<boolean> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true, emailVerified: true },
+    select: { id: true, emailVerified: true },
   })
   if (!user) return false
-  if (user.emailVerified) return true
+  if (user.emailVerified) {
+    await prisma.emailActionToken.deleteMany({
+      where: { purpose: VERIFY_PURPOSE, subjectId: user.id },
+    })
+    await activateVerifiedRegistration(user.id)
+    return true
+  }
 
   await prisma.user.update({
     where: { id: userId },
     data: { emailVerified: new Date() },
   })
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: emailVerifyIdentifier(user.email) },
+  await prisma.emailActionToken.deleteMany({
+    where: { purpose: VERIFY_PURPOSE, subjectId: userId },
   })
+  await activateVerifiedRegistration(userId)
   return true
 }

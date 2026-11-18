@@ -11,8 +11,8 @@ import { sendWelcomeEmail, sendEmailInBackground } from "@/lib/email"
 import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
 import { MEMBERSHIP_TIERS } from "@/lib/membership-tier"
 import { touchMemberLastActiveInBackground } from "@/lib/member-activity"
+import { activateVerifiedRegistration } from "@/lib/registration-activation"
 import {
-  authenticateAdminForMemberPlatform,
   consumeAdminMemberAccessToken,
 } from "@/lib/admin-member-access"
 import { authConfig } from "./auth.config"
@@ -100,9 +100,29 @@ const nextAuthConfig = {
   adapter: envValid ? PrismaAdapter(prisma) : undefined,
   trustHost: true,
   secret: resolvedSecret,
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt(args: Parameters<typeof authConfig.callbacks.jwt>[0]) {
+      const token = await authConfig.callbacks.jwt(args)
+      if (typeof token.id === "string" && !token.staffAccess) {
+        const user = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: { emailVerified: true, registrationIntent: true },
+        })
+        if (user?.emailVerified && user.registrationIntent) {
+          await activateVerifiedRegistration(token.id)
+        }
+        token.needsEmailVerification = !user?.emailVerified
+      } else {
+        token.needsEmailVerification = false
+      }
+      return token
+    },
+  },
   events: {
     async createUser({ user }) {
       if (!user.id) return
+      if (!user.emailVerified) return
 
       await prisma.memberProfile.upsert({
         where: { userId: user.id },
@@ -187,7 +207,7 @@ const nextAuthConfig = {
             where: { email: normalizedEmail },
           })
 
-          if (user?.password) {
+          if (user?.emailVerified && user.password) {
             const isValid = await verifyPassword(
               credentials.password as string,
               user.password
@@ -205,25 +225,10 @@ const nextAuthConfig = {
             }
           }
 
-          const adminAuth = await authenticateAdminForMemberPlatform(
-            normalizedEmail,
-            credentials.password as string
-          )
-
-          if (adminAuth) {
-            console.log("[AUTH] Admin staff access for member platform:", normalizedEmail)
-            touchMemberLastActiveInBackground(adminAuth.user.id)
-            return {
-              id: adminAuth.user.id,
-              email: adminAuth.user.email,
-              name: adminAuth.user.name,
-              image: adminAuth.user.image,
-              staffAccess: true,
-            }
-          }
-
           if (!user) {
             console.log("[AUTH] User not found:", normalizedEmail)
+          } else if (!user.emailVerified) {
+            console.log("[AUTH] Email verification required for:", normalizedEmail)
           } else if (!user.password) {
             console.log("[AUTH] User has no password set:", normalizedEmail)
           } else {
@@ -255,4 +260,17 @@ console.log("[AUTH] NextAuth config:", {
 })
 
 // Initialize NextAuth with validated config
-export const { handlers, auth, signIn, signOut } = NextAuth(nextAuthConfig)
+const {
+  handlers,
+  auth: nextAuth,
+  signIn,
+  signOut,
+} = NextAuth(nextAuthConfig)
+
+export async function auth() {
+  const session = await nextAuth()
+  if (session?.user?.staffAccess) return session
+  return session?.user?.needsEmailVerification ? null : session
+}
+
+export { handlers, signIn, signOut }

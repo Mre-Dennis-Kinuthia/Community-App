@@ -36,6 +36,7 @@ function LoginForm() {
     DEFAULT_POST_LOGIN_PATH
   const registeredEmail = searchParams.get("email")
   const isRegistered = searchParams.get("registered") === "true"
+  const verificationEmailSent = searchParams.get("verificationEmailSent") !== "false"
   const accountDeleted = searchParams.get("deleted") === "true"
   const [email, setEmail] = useState(registeredEmail || "")
   const [password, setPassword] = useState("")
@@ -57,14 +58,21 @@ function LoginForm() {
 
   useEffect(() => {
     if (isRegistered && registeredEmail) {
-      toast.success(
-        "Account created!",
-        "Check your inbox for a verification link, then sign in."
-      )
+      if (verificationEmailSent) {
+        toast.success(
+          "Account created!",
+          "Check your inbox for a verification link, then sign in."
+        )
+      } else {
+        toast.error(
+          "Account created, but email was not sent",
+          "Use the resend option below once email delivery is available."
+        )
+      }
       // Clean up URL
       router.replace(`/login?redirect=${encodeURIComponent(lumaRedirect ?? redirect)}`)
     }
-  }, [isRegistered, registeredEmail, lumaRedirect, redirect, router])
+  }, [isRegistered, registeredEmail, verificationEmailSent, lumaRedirect, redirect, router])
 
   const handleResendVerification = async () => {
     const normalizedEmail = email.toLowerCase().trim()
@@ -301,9 +309,16 @@ function LoginForm() {
           >
             {resendingVerification ? "Sending…" : "Resend verification link"}
           </button>
+          {" · "}
+          <Link
+            href={`/verify-email${email.trim() ? `?email=${encodeURIComponent(email.trim())}` : ""}`}
+            className="font-medium text-[#812926] hover:underline"
+          >
+            Change email
+          </Link>
         </p>
         <p className="text-center text-xs text-muted-foreground">
-          Impact Hub staff can sign in with the same email and password used for the admin app.
+          Impact Hub staff should open the member platform using the Member Platform Access action in the Admin platform.
         </p>
       </form>
     </AuthPageShell>

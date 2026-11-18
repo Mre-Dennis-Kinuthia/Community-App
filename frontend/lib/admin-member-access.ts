@@ -1,26 +1,23 @@
-import { randomBytes } from "crypto"
 import { prisma } from "@/lib/prisma"
-import { verifyPassword } from "@/lib/auth-utils"
 import { syncMembershipTierOnSignup } from "@/lib/membership-tier-notify"
+import {
+  hashEmailActionToken,
+  issueEmailActionToken,
+} from "@/lib/email-action-tokens"
 
 const ADMIN_ACCESS_TTL_MS = 5 * 60 * 1000
-const ADMIN_ACCESS_PREFIX = "admin-member-access:"
+const ADMIN_ACCESS_PURPOSE = "admin-member-access"
 
 type AdminRecord = {
   id: string
   email: string
   name: string | null
-  password: string | null
 }
 
 /**
  * Find or create a member User for an admin (JIT — no manual registration).
  */
 export async function ensureMemberUserForAdmin(admin: AdminRecord) {
-  if (!admin.password) {
-    throw new Error("ADMIN_INVITE_PENDING")
-  }
-
   const email = admin.email.toLowerCase().trim()
   let user = await prisma.user.findUnique({ where: { email } })
 
@@ -29,7 +26,6 @@ export async function ensureMemberUserForAdmin(admin: AdminRecord) {
       data: {
         email,
         name: admin.name || email.split("@")[0],
-        password: admin.password,
         emailVerified: new Date(),
       },
     })
@@ -57,13 +53,6 @@ export async function ensureMemberUserForAdmin(admin: AdminRecord) {
     return user
   }
 
-  if (!user.password) {
-    user = await prisma.user.update({
-      where: { id: user.id },
-      data: { password: admin.password, emailVerified: user.emailVerified ?? new Date() },
-    })
-  }
-
   await prisma.memberProfile.upsert({
     where: { userId: user.id },
     create: {
@@ -78,74 +67,42 @@ export async function ensureMemberUserForAdmin(admin: AdminRecord) {
   return user
 }
 
-/**
- * Verify admin credentials and return the linked member user.
- */
-export async function authenticateAdminForMemberPlatform(
-  emailInput: string,
-  password: string
-) {
-  const email = emailInput.toLowerCase().trim()
-  const admin = await prisma.adminUser.findUnique({ where: { email } })
-
-  if (!admin?.password) {
-    return null
-  }
-
-  const valid = await verifyPassword(password, admin.password)
-  if (!valid) {
-    return null
-  }
-
-  const user = await ensureMemberUserForAdmin(admin)
-  return { user, admin }
-}
-
 export async function createAdminMemberAccessToken(userId: string) {
-  const token = randomBytes(32).toString("hex")
-  const identifier = `${ADMIN_ACCESS_PREFIX}${userId}`
-
-  await prisma.verificationToken.deleteMany({
-    where: { identifier },
+  const { token } = await issueEmailActionToken({
+    purpose: ADMIN_ACCESS_PURPOSE,
+    subjectId: userId,
+    expiresAt: new Date(Date.now() + ADMIN_ACCESS_TTL_MS),
   })
-
-  await prisma.verificationToken.create({
-    data: {
-      identifier,
-      token,
-      expires: new Date(Date.now() + ADMIN_ACCESS_TTL_MS),
-    },
-  })
-
   return token
 }
 
 export async function consumeAdminMemberAccessToken(token: string) {
-  const record = await prisma.verificationToken.findFirst({
-    where: {
-      token,
-      identifier: { startsWith: ADMIN_ACCESS_PREFIX },
-      expires: { gt: new Date() },
-    },
-  })
-
-  if (!record) {
-    return null
-  }
-
-  const userId = record.identifier.slice(ADMIN_ACCESS_PREFIX.length)
-
-  await prisma.verificationToken.delete({
-    where: {
-      identifier_token: {
-        identifier: record.identifier,
-        token: record.token,
+  const user = await prisma.$transaction(async (tx) => {
+    const record = await tx.emailActionToken.findFirst({
+      where: {
+        purpose: ADMIN_ACCESS_PURPOSE,
+        tokenHash: hashEmailActionToken(token),
+        expiresAt: { gt: new Date() },
       },
-    },
+      select: { id: true, subjectId: true, tokenHash: true },
+    })
+
+    if (!record) return null
+
+    const consumed = await tx.emailActionToken.deleteMany({
+      where: {
+        id: record.id,
+        tokenHash: record.tokenHash,
+        expiresAt: { gt: new Date() },
+      },
+    })
+    if (consumed.count !== 1) return null
+
+    return tx.user.findUnique({
+      where: { id: record.subjectId },
+      select: { id: true, email: true, name: true, image: true },
+    })
   })
 
-  return prisma.user.findUnique({
-    where: { id: userId },
-    select: { id: true, email: true, name: true, image: true },
-  })
+  return user
 }
