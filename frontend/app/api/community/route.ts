@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {
       expertProfile: null,
+      emailVerified: { not: null },
     }
 
     // Search filter

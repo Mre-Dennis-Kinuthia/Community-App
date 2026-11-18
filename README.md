@@ -58,6 +58,9 @@ bun run build
 ## Documentation
 - [SETUP.md](./SETUP.md) — local dev, Vercel, env vars, staging
 - [BACKEND.md](./BACKEND.md) — API routes and backend architecture
+- [docs/PLATFORM_RELATIONSHIPS.md](./docs/PLATFORM_RELATIONSHIPS.md) — how the Community and Admin apps share APIs, data, and schema
+- [docs/PLATFORM_FILE_STRUCTURE.md](./docs/PLATFORM_FILE_STRUCTURE.md) — source folder and file map for both apps
+- [docs/EMAIL_VERIFICATION_AND_NEWSLETTER.md](./docs/EMAIL_VERIFICATION_AND_NEWSLETTER.md) — account verification, newsletter consent, migration, and rollback
 - [BACKEND_TODO.md](./BACKEND_TODO.md) — remaining API work
 - [UX.md](./UX.md) — UX notes and improvements
 - [REACT_NATIVE.md](./REACT_NATIVE.md) — mobile app plan

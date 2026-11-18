@@ -134,9 +134,9 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateDefinition[] = [
     title: "Verify your email",
     eyebrow: "Account",
     bodyHtml: `<p>Thanks for joining <strong>Impact Hub Nairobi</strong>. Please confirm your email address to finish setting up your account.</p>
-<p style="color:#71717A;font-size:13px;">This link expires in 48 hours. If you did not create an account, you can ignore this email.</p>`,
+<p style="color:#71717A;font-size:13px;">This link expires in one hour. If you did not create an account, you can ignore this email.</p>`,
     ctaLabel: "Verify email",
-    textBody: "Verify your email: {{verifyUrl}}\nThis link expires in 48 hours.",
+    textBody: "Verify your email: {{verifyUrl}}\nThis link expires in one hour.",
   },
   {
     key: "member_platform_invite",

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit"
+import { clientIpFromRequest } from "@/lib/rate-limit"
 import { issueEmailVerificationForEmail } from "@/lib/email-verification"
+import { persistentRateLimit } from "@/lib/persistent-rate-limit"
+import { validateEmailAddress } from "@/lib/email-validation"
 
 const schema = z.object({
   email: z.string().email().transform((v) => v.toLowerCase().trim()),
@@ -12,22 +14,31 @@ const schema = z.object({
  * Resend the email verification link for an unverified account.
  */
 export async function POST(request: NextRequest) {
-  const ip = clientIpFromRequest(request)
-  const limited = rateLimit(`resend-verification:${ip}`, {
-    limit: 5,
-    windowMs: 60 * 60 * 1000,
-  })
-  if (!limited.ok) {
-    return NextResponse.json(
-      { error: "Too many requests. Please try again later." },
-      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
-    )
-  }
-
   try {
     const body = await request.json()
     const { email } = schema.parse(body)
-    const result = await issueEmailVerificationForEmail(email)
+    const validation = validateEmailAddress(email)
+    if (!validation.valid) {
+      return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 })
+    }
+    const limits = await Promise.all([
+      persistentRateLimit(`resend-verification:ip:${clientIpFromRequest(request)}`, {
+        limit: 5,
+        windowMs: 60 * 60 * 1000,
+      }),
+      persistentRateLimit(`resend-verification:email:${validation.email}`, {
+        limit: 3,
+        windowMs: 60 * 60 * 1000,
+      }),
+    ])
+    const exceeded = limits.find((limit) => !limit.ok)
+    if (exceeded && !exceeded.ok) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(exceeded.retryAfterSec) } }
+      )
+    }
+    const result = await issueEmailVerificationForEmail(validation.email)
 
     // Always return a generic success for unknown emails (avoid account enumeration)
     if (!result.ok) {

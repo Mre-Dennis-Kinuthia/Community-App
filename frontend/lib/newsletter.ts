@@ -1,42 +1,146 @@
 import { prisma } from "@/lib/prisma"
+import {
+  issueEmailActionToken,
+  hashEmailActionToken,
+} from "@/lib/email-action-tokens"
+import { getAppBaseUrl } from "@/lib/app-url"
+import { isEmailConfigured, sendEmailInBackground } from "@/lib/email/send"
+import {
+  sendNewsletterConfirmationEmail,
+  sendNewsletterSubscribeEmail,
+  sendNewsletterSubscribeStaffEmail,
+} from "@/lib/email/messages"
 
-export async function subscribeNewsletterEmail(params: {
+const NEWSLETTER_CONFIRM_PURPOSE = "newsletter-subscription-confirmation"
+const NEWSLETTER_CONFIRM_TTL_MS = 24 * 60 * 60 * 1000
+
+export async function requestNewsletterSubscription(params: {
   email: string
   source?: string
-}): Promise<"created" | "reactivated" | "already_subscribed"> {
+}): Promise<void> {
   const email = params.email.toLowerCase().trim()
   const source = params.source ?? "landing"
-
-  const existing = await prisma.newsletterSubscriber.findUnique({
+  const subscriber = await prisma.newsletterSubscriber.findUnique({
     where: { email },
   })
 
-  if (!existing) {
-    await prisma.newsletterSubscriber.create({
-      data: { email, source },
-    })
-    return "created"
+  if (subscriber?.confirmedAt && !subscriber.unsubscribedAt) return
+
+  const updatedSubscriber = subscriber
+    ? await prisma.newsletterSubscriber.update({
+        where: { id: subscriber.id },
+        data: {
+          confirmedAt: null,
+          subscribedAt: new Date(),
+          source,
+        },
+        select: { id: true },
+      })
+    : await prisma.newsletterSubscriber.create({
+        data: { email, source },
+        select: { id: true },
+      })
+
+  if (!isEmailConfigured()) {
+    throw new Error("Email provider is not configured for newsletter confirmation")
   }
 
-  if (existing.unsubscribedAt) {
-    await prisma.newsletterSubscriber.update({
-      where: { email },
-      data: {
-        unsubscribedAt: null,
-        subscribedAt: new Date(),
-        source,
-      },
-    })
-    return "reactivated"
-  }
+  const { token } = await issueEmailActionToken({
+    purpose: NEWSLETTER_CONFIRM_PURPOSE,
+    subjectId: updatedSubscriber.id,
+    expiresAt: new Date(Date.now() + NEWSLETTER_CONFIRM_TTL_MS),
+  })
 
-  return "already_subscribed"
+  const confirmUrl = `${getAppBaseUrl().replace(/\/$/, "")}/newsletter/confirm?token=${encodeURIComponent(token)}`
+  sendEmailInBackground(
+    async () => {
+      const result = await sendNewsletterConfirmationEmail({ to: email, confirmUrl })
+      if (!result.ok) {
+        await prisma.emailActionToken.deleteMany({
+          where: {
+            purpose: NEWSLETTER_CONFIRM_PURPOSE,
+            subjectId: updatedSubscriber.id,
+            tokenHash: hashEmailActionToken(token),
+          },
+        })
+      }
+      return result
+    },
+    "newsletter-confirmation"
+  )
 }
 
-/**
- * Add a community member to the newsletter list.
- * Does not reactivate someone who already unsubscribed.
- */
+export async function confirmNewsletterSubscription(
+  token: string
+): Promise<"confirmed" | "invalid" | "already_confirmed"> {
+  const tokenHash = hashEmailActionToken(token)
+  const now = new Date()
+  const result = await prisma.$transaction(async (tx) => {
+    const action = await tx.emailActionToken.findFirst({
+      where: {
+        purpose: NEWSLETTER_CONFIRM_PURPOSE,
+        tokenHash,
+        expiresAt: { gt: now },
+      },
+      select: { id: true, subjectId: true, createdAt: true },
+    })
+
+    if (!action) return { status: "invalid" as const }
+
+    const subscriber = await tx.newsletterSubscriber.findUnique({
+      where: { id: action.subjectId },
+      select: {
+        id: true,
+        email: true,
+        unsubscribeToken: true,
+        confirmedAt: true,
+        unsubscribedAt: true,
+      },
+    })
+    if (
+      !subscriber ||
+      (subscriber.unsubscribedAt &&
+        subscriber.unsubscribedAt >= action.createdAt)
+    ) {
+      await tx.emailActionToken.delete({ where: { id: action.id } })
+      return { status: "invalid" as const }
+    }
+
+    if (subscriber.confirmedAt) {
+      await tx.emailActionToken.delete({ where: { id: action.id } })
+      return { status: "already_confirmed" as const }
+    }
+
+    const consumed = await tx.emailActionToken.deleteMany({
+      where: { id: action.id, tokenHash, expiresAt: { gt: now } },
+    })
+    if (consumed.count !== 1) return { status: "invalid" as const }
+
+    await tx.newsletterSubscriber.update({
+      where: { id: subscriber.id },
+      data: { confirmedAt: now, unsubscribedAt: null },
+    })
+    return { status: "confirmed" as const, subscriber }
+  })
+
+  if (result.status === "confirmed") {
+    sendEmailInBackground(
+      () =>
+        sendNewsletterSubscribeEmail({
+          to: result.subscriber.email,
+          unsubscribeToken: result.subscriber.unsubscribeToken,
+        }),
+      "newsletter-subscribe"
+    )
+    sendEmailInBackground(
+      () => sendNewsletterSubscribeStaffEmail({ email: result.subscriber.email }),
+      "newsletter-subscribe-staff"
+    )
+  }
+
+  return result.status
+}
+
 export async function subscribeMemberToNewsletter(
   email: string | null | undefined
 ): Promise<"created" | "already_subscribed" | "opted_out" | "skipped"> {
@@ -44,6 +148,12 @@ export async function subscribeMemberToNewsletter(
   const normalized = email.toLowerCase().trim()
 
   try {
+    const user = await prisma.user.findUnique({
+      where: { email: normalized },
+      select: { emailVerified: true },
+    })
+    if (!user?.emailVerified) return "skipped"
+
     const existing = await prisma.newsletterSubscriber.findUnique({
       where: { email: normalized },
       select: { unsubscribedAt: true },

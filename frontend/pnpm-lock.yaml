@@ -110,6 +110,9 @@ importers:
       date-fns:
         specifier: 4.1.0
         version: 4.1.0
+      disposable-email-domains-js:
+        specifier: ^2.2.0
+        version: 2.2.0
       embla-carousel-react:
         specifier: 8.5.1
         version: 8.5.1(react@19.2.0)
@@ -1321,6 +1324,9 @@ packages:
 
   date-fns@4.1.0:
     resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
+
+  disposable-email-domains-js@2.2.0:
+    resolution: {integrity: sha512-duOO87hgrIkMzkzeDDvZpJDY6jttpPaca/HTNb9RbQ6ZXfMU+q49wCxOZUwuPNf3fRPC1omNerz9hC/Gt85Afg==}
 
   decimal.js-light@2.5.1:
     resolution: {integrity: sha512-qIMFpTMZmny+MMIitAB6D7iVPEorVw6YQRWkvarTkT4tBeSLLiHzcwj6q0MmYSFCiVpiqPJTJEYIrpcPzVEIvg==}
@@ -2831,6 +2837,8 @@ snapshots:
   date-fns-jalali@4.1.0-0: {}
 
   date-fns@4.1.0: {}
+
+  disposable-email-domains-js@2.2.0: {}
 
   decimal.js-light@2.5.1: {}
 

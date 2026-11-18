@@ -65,6 +65,7 @@ model User {
   onboardingReminderSentAt DateTime? @map("onboarding_reminder_sent_at")
   onboardingReminderCount  Int       @default(0) @map("onboarding_reminder_count")
   termsAcceptedAt DateTime? @map("terms_accepted_at")
+  registrationIntent String? @map("registration_intent")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -133,6 +134,29 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model EmailActionToken {
+  id        String   @id @default(cuid())
+  purpose   String
+  subjectId String   @map("subject_id")
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([purpose, subjectId])
+  @@index([expiresAt])
+  @@map("email_action_tokens")
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime @map("expires_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([expiresAt])
+  @@map("rate_limit_buckets")
 }
 
 // ============================================
@@ -1580,6 +1604,7 @@ model NewsletterSubscriber {
   source           String    @default("landing")
   unsubscribeToken String    @unique @default(cuid())
   subscribedAt     DateTime  @default(now())
+  confirmedAt      DateTime? @map("confirmed_at")
   unsubscribedAt   DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

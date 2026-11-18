@@ -242,15 +242,10 @@ function RegisterForm() {
       const loginRedirect = organisationalIntent
         ? "/onboarding?intent=organisational"
         : requestedRedirect ?? "/onboarding"
-      const successDetail = organisationalIntent
-        ? data.emailsQueued === false
-          ? "Sign in and complete your profile. Our partnerships team will follow up."
-          : "Check your email to verify your address, then sign in to complete your organisation profile."
-        : "Check your email to verify your address, then sign in to complete your profile."
-      toast.success("Account created!", successDetail)
+      const verificationEmailSent = data.verificationEmailed !== false
       startNavigation()
       router.push(
-        `/login?email=${encodeURIComponent(formData.email)}&registered=true&redirect=${encodeURIComponent(loginRedirect)}`
+        `/login?email=${encodeURIComponent(formData.email)}&registered=true&verificationEmailSent=${verificationEmailSent}&redirect=${encodeURIComponent(loginRedirect)}`
       )
     } catch (error) {
       console.error("[REGISTER FORM] Error:", error)
