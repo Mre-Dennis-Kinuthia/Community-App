@@ -49,20 +49,24 @@ const protectedRoutes = [
 
 export default auth((request) => {
   const { pathname } = request.nextUrl
+  const needsEmailVerification =
+    !!request.auth?.user?.needsEmailVerification &&
+    !request.auth?.user?.staffAccess
 
   if (pathname.startsWith("/api/auth")) {
     return NextResponse.next()
   }
 
   if (
-    request.auth?.user?.needsEmailVerification &&
-    !request.auth.user.staffAccess &&
+    needsEmailVerification &&
     !pathname.startsWith("/api") &&
-    pathname !== "/verify-email"
+    pathname !== "/verify-email" &&
+    pathname !== MARKETING_HOME_PATH
   ) {
     const verificationUrl = new URL("/verify-email", request.url)
-    if (request.auth.user.email) {
-      verificationUrl.searchParams.set("email", request.auth.user.email)
+    const email = request.auth?.user?.email
+    if (email) {
+      verificationUrl.searchParams.set("email", email)
     }
     return NextResponse.redirect(verificationUrl)
   }
@@ -72,7 +76,11 @@ export default auth((request) => {
   const isLoggedIn = !!request.auth
 
   // Signed-in users should use the app, not marketing or sign-in screens
-  if (isLoggedIn && (isAuthPage || pathname === MARKETING_HOME_PATH)) {
+  if (
+    isLoggedIn &&
+    !needsEmailVerification &&
+    (isAuthPage || pathname === MARKETING_HOME_PATH)
+  ) {
     const destination = resolveAuthenticatedRedirect(
       request.nextUrl.searchParams.get("redirect"),
       request.nextUrl.searchParams.get("callbackUrl")

@@ -27,7 +27,8 @@ function EmailVerificationGate() {
   useEffect(() => {
     if (
       session?.user?.needsEmailVerification &&
-      pathname !== "/verify-email"
+      pathname !== "/verify-email" &&
+      !isPublicMarketingPath(pathname)
     ) {
       const email = session.user.email
       const query = email ? `?email=${encodeURIComponent(email)}` : ""

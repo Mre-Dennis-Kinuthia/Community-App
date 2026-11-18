@@ -104,15 +104,17 @@ const nextAuthConfig = {
     ...authConfig.callbacks,
     async jwt(args: Parameters<typeof authConfig.callbacks.jwt>[0]) {
       const token = await authConfig.callbacks.jwt(args)
+      if (!token) return null
       if (typeof token.id === "string" && !token.staffAccess) {
         const user = await prisma.user.findUnique({
           where: { id: token.id },
           select: { emailVerified: true, registrationIntent: true },
         })
+        if (!user) return null
         if (user?.emailVerified && user.registrationIntent) {
           await activateVerifiedRegistration(token.id)
         }
-        token.needsEmailVerification = !user?.emailVerified
+        token.needsEmailVerification = !user.emailVerified
       } else {
         token.needsEmailVerification = false
       }
